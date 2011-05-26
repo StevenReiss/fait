@@ -1,0 +1,42 @@
+<project name='bubbles' default='all' >
+
+   <property name='PRO' value='/research' />
+   <property name='IVYBIN' value='/research/ivy/java' />
+   <property name='FAIT' value='/research/people/spr/fait' />
+
+   <target name='all'>
+      <ant antfile="build.xml" dir="edu/brown/cs/fait/iface" />
+      <ant antfile="build.xml" dir="edu/brown/cs/fait/entity" />
+      <ant antfile="build.xml" dir="edu/brown/cs/fait/bcode" />
+      <ant antfile="build.xml" dir="edu/brown/cs/fait/value" />
+      <ant antfile="build.xml" dir="edu/brown/cs/fait/state" />
+      <ant antfile="build.xml" dir="edu/brown/cs/fait/proto" />
+      <ant antfile="build.xml" dir="edu/brown/cs/fait/call" />
+      <ant antfile="build.xml" dir="edu/brown/cs/fait/flow" />
+      <ant antfile="build.xml" dir="edu/brown/cs/fait/control" />
+   </target>
+
+   <path id='jdocsrc'>
+      <pathelement location='${FAIT}/java' />
+      <pathelement location='${IVYBIN}' />
+      <pathelement location='${PRO}/bubbles/lib/junit.jar' />
+      <fileset dir='${FAIT}/lib/' includes='asm*.jar' />
+   </path>
+
+
+   <target name='doc'>
+      <javadoc sourcepathref='jdocsrc' classpathref='bubbles.classpath' destdir='${PRO}/bubbles/doc'>
+	 <package name='edu.brown.cs.fait.bcode' />
+	 <package name='edu.brown.cs.fait.call' />
+	 <package name='edu.brown.cs.fait.control' />
+	 <package name='edu.brown.cs.fait.entity' />
+	 <package name='edu.brown.cs.fait.iface' />
+	 <package name='edu.brown.cs.fait.flow' />
+	 <package name='edu.brown.cs.fait.proto' />
+	 <package name='edu.brown.cs.fait.state' />
+	 <package name='edu.brown.cs.fait.value' />
+      </javadoc>
+   </target>
+
+
+</project>

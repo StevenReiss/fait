@@ -1,0 +1,247 @@
+/********************************************************************************/
+/*										*/
+/*		ProtoBase.java							*/
+/*										*/
+/*	Basic prototype implementation						*/
+/*										*/
+/********************************************************************************/
+/*	Copyright 2011 Brown University -- Steven P. Reiss		      */
+/*********************************************************************************
+ *  Copyright 2011, Brown University, Providence, RI.				 *
+ *										 *
+ *			  All Rights Reserved					 *
+ *										 *
+ *  Permission to use, copy, modify, and distribute this software and its	 *
+ *  documentation for any purpose other than its incorporation into a		 *
+ *  commercial product is hereby granted without fee, provided that the 	 *
+ *  above copyright notice appear in all copies and that both that		 *
+ *  copyright notice and this permission notice appear in supporting		 *
+ *  documentation, and that the name of Brown University not be used in 	 *
+ *  advertising or publicity pertaining to distribution of the software 	 *
+ *  without specific, written prior permission. 				 *
+ *										 *
+ *  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS		 *
+ *  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND		 *
+ *  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY	 *
+ *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY 	 *
+ *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,		 *
+ *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS		 *
+ *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE 	 *
+ *  OF THIS SOFTWARE.								 *
+ *										 *
+ ********************************************************************************/
+
+
+
+package edu.brown.cs.fait.proto;
+
+import edu.brown.cs.fait.iface.*;
+
+import java.lang.reflect.Method;
+import java.util.*;
+
+
+
+abstract class ProtoBase implements IfacePrototype, ProtoConstants
+{
+
+
+/********************************************************************************/
+/*										*/
+/*	Private Storage 							*/
+/*										*/
+/********************************************************************************/
+protected FaitControl	fait_control;
+private FaitDataType	proto_type;
+private Map<FaitMethod,Method> method_map;
+
+private static Class<?> [] call_params = new Class<?> [] {
+   FaitMethod.class, List.class, FaitLocation.class
+};
+
+
+
+/********************************************************************************/
+/*										*/
+/*	Constructors								*/
+/*										*/
+/********************************************************************************/
+
+protected ProtoBase(FaitControl fc,FaitDataType base)
+{
+   fait_control = fc;
+   proto_type = base;
+   method_map = new HashMap<FaitMethod,Method>();
+}
+
+
+
+/********************************************************************************/
+/*										*/
+/*	Access methods								*/
+/*										*/
+/********************************************************************************/
+
+FaitDataType getDataType()			{ return proto_type; }
+
+
+
+
+/********************************************************************************/
+/*										*/
+/*	Default methods for fields and array access				*/
+/*										*/
+/********************************************************************************/
+
+@Override public void setField(IfaceValue v,FaitField fld)	 { }
+
+@Override public boolean addToField(IfaceValue v,FaitField fld)        { return false; }
+
+@Override public IfaceValue getField(FaitField fld)				{ return null; }
+
+
+@Override public boolean setArrayContents(IfaceValue idx,IfaceValue v)		{ return false; }
+
+@Override public IfaceValue getArrayContents(IfaceValue f)			{ return null; }
+
+
+
+
+/********************************************************************************/
+/*										*/
+/*	Check for relevant methods						*/
+/*										*/
+/********************************************************************************/
+
+@Override public boolean isMethodRelevant(FaitMethod fm)
+{
+   if (proto_type == null) return true;
+
+   FaitDataType dt = fm.getDeclaringClass();
+   if (proto_type == dt || proto_type.isDerivedFrom(dt)) return true;
+
+   return false;
+}
+
+
+
+
+/********************************************************************************/
+/*										*/
+/*	Generic call handler							*/
+/*										*/
+/********************************************************************************/
+
+@Override public IfaceValue handleCall(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
+{
+   Method mthd = null;
+   synchronized (method_map) {
+      if (method_map.containsKey(fm)) mthd = method_map.get(fm);
+      else {
+	 String nm;
+	 if (fm.isConstructor()) nm = "prototype__constructor";
+	 else nm = "prototype_" + fm.getName();
+	 Class<?> c = getClass();
+	 try {
+	    mthd = c.getMethod(nm,call_params);
+	  }
+	 catch (NoSuchMethodException e) { }
+	 method_map.put(fm,mthd);
+       }
+    }
+
+   try {
+      if (mthd != null) {
+	 IfaceValue rslt = (IfaceValue) mthd.invoke(this,fm,args,src);
+	 return rslt;
+       }
+    }
+   catch (Exception e) {
+      System.err.println("FAIT: Problem with prototype call: " + e);
+      e.printStackTrace();
+    }
+
+   return returnAny(fm);
+}
+
+
+
+/********************************************************************************/
+/*										*/
+/*	Return helpers							       */
+/*										*/
+/********************************************************************************/
+
+protected IfaceValue returnAny(FaitMethod fm)
+{
+   return fait_control.findAnyValue(fm.getReturnType());
+}
+
+
+
+protected IfaceValue returnNative(FaitMethod fm)
+{
+   return fait_control.findNativeValue(fm.getReturnType());
+}
+
+
+protected IfaceValue returnMutable(FaitMethod fm)
+{
+   return fait_control.findMutableValue(fm.getReturnType());
+}
+
+
+protected IfaceValue returnTrue()
+{
+   return fait_control.findRangeValue(fait_control.findDataType("Z"),1,1);
+}
+
+
+protected IfaceValue returnFalse()
+{
+   return fait_control.findRangeValue(fait_control.findDataType("Z"),0,0);
+}
+
+
+protected IfaceValue returnInt(int v)
+{
+   return fait_control.findRangeValue(fait_control.findDataType("I"),v,v);
+}
+
+
+
+protected IfaceValue returnInt(int v0,int v1)
+{
+   return fait_control.findRangeValue(fait_control.findDataType("I"),v0,v1);
+}
+
+
+protected IfaceValue returnNull(FaitMethod fm)
+{
+   return fait_control.findNullValue(fm.getReturnType());
+}
+
+
+protected IfaceValue returnVoid()
+{
+   return fait_control.findAnyValue(fait_control.findDataType("V"));
+}
+
+
+
+/********************************************************************************/
+/*										*/
+/*	Methods for incrmental update						*/
+/*										*/
+/********************************************************************************/
+
+@Override public void handleUpdates(IfaceUpdater fu)		   { }
+
+
+
+
+}	// end of abstract class ProtoBase
+
+
+
+/* end of ProtoBase.java */

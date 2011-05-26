@@ -1,0 +1,9 @@
+Testsuite: edu.brown.cs.fait.value.ValueTest
+Tests run: 1, Failures: 1, Errors: 0, Time elapsed: 18.693 sec
+
+Testcase: createValues took 0.032 sec
+	FAILED
+Integer merge expected same:<edu.brown.cs.fait.value.ValueInt@4a982a> was not:<edu.brown.cs.fait.value.ValueObject@4a94d9>
+junit.framework.AssertionFailedError: Integer merge expected same:<edu.brown.cs.fait.value.ValueInt@4a982a> was not:<edu.brown.cs.fait.value.ValueObject@4a94d9>
+	at edu.brown.cs.fait.value.ValueTest.createValues(ValueTest.java:130)
+
