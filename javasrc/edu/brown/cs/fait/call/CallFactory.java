@@ -238,6 +238,20 @@ public Collection<IfaceCall> getAllCalls(FaitMethod fm)
 }
 
 
+public Collection<IfaceCall> getAllCalls()
+{
+   Collection<IfaceCall> rslt = new ArrayList<IfaceCall>();
+
+   synchronized (method_map) {
+      for (Map<Object,CallBase> mm : method_map.values()) {
+	 rslt.addAll(mm.values());
+       }
+    }
+
+   return rslt;
+}
+
+
 
 /********************************************************************************/
 /*										*/

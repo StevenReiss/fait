@@ -32,16 +32,19 @@
  ********************************************************************************/
 
 
-
 package edu.brown.cs.fait.bcode;
 
 import edu.brown.cs.fait.iface.*;
 
+import edu.brown.cs.ivy.xml.*;
+
 import org.objectweb.asm.*;
+import org.w3c.dom.*;
 
 import java.util.*;
 import java.io.*;
 import java.util.jar.*;
+import java.util.concurrent.*;
 
 
 public class BcodeFactory implements BcodeConstants
@@ -54,15 +57,19 @@ public class BcodeFactory implements BcodeConstants
 /*										*/
 /********************************************************************************/
 
+private FaitControl		fait_control;
 private Map<String,FileInfo>	class_map;
 private FaitProject		for_project;
 private Map<String,BcodeClass>	known_classes;
 private Map<String,BcodeMethod> known_methods;
 private Map<String,BcodeField>	known_fields;
 private Queue<String>		work_list;
+private LoadExecutor		work_holder;
 
 private Map<Type,BcodeDataType> static_map;
 private Map<String,BcodeDataType> name_map;
+
+private int			num_threads;
 
 
 
@@ -72,8 +79,9 @@ private Map<String,BcodeDataType> name_map;
 /*										*/
 /********************************************************************************/
 
-public BcodeFactory(FaitControl fc)
+public BcodeFactory(FaitControl fc,int nth)
 {
+   fait_control = fc;
    class_map = new HashMap<String,FileInfo>();
    known_classes = new HashMap<String,BcodeClass>();
    known_methods = new HashMap<String,BcodeMethod>();
@@ -83,9 +91,17 @@ public BcodeFactory(FaitControl fc)
 
    for_project = null;
    work_list = new LinkedList<String>();
+   num_threads = nth;
 
-   //TODO: need to get special file to add extra classes that aren't
-   // linked directory from start classes
+   name_map.put("Z",new BcodeDataType(Type.BOOLEAN_TYPE,this));
+   name_map.put("B",new BcodeDataType(Type.BYTE_TYPE,this));
+   name_map.put("C",new BcodeDataType(Type.CHAR_TYPE,this));
+   name_map.put("D",new BcodeDataType(Type.DOUBLE_TYPE,this));
+   name_map.put("F",new BcodeDataType(Type.FLOAT_TYPE,this));
+   name_map.put("I",new BcodeDataType(Type.INT_TYPE,this));
+   name_map.put("L",new BcodeDataType(Type.LONG_TYPE,this));
+   name_map.put("S",new BcodeDataType(Type.SHORT_TYPE,this));
+   name_map.put("V",new BcodeDataType(Type.VOID_TYPE,this));
 }
 
 
@@ -105,7 +121,7 @@ public void setProject(FaitProject fp)
    work_list.clear();
    setupClassPath();
    setupInitialClasses();
-   loadClasses();
+   loadClassesThreaded(num_threads);
 }
 
 
@@ -122,10 +138,24 @@ private void setupClassPath()
    String jh = System.getProperty("java.home");
    File jf = new File(jh);
    File jf1 = new File(jf,"lib");
-   File jf2 = new File(jf1,"dt.jar");
-   if (!jf2.exists()) jf2 = new File(jf1,"rt.jar");
-   addClassPathEntry(jf2.getPath());
+   File jf3 = new File(jf,"jre");
+   if (jf3.exists()) {
+      File jf4 = new File(jf,"lib");
+      if (jf4.exists()) jf1 = jf4;
+   }
+
+   addJavaJars(jf1);
 }
+
+
+private void addJavaJars(File f)
+{
+   for (File f1 : f.listFiles()) {
+      if (f1.isDirectory()) addJavaJars(f1);
+      else if (f1.getPath().endsWith(".jar")) addClassPathEntry(f1.getPath());
+   }
+}
+
 
 
 private void addClassPathEntry(String cpe)
@@ -137,16 +167,28 @@ private void addClassPathEntry(String cpe)
     }
    else {
       try {
-	 JarInputStream jis = new JarInputStream(new FileInputStream(f));
+	 FileInputStream fis = new FileInputStream(f);
+	 JarInputStream jis = new JarInputStream(fis);
 	 for ( ; ; ) {
 	    JarEntry je = jis.getNextJarEntry();
 	    if (je == null) break;
 	    String cn = je.getName();
 	    String en = cn;
 	    if (cn.endsWith(".class")) en = cn.substring(0,cn.length()-6);
+	    else continue;
 	    en = en.replace("/",".");
 	    if (!class_map.containsKey(en)) {
-	       FileInfo fi = new FileInfo(f,cn);
+	       int sz = (int) je.getSize();
+	       byte [] buf = null;
+	       if (sz > 0) {
+		  buf = new byte[sz];
+		  int ln = 0;
+		  while (ln < sz) {
+		     int ct = jis.read(buf,ln,sz-ln);
+		     ln += ct;
+		   }
+		}
+	       FileInfo fi = new FileInfo(f,cn,buf);
 	       class_map.put(en,fi);
 	     }
 	  }
@@ -196,11 +238,6 @@ public BcodeDataType findDataType(String s)
       bdt = name_map.get(s);
       if (bdt != null) return bdt;
       Type t = Type.getType(s);
-      if (t == null) {
-	 noteClass(s);		// try loading dynamically
-	 loadClasses();
-	 t = Type.getType(s);
-       }
       if (t != null) bdt = createDataType(t);
     }
 
@@ -208,17 +245,17 @@ public BcodeDataType findDataType(String s)
 }
 
 
-BcodeDataType findObjectType(String s)
+public BcodeDataType findClassType(String s)
 {
    if (!s.endsWith(";")) {
       s = "L" + s.replace('.','/') + ";";
     }
+
    return findDataType(s);
 }
 
 
-
-public BcodeDataType findDataType(Type t)
+BcodeDataType findDataType(Type t)
 {
    BcodeDataType bdt = null;
 
@@ -302,16 +339,16 @@ public BcodeMethod findInheritedMethod(String cls,String nm,String desc)
 {
    BcodeClass bc = known_classes.get(cls);
    if (bc == null) return null;
-   
+
    List<FaitMethod> rslt = new ArrayList<FaitMethod>();
    bc.findParentMethods(nm,desc,true,true,rslt);
-   
+
    if (rslt.isEmpty()) return null;
-   
+
    return (BcodeMethod) rslt.get(0);
 }
-   
-      
+
+
 
 
 
@@ -346,10 +383,39 @@ public BcodeField findField(String nm,String cls,String fnm)
 
 
 
+public BcodeField findInheritedField(String cls,String fnm)
+{
+   BcodeClass bc = known_classes.get(cls);
+   if (bc == null) return null;
+
+   return bc.findInheritedField(fnm);
+}
+
+
+
+public Collection<FaitMethod> getStartMethods()
+{
+   Collection<String> snames = for_project.getStartClasses();
+   if (snames == null) snames = for_project.getBaseClasses();
+
+   Collection<FaitMethod> rslt = new HashSet<FaitMethod>();
+
+   for (String s : snames) {
+      FaitMethod fm = findMethod(null,s,"main","([Ljava/lang/String;)V");
+      if (fm != null) rslt.add(fm);
+    }
+
+   return rslt;
+}
+
+
+
 
 
 boolean isProjectClass(String nm)
 {
+   if (for_project == null) return false;
+
    return for_project.isProjectClass(nm);
 }
 
@@ -364,7 +430,36 @@ boolean isProjectClass(String nm)
 private void setupInitialClasses()
 {
    work_list.addAll(for_project.getBaseClasses());
+
+   if (fait_control != null)
+      addDescriptionClasses(IvyXml.loadXmlFromFile(fait_control.getDescriptionFile()));
+
+   if (for_project.getDescriptionFile() != null) {
+      for (File f : for_project.getDescriptionFile()) {
+	 addDescriptionClasses(IvyXml.loadXmlFromFile(f));
+       }
+    }
 }
+
+
+private void addDescriptionClasses(Element e)
+{
+   if (e == null) return;
+
+   for (Element me : IvyXml.children(e,"METHOD")) {
+      String s = IvyXml.getAttrString(me,"RETURN");
+      if (s != null && !s.equals("0")) {
+	 while (s.endsWith("[]")) s = s.substring(0,s.length()-2);
+	 work_list.add(s);
+       }
+    }
+
+   for (Element le : IvyXml.children(e,"LOAD")) {
+      String s = IvyXml.getAttrString(le,"CLASS");
+      if (le != null) work_list.add(s);
+    }
+}
+
 
 
 
@@ -374,6 +469,121 @@ private void setupInitialClasses()
 /*										*/
 /********************************************************************************/
 
+private synchronized void loadClassesThreaded(int nth)
+{
+   work_holder = new LoadExecutor(nth);
+   for (String s : work_list) work_holder.workOnClass(s);
+   work_list.clear();
+   synchronized (work_holder) {
+      try {
+	 work_holder.wait(1000);
+       }
+      catch (InterruptedException e) { }
+      while (!work_holder.isDone()) {
+	 try {
+	    work_holder.wait(10000);
+	  }
+	 catch (InterruptedException e) { }
+       }
+    }
+   work_holder.shutdown();
+   work_holder = null;
+}
+
+
+
+
+private class LoadExecutor extends ThreadPoolExecutor {
+
+   private int num_active;
+   private Set<String> work_items;
+
+   LoadExecutor(int nth) {
+      super(nth,nth,10,TimeUnit.SECONDS,new LinkedBlockingQueue<Runnable>());
+      num_active = 0;
+      work_items = new HashSet<String>();
+    }
+
+   void workOnClass(String c) {
+      synchronized (this) {
+         if (work_items.contains(c)) return;
+         work_items.add(c);
+       }
+      LoadTask task = new LoadTask(c);
+      execute(task);
+    }
+
+
+   @Override synchronized protected void beforeExecute(Thread t,Runnable r) {
+      ++num_active;
+    }
+
+   @Override synchronized protected void afterExecute(Runnable r,Throwable t) {
+      --num_active;
+      if (num_active == 0 && getQueue().size() == 0) {
+         notifyAll();
+       }
+    }
+
+   synchronized boolean isDone() {
+      return num_active == 0 && getQueue().size() == 0;
+    }
+
+}	// end of class LoadExecutor
+
+
+
+
+private class LoadTask implements Runnable {
+
+   private String load_class;
+
+   LoadTask(String c) {
+      load_class = c;
+    }
+
+   @Override public void run() {
+      FileInfo fi = class_map.get(load_class);
+      if (fi == null) {
+	 IfaceLog.logI("Can't find class " + load_class);
+	 return;
+       }
+      InputStream ins = fi.getInputStream();
+      if (ins == null) {
+	 IfaceLog.logE("Can't open file for class " + load_class);
+	 return;
+       }
+
+      try {
+	 boolean pcls = for_project.isProjectClass(load_class);
+	 BcodeClass bc = null;
+	 synchronized (known_classes) {
+	    if (known_classes.get(load_class) == null) {
+	       bc = new BcodeClass(BcodeFactory.this,pcls);
+	       known_classes.put(load_class,bc);
+	       String c1 = load_class.replace('.','/');
+	       known_classes.put(c1,bc);
+	       c1 = "L" + c1 + ";";
+	       known_classes.put(c1,bc);
+	     }
+	  }
+
+	 if (bc != null) {
+	    ClassReader cr = new ClassReader(ins);
+	    cr.accept(bc,0);
+	  }
+
+	 ins.close();
+       }
+      catch (IOException e) {
+	 System.err.println("BCODE: Problem reading class " + load_class);
+       }
+    }
+
+}	// end of inner class LoadTask
+
+
+
 private synchronized void loadClasses()
 {
    while (!work_list.isEmpty()) {
@@ -381,12 +591,12 @@ private synchronized void loadClasses()
       if (known_classes.get(c) != null) continue;
       FileInfo fi = class_map.get(c);
       if (fi == null) {
-	 System.err.println("BCODE: Can't find class " + c);
+	 IfaceLog.logI("Can't find class " + c);
 	 continue;
        }
       InputStream ins = fi.getInputStream();
       if (ins == null) {
-	 System.err.println("BCODE: Can't open file for class " + c);
+	 IfaceLog.logW("BCODE: Can't open file for class " + c);
 	 continue;
        }
 
@@ -394,6 +604,11 @@ private synchronized void loadClasses()
 	 boolean pcls = for_project.isProjectClass(c);
 	 BcodeClass bc = new BcodeClass(this,pcls);
 	 known_classes.put(c,bc);
+	 String c1 = c.replace('.','/');
+	 known_classes.put(c1,bc);
+	 c1 = "L" + c1 + ";";
+	 known_classes.put(c1,bc);
+
 	 ClassReader cr = new ClassReader(ins);
 	 cr.accept(bc,0);
 	 ins.close();
@@ -412,10 +627,24 @@ void noteType(String desc)
 {
    if (desc.startsWith("L") && desc.endsWith(";")) {
       String nm = desc.substring(1,desc.length()-1);
+      nm = nm.replace('/','.');
       noteClass(nm);
     }
    else if (desc.startsWith("[")) {
       noteType(desc.substring(1));
+    }
+   else if (desc.startsWith("(")) {
+      for (Type t : Type.getArgumentTypes(desc)) {
+	 switch (t.getSort()) {
+	    case Type.ARRAY :
+	    case Type.OBJECT :
+	       noteType(t.getDescriptor());
+	       break;
+	  }
+       }
+    }
+   else if (desc.length() > 1) {
+      IfaceLog.logW("Type for load not found: '" + desc + "'");
     }
 }
 
@@ -425,12 +654,19 @@ void noteType(String desc)
 void noteClass(String nm)
 {
    nm = nm.replace("/",".");
-   if (nm.endsWith(";") && nm.startsWith("L")) {
-      nm = nm.substring(1,nm.length()-1);
+   if (nm.startsWith("[")) {
+      noteType(nm);
+      return;
     }
-   if (known_classes.containsKey(nm)) return;
-   work_list.add(nm);
-   known_classes.put(nm,null);
+
+   if (work_holder != null) {
+      work_holder.workOnClass(nm);
+    }
+   else {
+      if (known_classes.containsKey(nm)) return;
+      work_list.add(nm);
+      known_classes.put(nm,null);
+    }
 }
 
 
@@ -448,15 +684,18 @@ private static class FileInfo {
 
    private File base_file;
    private String jar_item;
+   private byte [] file_data;
 
    FileInfo(File f) {
       base_file = f;
       jar_item = null;
+      file_data = null;
     }
 
-   FileInfo(File jar,String itm) {
+   FileInfo(File jar,String itm,byte [] data) {
       base_file = jar;
       jar_item = itm;
+      file_data = data;
     }
 
    InputStream getInputStream() {
@@ -466,6 +705,10 @@ private static class FileInfo {
 	    return ins;
 	  }
 	 catch (IOException e) { }
+       }
+      else if (file_data != null) {
+	 ByteStream bs = new ByteStream(this,file_data);
+	 return bs;
        }
       else {
 	 try {
@@ -480,12 +723,38 @@ private static class FileInfo {
 	     }
 	    ins.close();
 	  }
-	 catch (IOException e) { }
+	 catch (IOException e) {
+	    System.err.println("FAIT: Problem reading jar file: " + e);
+	    e.printStackTrace();
+	  }
        }
       return null;
     }
 
+   void clear() {
+      file_data = null;
+    }
+
 }	// end of inner class FileInfo
+
+
+
+private static class ByteStream extends ByteArrayInputStream {
+
+   private FileInfo file_info;
+
+   ByteStream(FileInfo fi,byte [] data) {
+      super(data);
+      file_info = fi;
+    }
+
+   @Override public void close() {
+      file_info.clear();
+    }
+
+}	// end of inner class ByteStream
+
+
 
 
 }	// end of class BcodeFactory
@@ -494,4 +763,3 @@ private static class FileInfo {
 
 
 /* end of BcodeFactory.java */
-

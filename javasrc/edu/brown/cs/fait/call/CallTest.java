@@ -82,7 +82,7 @@ public CallTest()
 {
    FaitMethod fm1 = fait_control.findMethod("java.util.regex.Pattern","matcher",null);
    FaitMethod fm2 = fait_control.findMethod("java.lang.StringBuilder","toString",null);
-   FaitMethod fm3 = fait_control.findMethod("java.lang.String","trim",null);
+   FaitMethod fm3 = fait_control.findMethod("java.lang.Object","notify",null);
 
    IfaceSpecial s1 = fait_control.getCallSpecial(fm1);
    IfaceSpecial s2 = fait_control.getCallSpecial(fm2);
@@ -90,7 +90,7 @@ public CallTest()
 
    Assert.assertNotNull("matcher should be special",s1);
    Assert.assertNotNull("StringBuilder.toString should be special",s2);
-   Assert.assertNull("String.trim should not be special",s3);
+   Assert.assertNull("Object.notify should not be special",s3);
 }
 
 
@@ -112,7 +112,8 @@ private static class TestProject implements FaitProject {
       rslt.add("spr.onsets.OnsetMain");
       return rslt;
     }
-
+   @Override public Collection<String> getStartClasses()        { return null; }
+   
    @Override public List<File> getDescriptionFile()		{ return null; }
 
    @Override public boolean isProjectClass(String cls) {

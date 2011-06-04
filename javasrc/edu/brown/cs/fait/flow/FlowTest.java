@@ -1,34 +1,34 @@
 /********************************************************************************/
-/*                                                                              */
-/*              FlowTest.java                                                   */
-/*                                                                              */
-/*      Tests for flow analysis                                                 */
-/*                                                                              */
+/*										*/
+/*		FlowTest.java							*/
+/*										*/
+/*	Tests for flow analysis 						*/
+/*										*/
 /********************************************************************************/
-/*      Copyright 2011 Brown University -- Steven P. Reiss                    */
+/*	Copyright 2011 Brown University -- Steven P. Reiss		      */
 /*********************************************************************************
- *  Copyright 2011, Brown University, Providence, RI.                            *
- *                                                                               *
- *                        All Rights Reserved                                    *
- *                                                                               *
- *  Permission to use, copy, modify, and distribute this software and its        *
- *  documentation for any purpose other than its incorporation into a            *
- *  commercial product is hereby granted without fee, provided that the          *
- *  above copyright notice appear in all copies and that both that               *
- *  copyright notice and this permission notice appear in supporting             *
- *  documentation, and that the name of Brown University not be used in          *
- *  advertising or publicity pertaining to distribution of the software          *
- *  without specific, written prior permission.                                  *
- *                                                                               *
- *  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS                *
- *  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND            *
- *  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY      *
- *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY          *
- *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,              *
- *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS               *
- *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE          *
- *  OF THIS SOFTWARE.                                                            *
- *                                                                               *
+ *  Copyright 2011, Brown University, Providence, RI.				 *
+ *										 *
+ *			  All Rights Reserved					 *
+ *										 *
+ *  Permission to use, copy, modify, and distribute this software and its	 *
+ *  documentation for any purpose other than its incorporation into a		 *
+ *  commercial product is hereby granted without fee, provided that the 	 *
+ *  above copyright notice appear in all copies and that both that		 *
+ *  copyright notice and this permission notice appear in supporting		 *
+ *  documentation, and that the name of Brown University not be used in 	 *
+ *  advertising or publicity pertaining to distribution of the software 	 *
+ *  without specific, written prior permission. 				 *
+ *										 *
+ *  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS		 *
+ *  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND		 *
+ *  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY	 *
+ *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY 	 *
+ *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,		 *
+ *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS		 *
+ *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE 	 *
+ *  OF THIS SOFTWARE.								 *
+ *										 *
  ********************************************************************************/
 
 
@@ -48,53 +48,118 @@ public class FlowTest implements FlowConstants
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Private Storage                                                         */
-/*                                                                              */
+/*										*/
+/*	Private Storage 							*/
+/*										*/
 /********************************************************************************/
 
-private FaitControl     fait_control;
+private FaitControl	fait_control;
 private Collection<String> start_classes;
 
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Constructors                                                            */
-/*                                                                              */
+/*										*/
+/*	Constructors								*/
+/*										*/
 /********************************************************************************/
 
 public FlowTest()
 {
-   fait_control = FaitControl.Factory.getControl();
-   
-   fait_control.setProject(new TestProject());
-   start_classes = null;
 }
-   
+
 
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Test case for onsets                                                    */
-/*                                                                              */
+/*										*/
+/*	Test case for onsets							*/
+/*										*/
 /********************************************************************************/
 
 @Test public void flowTestOnsets()
 {
+   fait_control = FaitControl.Factory.getControl();
+   fait_control.setProject(new TestProject());
+
    start_classes = new ArrayList<String>();
    start_classes.add("spr.onsets.OnsetMain");
-   
-   fait_control.analyze();
+
+   IfaceLog.setLevel(LogLevel.DEBUG);
+
+   fait_control.analyze(1);
+
+   for (IfaceCall ic : fait_control.getAllCalls()) {
+      if (!ic.getMethod().isInProject()) {
+	 Collection<FaitInstruction> cins = ic.getDeadInstructions();
+	 if (cins != null && !cins.isEmpty()) {
+	    IfaceLog.logD("Dead instructions for " + ic.getLogName() + ":");
+	    for (FaitInstruction fi : cins) {
+	       IfaceLog.logD1("OP: " + fi.toString());
+	     }
+	  }
+       }
+    }
+
+   for (IfaceCall ic : fait_control.getAllCalls()) {
+      if (ic.getMethod().isInProject()) {
+	 Collection<FaitInstruction> cins = ic.getDeadInstructions();
+	 if (cins != null && !cins.isEmpty()) {
+	    IfaceLog.logD("Dead instructions for " + ic.getLogName() + ":");
+	    for (FaitInstruction fi : cins) {
+	       IfaceLog.logD1("OP: " + fi.toString());
+	     }
+	  }
+       }
+    }
+}
+
+
+
+@Test
+public void flowTestOnsetsThreaded()
+{
+   fait_control = FaitControl.Factory.getControl();
+   fait_control.setProject(new TestProject());
+
+   start_classes = new ArrayList<String>();
+   start_classes.add("spr.onsets.OnsetMain");
+
+   IfaceLog.setLevel(LogLevel.DEBUG);
+
+   fait_control.analyze(4);
+
+   for (IfaceCall ic : fait_control.getAllCalls()) {
+      if (!ic.getMethod().isInProject()) {
+	 Collection<FaitInstruction> cins = ic.getDeadInstructions();
+	 if (cins != null && !cins.isEmpty()) {
+	    IfaceLog.logD("Dead instructions for " + ic.getLogName() + ":");
+	    for (FaitInstruction fi : cins) {
+	       IfaceLog.logD1("OP: " + fi.toString());
+	     }
+	  }
+       }
+    }
+
+   for (IfaceCall ic : fait_control.getAllCalls()) {
+      if (ic.getMethod().isInProject()) {
+	 Collection<FaitInstruction> cins = ic.getDeadInstructions();
+	 if (cins != null && !cins.isEmpty()) {
+	    IfaceLog.logD("Dead instructions for " + ic.getLogName() + ":");
+	    for (FaitInstruction fi : cins) {
+	       IfaceLog.logD1("OP: " + fi.toString());
+	     }
+	  }
+       }
+    }
 }
 
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Test project                                                            */
-/*                                                                              */
+/*										*/
+/*	Test project								*/
+/*										*/
 /********************************************************************************/
 
 private class TestProject implements FaitProject {
@@ -108,7 +173,7 @@ private class TestProject implements FaitProject {
    rslt.add("spr.onsets.OnsetMain");
    return rslt;
 }
-@Override public Collection<String> getStartClasses()        { return start_classes; }
+@Override public Collection<String> getStartClasses()	     { return start_classes; }
 
 @Override public List<File> getDescriptionFile()		{ return null; }
 
@@ -117,11 +182,11 @@ private class TestProject implements FaitProject {
    return false;
 }
 
-@Override public FaitMethodData createMethodData(FaitCall fc)   { return null; }
+@Override public FaitMethodData createMethodData(FaitCall fc)	{ return null; }
 
 }	// end of inner class TestProject
 
-}       // end of class FlowTest
+}	// end of class FlowTest
 
 
 

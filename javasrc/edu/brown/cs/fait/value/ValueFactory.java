@@ -361,6 +361,7 @@ public ValueBase initialFieldValue(FaitField fld,boolean nat)
 {
    FaitDataType c = fld.getDeclaringClass();
    if (c.getName().startsWith("java.lang.")) nat = true;
+   if (!c.isProjectClass()) nat = true;
    ValueBase s0 = null;
    FaitDataType ftyp = fld.getType();
 

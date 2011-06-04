@@ -101,9 +101,11 @@ IfaceValue handleNewArraySet(FlowLocation loc,FaitDataType acls,int ndim,IfaceVa
 
    acls = acls.getArrayType();
 
+   IfaceLog.logD1("Array set = " + as + " " + acls.getName());
+
    return fait_control.findObjectValue(acls,fait_control.createSingletonSet(as),NullFlags.NON_NULL);
 }
-	
+
 
 
 /********************************************************************************/
@@ -121,7 +123,7 @@ IfaceValue handleArrayAccess(FlowLocation loc,IfaceValue arr,IfaceValue idx)
       if (xe.getDataType().isArray()) {
 	 addReference(xe,loc);
 	 IfaceValue cv1 = (IfaceValue) xe.getArrayValue(idx);
-	 if (cv1 == null) cv = cv1;
+	 if (cv == null) cv = cv1;
 	 else cv = cv.mergeValue(cv1);
        }
       else if (xe.isNative()) nat = true;
@@ -178,6 +180,8 @@ IfaceValue handleArrayAccess(FlowLocation loc,IfaceValue arr,IfaceValue idx)
 void handleArraySet(FlowLocation loc,IfaceValue arr,IfaceValue val,IfaceValue idx)
 {
    if (val.isBad()) return;
+
+   IfaceLog.logD1("Add to array set " + arr + "[" + idx + "] = " + val);
 
    for (IfaceEntity ce : arr.getEntities()) {
       if (ce.getDataType().isArray()) {
@@ -249,6 +253,7 @@ void noteArrayChange(IfaceEntity arr)
    if (locs == null) return;
    for (FlowLocation loc : locs) {
       flow_queue.queueMethodChange(loc.getCall(),loc.getInstruction());
+      IfaceLog.logD1("Array change method " + loc);
     }
 }
 

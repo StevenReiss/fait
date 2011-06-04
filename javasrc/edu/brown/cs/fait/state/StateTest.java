@@ -115,7 +115,8 @@ private static class TestProject implements FaitProject {
       rslt.add("spr.onsets.OnsetMain");
       return rslt;
     }
-
+   @Override public Collection<String> getStartClasses()        { return null; }
+   
    @Override public List<File> getDescriptionFile()		{ return null; }
 
    @Override public boolean isProjectClass(String cls) {

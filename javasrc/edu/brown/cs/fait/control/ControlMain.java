@@ -43,6 +43,7 @@ import edu.brown.cs.fait.value.*;
 import edu.brown.cs.fait.state.*;
 import edu.brown.cs.fait.proto.*;
 import edu.brown.cs.fait.call.*;
+import edu.brown.cs.fait.flow.*;
 
 import java.io.File;
 import java.util.*;
@@ -65,6 +66,7 @@ private ValueFactory	value_factory;
 private StateFactory	state_factory;
 private ProtoFactory	proto_factory;
 private CallFactory	call_factory;
+private FlowFactory	flow_factory;
 private FaitProject	user_project;
 
 
@@ -77,12 +79,13 @@ private FaitProject	user_project;
 
 public ControlMain()
 {
-   bcode_factory = new BcodeFactory(this);
+   bcode_factory = new BcodeFactory(this,10);
    entity_factory = new EntityFactory();
    value_factory = new ValueFactory(this);
    state_factory = new StateFactory(this);
    proto_factory = new ProtoFactory(this);
    call_factory = new CallFactory(this);
+   flow_factory = new FlowFactory(this);
    user_project = null;
 }
 
@@ -127,6 +130,12 @@ public ControlMain()
 }
 
 
+@Override public FaitDataType findClassType(String cls)
+{
+   return bcode_factory.findClassType(cls);
+}
+
+
 @Override public FaitMethod findMethod(String cls,String method,String sign)
 {
    return bcode_factory.findMethod(null,cls,method,sign);
@@ -149,6 +158,12 @@ public ControlMain()
    return bcode_factory.findField(null,cls,fld);
 }
 
+
+
+public Collection<FaitMethod> getStartMethods()
+{
+   return bcode_factory.getStartMethods();
+}
 
 // FaitInstruction findCall(FaitMethod fm,int line,String rtn,int idx);
 // FaitInstruction findNew(FaitMethod fm,int line,String type,int idx);
@@ -423,6 +438,33 @@ public ControlMain()
 @Override public Collection<IfaceCall> getAllCalls(FaitMethod fm)
 {
    return call_factory.getAllCalls(fm);
+}
+
+
+
+@Override public Collection<IfaceCall> getAllCalls()
+{
+   return call_factory.getAllCalls();
+}
+
+
+
+
+/********************************************************************************/
+/*										*/
+/*	Flow related methods							*/
+/*										*/
+/********************************************************************************/
+
+@Override public void analyze(int nthread)
+{
+   flow_factory.analyze(nthread);
+}
+
+
+@Override public void queueLocation(FaitLocation loc)
+{
+   flow_factory.queueLocation(loc);
 }
 
 

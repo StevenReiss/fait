@@ -103,6 +103,7 @@ FaitInstruction getNext()
 void mergeState(IfaceState st,FaitInstruction ins)
 {
    if (st == null) return;
+   if (ins == null) ins = for_call.getMethod().getInstruction(0);
    
    IfaceState ost = state_map.get(ins);
    if (ost == null) ost = st.cloneState();

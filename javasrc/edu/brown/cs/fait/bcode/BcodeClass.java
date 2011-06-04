@@ -150,17 +150,36 @@ BcodeField findField(String nm)
 
 
 
+BcodeField findInheritedField(String nm)
+{
+   BcodeField bf = findField(nm);
+   if (bf != null) return bf;
+   BcodeClass bc = bcode_factory.findClassNode(superName);
+   if (bc != null) bf = bc.findInheritedField(nm);
+   if (bf == null) {
+      for (Object o : interfaces) {
+	 bc = bcode_factory.findClassNode(o.toString());
+	 if (bc != null) bf = bc.findInheritedField(nm);
+	 if (bf != null) break;
+       }
+    }
+   
+   return bf;
+}
+
+
+
 Collection<FaitMethod> findParentMethods(String nm,String desc,boolean check,boolean first,Collection<FaitMethod> rslt)
 {
    if (rslt == null) rslt = new HashSet<FaitMethod>();
-   
+
    if (first && !rslt.isEmpty()) return rslt;
 
    if (check) {
       BcodeMethod bm = findMethod(nm,desc);
-      if (bm != null) { 
-         rslt.add(bm);
-         if (first) return rslt;
+      if (bm != null) {
+	 rslt.add(bm);
+	 if (first) return rslt;
        }
     }
 
@@ -219,7 +238,7 @@ Collection<FaitMethod> findChildMethods(String nm,String desc,boolean check,Coll
 
 @Override public void visitEnd()
 {
-   BcodeDataType bdt = bcode_factory.findObjectType(name);
+   BcodeDataType bdt = bcode_factory.findClassType(name);
    bdt.noteSuperType(superName);
    bdt.noteInterfaces(interfaces);
    bdt.noteModifiers(access);
@@ -229,7 +248,10 @@ Collection<FaitMethod> findChildMethods(String nm,String desc,boolean check,Coll
 @SuppressWarnings("unchecked")
 @Override public MethodVisitor visitMethod(int a,String n,String d,String sgn,String [] ex)
 {
-   if (ex != null) for (String s : ex) bcode_factory.noteClass(s);
+   if (ex != null) {
+      for (String s : ex) bcode_factory.noteClass(s);
+    }
+   
    for (Type t : Type.getArgumentTypes(d)) bcode_factory.noteType(t.getDescriptor());
    bcode_factory.noteType(Type.getReturnType(d).getDescriptor());
    BcodeMethod bm = new BcodeMethod(bcode_factory,this,a,n,d,sgn,ex);

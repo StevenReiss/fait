@@ -81,8 +81,7 @@ void scanCode(FlowQueueInstance wq)
 	 processInstruction(fi,wq);
        }
       catch (Throwable t) {
-	 System.err.println("FAIT: Problem processing " + wq.getCall().getMethod().getName());
-	 t.printStackTrace();
+	 IfaceLog.logE("Problem processing " + wq.getCall().getLogName(),t);
        }
     }
 }
@@ -100,9 +99,11 @@ private void processInstruction(FaitInstruction ins,FlowQueueInstance wq)
    IfaceState st1 = wq.getState(ins);
    IfaceCall call = wq.getCall();
 
-   // FaitLog.log("Work on " + ins);
+   IfaceLog.logD("Work on " + ins);
 
    if (!flow_queue.checkInitialized(st1,call,ins)) return;
+
+   call.removeDeadInstruction(ins);
 
    st1 = st1.cloneState();
 
@@ -121,7 +122,8 @@ private void processInstruction(FaitInstruction ins,FlowQueueInstance wq)
     }
 
    FaitInstruction nins = call.getMethod().getInstruction(ins.getIndex() + 1);
-   FlowLocation here = new FlowLocation(call,ins);
+   FaitInstruction pins = nins;
+   FlowLocation here = new FlowLocation(flow_queue,call,ins);
 
    switch (ins.getOpcode()) {
 /* OBJECT PROCESSING INSTRUTIONS */
@@ -144,7 +146,7 @@ private void processInstruction(FaitInstruction ins,FlowQueueInstance wq)
       case ASTORE : case ASTORE_0 : case ASTORE_1 : case ASTORE_2 : case ASTORE_3 :
 	 v0 = st1.popStack();
 	 st1.setLocal(ins.getLocalVariable(),v0);
-	 // FaitLog.log("\tSet local " + ins.getLocalVariable() + " = " + v0);
+	 IfaceLog.logD1("Set local " + ins.getLocalVariable() + " = " + v0);
 	 break;
       case CHECKCAST :
 	 v0 = st1.popStack();
@@ -155,7 +157,7 @@ private void processInstruction(FaitInstruction ins,FlowQueueInstance wq)
 	 v0 = v0.restrictByType(ins.getTypeReference(),pfg,here);
 	 if (v0.mustBeNull()) v0 = fait_control.findNullValue(ins.getTypeReference());
 	 if (!v0.mustBeNull() && v0.isEmptyEntitySet()) nins = null;
-	 // FaitLog.log("\tCast result = " + v0);
+	 IfaceLog.logD1("Cast result = " + v0);
 	 st1.pushStack(v0);
 	 break;
       case DUP :
@@ -177,14 +179,14 @@ private void processInstruction(FaitInstruction ins,FlowQueueInstance wq)
 	 st1.handleDup(true,2);
 	 break;
       case MONITORENTER :
-         st1 = handleAccess(here,st1);
-         if (st1 == null) break;
+	 st1 = handleAccess(here,st1);
+	 if (st1 == null) break;
 	 v0 = st1.popStack();
 	 call.setAssociation(AssociationType.SYNC,ins,v0);
 	 break;
       case MONITOREXIT :
-         st1 = handleAccess(here,st1);
-         if (st1 == null) break;
+	 st1 = handleAccess(here,st1);
+	 if (st1 == null) break;
 	 v0 = st1.popStack();
 	 call.setAssociation(AssociationType.SYNC,ins,v0);
 	 st1.discardFields();
@@ -361,6 +363,7 @@ private void processInstruction(FaitInstruction ins,FlowQueueInstance wq)
 	 v0 = st1.popStack();
 	 st1.setLocal(i0,v0);
 	 if (v0.isCategory2()) st1.setLocal(i0+1,null);
+	 IfaceLog.logD1("Set local " + i0 + " = " + v0);
 	 break;
 
 /* BRANCH INSTRUCTIONS */
@@ -373,18 +376,20 @@ private void processInstruction(FaitInstruction ins,FlowQueueInstance wq)
       case IF_ICMPLT : case IF_ICMPGE : case IF_ICMPGT : case IF_ICMPLE :
 	 v0 = st1.popStack();
 	 v1 = st1.popStack();
-	 // FaitLog.log("\tCompare " + v1 + " :: " + v0);
+	 IfaceLog.logD1("Compare " + v1 + " :: " + v0);
 	 brslt = v1.branchTest(v0,ins.getOpcode());
 	 if (brslt != TestBranch.NEVER) wq.mergeState(st1,ins.getTargetInstruction());
+	 else call.addDeadInstruction(ins);
 	 if (brslt == TestBranch.ALWAYS) nins = null;
 	 break;
       case IFEQ : case IFNE : case IFLT : case IFGE : case IFGT : case IFLE :
       case IFNONNULL : case IFNULL :
 	 v0 = st1.popStack();
-	 // FaitLog.log("\tTest Value = " + v0);
+	 IfaceLog.logD1("Test Value = " + v0);
 	 brslt = v0.branchTest(v0,ins.getOpcode());
 	 st1 = flow_queue.handleImplications(wq,ins,st1,brslt);
 	 if (brslt != TestBranch.NEVER) wq.mergeState(st1,ins.getTargetInstruction());
+	 else call.addDeadInstruction(ins);
 	 if (brslt == TestBranch.ALWAYS) nins = null;
 	 break;
       case LOOKUPSWITCH :
@@ -394,6 +399,7 @@ private void processInstruction(FaitInstruction ins,FlowQueueInstance wq)
 	    wq.mergeState(st1,xin);
 	  }
 	 nins = null;
+	 pins = null;
 	 break;
 
 /* SUBROUTINE CALLS */
@@ -412,61 +418,58 @@ private void processInstruction(FaitInstruction ins,FlowQueueInstance wq)
       case ARETURN :
       case DRETURN : case FRETURN : case IRETURN : case LRETURN :
 	 v0 = st1.popStack();
-         flow_queue.handleReturn(call,st1,v0);
+	 flow_queue.handleReturn(call,v0);
 	 nins = null;
+	 pins = null;
 	 break;
       case RETURN :
-         v0 = fait_control.findAnyValue(fait_control.findDataType("V"));
-         flow_queue.handleReturn(call,st1,v0);
-         nins = null;
+	 v0 = fait_control.findAnyValue(fait_control.findDataType("V"));
+	 flow_queue.handleReturn(call,v0);
+	 nins = null;
+	 pins = null;
 	 break;
       case INVOKEINTERFACE :
       case INVOKESPECIAL :
       case INVOKESTATIC :
       case INVOKEVIRTUAL :
-         handleAccess(here,st1);
-         if (!flow_queue.handleCall(here,st1,wq)) {
-            nins = null;
-          }
-         if (ins.getMethodReference().getName().equals("exit")) {
-            if (ins.getMethodReference().getDeclaringClass().getName().equals("java.lang.System")) {
-               nins = null;
-             }
-          }
-         break;
+	 FaitMethod fm = ins.getMethodReference();
+	 st1 = handleAccess(here,st1);
+	 if (st1 == null) break;
+	 if (!flow_queue.handleCall(here,st1,wq)) {
+	    IfaceLog.logD1("Unknown RETURN value");
+	    IfaceCall ncall = call.getMethodCalled(ins,fm);
+	    if (ncall != null && ncall.getCanExit()) pins = null;
+	    nins = null;
+	  }
+	 break;
       case ATHROW :
-         st1 = handleAccess(here,st1);
-         if (st1 == null) break;
+	 st1 = handleAccess(here,st1);
+	 if (st1 == null) break;
 	 v0 = st1.popStack();
 	 call.setAssociation(AssociationType.THROW,ins,v0);
 	 nins = null;
-         flow_queue.handleThrow(here,v0,st1);
+	 pins = null;
+	 flow_queue.handleThrow(wq,here,v0,st1);
 	 break;
-         
-/* ARRAY PROCESSING INSTRUCTIONS */
 
+/* ARRAY PROCESSING INSTRUCTIONS */
       case AALOAD :
-         st1 = handleAccess(here,st1);
-         if (st1 == null) break;
+	 st1 = handleAccess(here,st1);
+	 if (st1 == null) break;
 	 v2 = st1.popStack();		// index
 	 v0 = st1.popStack();		// array
 	 call.setAssociation(AssociationType.THISREF,ins,v0);
 	 v1 = flow_queue.handleArrayAccess(here,v0,v2);
-	 // FaitLog.log("\tArray " + v0 + " index " + v2 + " == " + v1);
+	 IfaceLog.logD1("Array " + v0 + " index " + v2 + " = " + v1);
 	 st1.pushStack(v1);
 	 break;
       case AASTORE :
-         st1 = handleAccess(here,st1);
-         if (st1 == null) break;
+	 st1 = handleAccess(here,st1);
+	 if (st1 == null) break;
 	 v0 = st1.popStack();
 	 v1 = st1.popStack();
 	 v2 = st1.popStack();
 	 call.setAssociation(AssociationType.THISREF,ins,v2);
-	 if (v2.mustBeNull()) {
-	    // log
-	    nins = null;
-	    break;
-	  }
 	 flow_queue.handleArraySet(here,v2,v0,v1);
 	 break;
       case ANEWARRAY :
@@ -492,8 +495,8 @@ private void processInstruction(FaitInstruction ins,FlowQueueInstance wq)
 	 st1.pushStack(v1);
 	 break;
       case ARRAYLENGTH :
-         st1 = handleAccess(here,st1);
-         if (st1 == null) break;
+	 st1 = handleAccess(here,st1);
+	 if (st1 == null) break;
 	 v0 = st1.popStack();
 	 call.setAssociation(AssociationType.THISREF,ins,v0);
 	 v1 = fait_control.findAnyValue(fait_control.findDataType("I"));
@@ -501,18 +504,19 @@ private void processInstruction(FaitInstruction ins,FlowQueueInstance wq)
 	 break;
       case BALOAD : case CALOAD : case DALOAD : case FALOAD :
       case IALOAD : case LALOAD : case SALOAD :
-         st1 = handleAccess(here,st1);
-         if (st1 == null) break;
+	 st1 = handleAccess(here,st1);
+	 if (st1 == null) break;
 	 v2 = st1.popStack();			// index
 	 v0 = st1.popStack();
 	 call.setAssociation(AssociationType.THISREF,ins,v0);
 	 v1 = flow_queue.handleArrayAccess(here,v0,v2);
+	 IfaceLog.logD1("Array " + v0 + " index " + v2 + " = " + v1);
 	 st1.pushStack(v1);
 	 break;
       case BASTORE : case CASTORE : case DASTORE : case FASTORE :
       case IASTORE : case LASTORE : case SASTORE :
-         st1 = handleAccess(here,st1);
-         if (st1 == null) break;
+	 st1 = handleAccess(here,st1);
+	 if (st1 == null) break;
 	 v0 = st1.popStack();
 	 v1 = st1.popStack();
 	 v2 = st1.popStack();
@@ -522,46 +526,50 @@ private void processInstruction(FaitInstruction ins,FlowQueueInstance wq)
 
 /* FIELD INSTRUCTIONS */
       case GETFIELD :
-         st1 = handleAccess(here,st1);
-         if (st1 == null) break;
-         oref = false;
-         v0 = st1.popStack();
-         if (ins.getPrevious() != null && !call.getMethod().isStatic()) {
-            if (v0 == st1.getLocal(0)) oref = true;
-          }
-         call.setAssociation(AssociationType.THISREF,ins,v0);
-         v1 = flow_queue.handleFieldGet(here,st1,oref,v0);
-         st1.pushStack(v1);
-         break;
+	 st1 = handleAccess(here,st1);
+	 if (st1 == null) break;
+	 oref = false;
+	 v0 = st1.popStack();
+	 if (ins.getPrevious() != null && !call.getMethod().isStatic()) {
+	    if (v0 == st1.getLocal(0)) oref = true;
+	  }
+	 call.setAssociation(AssociationType.THISREF,ins,v0);
+	 v1 = flow_queue.handleFieldGet(here,st1,oref,v0);
+	 IfaceLog.logD1("Field of " + v0 + " = " + v1);
+	 st1.pushStack(v1);
+	 break;
       case GETSTATIC :
-         v1 = flow_queue.handleFieldGet(here,st1,false,null);
-         st1.pushStack(v1);
-         break;
+	 v1 = flow_queue.handleFieldGet(here,st1,false,null);
+	 st1.pushStack(v1);
+	 break;
       case PUTFIELD :
-         st1 = handleAccess(here,st1);
-         if (st1 == null) break;
-         oref = false;
-         v0 = st1.popStack();
-         v1 = st1.popStack();
-         call.setAssociation(AssociationType.THISREF,ins,v1);
-         call.setAssociation(AssociationType.FIELDSET,ins,v0);
-         if (!call.getMethod().isStatic()) {
-            if (v1 == st1.getLocal(0)) oref = true;
-          }
-         flow_queue.handleFieldSet(here,st1,oref,v0,v1);
-         break;
+	 st1 = handleAccess(here,st1);
+	 if (st1 == null) break;
+	 oref = false;
+	 v0 = st1.popStack();
+	 v1 = st1.popStack();
+	 call.setAssociation(AssociationType.THISREF,ins,v1);
+	 call.setAssociation(AssociationType.FIELDSET,ins,v0);
+	 if (!call.getMethod().isStatic()) {
+	    if (v1 == st1.getLocal(0)) oref = true;
+	  }
+	 IfaceLog.logD1("Set field of " + v1 + " = " + v0);
+	 flow_queue.handleFieldSet(here,st1,oref,v0,v1);
+	 break;
       case PUTSTATIC :
-         v0 = st1.popStack();
-         call.setAssociation(AssociationType.FIELDSET,ins,v0);
-         flow_queue.handleFieldSet(here,st1,false,v0,null);
+	 v0 = st1.popStack();
+	 call.setAssociation(AssociationType.FIELDSET,ins,v0);
+	 IfaceLog.logD1("Static field = " + v0);
+	 flow_queue.handleFieldSet(here,st1,false,v0,null);
 	 break;
 
       default :
-	 System.err.println("FAIT: Opcode " + ins.getOpcode() + " not found");
+	 IfaceLog.logE("FAIT: Opcode " + ins.getOpcode() + " not found");
 	 break;
     }
-   
+
    if (nins != null && st1 != null) wq.mergeState(st1,nins);
+   else if (pins != null) call.addDeadInstruction(ins);
 }
 
 
@@ -580,11 +588,11 @@ private IfaceEntity getLocalEntity(IfaceCall call,FaitInstruction ins)
       IfacePrototype pt = fait_control.createPrototype(ins.getTypeReference());
       if (pt != null) {
 	 ns = fait_control.findPrototypeEntity(ins.getTypeReference(),pt,
-	       new FlowLocation(call,ins));
+	       new FlowLocation(flow_queue,call,ins));
        }
       // might want to create fixed source for non-project methods
       else {
-	 ns = fait_control.findLocalEntity(new FlowLocation(call,ins),
+	 ns = fait_control.findLocalEntity(new FlowLocation(flow_queue,call,ins),
 	       ins.getTypeReference(),true);
        }
       call.setBaseEntity(ins,ns);
@@ -607,15 +615,15 @@ private IfaceEntity getUserSource(IfaceCall call,FaitInstruction ins,IfaceValue 
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Handle accessing a value that must be non-null                          */
-/*                                                                              */
+/*										*/
+/*	Handle accessing a value that must be non-null				*/
+/*										*/
 /********************************************************************************/
 
 private IfaceState handleAccess(FlowLocation loc,IfaceState st)
 {
    FaitInstruction ins = loc.getInstruction();
-   
+
    // First determine which argument
    int act = 0;
    switch (ins.getOpcode()) {
@@ -638,16 +646,17 @@ private IfaceState handleAccess(FlowLocation loc,IfaceState st)
       case INVOKESPECIAL :
       case INVOKEVIRTUAL :
 	 FaitMethod mthd = ins.getMethodReference();
+	 if (mthd == null) return st;
 	 if (mthd.isStatic() || mthd.isConstructor()) return st;
 	 act = mthd.getNumArguments();
 	 break;
       default :
 	 return st;
     }
-   
+
    // next scan the code to handle any implications
    st = flow_queue.handleAccess(loc,act,st);
-   
+
    // next check the argument itself
    LinkedList<IfaceValue> vl = new LinkedList<IfaceValue>();
    for (int i = 0; i < act; ++i) {
@@ -655,13 +664,13 @@ private IfaceState handleAccess(FlowLocation loc,IfaceState st)
     }
    IfaceValue v0 = st.popStack();
    if (v0.mustBeNull()) {
-      // log
+      IfaceLog.logD1("Access of NULL: can't proceed");
       return null;
     }
    v0 = v0.forceNonNull();
    st.pushStack(v0);
    for (IfaceValue v1 : vl) st.pushStack(v1);
-   
+
    return st;
 }
 }	// end of class FlowScanner

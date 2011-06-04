@@ -63,9 +63,11 @@ File getDescriptionFile();
 /********************************************************************************/
 
 FaitDataType findDataType(String cls);
+FaitDataType findClassType(String cls);
 FaitMethod findMethod(String cls,String method,String sign);
 FaitMethod findInheritedMethod(String cls,String name,String sign);
 FaitField findField(String cls,String fld);
+Collection<FaitMethod> getStartMethods();
 List<FaitMethod> findStaticInitializers(String cls);
 
 
@@ -97,18 +99,6 @@ IfaceEntity findLocalEntity(FaitLocation loc,FaitDataType dt,boolean uniq);
 
 IfaceEntitySet createEmptyEntitySet();
 IfaceEntitySet createSingletonSet(FaitEntity fe);
-
-
-
-/********************************************************************************/
-/*										*/
-/*	Data access methods							*/
-/*										*/
-/********************************************************************************/
-
-// Collection<FaitInstruction> getAllUses(FaitEntity src);
-// Collection<FaitInstruction> getAllUses(FaitMethod mthd);
-// FaitValue getValueAtInstruction(FaitInstruction ins,int idx);
 
 
 
@@ -160,16 +150,27 @@ IfaceCall findPrototypeMethod(FaitMethod fm);
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Call-related methods                                                    */
-/*                                                                              */
+/*										*/
+/*	Call-related methods							*/
+/*										*/
 /********************************************************************************/
 
 IfaceSpecial getCallSpecial(FaitMethod fm);
 FaitMethodData createMethodData(FaitCall fc);
 IfaceCall findCall(FaitMethod fm,List<IfaceValue> args,InlineType inline);
 Collection<IfaceCall> getAllCalls(FaitMethod fm);
+Collection<IfaceCall> getAllCalls();
 
+
+
+/********************************************************************************/
+/*										*/
+/*	Flow methods								*/
+/*										*/
+/********************************************************************************/
+
+void analyze(int nthread);
+void queueLocation(FaitLocation loc);
 
 
 
@@ -189,6 +190,7 @@ class Factory {
        }
       catch (Throwable t) {
 	 System.err.println("FAIT: Can't create controller: " + t);
+	 t.printStackTrace();
        }
       return null;
     }

@@ -301,11 +301,13 @@ EntitySet handleTypeRestricts(FaitDataType dt,boolean proj,boolean comp,FaitLoca
 	 if (!fg) {
 	    if (bs == null) bs = (BitSet) set_contents.clone();
 	    bs.clear(ie.getId());
-	    // might want to ignore cast if not in project
+	    // TODO: might want to ignore cast if not in project
 	    Collection<IfaceEntity> bl = ie.mutateTo(dt,fl,entity_factory);
-	    for (IfaceEntity xe : bl) {
-	       bs.set(xe.getId());
-	       havedt = true;
+	    if (bl != null) {
+	       for (IfaceEntity xe : bl) {
+		  bs.set(xe.getId());
+		  havedt = true;
+		}
 	     }
 	  }
 	 else {

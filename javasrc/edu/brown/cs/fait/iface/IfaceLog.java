@@ -1,34 +1,34 @@
 /********************************************************************************/
-/*                                                                              */
-/*              IfaceLog.java                                                   */
-/*                                                                              */
-/*      Class to handle logging throughout fait                                 */
-/*                                                                              */
+/*										*/
+/*		IfaceLog.java							*/
+/*										*/
+/*	Class to handle logging throughout fait 				*/
+/*										*/
 /********************************************************************************/
-/*      Copyright 2011 Brown University -- Steven P. Reiss                    */
+/*	Copyright 2011 Brown University -- Steven P. Reiss		      */
 /*********************************************************************************
- *  Copyright 2011, Brown University, Providence, RI.                            *
- *                                                                               *
- *                        All Rights Reserved                                    *
- *                                                                               *
- *  Permission to use, copy, modify, and distribute this software and its        *
- *  documentation for any purpose other than its incorporation into a            *
- *  commercial product is hereby granted without fee, provided that the          *
- *  above copyright notice appear in all copies and that both that               *
- *  copyright notice and this permission notice appear in supporting             *
- *  documentation, and that the name of Brown University not be used in          *
- *  advertising or publicity pertaining to distribution of the software          *
- *  without specific, written prior permission.                                  *
- *                                                                               *
- *  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS                *
- *  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND            *
- *  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY      *
- *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY          *
- *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,              *
- *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS               *
- *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE          *
- *  OF THIS SOFTWARE.                                                            *
- *                                                                               *
+ *  Copyright 2011, Brown University, Providence, RI.				 *
+ *										 *
+ *			  All Rights Reserved					 *
+ *										 *
+ *  Permission to use, copy, modify, and distribute this software and its	 *
+ *  documentation for any purpose other than its incorporation into a		 *
+ *  commercial product is hereby granted without fee, provided that the 	 *
+ *  above copyright notice appear in all copies and that both that		 *
+ *  copyright notice and this permission notice appear in supporting		 *
+ *  documentation, and that the name of Brown University not be used in 	 *
+ *  advertising or publicity pertaining to distribution of the software 	 *
+ *  without specific, written prior permission. 				 *
+ *										 *
+ *  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS		 *
+ *  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND		 *
+ *  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY	 *
+ *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY 	 *
+ *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,		 *
+ *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS		 *
+ *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE 	 *
+ *  OF THIS SOFTWARE.								 *
+ *										 *
  ********************************************************************************/
 
 
@@ -43,15 +43,15 @@ public class IfaceLog implements FaitConstants
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Private Storage                                                         */
-/*                                                                              */
+/*										*/
+/*	Private Storage 							*/
+/*										*/
 /********************************************************************************/
 
-private PrintWriter             log_writer;
-private LogLevel                log_level;
+private PrintWriter		log_writer;
+private LogLevel		log_level;
 
-private static IfaceLog         the_logger;
+private static IfaceLog 	the_logger;
 
 static {
    the_logger = new IfaceLog();
@@ -59,59 +59,72 @@ static {
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Static methods                                                          */
-/*                                                                              */
+/*										*/
+/*	Static methods								*/
+/*										*/
 /********************************************************************************/
 
 public static void logD(String msg)
 {
-   the_logger.log(LogLevel.DEBUG,0,msg);
+   the_logger.log(LogLevel.DEBUG,0,msg,null);
 }
 
 
 public static void logD1(String msg)
 {
-   the_logger.log(LogLevel.DEBUG,1,msg);
+   the_logger.log(LogLevel.DEBUG,1,msg,null);
 }
 
 
 public static void logI(String msg)
 {
-   the_logger.log(LogLevel.INFO,0,msg);
+   the_logger.log(LogLevel.INFO,0,msg,null);
 }
 
 
 public static void logW(String msg)
 {
-   the_logger.log(LogLevel.WARNING,0,msg);
+   the_logger.log(LogLevel.WARNING,0,msg,null);
 }
 
 
 public static void logE(String msg)
-{
-   the_logger.log(LogLevel.ERROR,0,msg);
+{									
+   the_logger.log(LogLevel.ERROR,0,msg,null);
 }
 
 
 
+public static void logE(String msg,Throwable t)
+{									
+   the_logger.log(LogLevel.ERROR,0,msg,t);
+}
+
+
+
+public static void setLevel(LogLevel lvl)
+{
+   the_logger.log_level = lvl;
+}
+
+								
 /********************************************************************************/
-/*                                                                              */
-/*      Constructors                                                            */
-/*                                                                              */
+/*										*/
+/*	Constructors								*/
+/*										*/
 /********************************************************************************/
 
 private IfaceLog()
 {
    log_level = LogLevel.WARNING;
    log_writer = null;
-   
+
    try {
       log_writer = new PrintWriter(new FileWriter("fait.log"));
     }
    catch (IOException e) { }
    if (log_writer == null) {
-      log_writer = new PrintWriter(new OutputStreamWriter(System.err));
+      log_writer = new PrintWriter(new OutputStreamWriter(System.err),true);
     }
 }
 
@@ -119,26 +132,38 @@ private IfaceLog()
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Logging methods                                                         */
-/*                                                                              */
+/*										*/
+/*	Logging methods 							*/
+/*										*/
 /********************************************************************************/
 
-private void log(LogLevel lvl,int indent,String msg)
+private synchronized void log(LogLevel lvl,int indent,String msg,Throwable t)
 {
    if (lvl.ordinal() > log_level.ordinal()) return;
-   
+
+   Thread th = Thread.currentThread();
+   if (th instanceof IfaceWorkerThread) {
+      IfaceWorkerThread wt = (IfaceWorkerThread) th;
+      log_writer.print(wt.getWorkerId());
+      log_writer.print(":");
+    }
+
    log_writer.print(lvl.toString().charAt(0));
    log_writer.print(": ");
    for (int i = 0; i < indent; ++i) {
       log_writer.print("   ");
     }
    log_writer.println(msg);
+   if (t != null) {
+      t.printStackTrace(log_writer);
+    }
+
+   log_writer.flush();
 }
-   
 
 
-}       // end of class IfaceLog
+
+}	// end of class IfaceLog
 
 
 

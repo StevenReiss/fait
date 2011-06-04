@@ -101,6 +101,22 @@ BcodeField(BcodeClass cls,int a,String n,String d,String s,Object val)
    return false;
 }
 
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Debugging methods                                                       */
+/*                                                                              */
+/********************************************************************************/
+
+@Override public String toString()
+{
+   return getDeclaringClass().getName() + "." + name;
+}
+
+
+
+
 }	// end of class BcodeField
 
 

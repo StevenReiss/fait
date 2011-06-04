@@ -10,6 +10,8 @@
    <PACAKGE NAME="java.text." />
    <PACKAGE NAME="com.ibm.jikesbt." />
    <PACKAGE NAME="sun.jkernel." />
+   <PACKAGE NAME='sun.nio.' />
+   <PACKAGE NAME='java.io.' />
 
    <CLASS NAME="java.lang.reflect.Field" />
    <CLASS NAME='java.lang.ClassLoader' />
@@ -21,7 +23,10 @@
    <CLASS NAME="java.lang.Float" />
    <CLASS NAME="java.lang.Double" />
    <CLASS NAME="java.lang.Boolean" />
+   <CLASS NAME="java.lang.Character" />
+   <CLASS NAME="java.lang.String" />
    <CLASS NAME='java.lang.ProcessEnvironment' />
+   <CLASS NAME='java.lang.Character' />
    <CLASS NAME="java.lang.reflect.Method" />
    <CLASS NAME="java.util.Locale" />
    <CLASS NAME="java.util.EnumSet" />
@@ -42,6 +47,7 @@
    <CLASS NAME="java.text.DecimalFormat" />
    <CLASS NAME='java.text.DateFormatSymbols'  />
    <CLASS NAME="javax.media.opengl.GLCanvas" />
+
    <CLASS NAME="com.sun.org.apache.internal.impl.XMLErrorReporter" />
    <CLASS NAME="com.sun.org.apache.internal.impl.msg.XMLMessageFormatter" />
    <CLASS NAME='sun.misc.JavaLangAccess' />

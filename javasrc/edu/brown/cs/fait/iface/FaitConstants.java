@@ -165,6 +165,21 @@ enum AssociationType {
 
 
 
+/********************************************************************************/
+/*                                                                              */
+/*      Logging constants                                                       */
+/*                                                                              */
+/********************************************************************************/
+
+enum LogLevel {
+   NONE,
+   ERROR,
+   WARNING,
+   INFO,
+   DEBUG
+}
+
+
 
 }	// end of interface FaitConstants
 

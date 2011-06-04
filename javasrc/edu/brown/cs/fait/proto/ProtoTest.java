@@ -133,6 +133,7 @@ private static class TestProject implements FaitProject {
       if (cls.startsWith("spr.")) return true;
       return false;
     }
+   @Override public Collection<String> getStartClasses()        { return null; }
    
    @Override public FaitMethodData createMethodData(FaitCall fc)   { return null; }
    

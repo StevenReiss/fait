@@ -72,6 +72,8 @@ private Map<FaitInstruction,IfaceEntity>	userentity_map;
 private Map<FaitInstruction,Map<FaitMethod,IfaceCall>> method_map;
 private Set<FaitLocation> call_set;
 
+private Set<FaitInstruction>	dead_set;
+
 
 
 
@@ -91,6 +93,7 @@ CallBase(FaitControl fc,FaitMethod fm,int ct)
    if (fm.getReturnType().isVoid()) result_set = null;
    else result_set = fc.findAnyValue(fm.getReturnType());
    exception_set = null;
+
    start_state = fc.createState(fm.getLocalSize());
 
    int idx = 0;
@@ -125,7 +128,7 @@ CallBase(FaitControl fc,FaitMethod fm,int ct)
       is_arg0 = special_data.returnsArg0();
       can_exit = special_data.getExits();
       // this null needs to be a FaitLocaiton with fm as the method
-      IfaceValue rv = special_data.getReturnValue(null);
+      IfaceValue rv = special_data.getReturnValue(for_method);
       addResult(rv);
       if (rv != null) {
 	 IfaceValue ev = null;
@@ -139,7 +142,13 @@ CallBase(FaitControl fc,FaitMethod fm,int ct)
     }
 
    if (fm.isNative()) {
-      result_set = fc.findNativeValue(fm.getReturnType());
+      if (result_set == null || !result_set.isGoodEntitySet())
+	 result_set = fc.findNativeValue(fm.getReturnType());
+      ++num_result;
+    }
+   else if (fm.getNumInstructions() == 0 && !fm.isInProject()) {
+      if (result_set == null || !result_set.isGoodEntitySet())
+	 result_set = fc.findMutableValue(fm.getReturnType());
       ++num_result;
     }
 
@@ -150,7 +159,7 @@ CallBase(FaitControl fc,FaitMethod fm,int ct)
    userentity_map = Collections.synchronizedMap(new HashMap<FaitInstruction,IfaceEntity>(4));
    method_map = new HashMap<FaitInstruction,Map<FaitMethod,IfaceCall>>();
    call_set = new HashSet<FaitLocation>();
-
+   dead_set = new HashSet<FaitInstruction>();
 }
 
 
@@ -243,6 +252,32 @@ CallBase(FaitControl fc,FaitMethod fm,int ct)
 }
 
 
+@Override public void addDeadInstruction(FaitInstruction ins)
+{
+   synchronized (dead_set) {
+      dead_set.add(ins);
+    }
+}
+
+
+
+@Override public void removeDeadInstruction(FaitInstruction ins)
+{
+   synchronized (dead_set) {
+      dead_set.remove(ins);
+    }
+}
+
+
+@Override public Collection<FaitInstruction> getDeadInstructions()
+{
+   synchronized (dead_set) {
+      return new ArrayList<FaitInstruction>(dead_set);
+    }
+}
+
+
+
 
 /********************************************************************************/
 /*										*/
@@ -309,6 +344,7 @@ CallBase(FaitControl fc,FaitMethod fm,int ct)
 	 if (cv.isCategory2()) ++idx;
 	 ++idx;
        }
+      if (num_adds++ == 0) chng = true;
     }
 
    if (chng && special_data != null && special_data.getDontScan()) chng = false;
@@ -380,27 +416,27 @@ CallBase(FaitControl fc,FaitMethod fm,int ct)
 
    FaitMethod nfm = null;
    Collection<FaitMethod> rslt = new ArrayList<FaitMethod>();
-   
+
    StringTokenizer tok = new StringTokenizer(nm);
    while (tok.hasMoreTokens()) {
       nm = tok.nextToken();
       int idx = nm.lastIndexOf(".");
       if (idx > 0) {
-         String cls = nm.substring(0,idx);
-         String mnm = nm.substring(idx+1);
-         nfm = fait_control.findMethod(cls,mnm,null);
+	 String cls = nm.substring(0,idx);
+	 String mnm = nm.substring(idx+1);
+	 nfm = fait_control.findMethod(cls,mnm,null);
        }
       else {
-         IfaceValue v0 = args.get(0);
-         FaitDataType dt = v0.getDataType();
-         while (dt != null) {
-            nfm = fait_control.findMethod(dt.getName(),nm,null);
-            if (nfm != null) break;
-            dt = dt.getSuperType();
-          }
+	 IfaceValue v0 = args.get(0);
+	 FaitDataType dt = v0.getDataType();
+	 while (dt != null) {
+	    nfm = fait_control.findMethod(dt.getName(),nm,null);
+	    if (nfm != null) break;
+	    dt = dt.getSuperType();
+	  }
        }
-      if (nfm != null && !nfm.isNative() && !nfm.isAbstract()) 
-         rslt.add(nfm);
+      if (nfm != null && !nfm.isNative() && !nfm.isAbstract())
+	 rslt.add(nfm);
     }
 
    if (rslt.isEmpty()) rslt.add(for_method);
@@ -462,13 +498,15 @@ private void fixArgs(FaitMethod fm,List<IfaceValue> args)
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Call tracking methods                                                   */
-/*                                                                              */
+/*										*/
+/*	Call tracking methods							*/
+/*										*/
 /********************************************************************************/
 
 @Override public void noteCallSite(FaitLocation loc)
-{ 
+{
+   if (loc == null) return;
+
    synchronized (call_set) {
       call_set.add(loc);
     }
@@ -488,8 +526,8 @@ private void fixArgs(FaitMethod fm,List<IfaceValue> args)
    synchronized (method_map) {
       Map<FaitMethod,IfaceCall> mm = method_map.get(ins);
       if (mm == null) {
-         mm = new HashMap<FaitMethod,IfaceCall>(4);
-         method_map.put(ins,mm);
+	 mm = new HashMap<FaitMethod,IfaceCall>(4);
+	 method_map.put(ins,mm);
        }
       mm.put(m,called);
     }
@@ -514,7 +552,7 @@ private void fixArgs(FaitMethod fm,List<IfaceValue> args)
       if (mm != null) rslt.addAll(mm.values());
     }
    return rslt;
-}   
+}
 
 
 
@@ -578,6 +616,13 @@ private void fixArgs(FaitMethod fm,List<IfaceValue> args)
 }
 
 
+@Override public String getLogName()
+{
+   FaitMethod fm = getMethod();
+
+   return fm.getDeclaringClass().getName() + "." + fm.getName() + fm.getDescription() + " " + hashCode();
+}
+
 
 }	// end of class CallBase
 
@@ -585,4 +630,6 @@ private void fixArgs(FaitMethod fm,List<IfaceValue> args)
 
 
 /* end of CallBase.java */
+
+
 

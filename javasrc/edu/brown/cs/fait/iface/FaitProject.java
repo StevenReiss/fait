@@ -43,6 +43,7 @@ public interface FaitProject extends FaitConstants
 
 String getClasspath();
 Collection<String> getBaseClasses();
+Collection<String> getStartClasses();
 List<File> getDescriptionFile();
 
 boolean isProjectClass(String cls);

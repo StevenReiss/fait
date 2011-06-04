@@ -248,7 +248,7 @@ void noteModifiers(int mods)
 void noteSuperType(String st)
 {
    if (st != null) {
-      super_type = bcode_factory.findObjectType(st);
+      super_type = bcode_factory.findClassType(st);
       super_type.addChild(this);
     }
 }
@@ -260,7 +260,7 @@ void noteInterfaces(Collection<?> ifs)
    if (iface_types == null) iface_types = new ArrayList<BcodeDataType>();
    for (Object o : ifs) {
       String iname = o.toString();
-      BcodeDataType bdt = bcode_factory.findObjectType(iname);
+      BcodeDataType bdt = bcode_factory.findClassType(iname);
       iface_types.add(bdt);
       bdt.addChild(this);
     }
@@ -476,6 +476,21 @@ private FaitDataType findCommonArray(BcodeDataType t2)
 
    return rslt;
 }
+
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Debugging methods                                                       */
+/*                                                                              */
+/********************************************************************************/
+
+@Override public String toString()
+{
+   return base_type.toString();
+}
+
 
 
 }	// end of class BcodeDataType

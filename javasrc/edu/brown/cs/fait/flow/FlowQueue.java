@@ -54,7 +54,7 @@ private FaitControl				fait_control;
 private FlowField				field_control;
 private FlowConditional 			conditional_control;
 private FlowArray				array_control;
-private FlowCall                                call_control;
+private FlowCall				call_control;
 
 private Set<IfaceCall>				active_calls;
 
@@ -72,36 +72,36 @@ private List<IfaceCall> 			static_inits;
 
 
 static final String [] preset_classes = new String [] {
-   "java.lang.Object",
-   "java.lang.String",
-   "java.lang.Thread",
-   "java.lang.Class",
-   "java.lang.ClassLoader",
-   "java.lang.Boolean",
-   "java.lang.Integer",
-   "java.lang.Long",
-   "java.lang.Short",
-   "java.lang.ThreadGroup",
-   "java.lang.SecurityManager",
-   "java.lang.StringBuilder",
-   "java.lang.StringBuffer",
-   "java.security.AccessControlContext",
-   "java.security.ProtectionDomain",
-   "java.io.PrintStream",
-   "java.io.FilterOutputStream",
-   "java.io.OutputStream",
-   "java.io.BufferedWriter",
-   "java.io.FilterWriter",
-   "java.io.Writer",
-   "java.io.FileInputStream",
-   "java.io.InputStream",
-   "java.io.UnixFileSystem",
-   "java.util.Properties",
-   "java.util.Hashtable",
-   "sun.nio.cs.StreamEncoder",
-   "sun.security.provider.PolicyFile",
-   "sun.awt.X11GraphicsEnvironment",
-   "sun.java2d.SunGraphicsEnvironment"
+   "Ljava/lang/Object;",
+   "Ljava/lang/String;",
+   "Ljava/lang/Thread;",
+   "Ljava/lang/Class;",
+   "Ljava/lang/ClassLoader;",
+   "Ljava/lang/Boolean;",
+   "Ljava/lang/Integer;",
+   "Ljava/lang/Long;",
+   "Ljava/lang/Short;",
+   "Ljava/lang/ThreadGroup;",
+   "Ljava/lang/SecurityManager;",
+   "Ljava/lang/StringBuilder;",
+   "Ljava/lang/StringBuffer;",
+   "Ljava/security/AccessControlContext;",
+   "Ljava/security/ProtectionDomain;",
+   "Ljava/io/PrintStream;",
+   "Ljava/io/FilterOutputStream;",
+   "Ljava/io/OutputStream;",
+   "Ljava/io/BufferedWriter;",
+   "Ljava/io/FilterWriter;",
+   "Ljava/io/Writer;",
+   "Ljava/io/FileInputStream;",
+   "Ljava/io/InputStream;",
+   "Ljava/io/UnixFileSystem;",
+   "Ljava/util/Properties;",
+   "Ljava/util/Hashtable;",
+   "Lsun/nio/cs/StreamEncoder;",
+   "Lsun/security/provider/PolicyFile;",
+   "Lsun/awt/X11GraphicsEnvironment;",
+   "Lsun/java2d/SunGraphicsEnvironment;"
 };
 
 
@@ -128,8 +128,8 @@ FlowQueue(FaitControl fc)
    classsetup_map = new HashMap<FaitDataType,Collection<IfaceCall>>();
 
    staticinit_set = new HashSet<FaitDataType>();
-   staticinit_set.add(fait_control.findDataType("java.lang.System"));
-   staticinit_set.add(fait_control.findDataType("java.lang.Class"));
+   staticinit_set.add(fait_control.findDataType("Ljava/lang/System;"));
+   staticinit_set.add(fait_control.findDataType("Ljava/lang/Class;"));
    staticinit_ran = new HashSet<FaitDataType>(staticinit_set);
    staticinit_started = new HashSet<FaitDataType>(staticinit_set);
    static_inits = new ArrayList<IfaceCall>();
@@ -169,21 +169,21 @@ void queueMethodCall(IfaceCall c,IfaceState st)
        }
     }
 
-   queueForConstructors(c,st);
+   queueForInitializers(c,st);
 
    queueMethod(c);
 }
 
 
 
-void queueForConstructors(IfaceCall c,IfaceState st)
+void queueForInitializers(IfaceCall c,IfaceState st)
 {
    FaitMethod m = c.getMethod();
    IfaceState sst = c.getStartState();
 
    if (st != null && !m.isStatic() && !m.isConstructor()) {
       if (sst != null && sst.addInitializations(st)) {
-	 recheckAllConstructors();
+	 recheckAllInitializers();
        }
     }
    else if (st != null && sst != null) {
@@ -193,7 +193,7 @@ void queueForConstructors(IfaceCall c,IfaceState st)
 
 
 
-synchronized void queueMethodChange(IfaceCall c,FaitInstruction ins)
+void queueMethodChange(IfaceCall c,FaitInstruction ins)
 {
    if (call_map.get(c) == null) return;
 
@@ -204,7 +204,11 @@ synchronized void queueMethodChange(IfaceCall c,FaitInstruction ins)
 
 private void queueMethod(IfaceCall c)
 {
-   if (c.getMethod().getNumInstructions() == 0) return;
+   if (c.getMethod().getNumInstructions() == 0) {
+      IfaceLog.logE("CALLING ABSTRACT " + c);
+      // TODO: simulate call here
+      return;
+    }
 
    FaitInstruction ins = c.getMethod().getInstruction(0);
    if (ins == null) return;
@@ -226,12 +230,13 @@ private void queueMethod(IfaceCall c,FaitInstruction ins)
 	 s = new HashSet<FaitInstruction>();
 	 call_queue.put(c,s);
 	 chng = true;
+	 call_queue.notifyAll();
        }
       s.add(ins);
     }
 
    if (chng) {
-      synchronized (this) { notifyAll(); }
+      IfaceLog.logD1("Queue method " + c.getLogName() + " @ " + ins.getIndex());
     }
 }
 
@@ -260,7 +265,7 @@ FlowQueueInstance setupNextFlowQueue()
    boolean newfqi = false;
 
    synchronized (call_queue) {
-      while (!call_queue.isEmpty()) {
+      while (!allDone()) {
 	 Iterator<Map.Entry<IfaceCall,Set<FaitInstruction>>> it;
 	 it = call_queue.entrySet().iterator();
 	 while (it.hasNext()) {
@@ -273,34 +278,35 @@ FlowQueueInstance setupNextFlowQueue()
 	       inset = ent.getValue();
 	       break;
 	     }
-	
+
 	  }
+	 if (cm != null) break;
+	 try {
+	    call_queue.wait(10000);
+	  }
+	 catch (InterruptedException e) { }
        }
-      if (cm != null) {
-	 fqi = call_map.get(cm);
-	 if (fqi == null) {
-	    fqi = new FlowQueueInstance(cm);
-	    call_map.put(cm,fqi);
-	    newfqi = true;
-	  }
+
+      if (cm == null) return null;
+
+      fqi = call_map.get(cm);
+      if (fqi == null) {
+	 fqi = new FlowQueueInstance(cm);
+	 call_map.put(cm,fqi);
+	 newfqi = true;
        }
     }
 
+   IfaceLog.logD("");
+   IfaceLog.logD("START WORK ON " + cm.getLogName());
+
    if (newfqi) {
       IfaceState st0 = cm.getStartState();
-      if (cm.getMethod().isConstructor()) {
-	 FaitDataType dt = cm.getMethod().getDeclaringClass();
-	 synchronized (staticinit_set) {
-	    if (!class_setup.contains(dt)) {
-	       st0.startInitialization(dt);
-	       recheckConstructors(dt,false);
-	     }
-	  }
-       }
       fqi.mergeState(st0,null);
     }
    else if (inset != null) {
       FaitInstruction i0 = cm.getMethod().getInstruction(0);
+      IfaceLog.logD1("Add instruction " + i0.getIndex());
       for (FaitInstruction fi : inset) {
 	 if (fi == i0) fqi.mergeState(cm.getStartState(),fi);
 	 fqi.lookAt(fi);
@@ -309,20 +315,18 @@ FlowQueueInstance setupNextFlowQueue()
 
    return fqi;
 }
-	
-	
-	
+
+
+
 
 void doneWithFlowQueue(FlowQueueInstance fqi)
 {
    synchronized (call_queue) {
       active_calls.remove(fqi.getCall());
-    }
-   synchronized (this) {
-      notifyAll();
+      call_queue.notifyAll();
     }
 }
-	
+
 
 
 
@@ -340,22 +344,34 @@ void initialize(FaitDataType dt)
 
 void initialize(FaitDataType dt,boolean fakeinit)
 {
+   Collection<IfaceCall> inits = new ArrayList<IfaceCall>();
+
    synchronized(staticinit_set) {
       if (!staticinit_set.contains(dt)) {
 	 staticinit_set.add(dt);
+	 IfaceLog.logD1("Initialize " + dt.getName());
+
 	 if (dt.getSuperType() != null) initialize(dt.getSuperType(),false);
-       }
-      int ctr = 0;
-      for (FaitMethod fm : fait_control.findStaticInitializers(dt.getName())) {
-	 ++ctr;
-	 IfaceCall c = fait_control.findCall(fm,null,InlineType.NONE);
-	 static_inits.add(c);
-	 queueMethod(c);
-       }
-      if (ctr == 0) {
-	 staticinit_ran.add(dt);
-	 staticinit_started.add(dt);
-       }
+
+	 int ctr = 0;
+	 Collection<FaitMethod> sinit = fait_control.findStaticInitializers(dt.getName());
+	 if (sinit != null) {
+	    for (FaitMethod fm : fait_control.findStaticInitializers(dt.getName())) {
+	       ++ctr;
+	       IfaceCall c = fait_control.findCall(fm,null,InlineType.NONE);
+	       static_inits.add(c);
+	       if (!c.hasResult()) inits.add(c);
+	     }
+	  }
+	 if (ctr == 0) {
+	    staticinit_ran.add(dt);
+	    staticinit_started.add(dt);
+	  }
+      }
+   }
+
+   for (IfaceCall c : inits) {
+      queueMethod(c);
     }
 }
 
@@ -384,7 +400,7 @@ boolean checkInitialized(IfaceState st,IfaceCall cm,FaitInstruction ins)
 	  }
 	 else {
 	    if (!staticinit_started.contains(bc)) {
-	       // IfaceLog.log("\tClass not initialized requeue");
+	       IfaceLog.logD1("Class not initialized requeue");
 	       Set<IfaceCall> s = staticinit_queue.get(bc);
 	       if (s == null) {
 		  s = new HashSet<IfaceCall>();
@@ -396,46 +412,29 @@ boolean checkInitialized(IfaceState st,IfaceCall cm,FaitInstruction ins)
 	  }
        }
 
-      if (idx == 0 && !cm.getMethod().isStatic() && !class_setup.contains(bc)) {
-	 IfaceValue cv = st.getLocal(0);
-	 if (cv.isNative() && !cm.getMethodClass().isProjectClass()) return true;
-	 if (!st.testDoingInitialization(bc)) {
-	    Collection<IfaceCall> c = classsetup_map.get(bc);
-	    if (c == null) {
-	       c = new HashSet<IfaceCall>();
-	       classsetup_map.put(bc,c);
-	     }
-	    c.add(cm);
-	    // IfaceLog.log("Initialization not finished before call for " + bc);
-	    return false;
-	  }
-       }
-
       return true;
     }
 }
-	
-	
+
+
 void handleReturnSetup(FaitMethod fm)
 {
    if (fm.isStaticInitializer()) {
       FaitDataType dt = fm.getDeclaringClass();
       synchronized (staticinit_set) {
-         staticinit_ran.add(dt);
-       }
-    }
-   else if (fm.isConstructor()) {
-      FaitDataType dt = fm.getDeclaringClass();
-      synchronized (staticinit_set) {
-         if (!class_setup.contains(dt)) {
-            class_setup.add(dt);
-            recheckConstructors(dt,true);
-          }
+	 staticinit_ran.add(dt);
+	 Set<IfaceCall> cs = staticinit_queue.get(dt);
+	 if (cs != null) {
+	    for (IfaceCall nc : cs) {
+	       IfaceLog.logD("Requeue for initialization: " + nc);
+	       queueMethodStart(nc);
+	     }
+	  }
        }
     }
 }
-              
-         
+
+
 private void requeueForInit(Collection<IfaceCall> s)
 {
    if (s == null) return;
@@ -453,15 +452,15 @@ private boolean getInitializerDone(FaitDataType dt)
    return true;
 }
 
-private void recheckAllConstructors()
+private void recheckAllInitializers()
 {
    for (FaitDataType dt : classsetup_map.keySet()) {
-      recheckConstructors(dt,false);
+      recheckInitializers(dt,false);
     }
 }
 
 
-private void recheckConstructors(FaitDataType dt,boolean del)
+private void recheckInitializers(FaitDataType dt,boolean del)
 {
    Collection<IfaceCall> s;
 
@@ -473,11 +472,12 @@ private void recheckConstructors(FaitDataType dt,boolean del)
    if (s != null) {
       for (IfaceCall c : s) {
 	 queueMethod(c);
+	 IfaceLog.logD1("Queue for constructor: " + c);
        }
     }
 }
 
-	
+
 
 
 /********************************************************************************/
@@ -555,9 +555,9 @@ void noteArrayChange(IfaceEntity arr)
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Handle field access                                                     */
-/*                                                                              */
+/*										*/
+/*	Handle field access							*/
+/*										*/
 /********************************************************************************/
 
 void handleFieldSet(FlowLocation loc,IfaceState st,boolean thisref,
@@ -576,9 +576,9 @@ IfaceValue handleFieldGet(FlowLocation loc,IfaceState st,boolean thisref,IfaceVa
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Call management methods                                                 */
-/*                                                                              */
+/*										*/
+/*	Call management methods 						*/
+/*										*/
 /********************************************************************************/
 
 boolean handleCall(FlowLocation loc,IfaceState st0,FlowQueueInstance wq)
@@ -595,15 +595,15 @@ void handleCallback(FaitMethod fm,List<IfaceValue> args,String cbid)
 
 
 
-void handleReturn(IfaceCall c0,IfaceState st0,IfaceValue v0)
+void handleReturn(IfaceCall c0,IfaceValue v0)
 {
-   call_control.handleReturn(c0,st0,v0);
+   call_control.handleReturn(c0,v0);
 }
 
 
-void handleThrow(FaitLocation loc,IfaceValue v0,IfaceState st0)
+void handleThrow(FlowQueueInstance wq,FaitLocation loc,IfaceValue v0,IfaceState st0)
 {
-   call_control.handleThrow(loc,v0,st0);
+   call_control.handleThrow(wq,loc,v0,st0);
 }
 
 
@@ -619,4 +619,3 @@ void handleException(IfaceValue v0,IfaceCall cm)
 
 
 /* end of FlowQueue.java */
-

@@ -83,6 +83,8 @@ IfaceValue handleFieldGet(FlowLocation loc,IfaceState st,boolean thisref,IfaceVa
 {
    FaitInstruction ins = loc.getInstruction();
    FaitField fld = ins.getFieldReference();
+   if (fld == null) 
+      System.err.println("FIELD NOT FOUND");
    
    if (loc != null) {
       synchronized (field_accessors) {
@@ -167,9 +169,8 @@ void handleFieldSet(FlowLocation loc,IfaceState st,boolean thisref,
       if (v2 == v1) return;
       
       field_map.put(fld,v2);
+      IfaceLog.logD1("Field " + fld + " = " + v2);
     }
-   
-   // FaitLog.log("\tChange field value of " + fld + " = " + v2 + " " + spl);
    
    handleFieldChanged(fld);
 }
@@ -185,6 +186,7 @@ void handleFieldChanged(FaitField fld)
    
    if (locs == null) return;
    for (FlowLocation fl : locs) {
+      IfaceLog.logD1("Queue for field change " + fl);
       flow_queue.queueMethodChange(fl.getCall(),fl.getInstruction());
     }
 }

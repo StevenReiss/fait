@@ -212,7 +212,7 @@ public synchronized IfaceValue prototype_putAll(FaitMethod fm,List<IfaceValue> a
    for (IfaceEntity ie : nv.getEntities()) {
       IfacePrototype ip = ie.getPrototype();
       if (ip != null && ip instanceof ProtoMap) {
-         ProtoMap pm = (ProtoMap) ie;
+         ProtoMap pm = (ProtoMap) ip;
          key_set.mergeElementValue(pm.key_set.getElementValue());
          value_set.mergeElementValue(pm.value_set.getElementValue());
        }

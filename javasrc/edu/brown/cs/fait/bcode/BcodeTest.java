@@ -66,7 +66,7 @@ private BcodeFactory	bcode_factory;
 
 public BcodeTest()
 {
-   bcode_factory = new BcodeFactory(null);
+   bcode_factory = new BcodeFactory(null,1);
    bcode_factory.setProject(new TestProject());
 }
 
@@ -93,13 +93,26 @@ public BcodeTest()
    BcodeDataType t3 = bcode_factory.findDataType("[Ljava.lang.Object;");
    BcodeDataType t4 = bcode_factory.findDataType("I");
    BcodeDataType t5 = bcode_factory.findDataType("V");
+   BcodeDataType t6 = bcode_factory.findDataType("[C");
    Assert.assertNotNull(t1);
    Assert.assertEquals(t1,t2);
    Assert.assertNotNull(t3);
    Assert.assertNotNull(t4);
    Assert.assertNotNull(t5);
+   Assert.assertNotNull(t6);
 }
 
+
+@Test public void lookupField()
+{
+   FaitField f1 = bcode_factory.findField(null,"spr/onsets/OnsetMain","card_deck");
+   Assert.assertNotNull(f1);
+
+   FaitMethod m1 = bcode_factory.findMethod(null,
+	 "java/io/FileOutputStream","<init>",
+	 "(Ljava/lang/String;)V");
+   Assert.assertNotNull(m1);
+}
 
 
 private static class TestProject implements FaitProject {
@@ -113,6 +126,7 @@ private static class TestProject implements FaitProject {
       rslt.add("spr.onsets.OnsetMain");
       return rslt;
     }
+   @Override public Collection<String> getStartClasses()	{ return null; }
 
    @Override public List<File> getDescriptionFile()		{ return null; }
 
@@ -120,7 +134,7 @@ private static class TestProject implements FaitProject {
       if (cls.startsWith("spr.")) return true;
       return false;
     }
-   
+
    @Override public FaitMethodData createMethodData(FaitCall fc)   { return null; }
 }	// end of inner class TestProject
 

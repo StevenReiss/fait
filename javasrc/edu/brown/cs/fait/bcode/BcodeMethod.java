@@ -26,7 +26,7 @@
  *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY 	 *
  *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,		 *
  *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS		 *
- *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE 	 *
+ *  ACTION, ARISING OUT OF OR IN CONNECTION WITH  HE USE OR PERFORMANCE 	 *
  *  OF THIS SOFTWARE.								 *
  *										 *
  ********************************************************************************/
@@ -197,8 +197,7 @@ String getMatchName()
    List<FaitDataType> rslt = new ArrayList<FaitDataType>();
    for (int i = 0; i < exceptions.size(); ++i) {
       String enm = (String) exceptions.get(i);
-      Type te = Type.getType(enm);
-      FaitDataType fdt = in_class.getDataType(te);
+      FaitDataType fdt = bcode_factory.findClassType(enm);
       if (fdt != null) rslt.add(fdt);
     }
    return rslt;
@@ -263,6 +262,20 @@ String getMatchName()
    goto_map = new HashMap<Label,Integer>();
    int sz = 0;
 
+   if (instructions.size() == 0) {
+      if (!isStatic()) ++maxLocals;
+      Type [] atyps = Type.getArgumentTypes(desc);
+      for (int i = 0; i < atyps.length; ++i) {
+	 maxLocals += 1;
+	 switch (atyps[i].getSort()) {
+	    case Type.LONG :
+	    case Type.DOUBLE :
+	       maxLocals += 1;
+	       break;
+	  }
+       }
+    }
+
    InsnList inl = instructions;
    for (int i = 0; i < inl.size(); ++i) {
       AbstractInsnNode ain = inl.get(i);
@@ -292,14 +305,14 @@ String getMatchName()
 
 @Override public void visitTypeInsn(int opc,String typ)
 {
-   in_class.getFactory().noteType(typ);
+   in_class.getFactory().noteClass(typ);
    super.visitTypeInsn(opc,typ);
 }
 
 
 @Override public void visitFieldInsn(int opc,String o,String n,String d)
 {
-   in_class.getFactory().noteType(o);
+   in_class.getFactory().noteClass(o);
    in_class.getFactory().noteType(d);
    super.visitFieldInsn(opc,o,n,d);
 }
@@ -307,7 +320,7 @@ String getMatchName()
 
 @Override public void visitMethodInsn(int opc,String o,String n,String d)
 {
-   in_class.getFactory().noteType(o);
+   in_class.getFactory().noteClass(o);
    in_class.getFactory().noteType(d);
    super.visitMethodInsn(opc,o,n,d);
 }
@@ -317,7 +330,7 @@ String getMatchName()
 @Override public void visitTryCatchBlock(Label start,Label end,Label hdlr,String typ)
 {
    super.visitTryCatchBlock(start,end,hdlr,typ);
-   
+
    TryCatchData tcd = new TryCatchData(start,end,hdlr,typ);
    try_blocks.add(tcd);
 }
@@ -366,7 +379,7 @@ private void computeDigest()
    addToDigest(md,signature);
    for (int i = 0; i < instructions.size(); ++i) {
       AbstractInsnNode ain = instructions.get(i);
-      String ins = instructionString(ain);
+      String ins = BcodeInstruction.getString(ain,this);
       addToDigest(md,ins);
     }
 
@@ -416,9 +429,9 @@ private void addToDigest(MessageDigest md,String s)
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Exception handling                                                      */
-/*                                                                              */
+/*										*/
+/*	Exception handling							*/
+/*										*/
 /********************************************************************************/
 
 @Override public Collection<FaitTryCatchBlock> getTryCatchBlocks()
@@ -441,144 +454,41 @@ private class TryCatchData implements FaitTryCatchBlock {
       handler_label = handler;
       data_type = typ;
     }
-   
+
    @Override public FaitInstruction getStart() {
       return findInstruction(start_label);
     }
-   
+
    @Override public FaitInstruction getEnd() {
       return findInstruction(end_label);
     }
-   
+
    @Override public FaitInstruction getHandler() {
       return findInstruction(handler_label);
     }
-   
+
    @Override public FaitDataType getException() {
-      return bcode_factory.findDataType(data_type);
+      if (data_type == null) return null;
+      return bcode_factory.findClassType(data_type);
     }
 
-}       // end of inner class TryCatchData
+}	// end of inner class TryCatchData
+
+
+
 
 /********************************************************************************/
 /*										*/
-/*     Instruction output							*/
+/*	Debugging methods							*/
 /*										*/
 /********************************************************************************/
 
-private String instructionString(AbstractInsnNode ain)
+@Override public String toString()
 {
-   StringBuffer buf = new StringBuffer();
-
-   switch (ain.getType()) {
-      case AbstractInsnNode.FIELD_INSN :
-	 FieldInsnNode fin = (FieldInsnNode) ain;
-	 buf.append(FaitOpcodes.OPCODE_NAMES[ain.getOpcode()]);
-	 buf.append(" ");
-	 buf.append(fin.owner);
-	 buf.append(".");
-	 buf.append(fin.name);
-	 buf.append(" (");
-	 buf.append(fin.desc);
-	 buf.append(")");
-	 break;
-      case AbstractInsnNode.IINC_INSN :
-	 IincInsnNode iin = (IincInsnNode) ain;
-	 buf.append(FaitOpcodes.OPCODE_NAMES[ain.getOpcode()]);
-	 buf.append(" L");
-	 buf.append(iin.var);
-	 buf.append(",");
-	 buf.append(iin.incr);
-	 break;
-      case AbstractInsnNode.INT_INSN :
-	 IntInsnNode iin1 = (IntInsnNode) ain;
-	 buf.append(FaitOpcodes.OPCODE_NAMES[ain.getOpcode()]);
-	 buf.append(" ");
-	 buf.append(iin1.operand);
-	 break;
-      case AbstractInsnNode.JUMP_INSN :
-	 JumpInsnNode jin = (JumpInsnNode) ain;
-	 buf.append(FaitOpcodes.OPCODE_NAMES[ain.getOpcode()]);
-	 buf.append(" ");
-	 buf.append(jin.label.getLabel().toString());
-	 break;
-      case AbstractInsnNode.LDC_INSN :
-	 LdcInsnNode lin = (LdcInsnNode) ain;
-	 buf.append(FaitOpcodes.OPCODE_NAMES[ain.getOpcode()]);
-	 buf.append(" ");
-	 buf.append(lin.cst.toString());
-	 break;
-      case AbstractInsnNode.LOOKUPSWITCH_INSN :
-	 LookupSwitchInsnNode lsin = (LookupSwitchInsnNode) ain;
-	 buf.append(FaitOpcodes.OPCODE_NAMES[ain.getOpcode()]);
-	 buf.append(" ");
-	 int sz = lsin.keys.size();
-	 for (int i = 0; i < sz; ++i) {
-	    buf.append(lsin.keys.get(i).toString());
-	    buf.append("=>");
-	    LabelNode ln = (LabelNode) lsin.labels.get(i);
-	    buf.append(ln.getLabel().toString());
-	    buf.append(",");
-	  }
-	 if (lsin.dflt != null) {
-	    buf.append("?=>");
-	    buf.append(lsin.dflt.getLabel().toString());
-	  }
-	 break;
-      case AbstractInsnNode.METHOD_INSN :
-	 MethodInsnNode min = (MethodInsnNode) ain;
-	 buf.append(FaitOpcodes.OPCODE_NAMES[ain.getOpcode()]);
-	 buf.append(" ");
-	 buf.append(min.owner);
-	 buf.append(".");
-	 buf.append(min.name);
-	 buf.append(min.desc);
-	 break;
-      case AbstractInsnNode.MULTIANEWARRAY_INSN :
-	 MultiANewArrayInsnNode mnain = (MultiANewArrayInsnNode) ain;
-	 buf.append(FaitOpcodes.OPCODE_NAMES[ain.getOpcode()]);
-	 buf.append(" ");
-	 buf.append(mnain.desc);
-	 buf.append(",");
-	 buf.append(mnain.dims);
-	 break;
-      case AbstractInsnNode.TABLESWITCH_INSN :
-	 TableSwitchInsnNode tsin = (TableSwitchInsnNode) ain;
-	 buf.append(FaitOpcodes.OPCODE_NAMES[ain.getOpcode()]);
-	 buf.append(" [");
-	 buf.append(tsin.min);
-	 buf.append("..");
-	 buf.append(tsin.max);
-	 buf.append("]=>");
-	 for (int i = 0; i < tsin.labels.size(); ++i) {
-	    LabelNode ln = (LabelNode) tsin.labels.get(i);
-	    buf.append(ln.getLabel().toString());
-	    buf.append(",");
-	  }
-	 buf.append("?=>");
-	 if (tsin.dflt != null) buf.append(tsin.dflt.getLabel().toString());
-	 break;
-      case AbstractInsnNode.TYPE_INSN :
-	 TypeInsnNode tin = (TypeInsnNode) ain;
-	 buf.append(FaitOpcodes.OPCODE_NAMES[ain.getOpcode()]);
-	 buf.append(" ");
-	 buf.append(tin.desc);
-	 break;
-      case AbstractInsnNode.VAR_INSN :
-	 VarInsnNode vin = (VarInsnNode) ain;
-	 buf.append(FaitOpcodes.OPCODE_NAMES[ain.getOpcode()]);
-	 buf.append(" L");
-	 buf.append(vin.var);
-	 break;
-      case AbstractInsnNode.LABEL :
-	 LabelNode lbln = (LabelNode) ain;
-	 buf.append(lbln.getLabel().toString());
-	 buf.append(":");
-	 break;
-    }
-
-   return buf.toString();
+   return getDeclaringClass().toString() + "." + getName() + getDescription();
 }
+
+
 
 
 }	// end of class BcodeMethod
