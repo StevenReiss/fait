@@ -218,6 +218,19 @@ public IfaceValue prototype_insertElementAt(FaitMethod fm,List<IfaceValue> args,
 }
 
 
+public IfaceValue prototype_indexOf(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
+{
+   if (element_value == null) return returnInt(-1);
+   return returnAny(fm);
+}
+
+
+public IfaceValue prototype_setElementAt(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
+{
+   return prototype_add(fm,args,src);
+}
+
+
 public IfaceValue prototype_offer(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
 {
    return prototype_add(fm,args,src);
@@ -248,6 +261,9 @@ public IfaceValue prototype_set(FaitMethod fm,List<IfaceValue> args,FaitLocation
 
 public IfaceValue prototype_clone(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
 {
+   IfaceValue av = fait_control.findAnyValue(getDataType());
+   if (av != null) return av;
+   
    IfaceEntity subs = fait_control.findPrototypeEntity(getDataType(),this,src);
    IfaceEntitySet cset = fait_control.createSingletonSet(subs);
    IfaceValue cv = fait_control.findObjectValue(getDataType(),cset,NullFlags.NON_NULL);
@@ -275,6 +291,16 @@ public synchronized IfaceValue prototype_contains(FaitMethod fm,List<IfaceValue>
    else if (v.mustBeNull() && !element_value.canBeNull()) return returnFalse();
    // else check data type compatability
 
+   return returnAny(fm);
+}
+
+
+
+
+public synchronized IfaceValue prototype_containsAll(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
+{
+   addElementChange(src);
+   
    return returnAny(fm);
 }
 
@@ -342,10 +368,10 @@ public synchronized IfaceValue prototype_toArray(FaitMethod fm,List<IfaceValue> 
       if (array_entity == null) {
 	 FaitDataType dt = fait_control.findDataType("Ljava/lang/Object;");
 	 array_entity = fait_control.findArrayEntity(dt,prototype_size(fm,null,src));
-	 array_entity.addToArrayContents(element_value,null,src);
-	 IfaceEntitySet cset = fait_control.createSingletonSet(array_entity);
-	 cv = fait_control.findObjectValue(array_entity.getDataType(),cset,NullFlags.NON_NULL);
        }
+      array_entity.addToArrayContents(element_value,null,src);
+      IfaceEntitySet cset = fait_control.createSingletonSet(array_entity);
+      cv = fait_control.findObjectValue(array_entity.getDataType(),cset,NullFlags.NON_NULL);
     }
 
    return cv;
@@ -391,6 +417,12 @@ public IfaceValue prototype_first(FaitMethod fm,List<IfaceValue> args,FaitLocati
 
 
 public IfaceValue prototype_firstElement(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
+{
+   return prototype_get(fm,args,src);
+}
+
+
+public IfaceValue prototype_lastElement(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
 {
    return prototype_get(fm,args,src);
 }

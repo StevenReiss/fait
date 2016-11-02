@@ -79,7 +79,7 @@ boolean addResult(IfaceValue v);
 Collection<FaitMethod>	replaceWith(List<IfaceValue> args);
 IfaceValue fixReplaceArgs(FaitMethod fm,LinkedList<IfaceValue> args);
 
-void addCallbacks(List<IfaceValue> args);
+void addCallbacks(FaitLocation loc,List<IfaceValue> args);
 FaitMethod findCallbackMethod(FaitDataType cls,String mthd,int asz,boolean intf);
 
 void noteCallSite(FaitLocation loc);

@@ -79,7 +79,7 @@ public CallTest()
 /********************************************************************************/
       
 @Test public void callCheck()
-{
+{ 
    FaitMethod fm1 = fait_control.findMethod("java.util.regex.Pattern","matcher",null);
    FaitMethod fm2 = fait_control.findMethod("java.lang.StringBuilder","toString",null);
    FaitMethod fm3 = fait_control.findMethod("java.lang.Object","notify",null);

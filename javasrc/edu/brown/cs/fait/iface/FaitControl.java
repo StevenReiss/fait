@@ -40,7 +40,7 @@ import java.io.File;
 import java.util.*;
 
 
-public interface FaitControl extends FaitConstants {
+public interface FaitControl extends FaitMaster {
 
 
 
@@ -51,7 +51,6 @@ public interface FaitControl extends FaitConstants {
 /*										*/
 /********************************************************************************/
 
-void setProject(FaitProject fp);
 File getDescriptionFile();
 
 
@@ -65,6 +64,8 @@ File getDescriptionFile();
 FaitDataType findDataType(String cls);
 FaitDataType findClassType(String cls);
 FaitMethod findMethod(String cls,String method,String sign);
+
+Iterable<FaitMethod> findAllMethods(FaitDataType typ,String method,String sign);
 FaitMethod findInheritedMethod(String cls,String name,String sign);
 FaitField findField(String cls,String fld);
 Collection<FaitMethod> getStartMethods();
@@ -169,8 +170,8 @@ Collection<IfaceCall> getAllCalls();
 /*										*/
 /********************************************************************************/
 
-void analyze(int nthread);
 void queueLocation(FaitLocation loc);
+void handleCallback(FaitLocation frm,FaitMethod fm,List<IfaceValue> args,String cbid);
 
 
 
@@ -184,13 +185,13 @@ class Factory {
 
    public static FaitControl getControl() {
       try {
-	 Class<?> c = Class.forName("edu.brown.cs.fait.control.ControlMain");
-	 Object o = c.newInstance();
-	 return (FaitControl) o;
+         Class<?> c = Class.forName("edu.brown.cs.fait.control.ControlMain");
+         Object o = c.newInstance();
+         return (FaitControl) o;
        }
       catch (Throwable t) {
-	 System.err.println("FAIT: Can't create controller: " + t);
-	 t.printStackTrace();
+         System.err.println("FAIT: Can't create controller: " + t);
+         t.printStackTrace();
        }
       return null;
     }

@@ -85,7 +85,11 @@ ValueObject(ValueFactory vf,FaitDataType typ,IfaceEntitySet es,NullFlags fgs)
 /*										*/
 /********************************************************************************/
 
-@Override NullFlags getNullFlags()		{ return null_flags; }
+@Override NullFlags getNullFlags()	
+{
+   if (null_flags != null) return null_flags;
+   return super.getNullFlags();
+}
 
 
 
@@ -276,42 +280,42 @@ ValueObject(ValueFactory vf,FaitDataType typ,IfaceEntitySet es,NullFlags fgs)
 @Override public TestBranch branchTest(IfaceValue rhs,int op)
 {
    if (rhs == null) rhs = this;
-   
+
    if (!(rhs instanceof ValueObject)) return TestBranch.ANY;
-   
+
    ValueObject vo = (ValueObject) rhs;
    TestBranch r = TestBranch.ANY;
-   
+
    switch (op) {
       case IF_ACMPEQ :
-         if (mustBeNull() && vo.mustBeNull()) r = TestBranch.ALWAYS;
-         else if (mustBeNull() && !vo.canBeNull()) r = TestBranch.NEVER;
-         else if (!canBeNull() && vo.mustBeNull()) r = TestBranch.NEVER;
-         break;
+	 if (mustBeNull() && vo.mustBeNull()) r = TestBranch.ALWAYS;
+	 else if (mustBeNull() && !vo.canBeNull()) r = TestBranch.NEVER;
+	 else if (!canBeNull() && vo.mustBeNull()) r = TestBranch.NEVER;
+	 break;
       case IF_ACMPNE :
-         if (mustBeNull() && vo.mustBeNull()) r = TestBranch.NEVER;
-         else if (mustBeNull() && !vo.canBeNull()) r = TestBranch.ALWAYS;
-         else if (!canBeNull() && vo.mustBeNull()) r = TestBranch.ALWAYS;
-         break; 
+	 if (mustBeNull() && vo.mustBeNull()) r = TestBranch.NEVER;
+	 else if (mustBeNull() && !vo.canBeNull()) r = TestBranch.ALWAYS;
+	 else if (!canBeNull() && vo.mustBeNull()) r = TestBranch.ALWAYS;
+	 break;
       case IFNONNULL :
-         if (mustBeNull()) r = TestBranch.NEVER;
-         else if (!canBeNull()) r = TestBranch.ALWAYS;
-         break;
+	 if (mustBeNull()) r = TestBranch.NEVER;
+	 else if (!canBeNull()) r = TestBranch.ALWAYS;
+	 break;
       case IFNULL :
-         if (mustBeNull()) r = TestBranch.ALWAYS;
-         else if (!canBeNull()) r = TestBranch.NEVER;
-         break;
+	 if (mustBeNull()) r = TestBranch.ALWAYS;
+	 else if (!canBeNull()) r = TestBranch.NEVER;
+	 break;
     }
-   
+
    return r;
 }
-         
+	
 @Override public boolean isNative()
 {
    for (IfaceEntity ent : getEntities()) {
       if (ent.isNative()) return true;
     }
-   
+
    return false;
 }
 
@@ -323,9 +327,9 @@ ValueObject(ValueFactory vf,FaitDataType typ,IfaceEntitySet es,NullFlags fgs)
       if (!ent.isNative()) return false;
       ++ct;
     }
-   
+
    if (ct == 0) return false;
-   
+
    return true;
 }
 
@@ -333,11 +337,11 @@ ValueObject(ValueFactory vf,FaitDataType typ,IfaceEntitySet es,NullFlags fgs)
 @Override public boolean isGoodEntitySet()
 {
    if (mustBeNull()) return true;
-   
+
    for (IfaceEntity ent : getEntities()) {
       if (ent.getDataType() != null) return true;
     }
-   
+
    return false;
 }
 
@@ -369,37 +373,37 @@ private static FaitDataType getSetType(IfaceEntitySet es)
 
 
 /********************************************************************************/
-/*                                                                              */
-/*     Array methods                                                            */
-/*                                                                              */
+/*										*/
+/*     Array methods								*/
+/*										*/
 /********************************************************************************/
 
 @Override public IfaceValue getArrayContents()
 {
    IfaceValue cnts = null;
-   
+
    for (IfaceEntity ent : getEntities()) {
-      IfaceValue cv = (IfaceValue) ent.getArrayValue(null);
+      IfaceValue cv = (IfaceValue) ent.getArrayValue(null,getFaitControl());
       if (cv != null) {
-         if (cnts == null) cnts = cv;
-         else cnts = cnts.mergeValue(cv);
+	 if (cnts == null) cnts = cv;
+	 else cnts = cnts.mergeValue(cv);
        }
     }
-   
+
    return cnts;
 }
-      
+
 /********************************************************************************/
-/*                                                                              */
-/*      Output Methods                                                          */
-/*                                                                              */
+/*										*/
+/*	Output Methods								*/
+/*										*/
 /********************************************************************************/
 
 
 @Override public String toString()
 {
    StringBuffer rslt = new StringBuffer();
-   
+
    rslt.append("[");
    rslt.append(getDataType().getName());
    if (mustBeNull()) rslt.append(" =null");
@@ -411,13 +415,13 @@ private static FaitDataType getSetType(IfaceEntitySet es)
    if (getEntitySet().size() == 1) {
       rslt.append(" { ");
       for (IfaceEntity ent : getEntities()) {
-         rslt.append(ent.toString());
-         rslt.append(" ");
+	 rslt.append(ent.toString());
+	 rslt.append(" ");
        }
       rslt.append("} ");
     }
    rslt.append("]");
-   
+
    return rslt.toString();
 }
 

@@ -109,10 +109,12 @@ long getMaxValue()			{ return max_value; }
 /*										*/
 /********************************************************************************/
 
-@Override 
+@Override
 public IfaceValue performOperation(FaitDataType typ,IfaceValue rhsv,int op,FaitLocation src)
 {
    if (rhsv == null) rhsv = this;
+
+   if (rhsv instanceof ValueBad) return value_factory.anyValue(typ);
 
    ValueInt rhs = (ValueInt) rhsv;
 
@@ -385,9 +387,9 @@ public IfaceValue performOperation(FaitDataType typ,IfaceValue rhsv,int op,FaitL
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Output methods                                                          */
-/*                                                                              */
+/*										*/
+/*	Output methods								*/
+/*										*/
 /********************************************************************************/
 
 @Override public String toString()

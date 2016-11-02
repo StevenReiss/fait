@@ -39,6 +39,7 @@ import edu.brown.cs.fait.iface.*;
 
 import java.util.*;
 
+
 abstract class EntityObject extends EntityBase
 {
 
@@ -156,7 +157,7 @@ protected void copyFields(EntityObject toobj)
 
 
 
-@Override public FaitValue getArrayValue(IfaceValue idx)
+@Override public FaitValue getArrayValue(IfaceValue idx,FaitControl fc)
 {
    if (array_nonnull && !array_canbenull && array_value != null)
       return array_value.forceNonNull();

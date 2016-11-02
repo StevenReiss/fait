@@ -38,7 +38,7 @@ package edu.brown.cs.fait.iface;
 
 
 
-
+import java.util.List;
 
 public interface FaitLocation extends FaitConstants {
 
@@ -46,6 +46,7 @@ FaitMethod getMethod();
 IfaceCall getCall();
 FaitInstruction getInstruction();
 boolean sameBaseLocation(FaitLocation loc);
+void handleCallback(FaitMethod fm,List<IfaceValue> args,String cbid);
 
 }	// end of interface FaitLocation
 

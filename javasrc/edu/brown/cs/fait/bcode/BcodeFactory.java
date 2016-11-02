@@ -107,6 +107,16 @@ public BcodeFactory(FaitControl fc,int nth)
 
 
 
+/********************************************************************************/
+/*										*/
+/*	Access methods								*/
+/*										*/
+/********************************************************************************/
+
+FaitControl getControl()			{ return fait_control; }
+
+
+	
 
 /********************************************************************************/
 /*										*/
@@ -201,6 +211,10 @@ private void addClassPathEntry(String cpe)
 
 private void addClassFiles(File dir,String pfx)
 {
+   if (dir == null || !dir.isDirectory() || dir.listFiles() == null) {
+      return;
+    }
+
    for (File f : dir.listFiles()) {
       if (f.isDirectory()) {
 	 String sfx = f.getName();
@@ -247,7 +261,7 @@ public BcodeDataType findDataType(String s)
 
 public BcodeDataType findClassType(String s)
 {
-   if (!s.endsWith(";")) {
+   if (!s.endsWith(";") && !s.startsWith("[")) {
       s = "L" + s.replace('.','/') + ";";
     }
 
@@ -332,6 +346,14 @@ public BcodeMethod findMethod(String nm,String cls,String mnm,String desc)
       return bm;
     }
 }
+
+
+public Iterable<FaitMethod> findAllMethods(FaitDataType cls,String mnm,String desc)
+{
+   BcodeClass fc = known_classes.get(cls.getName());
+   return fc.findAllMethods(mnm,desc);
+}
+	
 
 
 
@@ -496,19 +518,18 @@ private synchronized void loadClassesThreaded(int nth)
 private class LoadExecutor extends ThreadPoolExecutor {
 
    private int num_active;
-   private Set<String> work_items;
+   private ConcurrentMap<String,Object> work_items;
+
 
    LoadExecutor(int nth) {
       super(nth,nth,10,TimeUnit.SECONDS,new LinkedBlockingQueue<Runnable>());
       num_active = 0;
-      work_items = new HashSet<String>();
+      work_items = new ConcurrentHashMap<String,Object>();
     }
 
    void workOnClass(String c) {
-      synchronized (this) {
-         if (work_items.contains(c)) return;
-         work_items.add(c);
-       }
+      if (work_items.putIfAbsent(c,Boolean.TRUE) != null) return;
+   
       LoadTask task = new LoadTask(c);
       execute(task);
     }
@@ -521,7 +542,7 @@ private class LoadExecutor extends ThreadPoolExecutor {
    @Override synchronized protected void afterExecute(Runnable r,Throwable t) {
       --num_active;
       if (num_active == 0 && getQueue().size() == 0) {
-         notifyAll();
+	 notifyAll();
        }
     }
 
@@ -545,38 +566,39 @@ private class LoadTask implements Runnable {
    @Override public void run() {
       FileInfo fi = class_map.get(load_class);
       if (fi == null) {
-	 IfaceLog.logI("Can't find class " + load_class);
-	 return;
+         IfaceLog.logI("Can't find class " + load_class);
+         return;
        }
+      IfaceLog.logD("Load class " + load_class);
       InputStream ins = fi.getInputStream();
       if (ins == null) {
-	 IfaceLog.logE("Can't open file for class " + load_class);
-	 return;
+         IfaceLog.logE("Can't open file for class " + load_class);
+         return;
        }
-
+   
       try {
-	 boolean pcls = for_project.isProjectClass(load_class);
-	 BcodeClass bc = null;
-	 synchronized (known_classes) {
-	    if (known_classes.get(load_class) == null) {
-	       bc = new BcodeClass(BcodeFactory.this,pcls);
-	       known_classes.put(load_class,bc);
-	       String c1 = load_class.replace('.','/');
-	       known_classes.put(c1,bc);
-	       c1 = "L" + c1 + ";";
-	       known_classes.put(c1,bc);
-	     }
-	  }
-
-	 if (bc != null) {
-	    ClassReader cr = new ClassReader(ins);
-	    cr.accept(bc,0);
-	  }
-
-	 ins.close();
+         boolean pcls = for_project.isProjectClass(load_class);
+         BcodeClass bc = null;
+         synchronized (known_classes) {
+            if (known_classes.get(load_class) == null) {
+               bc = new BcodeClass(BcodeFactory.this,pcls);
+               known_classes.put(load_class,bc);
+               String c1 = load_class.replace('.','/');
+               known_classes.put(c1,bc);
+               c1 = "L" + c1 + ";";
+               known_classes.put(c1,bc);
+             }
+          }
+   
+         if (bc != null) {
+            ClassReader cr = new ClassReader(ins);
+            cr.accept(bc,0);
+          }
+   
+         ins.close();
        }
       catch (IOException e) {
-	 System.err.println("BCODE: Problem reading class " + load_class);
+         System.err.println("BCODE: Problem reading class " + load_class);
        }
     }
 
@@ -584,41 +606,7 @@ private class LoadTask implements Runnable {
 
 
 
-private synchronized void loadClasses()
-{
-   while (!work_list.isEmpty()) {
-      String c = work_list.remove();
-      if (known_classes.get(c) != null) continue;
-      FileInfo fi = class_map.get(c);
-      if (fi == null) {
-	 IfaceLog.logI("Can't find class " + c);
-	 continue;
-       }
-      InputStream ins = fi.getInputStream();
-      if (ins == null) {
-	 IfaceLog.logW("BCODE: Can't open file for class " + c);
-	 continue;
-       }
 
-      try {
-	 boolean pcls = for_project.isProjectClass(c);
-	 BcodeClass bc = new BcodeClass(this,pcls);
-	 known_classes.put(c,bc);
-	 String c1 = c.replace('.','/');
-	 known_classes.put(c1,bc);
-	 c1 = "L" + c1 + ";";
-	 known_classes.put(c1,bc);
-
-	 ClassReader cr = new ClassReader(ins);
-	 cr.accept(bc,0);
-	 ins.close();
-	 // System.err.println("BCODE: Read class " + c);
-       }
-      catch (IOException e) {
-	 System.err.println("BCODE: Problem reading class " + c);
-       }
-    }
-}
 
 
 

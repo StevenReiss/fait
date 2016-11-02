@@ -92,9 +92,7 @@ public ProtoTest()
    List<IfaceValue> args = new ArrayList<IfaceValue>();
    args.add(fait_control.findAnyValue(dt));
    args.add(v1);
-   IfaceValue v2 = p1.handleCall(fm,args,null);
-   
-   v2 = fait_control.findAnyValue(dt);
+   p1.handleCall(fm,args,null);
    FaitMethod fm2 = fait_control.findMethod("java.util.ArrayList","get","(I)Ljava/lang/Object;");
    Assert.assertNotNull(fm2);
    Assert.assertTrue(p1.isMethodRelevant(fm2));

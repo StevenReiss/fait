@@ -10,13 +10,13 @@
       <path id='fait.classpath'>
 	 <pathelement location='${FAIT}/java' />
 	 <pathelement location='${IVYBIN}' />
-	 <fileset dir='${FAIT}/lib/' includes='asm*.jar' />
+	 <fileset dir='${FAIT}/lib/' includes='asm5.jar' />
 	 <pathelement location='${PRO}/bubbles/lib/junit.jar' />
       </path>
       <path id='test.classpath'>
 	 <pathelement location='${FAIT}/java' />
 	 <pathelement location='${IVYBIN}' />
-	 <fileset dir='${FAIT}/lib/' includes='asm*.jar' />
+	 <fileset dir='${FAIT}/lib/' includes='asm5.jar' />
 	 <pathelement location='${PRO}/bubbles/lib/junit.jar' />
       </path>
    </target>

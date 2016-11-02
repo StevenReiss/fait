@@ -1,4 +1,4 @@
-<project name='bubbles' default='all' >
+<project name='fait' default='all' >
 
    <property name='PRO' value='/research' />
    <property name='IVYBIN' value='/research/ivy/java' />

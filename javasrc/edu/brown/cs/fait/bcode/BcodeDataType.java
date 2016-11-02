@@ -163,6 +163,13 @@ private int classLength()
 }
 
 @Override public FaitDataType getSuperType()		{ return super_type; }
+@Override public Iterable<FaitDataType> getInterfaces()
+{
+   List<FaitDataType> rslt = new ArrayList<FaitDataType>();
+   if (iface_types != null) rslt.addAll(iface_types);
+   return rslt;
+}
+
 
 
 @Override public FaitDataType getBaseDataType()
@@ -227,6 +234,12 @@ private int classLength()
 	 return true;
     }
    return false;
+}
+
+
+@Override public FaitControl getControl()
+{
+   return bcode_factory.getControl();
 }
 
 
@@ -315,7 +328,17 @@ private synchronized void addChild(BcodeDataType bdt)
 	 if (ift.isDerivedFrom(fdt)) return true;
     }
 
+   if (isArray() && fdt.isArray()) {
+      if (getBaseDataType().isDerivedFrom(fdt.getBaseDataType())) return true;
+    }
    return false;
+}
+
+
+
+Collection<BcodeDataType> getChildTypes()
+{
+   return child_types;
 }
 
 
@@ -343,12 +366,6 @@ private synchronized void addChild(BcodeDataType bdt)
 
 
 
-Collection<BcodeDataType> getChildTypes()
-{
-   return child_types;
-}
-
-
 
 /********************************************************************************/
 /*										*/
@@ -358,6 +375,8 @@ Collection<BcodeDataType> getChildTypes()
 
 @Override public FaitDataType findCommonParent(FaitDataType t2)
 {
+   if (t2 == this) return t2;
+   
    synchronized (this) {
       if (parent_map == null) parent_map = new HashMap<FaitDataType,FaitDataType>();
     }
@@ -437,11 +456,13 @@ private FaitDataType findCommonInterface(BcodeDataType i2,Set<FaitDataType> done
 	 if (c.isInterface()) return c;
        }
     }
-   for (BcodeDataType typ : iface_types) {
-      if (done.contains(typ)) continue;
-      done.add(typ);
-      FaitDataType c = typ.findCommonInterface(i2,done);
-      if (c.isInterface()) return c;
+   if (iface_types != null) {
+      for (BcodeDataType typ : iface_types) {
+	 if (done.contains(typ)) continue;
+	 done.add(typ);
+	 FaitDataType c = typ.findCommonInterface(i2,done);
+	 if (c.isInterface()) return c;
+       }
     }
 
    return bcode_factory.findDataType("Ljava/lang/Object;");
@@ -481,9 +502,9 @@ private FaitDataType findCommonArray(BcodeDataType t2)
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Debugging methods                                                       */
-/*                                                                              */
+/*										*/
+/*	Debugging methods							*/
+/*										*/
 /********************************************************************************/
 
 @Override public String toString()

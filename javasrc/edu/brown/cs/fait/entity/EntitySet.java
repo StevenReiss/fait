@@ -202,19 +202,22 @@ private class EntitySetIterator implements Iterator<IfaceEntity> {
    synchronized (this) {
       EntitySet nxt = next_map.get(es);
       if (nxt != null) return nxt;
+    }
 
-      BitSet bs = (BitSet) es.set_contents.clone();
-      bs.andNot(set_contents);
-      if (!bs.isEmpty()) {
-	 List<IfaceEntity> v = new ArrayList<IfaceEntity>();
-	 for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i+1)) {
-	    IfaceEntity fe = entity_factory.getEntity(i);
-	    if (fe != null) v.add(fe);
-	  }
-	 bs.or(set_contents);
-	 rslt = entity_factory.findSet(bs);
-	 props = v;
+   BitSet bs = (BitSet) es.set_contents.clone();
+   bs.andNot(set_contents);
+   if (!bs.isEmpty()) {
+      List<IfaceEntity> v = new ArrayList<IfaceEntity>();
+      for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i+1)) {
+	 IfaceEntity fe = entity_factory.getEntity(i);
+	 if (fe != null) v.add(fe);
        }
+      bs.or(set_contents);
+      rslt = entity_factory.findSet(bs);
+      props = v;
+    }
+
+   synchronized (this) {
       next_map.put(es,rslt);
     }
 

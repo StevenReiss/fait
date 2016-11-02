@@ -141,7 +141,7 @@ EntityProto(FaitDataType typ,IfacePrototype from,boolean mutable)
 }
 
 
-@Override public IfaceValue getArrayValue(IfaceValue idx)
+@Override public IfaceValue getArrayValue(IfaceValue idx,FaitControl fc)
 {
    return proto_handler.getArrayContents(idx);
 }

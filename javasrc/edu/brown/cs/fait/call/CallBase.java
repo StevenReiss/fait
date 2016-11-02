@@ -289,7 +289,7 @@ CallBase(FaitControl fc,FaitMethod fm,int ct)
 {
    if (for_method.isStatic()) return null;
 
-   synchronized (start_state) {
+   synchronized (this) {
       return start_state.getLocal(0);
     }
 }
@@ -299,14 +299,14 @@ CallBase(FaitControl fc,FaitMethod fm,int ct)
 {
    Collection<IfaceValue> rslt = new ArrayList<IfaceValue>();
 
-   synchronized (start_state) {
+   synchronized (this) {
       int idx = 0;
       if (!for_method.isStatic()) {
 	 IfaceValue v0 = start_state.getLocal(idx++);
 	 rslt.add(v0);
        }
 
-      for (int i = 0; ; ++i) {
+      for ( ; ; ) {
 	 IfaceValue v0 = start_state.getLocal(idx++);
 	 if (v0 == null) break;
 	 rslt.add(v0);
@@ -330,7 +330,7 @@ CallBase(FaitControl fc,FaitMethod fm,int ct)
 {
    boolean chng = false;
 
-   synchronized (start_state) {
+   synchronized (this) {
       int idx = 0;
       for (IfaceValue cv : args) {
 	 IfaceValue ov = start_state.getLocal(idx);
@@ -411,9 +411,36 @@ CallBase(FaitControl fc,FaitMethod fm,int ct)
 @Override public Collection<FaitMethod> replaceWith(List<IfaceValue> args)
 {
    if (special_data == null) return Collections.singletonList(for_method);
+   
    String nm = special_data.getReplaceName();
-   if (nm == null) return Collections.singletonList(for_method);
-
+   
+   if (special_data.isConstructor()) {
+      IfaceValue fv = special_data.getReturnValue(for_method);
+      List<Integer> vals = special_data.getCallbackArgs();
+      List<IfaceValue> nargs = new ArrayList<IfaceValue>();
+      nargs.add(fv);
+      if (vals != null) {
+         for (Integer i : vals) {
+            IfaceValue av = null;
+            int iv = i;
+            if (iv == -1) {
+               av = fait_control.findNullValue();
+             }
+            else {
+               av = args.get(i);
+             }
+            if (av != null) nargs.add(av);
+          }
+       }
+      String rtyp = fv.getDataType().getName();
+      nm = rtyp + ".<init>";
+      args.clear();
+      args.addAll(nargs);
+    }
+   
+   if (nm == null)
+      return Collections.singletonList(for_method);
+  
    FaitMethod nfm = null;
    Collection<FaitMethod> rslt = new ArrayList<FaitMethod>();
 
@@ -487,12 +514,60 @@ private void fixArgs(FaitMethod fm,List<IfaceValue> args)
 /*										*/
 /********************************************************************************/
 
-@Override public void addCallbacks(List<IfaceValue> args)
-{ }
+@Override public void addCallbacks(FaitLocation loc,List<IfaceValue> args)
+{
+   if (special_data == null) return;
+   Iterable<String> it = special_data.getCallbacks();
+   if (it == null) return;
+   
+   IfaceLog.logD("Check callbacks " + args);
+   
+   List<Integer> argnos = special_data.getCallbackArgs();
+   List<IfaceValue> nargs = new ArrayList<IfaceValue>();
+   for (Integer iv0 : argnos) {
+      int i0 = iv0;
+      IfaceValue cv = args.get(i0);
+      nargs.add(cv);
+    }
+   IfaceValue cv0 = nargs.get(0);
+   FaitDataType typ = cv0.getDataType();
+   if (typ == null) return;
+   
+   for (String cbn : it) {
+      FaitMethod fm = findCallbackMethod(typ,cbn,nargs.size(),true);
+      if (fm != null) {
+         List<IfaceValue> rargs = new ArrayList<IfaceValue>(nargs);
+         fixArgs(fm,rargs);
+         IfaceLog.logD("Use callback " + fm + " " + rargs);
+         fait_control.handleCallback(loc,fm,rargs,special_data.getCallbackId());
+       }
+      else IfaceLog.logD("No callback found for " + cbn + " in " + typ);
+    }
+}
 
 
 @Override public FaitMethod findCallbackMethod(FaitDataType cls,String mthd,int asz,boolean intf)
 {
+   for (FaitMethod fm : fait_control.findAllMethods(cls,mthd,null)) {
+      if (fm.getName().equals(mthd)) {
+         if (fm.isStatic() && fm.getNumArguments() >= asz) return fm;
+         else if (fm.getNumArguments() + 1 >= asz) return fm;
+       }
+    }
+   
+   FaitDataType fdt = cls.getSuperType();
+   if (fdt != null) {
+      FaitMethod fm = findCallbackMethod(fdt,mthd,asz,intf);
+      if (fm != null) return fm;
+    }
+   
+   if (intf) {
+      for (FaitDataType sdt : cls.getInterfaces()) {
+         FaitMethod fm = findCallbackMethod(sdt,mthd,asz,true);
+         if (fm != null) return fm;
+       }
+    }
+   
    return null;
 }
 

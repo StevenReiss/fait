@@ -37,6 +37,7 @@ package edu.brown.cs.fait.flow;
 
 import edu.brown.cs.fait.iface.*;
 
+import java.util.List;
 
 class FlowLocation implements FaitLocation, FlowConstants
 {
@@ -132,6 +133,10 @@ void queueLocation()
    for_queue.queueMethodChange(for_call,for_instruction);
 }
 
+@Override public void handleCallback(FaitMethod fm,List<IfaceValue> args,String cbid)
+{
+   for_queue.handleCallback(fm,args,cbid);
+}
 
 
 /********************************************************************************/

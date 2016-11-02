@@ -294,6 +294,7 @@ public IfaceSpecial getSpecial(FaitMethod fm)
    synchronized (special_methods) {
       if (special_methods.containsKey(fm)) return special_methods.get(fm);
       String fnm = fm.getDeclaringClass().getName() + "." + fm.getName();
+         
       cs = call_methods.get(fnm + fm.getDescription());
       if (cs == null) cs = call_methods.get(fnm);
       if (cs == null) {

@@ -63,7 +63,6 @@ private BcodeClass		in_class;
 private List<BcodeInstruction>	ins_list;
 private Map<Label,Integer>	goto_map;
 private String			match_name;
-private byte [] 		message_digest;
 private Collection<FaitMethod>	parent_methods;
 private Collection<FaitMethod>	child_methods;
 private Collection<FaitTryCatchBlock> try_blocks;
@@ -196,7 +195,7 @@ String getMatchName()
 {
    List<FaitDataType> rslt = new ArrayList<FaitDataType>();
    for (int i = 0; i < exceptions.size(); ++i) {
-      String enm = (String) exceptions.get(i);
+      String enm = exceptions.get(i);
       FaitDataType fdt = bcode_factory.findClassType(enm);
       if (fdt != null) rslt.add(fdt);
     }
@@ -318,11 +317,11 @@ String getMatchName()
 }
 
 
-@Override public void visitMethodInsn(int opc,String o,String n,String d)
+@Override public void visitMethodInsn(int opc,String o,String n,String d,boolean itf)
 {
    in_class.getFactory().noteClass(o);
    in_class.getFactory().noteType(d);
-   super.visitMethodInsn(opc,o,n,d);
+   super.visitMethodInsn(opc,o,n,d,itf);
 }
 
 
@@ -383,7 +382,7 @@ private void computeDigest()
       addToDigest(md,ins);
     }
 
-   message_digest = md.digest();
+   // message_digest = md.digest();
 }
 
 

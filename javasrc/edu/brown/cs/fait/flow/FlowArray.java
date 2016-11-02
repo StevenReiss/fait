@@ -122,7 +122,7 @@ IfaceValue handleArrayAccess(FlowLocation loc,IfaceValue arr,IfaceValue idx)
    for (IfaceEntity xe : arr.getEntities()) {
       if (xe.getDataType().isArray()) {
 	 addReference(xe,loc);
-	 IfaceValue cv1 = (IfaceValue) xe.getArrayValue(idx);
+	 IfaceValue cv1 = (IfaceValue) xe.getArrayValue(idx,fait_control);
 	 if (cv == null) cv = cv1;
 	 else cv = cv.mergeValue(cv1);
        }

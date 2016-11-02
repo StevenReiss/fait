@@ -126,6 +126,21 @@ BcodeMethod findMethod(String nm,String desc)
 }
 
 
+List<FaitMethod> findAllMethods(String nm,String desc)
+{
+   List<FaitMethod> rslt = new ArrayList<FaitMethod>();
+   for (Object o : methods) {
+      BcodeMethod bm = (BcodeMethod) o;
+      if (nm != null && !bm.getName().equals(nm)) continue;
+      if (desc != null && !bm.getDescription().equals(desc)) continue;
+      rslt.add(bm);
+    }
+   
+   return rslt;
+}
+
+
+
 
 List<FaitMethod> findStaticInitializers()
 {
@@ -226,10 +241,10 @@ Collection<FaitMethod> findChildMethods(String nm,String desc,boolean check,Coll
 /*										*/
 /********************************************************************************/
 
-@Override public void visit(int v,int a,String name,String sgn,String sup,String [] ifaces)
+@Override public void visit(int v,int a,String xname,String sgn,String sup,String [] ifaces)
 {
-   super.visit(v,a,name,sgn,sup,ifaces);
-   base_type = Type.getObjectType(name);
+   super.visit(v,a,xname,sgn,sup,ifaces);
+   base_type = Type.getObjectType(xname);
    if (sup != null) bcode_factory.noteClass(sup);
    if (ifaces != null)
       for (String f : ifaces) bcode_factory.noteClass(f);
@@ -245,7 +260,6 @@ Collection<FaitMethod> findChildMethods(String nm,String desc,boolean check,Coll
 }
 
 
-@SuppressWarnings("unchecked")
 @Override public MethodVisitor visitMethod(int a,String n,String d,String sgn,String [] ex)
 {
    if (ex != null) {
@@ -260,7 +274,6 @@ Collection<FaitMethod> findChildMethods(String nm,String desc,boolean check,Coll
 }
 
 
-@SuppressWarnings("unchecked")
 @Override public FieldVisitor visitField(int a,String n,String d,String sgn,Object val)
 {
    bcode_factory.noteType(d);
@@ -272,10 +285,10 @@ Collection<FaitMethod> findChildMethods(String nm,String desc,boolean check,Coll
 
 
 
-@Override public void visitInnerClass(String name,String oname,String iname,int acc)
+@Override public void visitInnerClass(String xname,String oname,String iname,int acc)
 {
-   bcode_factory.noteClass(name);
-   super.visitInnerClass(name,oname,iname,acc);
+   bcode_factory.noteClass(xname);
+   super.visitInnerClass(xname,oname,iname,acc);
 }
 
 

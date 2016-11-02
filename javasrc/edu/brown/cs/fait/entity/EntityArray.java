@@ -54,7 +54,6 @@ private FaitDataType		base_class;
 private FaitDataType		array_class;
 private IfaceValue		array_values;
 private IfaceValue		size_value;
-private boolean 		null_stored;
 
 
 
@@ -78,8 +77,6 @@ EntityArray(FaitControl ctrl,FaitDataType cls,IfaceValue size)
    else {
       array_values = ctrl.findNullValue(base_class);
     }
-
-   null_stored = false;
 }
 
 
@@ -105,7 +102,6 @@ EntityArray(FaitControl ctrl,FaitDataType cls,IfaceValue size)
 @Override public void setArrayContents(IfaceValue v)
 {
    array_values = v;
-   null_stored = v.canBeNull();
 }
 
 
@@ -113,7 +109,6 @@ EntityArray(FaitControl ctrl,FaitDataType cls,IfaceValue size)
 @Override public synchronized boolean addToArrayContents(IfaceValue v,IfaceValue idx,FaitLocation loc)
 {
    if (v != null) {
-      null_stored = v.canBeNull();
       v = v.restrictByType(base_class,false,loc);
     }
 
@@ -127,7 +122,7 @@ EntityArray(FaitControl ctrl,FaitDataType cls,IfaceValue size)
 
 
 
-@Override public FaitValue getArrayValue(IfaceValue idx)
+@Override public FaitValue getArrayValue(IfaceValue idx,FaitControl fc)
 {
    return array_values;
 }
@@ -165,8 +160,8 @@ EntityArray(FaitControl ctrl,FaitDataType cls,IfaceValue size)
    StringBuffer buf = new StringBuffer();
    buf.append("[Array ");
    buf.append(array_class.getName());
-   buf.append(" :: ");
-   buf.append(array_values.toString());
+   // buf.append(" :: ");
+   // buf.append(array_values.toString());
    buf.append(" ]");
    return buf.toString();
 }

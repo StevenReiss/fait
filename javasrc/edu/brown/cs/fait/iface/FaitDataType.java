@@ -39,7 +39,6 @@ package edu.brown.cs.fait.iface;
 
 
 
-
 public interface FaitDataType extends FaitConstants {
 
 
@@ -69,6 +68,7 @@ boolean isFloating();
 FaitDataType getSuperType();
 FaitDataType getBaseDataType();
 FaitDataType getArrayType();
+Iterable<FaitDataType> getInterfaces();
 
 boolean isProjectClass();
 
@@ -76,6 +76,7 @@ boolean isDerivedFrom(FaitDataType dt);
 FaitDataType findChildForInterface(FaitDataType intertype);
 FaitDataType findCommonParent(FaitDataType t1);
 
+FaitControl getControl();
 
 }	// end of interface FaitDataType
 

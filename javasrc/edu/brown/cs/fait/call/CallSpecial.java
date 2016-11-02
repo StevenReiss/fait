@@ -57,6 +57,7 @@ private String		result_type;
 private String		alt_result;
 private boolean 	canbe_null;
 private boolean 	is_mutable;
+private boolean         is_constructor;
 private boolean 	return_arg0;
 private String		replace_name;
 private boolean 	dont_scan;
@@ -98,6 +99,7 @@ CallSpecial(FaitControl fc,Element xml,boolean formthd)
    does_exit = IvyXml.getAttrBool(xml,"EXIT");
    array_copy = IvyXml.getAttrBool(xml,"ARRAYCOPY");
    async_call = IvyXml.getAttrBool(xml,"ASYNC");
+   is_constructor = IvyXml.getAttrBool(xml,"CONSTRUCTOR");
 
    dont_scan = !IvyXml.getAttrBool(xml,"SCAN");
 
@@ -125,6 +127,26 @@ CallSpecial(FaitControl fc,Element xml,boolean formthd)
 	  }
        }
     }
+   if (is_constructor) {
+      callback_args = new ArrayList<Integer>();
+      String args = IvyXml.getAttrString(xml,"ARGS");
+      for (StringTokenizer tok = new StringTokenizer(args); tok.hasMoreTokens(); ) {
+         String nvl = tok.nextToken();
+         int i = -99;
+         if (nvl.equalsIgnoreCase("NULL")) i = -1;
+         else if (nvl.equalsIgnoreCase("FALSE")) i = -2;
+         else if (nvl.equalsIgnoreCase("TRUE")) i = -3;
+         else {
+            try {
+               i = Integer.parseInt(nvl);
+             }
+            catch (NumberFormatException e) {
+               System.err.println("FAIT: ARGS contains bad value");
+             }
+          }
+         callback_args.add(i);
+       }
+    }
 }
 
 
@@ -138,7 +160,8 @@ CallSpecial(FaitControl fc,Element xml,boolean formthd)
 @Override public IfaceValue getReturnValue(FaitMethod fm)
 {
    FaitDataType dt = null;
-   if (result_type != null) dt = getClassType(result_type);
+   if (result_type != null && result_type.equals("void")) dt = fait_control.findDataType("V");
+   else if (result_type != null) dt = getClassType(result_type);
    if (dt == null && alt_result != null) dt = getClassType(alt_result);
    if (dt == null) {
       if (fm.isConstructor()) dt = fm.getDeclaringClass();
@@ -160,6 +183,8 @@ CallSpecial(FaitControl fc,Element xml,boolean formthd)
 
 
 @Override public boolean returnsArg0()			{ return return_arg0; }
+
+@Override public boolean isConstructor()                { return is_constructor; }
 
 @Override public String getReplaceName()		{ return replace_name; }
 

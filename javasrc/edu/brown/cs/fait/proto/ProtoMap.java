@@ -256,6 +256,9 @@ public IfaceValue prototype_values(FaitMethod fm,List<IfaceValue> args,FaitLocat
 
 public IfaceValue prototype_clone(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
 {
+   IfaceValue av = fait_control.findAnyValue(getDataType());
+   if (av != null) return av;
+   
    IfaceEntity subs = fait_control.findPrototypeEntity(getDataType(),this,src);
    IfaceEntitySet cset = fait_control.createSingletonSet(subs);
    IfaceValue cv = fait_control.findObjectValue(getDataType(),cset,NullFlags.NON_NULL);

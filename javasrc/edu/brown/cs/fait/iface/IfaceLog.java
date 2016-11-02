@@ -82,6 +82,12 @@ public static void logI(String msg)
 }
 
 
+public static void logI1(String msg)
+{
+   the_logger.log(LogLevel.INFO,1,msg,null);
+}
+
+
 public static void logW(String msg)
 {
    the_logger.log(LogLevel.WARNING,0,msg,null);
@@ -89,14 +95,14 @@ public static void logW(String msg)
 
 
 public static void logE(String msg)
-{									
+{							
    the_logger.log(LogLevel.ERROR,0,msg,null);
 }
 
 
 
 public static void logE(String msg,Throwable t)
-{									
+{							
    the_logger.log(LogLevel.ERROR,0,msg,t);
 }
 
@@ -107,7 +113,7 @@ public static void setLevel(LogLevel lvl)
    the_logger.log_level = lvl;
 }
 
-								
+						
 /********************************************************************************/
 /*										*/
 /*	Constructors								*/
@@ -120,7 +126,7 @@ private IfaceLog()
    log_writer = null;
 
    try {
-      log_writer = new PrintWriter(new FileWriter("fait.log"));
+      log_writer = new PrintWriter(new FileWriter("/vol/spr/fait.out"));
     }
    catch (IOException e) { }
    if (log_writer == null) {

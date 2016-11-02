@@ -603,17 +603,6 @@ private IfaceEntity getLocalEntity(IfaceCall call,FaitInstruction ins)
 
 
 
-private IfaceEntity getUserSource(IfaceCall call,FaitInstruction ins,IfaceValue v)
-{
-   FaitEntity.UserEntity ent = call.getUserEntity(ins);
-   if (ent != null) return (IfaceEntity) ent;
-   // create user source if needed
-   return null;
-}
-
-
-
-
 /********************************************************************************/
 /*										*/
 /*	Handle accessing a value that must be non-null				*/

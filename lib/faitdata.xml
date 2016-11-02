@@ -7,11 +7,20 @@
    <PACKAGE NAME="javax.sound.sampled." />
    <PACKAGE NAME="java.util.logging." />
    <PACKAGE NAME="java.security." />
-   <PACAKGE NAME="java.text." />
+   <PACKAGE NAME="java.text." />
    <PACKAGE NAME="com.ibm.jikesbt." />
    <PACKAGE NAME="sun.jkernel." />
    <PACKAGE NAME='sun.nio.' />
    <PACKAGE NAME='java.io.' />
+   <PACKAGE NAME='com.sun.org.apache.' />
+   <PACKAGE NAME='java.nio.charset' />
+   <PACKAGE NAME='javax.crypto' />
+   <PACKAGE NAME='sun.net.www' />
+   <PACKAGE NAME='sun.net.www.protocol' />
+   <PACKAGE NAME='sun.net.www.protocol.http' />
+   <PACKAGE NAME='sun.misc' />
+   <PACKAGE NAME='sun.util.calendar' />
+   <PACKAGE NAME='java.nio.file' />
 
    <CLASS NAME="java.lang.reflect.Field" />
    <CLASS NAME='java.lang.ClassLoader' />
@@ -28,24 +37,25 @@
    <CLASS NAME='java.lang.ProcessEnvironment' />
    <CLASS NAME='java.lang.Character' />
    <CLASS NAME="java.lang.reflect.Method" />
+   <CLASS NAME='java.lang.ThreadLocal' />
    <CLASS NAME="java.util.Locale" />
    <CLASS NAME="java.util.EnumSet" />
    <CLASS NAME='java.util.ResourceBundle' />
    <CLASS NAME="java.util.TimeZone" />
+   <CLASS NAME="java.util.Properties" />
    <CLASS NAME="java.net.Inet4Address" />
+   <CLASS NAME="java.net.Inet6Address" />
    <CLASS NAME="java.net.URL" />
    <CLASS NAME="java.net.CacheRequest" />
    <CLASS NAME="java.net.PasswordAuthentication" />
    <CLASS NAME="java.net.URI" />
    <CLASS NAME="java.net.CookieHandler" />
+   <CLASS NAME='java.net.SocksSocketImpl' />
    <CLASS NAME="java.security.MessageDigest" />
    <CLASS NAME="java.security.MessageDigestSpi" />
    <CLASS NAME="java.sql.Connection" />
    <CLASS NAME="java.sql.Statement" />
    <CLASS NAME="java.sql.ResultSet" />
-   <CLASS NAME="java.text.MessageFormat" />
-   <CLASS NAME="java.text.DecimalFormat" />
-   <CLASS NAME='java.text.DateFormatSymbols'  />
    <CLASS NAME="javax.media.opengl.GLCanvas" />
 
    <CLASS NAME="com.sun.org.apache.internal.impl.XMLErrorReporter" />
@@ -69,7 +79,7 @@
    <METHOD NAME='java.lang.StringBuffer.toString' />
    <METHOD NAME="java.lang.System.getSecurityManager"
 		RETURN="java.lang.SecurityManager" MUTABLE="true" NULL="true" />
-   <METHOD NAME="java.lang.Thread.start" REPLACE="run" ASYNC="true" />
+   <METHOD NAME="java.lang.Thread.start" REPLACE="run" ASYNC="true" RETURN="void" />
    <METHOD NAME="java.lang.Thread.interrupt" />
    <METHOD NAME="java.lang.Runtime.exec" RETURN="java.lang.UNIXProcess" />
    <METHOD NAME="java.lang.String.getBytes" />
@@ -99,6 +109,7 @@
    <METHOD NAME="java.util.Locale.getDefault" />
    <METHOD NAME="java.util.Timer.schedule" CBID="timer" CALLBACK="run" CBARGS="1" />
    <METHOD NAME="java.util.Timer.scheduleAtFixedRate" CBID="timer" CALLBACK="run" CBARGS="1" />
+   <CLASS NAME='java.util.GregorianCalendar' />
 
    <METHOD NAME="java.nio.charset.Charset.forName" RETURN="sun.nio.cs.ISO_8859_1" />
    <METHOD NAME="java.nio.charset.Charset.lookup" RETURN="sun.nio.cs.ISO_8859_1" />
@@ -260,6 +271,8 @@
    <METHOD NAME="javax.swing.undo.UndoableEditSupport.addUndoableEditListener" CBID="awt" CALLBACK="undoableEditHappened" CBARGS="1" />
    <METHOD NAME="javax.swing.JComponent.addVetoableChangeListener" CBID="awt" CALLBACK="vetoableChange" CBARGS="1" NARG="1" />
    <METHOD NAME='javax.swing.JEditorPane.getEditorKit' SCAN='true' />
+   <CLASS NAME='javax.swing.UIManager' />
+   <CLASS NAME='javax.swing.UIDefaults' />
 
    <METHOD NAME="org.xml.sax.helpers.XMLReaderFactory.createXMLReader"
 	RETURN="com.sun.org.apache.xerces.internal.parsers.SAXParser"
@@ -267,6 +280,7 @@
    <METHOD NAME="org.xml.sax.helpers.ParserFactory.makeParser"
 	RETURN="com.sun.org.apache.xerces.internal.parsers.SAXParser"
 	ARETURN="org.apache.crimson.parser.XMLReaderImpl" />
+   <PACKAGE NAME='org.xml.sax.helpers' />
 
    <METHOD NAME="org.apache.crimson.tree.AttributeSet.item" />
 
@@ -285,5 +299,8 @@
 
    <METHOD NAME="sun.misc.Perf.attach" RETURN="java.nio.DirectByteBuffer" MUTABLE="true" />
 
-</FAIT>
+   <PACKAGE NAME="org.eclipse.jdt.core.compiler." />
 
+
+
+</FAIT>

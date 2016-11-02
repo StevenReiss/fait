@@ -86,18 +86,18 @@ EntityFixed(FaitDataType dt,boolean mutable)
 /*										*/
 /********************************************************************************/
 
-@Override public FaitValue getArrayValue(IfaceValue idx)
+@Override public FaitValue getArrayValue(IfaceValue idx,FaitControl fc)
 {
-   FaitValue fv = super.getArrayValue(idx);
+   FaitValue fv = super.getArrayValue(idx,fc);
    if (fv != null) return fv;
 
    if (getDataType().isArray() && base_value == null) {
       FaitDataType bty = getDataType().getBaseDataType();
       if (is_mutable || bty.isAbstract()) {
-	 // base_value = FaitCOntrol.getMutableValue(bty);
+         base_value = fc.findMutableValue(bty);
        }
       else {
-	 // base_value = FaitControl.getNativeValue(bty);
+         base_value = fc.findNativeValue(bty);
        }
     }
 
@@ -140,8 +140,15 @@ EntityFixed(FaitDataType dt,boolean mutable)
 	 eb = (EntityBase) factory.createMutableEntity(dt);
        }
     }
-   //TODO: If dt is in project then return all compatible local entities
-   // and note that this has to be updated when a new entity is added
+   else if (is_mutable && getDataType().isDerivedFrom(dt)) {
+      System.err.println("SPECIAL CASE:");
+    }
+   
+   if (dt.isProjectClass() && loc != null) {
+      factory.addLocalReference(dt,loc);
+      //TODO: If dt is in project then return all compatible local entities
+      // and note that this has to be updated when a new entity is added
+    }
 
    if (eb == null) return null;
    Collection<IfaceEntity> rslt = new ArrayList<IfaceEntity>();

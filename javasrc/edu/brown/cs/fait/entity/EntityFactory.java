@@ -60,6 +60,7 @@ private Map<FaitDataType,EntityBase> fixed_map;
 private Map<FaitDataType,EntityBase> mutable_map;
 private Map<FaitDataType,List<EntityLocal>> local_map;
 private Map<String,EntityBase> string_map;
+private Map<FaitDataType,Set<FaitLocation>> local_updates;
 
 
 
@@ -79,6 +80,7 @@ public EntityFactory()
    mutable_map = new HashMap<FaitDataType,EntityBase>();
    local_map = new HashMap<FaitDataType,List<EntityLocal>>();
    string_map = new HashMap<String,EntityBase>();
+   local_updates = new HashMap<FaitDataType,Set<FaitLocation>>();
    BitSet bs = new BitSet(1);
    empty_set = findSetInternal(bs);
 }
@@ -104,7 +106,13 @@ public IfaceEntity createFixedEntity(FaitDataType dt)
       if (fe == null) {
 	 // create prototype entity if possible
 	 if (dt.isAbstract() || dt.isInterface()) fe = (EntityBase) createMutableEntity(dt);
-	 else fe = new EntityFixed(dt,false);
+	 else {
+            IfacePrototype ifp = dt.getControl().createPrototype(dt);
+            if (ifp != null) 
+               fe = new EntityProto(dt,ifp,null);
+            else
+               fe = new EntityFixed(dt,false);
+          }
 	 fixed_map.put(dt,fe);
        }
       return fe;
@@ -117,8 +125,13 @@ public IfaceEntity createMutableEntity(FaitDataType dt)
    synchronized (mutable_map) {
       EntityBase fe = mutable_map.get(dt);
       if (fe == null) {
-	 // create prototype entity if possible
-	 fe = new EntityFixed(dt,true);
+         IfacePrototype ifp = dt.getControl().createPrototype(dt);
+         if (ifp != null) { 
+            fe = new EntityProto(dt,ifp,null);
+          }
+	 else {
+            fe = new EntityFixed(dt,true);
+          }
 	 mutable_map.put(dt,fe);
        }
       return fe;
@@ -254,8 +267,27 @@ public IfaceEntity getEntity(int id)
 
 Collection<IfaceEntity> getLocalSources(FaitDataType dt)
 {
-   return null;
+   synchronized (local_map) {
+      List<EntityLocal> l1 = local_map.get(dt);
+      List<IfaceEntity> rslt = new ArrayList<IfaceEntity>();
+      if (l1 != null) rslt.addAll(l1);
+      return rslt;
+    }
 }
+
+
+void addLocalReference(FaitDataType dt,FaitLocation loc)
+{
+   synchronized (local_updates) {
+      Set<FaitLocation> ll = local_updates.get(dt);
+      if (ll == null) {
+         ll = new HashSet<FaitLocation>(4);
+         local_updates.put(dt,ll);
+       }
+      ll.add(loc);
+    }
+}
+
 
 
 

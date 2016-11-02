@@ -51,7 +51,7 @@ FaitValue getFieldValue(FaitField fld);
 
 void setArrayContents(IfaceValue fv);
 boolean addToArrayContents(IfaceValue fv,IfaceValue idx,FaitLocation loc);
-FaitValue getArrayValue(IfaceValue idx);
+FaitValue getArrayValue(IfaceValue idx,FaitControl fc);
 
 void handleUpdates(IfaceUpdater upd);
 

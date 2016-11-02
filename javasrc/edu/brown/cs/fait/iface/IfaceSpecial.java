@@ -43,6 +43,7 @@ public interface IfaceSpecial extends FaitConstants
 
 IfaceValue getReturnValue(FaitMethod mthd);
 boolean returnsArg0();
+boolean isConstructor();
 String getReplaceName();
 
 Iterable<String> getCallbacks();

@@ -14,6 +14,16 @@
       <zip zipfile='lib/apidoc.zip' basedir='doc' />
    </target>
 
+   <target name='jar' depends='all'>
+      <jar destfile='fait.jar'>
+	 <manifest>
+	 </manifest>
+	 <fileset dir='./java' includes='**/*.class' />
+      </jar>
+   </target>
+
+
+
 </project>
 
 

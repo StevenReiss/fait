@@ -135,7 +135,7 @@ public Collection<IfaceEntity> mutateTo(FaitDataType dt,FaitLocation fl,EntityFa
 
 
 @Override public void setArrayContents(IfaceValue fv)			{ }
-@Override public FaitValue getArrayValue(IfaceValue idx) 		{ return null; }
+@Override public FaitValue getArrayValue(IfaceValue idx,FaitControl fc) { return null; }
 @Override public boolean addToArrayContents(IfaceValue fv,IfaceValue idx,FaitLocation loc)
 {
    return false;

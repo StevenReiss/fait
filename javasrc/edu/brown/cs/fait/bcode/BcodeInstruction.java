@@ -514,6 +514,18 @@ BcodeInstruction(BcodeMethod bm,int ino,int ln,AbstractInsnNode ins)
    @Override public int getStackDiff()
 {
    int opc = getOpcode();
+   switch (opc) {
+      case INVOKESTATIC :
+      case INVOKEDYNAMIC :
+      case INVOKEVIRTUAL :
+      case INVOKESPECIAL :
+         FaitMethod fm = getMethodReference();
+         int ct = fm.getNumArguments();
+         if (!fm.isStatic()) ++ct;
+         if (!fm.getReturnType().isVoid()) --ct;
+         return -ct;
+    }
+   
    return opcode_stack_height[opc][1] - opcode_stack_height[opc][0];
 }
 
@@ -611,7 +623,7 @@ static String getString(AbstractInsnNode ain,BcodeMethod bm)
 	 for (int i = 0; i < sz; ++i) {
 	    buf.append(lsin.keys.get(i).toString());
 	    buf.append("=>");
-	    LabelNode ln = (LabelNode) lsin.labels.get(i);
+	    LabelNode ln = lsin.labels.get(i);
 	    buf.append(ln.getLabel().toString());
 	    buf.append(",");
 	  }
@@ -646,7 +658,7 @@ static String getString(AbstractInsnNode ain,BcodeMethod bm)
 	 buf.append(tsin.max);
 	 buf.append("]=>");
 	 for (int i = 0; i < tsin.labels.size(); ++i) {
-	    LabelNode ln = (LabelNode) tsin.labels.get(i);
+	    LabelNode ln = tsin.labels.get(i);
 	    buf.append(ln.getLabel().toString());
 	    buf.append(",");
 	  }

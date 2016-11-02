@@ -106,6 +106,13 @@ public void queueLocation(FaitLocation loc)
 }
 
 
+public void handleCallback(FaitLocation frm,FaitMethod fm,List<IfaceValue> args,String cbid) 
+{
+   frm.handleCallback(fm,args,cbid);
+}
+   
+
+
 }	// end of class FlowFactory
 
 

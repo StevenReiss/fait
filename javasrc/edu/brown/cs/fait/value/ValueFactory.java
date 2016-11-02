@@ -41,6 +41,7 @@ import java.util.*;
 
 
 
+
 public class ValueFactory implements ValueConstants
 {
 
@@ -291,12 +292,13 @@ public ValueBase nullValue(FaitDataType dt)
 
 
 public ValueBase badValue()
-{
+{ 
    synchronized (this) {
       if (bad_value == null) {
 	 bad_value = new ValueBad(this,fait_control.findDataType("V"));
        }
     }
+   IfaceLog.logD("Generate Bad Value");
    return bad_value;
 }
 
@@ -420,6 +422,17 @@ public void handleUpdates(IfaceUpdater upd)
 
    // what about numeric values with user entities
 }
+
+
+
+/********************************************************************************/
+/*										*/
+/*	Package access methods							*/
+/*										*/
+/********************************************************************************/
+
+FaitControl getFaitControl()			{ return fait_control; }
+
 
 
 

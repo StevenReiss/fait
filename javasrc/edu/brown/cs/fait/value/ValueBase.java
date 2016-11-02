@@ -89,7 +89,7 @@ protected IfaceEntitySet getEntitySet() 		{ return entity_set; }
    if (ms.isEmpty()) return null;
    return ms;
 }
-   
+
 
 @Override public boolean canBeNull()
 {
@@ -119,7 +119,7 @@ NullFlags getNullFlags()		      { return NullFlags.NON_NULL; }
    return entity_set.isEmpty();
 }
 
-@Override public boolean isBad()                { return false; }
+@Override public boolean isBad()		{ return false; }
 
 
 @Override public Iterable<IfaceEntity> getEntities()
@@ -137,10 +137,17 @@ NullFlags getNullFlags()		      { return NullFlags.NON_NULL; }
 
 
 @Override public boolean isCategory2()			{ return false; }
-@Override public boolean isNative()                     { return false; }
-@Override public boolean isAllNative()                  { return false; }
+@Override public boolean isNative()			{ return false; }
+@Override public boolean isAllNative()			{ return false; }
 
-@Override public boolean isGoodEntitySet()              { return true; }
+@Override public boolean isGoodEntitySet()		{ return true; }
+
+
+
+FaitControl getFaitControl()
+{
+   return value_factory.getFaitControl();
+}
 
 
 
@@ -219,9 +226,9 @@ boolean markArrayCanBeNull()				{ return false; }
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Output methods                                                          */
-/*                                                                              */
+/*										*/
+/*	Output methods								*/
+/*										*/
 /********************************************************************************/
 
 @Override public String toString()

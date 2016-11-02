@@ -81,7 +81,7 @@ public BcodeTest()
 
 @Test public void loadClasses()
 {
-   BcodeDataType t1 = bcode_factory.findDataType("Lspr/onsets/OnsetMain;");
+   bcode_factory.findDataType("Lspr/onsets/OnsetMain;");
 }
 
 

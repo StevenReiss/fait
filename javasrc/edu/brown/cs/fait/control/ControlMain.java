@@ -142,6 +142,11 @@ public ControlMain()
 }
 
 
+@Override public Iterable<FaitMethod> findAllMethods(FaitDataType dt,String mthd,String sgn)
+{
+   return bcode_factory.findAllMethods(dt,mthd,sgn);
+}
+
 @Override public FaitMethod findInheritedMethod(String cls,String nm,String sgn)
 {
    return bcode_factory.findInheritedMethod(cls,nm,sgn);
@@ -466,6 +471,14 @@ public Collection<FaitMethod> getStartMethods()
 {
    flow_factory.queueLocation(loc);
 }
+
+
+@Override public void handleCallback(FaitLocation frm,FaitMethod fm,List<IfaceValue> args,String cbid)
+{
+   flow_factory.handleCallback(frm,fm,args,cbid);
+}
+
+
 
 
 }	// end of class ControlMain
