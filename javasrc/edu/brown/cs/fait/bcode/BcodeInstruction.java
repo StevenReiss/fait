@@ -252,7 +252,7 @@ public static final short  opcode_stack_height[][] = {
    {1, 1},		// invokespecial
    {1, 1},		// invokestatic
    {1, 1},		// invokeinterface
-   {1, 1},		// xxxunusedxxx
+   {1, 1},		// invokedynamic
    {0, 1},		// new
    {1, 1},		// newarray
    {1, 1},		// anewarray
@@ -511,7 +511,7 @@ BcodeInstruction(BcodeMethod bm,int ino,int ln,AbstractInsnNode ins)
 
 
 
-   @Override public int getStackDiff()
+@Override public int getStackDiff()
 {
    int opc = getOpcode();
    switch (opc) {

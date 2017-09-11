@@ -442,6 +442,9 @@ private void processInstruction(FaitInstruction ins,FlowQueueInstance wq)
 	    nins = null;
 	  }
 	 break;
+      case INVOKEDYNAMIC :
+         
+         break;
       case ATHROW :
 	 st1 = handleAccess(here,st1);
 	 if (st1 == null) break;
