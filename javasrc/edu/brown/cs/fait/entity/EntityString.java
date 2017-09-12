@@ -35,7 +35,7 @@
 
 package edu.brown.cs.fait.entity;
 
-import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.ivy.jcode.JcodeDataType;
 
 
 class EntityString extends EntityObject
@@ -58,7 +58,7 @@ private String	constant_value;
 /*										*/
 /********************************************************************************/
 
-EntityString(FaitDataType styp,String s)
+EntityString(JcodeDataType styp,String s)
 {
    super(styp);
 

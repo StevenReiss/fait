@@ -36,6 +36,7 @@
 package edu.brown.cs.fait.state;
 
 import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.ivy.jcode.JcodeField;
 
 
 
@@ -86,7 +87,7 @@ public IfaceState createState(int numlocal)
 /*										*/
 /********************************************************************************/
 
-public IfaceValue getFieldValue(IfaceState state,FaitField fld,IfaceValue base,boolean thisref,
+public IfaceValue getFieldValue(IfaceState state,JcodeField fld,IfaceValue base,boolean thisref,
 				   FaitLocation src)
 {
    return field_values.getFieldValue((StateBase) state,fld,base,thisref,src);
@@ -94,7 +95,7 @@ public IfaceValue getFieldValue(IfaceState state,FaitField fld,IfaceValue base,b
 
 
 
-public boolean setFieldValue(IfaceState st,FaitField fld,
+public boolean setFieldValue(IfaceState st,JcodeField fld,
 				IfaceValue v,IfaceValue base,boolean thisref,
 				FaitLocation src)
 {

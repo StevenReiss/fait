@@ -36,6 +36,8 @@
 package edu.brown.cs.fait.flow;
 
 import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.ivy.jcode.JcodeInstruction;
+import edu.brown.cs.ivy.jcode.JcodeMethod;
 
 import java.util.List;
 
@@ -50,7 +52,7 @@ class FlowLocation implements FaitLocation, FlowConstants
 /********************************************************************************/
 
 private IfaceCall       for_call;
-private FaitInstruction for_instruction;
+private JcodeInstruction for_instruction;
 private FlowQueue       for_queue;
 
 
@@ -61,7 +63,7 @@ private FlowQueue       for_queue;
 /*										*/
 /********************************************************************************/
 
-FlowLocation(FlowQueue fq,IfaceCall fc,FaitInstruction ins)
+FlowLocation(FlowQueue fq,IfaceCall fc,JcodeInstruction ins)
 {
    for_queue = fq;
    for_call = fc;
@@ -76,14 +78,14 @@ FlowLocation(FlowQueue fq,IfaceCall fc,FaitInstruction ins)
 /*										*/
 /********************************************************************************/
 
-@Override public FaitMethod getMethod()
+@Override public JcodeMethod getMethod()
 {
    return for_call.getMethod();
 }
 
 @Override public IfaceCall getCall()		 { return for_call; }
 
-@Override public FaitInstruction getInstruction()
+@Override public JcodeInstruction getInstruction()
 {
    return for_instruction;
 }
@@ -133,7 +135,7 @@ void queueLocation()
    for_queue.queueMethodChange(for_call,for_instruction);
 }
 
-@Override public void handleCallback(FaitMethod fm,List<IfaceValue> args,String cbid)
+@Override public void handleCallback(JcodeMethod fm,List<IfaceValue> args,String cbid)
 {
    for_queue.handleCallback(fm,args,cbid);
 }

@@ -36,6 +36,7 @@
 package edu.brown.cs.fait.call;
 
 import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.ivy.jcode.JcodeMethod;
 
 import org.junit.*;
 
@@ -80,9 +81,9 @@ public CallTest()
       
 @Test public void callCheck()
 { 
-   FaitMethod fm1 = fait_control.findMethod("java.util.regex.Pattern","matcher",null);
-   FaitMethod fm2 = fait_control.findMethod("java.lang.StringBuilder","toString",null);
-   FaitMethod fm3 = fait_control.findMethod("java.lang.Object","notify",null);
+   JcodeMethod fm1 = fait_control.findMethod("java.util.regex.Pattern","matcher",null);
+   JcodeMethod fm2 = fait_control.findMethod("java.lang.StringBuilder","toString",null);
+   JcodeMethod fm3 = fait_control.findMethod("java.lang.Object","notify",null);
 
    IfaceSpecial s1 = fait_control.getCallSpecial(fm1);
    IfaceSpecial s2 = fait_control.getCallSpecial(fm2);

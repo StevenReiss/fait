@@ -37,6 +37,7 @@ package edu.brown.cs.fait.entity;
 
 
 import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.ivy.jcode.JcodeDataType;
 
 import java.util.*;
 
@@ -51,16 +52,17 @@ public class EntityFactory implements EntityConstants
 /*										*/
 /********************************************************************************/
 
+private FaitControl             fait_control;
 private Map<BitSet,EntitySet>	set_table;
 private EntitySet		empty_set;
 private Map<IfaceEntity,EntitySet> single_map;
-private Map<FaitDataType,Map<FaitDataType,Boolean>> compat_map;
+private Map<JcodeDataType,Map<JcodeDataType,Boolean>> compat_map;
 
-private Map<FaitDataType,EntityBase> fixed_map;
-private Map<FaitDataType,EntityBase> mutable_map;
-private Map<FaitDataType,List<EntityLocal>> local_map;
+private Map<JcodeDataType,EntityBase> fixed_map;
+private Map<JcodeDataType,EntityBase> mutable_map;
+private Map<JcodeDataType,List<EntityLocal>> local_map;
 private Map<String,EntityBase> string_map;
-private Map<FaitDataType,Set<FaitLocation>> local_updates;
+private Map<JcodeDataType,Set<FaitLocation>> local_updates;
 
 
 
@@ -71,16 +73,17 @@ private Map<FaitDataType,Set<FaitLocation>> local_updates;
 /*										*/
 /********************************************************************************/
 
-public EntityFactory()
+public EntityFactory(FaitControl fc)
 {
+   fait_control = fc;
    set_table = new WeakHashMap<BitSet,EntitySet>();
    single_map = new HashMap<IfaceEntity,EntitySet>();
-   compat_map = new HashMap<FaitDataType,Map<FaitDataType,Boolean>>();
-   fixed_map = new HashMap<FaitDataType,EntityBase>();
-   mutable_map = new HashMap<FaitDataType,EntityBase>();
-   local_map = new HashMap<FaitDataType,List<EntityLocal>>();
+   compat_map = new HashMap<JcodeDataType,Map<JcodeDataType,Boolean>>();
+   fixed_map = new HashMap<JcodeDataType,EntityBase>();
+   mutable_map = new HashMap<JcodeDataType,EntityBase>();
+   local_map = new HashMap<JcodeDataType,List<EntityLocal>>();
    string_map = new HashMap<String,EntityBase>();
-   local_updates = new HashMap<FaitDataType,Set<FaitLocation>>();
+   local_updates = new HashMap<JcodeDataType,Set<FaitLocation>>();
    BitSet bs = new BitSet(1);
    empty_set = findSetInternal(bs);
 }
@@ -99,7 +102,7 @@ public FaitEntity.UserEntity createUserEntity(String id,FaitLocation base)
 }
 
 
-public IfaceEntity createFixedEntity(FaitDataType dt)
+public IfaceEntity createFixedEntity(JcodeDataType dt)
 {
    synchronized (fixed_map) {
       EntityBase fe = fixed_map.get(dt);
@@ -107,7 +110,7 @@ public IfaceEntity createFixedEntity(FaitDataType dt)
 	 // create prototype entity if possible
 	 if (dt.isAbstract() || dt.isInterface()) fe = (EntityBase) createMutableEntity(dt);
 	 else {
-            IfacePrototype ifp = dt.getControl().createPrototype(dt);
+            IfacePrototype ifp = fait_control.createPrototype(dt);
             if (ifp != null) 
                fe = new EntityProto(dt,ifp,null);
             else
@@ -120,12 +123,12 @@ public IfaceEntity createFixedEntity(FaitDataType dt)
 }
 
 
-public IfaceEntity createMutableEntity(FaitDataType dt)
+public IfaceEntity createMutableEntity(JcodeDataType dt)
 {
    synchronized (mutable_map) {
       EntityBase fe = mutable_map.get(dt);
       if (fe == null) {
-         IfacePrototype ifp = dt.getControl().createPrototype(dt);
+         IfacePrototype ifp = fait_control.createPrototype(dt);
          if (ifp != null) { 
             fe = new EntityProto(dt,ifp,null);
           }
@@ -140,11 +143,11 @@ public IfaceEntity createMutableEntity(FaitDataType dt)
 
 
 
-public IfaceEntity createLocalEntity(FaitLocation loc,FaitDataType dt,boolean uniq)
+public IfaceEntity createLocalEntity(FaitLocation loc,JcodeDataType dt,boolean uniq)
 {
    EntityLocal el = new EntityLocal(loc,dt,uniq);
 
-   if (dt.isProjectClass()) {
+   if (fait_control.isProjectClass(dt)) {
       List<EntityLocal> lcls = null;
       synchronized (local_map) {
 	 lcls = local_map.get(dt);
@@ -167,7 +170,7 @@ public IfaceEntity createStringEntity(FaitControl ctrl,String s)
    synchronized (string_map) {
       EntityBase eb = string_map.get(s);
       if (eb == null) {
-	 FaitDataType t = ctrl.findDataType("Ljava/lang/String;");
+	 JcodeDataType t = ctrl.findDataType("Ljava/lang/String;");
 	 eb = new EntityString(t,s);
 	 string_map.put(s,eb);
        }
@@ -178,14 +181,14 @@ public IfaceEntity createStringEntity(FaitControl ctrl,String s)
 
 
 
-public IfaceEntity createArrayEntity(FaitControl ctrl,FaitDataType base,IfaceValue size)
+public IfaceEntity createArrayEntity(FaitControl ctrl,JcodeDataType base,IfaceValue size)
 {
    return new EntityArray(ctrl,base,size);
 }
 
 
 
-public IfaceEntity createPrototypeEntity(FaitControl ctrl,FaitDataType base,IfacePrototype from,
+public IfaceEntity createPrototypeEntity(FaitControl ctrl,JcodeDataType base,IfacePrototype from,
       FaitLocation src)
 { 
    return new EntityProto(base,from,src);
@@ -265,7 +268,7 @@ public IfaceEntity getEntity(int id)
 }
 
 
-Collection<IfaceEntity> getLocalSources(FaitDataType dt)
+Collection<IfaceEntity> getLocalSources(JcodeDataType dt)
 {
    synchronized (local_map) {
       List<EntityLocal> l1 = local_map.get(dt);
@@ -276,7 +279,7 @@ Collection<IfaceEntity> getLocalSources(FaitDataType dt)
 }
 
 
-void addLocalReference(FaitDataType dt,FaitLocation loc)
+void addLocalReference(JcodeDataType dt,FaitLocation loc)
 {
    synchronized (local_updates) {
       Set<FaitLocation> ll = local_updates.get(dt);
@@ -288,8 +291,10 @@ void addLocalReference(FaitDataType dt,FaitLocation loc)
     }
 }
 
-
-
+boolean isProjectClass(JcodeDataType dt)
+{
+   return fait_control.isProjectClass(dt);
+}
 
 /********************************************************************************/
 /*										*/
@@ -367,18 +372,18 @@ public void handleEntityUpdates(IfaceUpdater upd)
 /*										*/
 /********************************************************************************/
 
-FaitDataType OBJECT = null;
+JcodeDataType OBJECT = null;
 
 
 
-boolean compatibleTypes(FaitDataType t1,FaitDataType t2)
+boolean compatibleTypes(JcodeDataType t1,JcodeDataType t2)
 {
-   Map<FaitDataType,Boolean> m1;
+   Map<JcodeDataType,Boolean> m1;
 
    synchronized (compat_map) {
       m1 = compat_map.get(t1);
       if (m1 == null) {
-	 m1 = new HashMap<FaitDataType,Boolean>(4);
+	 m1 = new HashMap<JcodeDataType,Boolean>(4);
 	 compat_map.put(t1,m1);
        }
     }
@@ -403,7 +408,7 @@ boolean compatibleTypes(FaitDataType t1,FaitDataType t2)
 
 
 
-private boolean compatibleArrayTypes(FaitDataType t1,FaitDataType t2)
+private boolean compatibleArrayTypes(JcodeDataType t1,JcodeDataType t2)
 {
    if (t1.isPrimitive() && t2.isPrimitive()) return t1 == t2;
    return compatibleTypes(t1,t2);

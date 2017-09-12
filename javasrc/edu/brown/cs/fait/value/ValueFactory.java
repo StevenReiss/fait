@@ -36,6 +36,8 @@
 package edu.brown.cs.fait.value;
 
 import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.ivy.jcode.JcodeDataType;
+import edu.brown.cs.ivy.jcode.JcodeField;
 
 import java.util.*;
 
@@ -53,10 +55,10 @@ public class ValueFactory implements ValueConstants
 /*										*/
 /********************************************************************************/
 
-private Map<FaitDataType,ValueBase>	 any_map;
-private Map<FaitDataType,List<ValueInt>> range_map;
-private Map<FaitDataType,ValueBase>	 null_map;
-private Map<FaitDataType,List<ValueObject>> empty_map;
+private Map<JcodeDataType,ValueBase>	 any_map;
+private Map<JcodeDataType,List<ValueInt>> range_map;
+private Map<JcodeDataType,ValueBase>	 null_map;
+private Map<JcodeDataType,List<ValueObject>> empty_map;
 
 private Map<IfaceEntitySet,List<ValueObject>> object_map;
 
@@ -80,10 +82,10 @@ private FaitControl			fait_control;
 public ValueFactory(FaitControl fc)
 {
    fait_control = fc;
-   any_map = new HashMap<FaitDataType,ValueBase>();
-   range_map = new WeakHashMap<FaitDataType,List<ValueInt>>();
-   null_map = new HashMap<FaitDataType,ValueBase>();
-   empty_map = new HashMap<FaitDataType,List<ValueObject>>();
+   any_map = new HashMap<JcodeDataType,ValueBase>();
+   range_map = new WeakHashMap<JcodeDataType,List<ValueInt>>();
+   null_map = new HashMap<JcodeDataType,ValueBase>();
+   empty_map = new HashMap<JcodeDataType,List<ValueObject>>();
    object_map = new WeakHashMap<IfaceEntitySet,List<ValueObject>>();
 
    string_value = null;
@@ -101,7 +103,7 @@ public ValueFactory(FaitControl fc)
 /*										*/
 /********************************************************************************/
 
-public ValueBase anyValue(FaitDataType typ)
+public ValueBase anyValue(JcodeDataType typ)
 {
    synchronized (any_map) {
       ValueBase cv = any_map.get(typ);
@@ -127,7 +129,7 @@ public ValueBase anyValue(FaitDataType typ)
 
 
 
-public ValueBase rangeValue(FaitDataType typ,long v0,long v1)
+public ValueBase rangeValue(JcodeDataType typ,long v0,long v1)
 {
    if (typ.isFloating()) {
       return anyValue(typ);
@@ -157,7 +159,7 @@ public ValueBase rangeValue(FaitDataType typ,long v0,long v1)
 
 
 
-public ValueBase objectValue(FaitDataType typ,IfaceEntitySet ss,NullFlags flags)
+public ValueBase objectValue(JcodeDataType typ,IfaceEntitySet ss,NullFlags flags)
 {
    if (ss.isEmpty()) return emptyValue(typ,flags);
 
@@ -185,7 +187,7 @@ public ValueBase objectValue(FaitDataType typ,IfaceEntitySet ss,NullFlags flags)
 
 
 
-public ValueBase emptyValue(FaitDataType typ,NullFlags flags)
+public ValueBase emptyValue(JcodeDataType typ,NullFlags flags)
 {
    List<ValueObject> l = null;
 
@@ -219,7 +221,7 @@ public ValueBase emptyValue(FaitDataType typ,NullFlags flags)
 public ValueBase constantString()
 {
    if (string_value == null) {
-      FaitDataType fdt = fait_control.findDataType("Ljava/lang/String;");
+      JcodeDataType fdt = fait_control.findDataType("Ljava/lang/String;");
       FaitEntity sb = fait_control.findFixedEntity(fdt);
       IfaceEntitySet ss = fait_control.createSingletonSet(sb);
       string_value = objectValue(fdt,ss,NullFlags.NON_NULL);
@@ -233,7 +235,7 @@ public ValueBase constantString(String v)
 {
    if (v == null) return constantString();
 
-   FaitDataType fdt = fait_control.findDataType("Ljava/lang/String;");
+   JcodeDataType fdt = fait_control.findDataType("Ljava/lang/String;");
    IfaceEntity src = fait_control.findStringEntity(v);
    IfaceEntitySet ss = fait_control.createSingletonSet(src);
 
@@ -245,8 +247,8 @@ public ValueBase constantString(String v)
 public ValueBase mainArgs()
 {
    if (main_value == null) {
-      FaitDataType fdt = fait_control.findDataType("[Ljava/lang/String;");
-      FaitDataType sdt = fait_control.findDataType("Ljava/lang/String;");
+      JcodeDataType fdt = fait_control.findDataType("[Ljava/lang/String;");
+      JcodeDataType sdt = fait_control.findDataType("Ljava/lang/String;");
       IfaceEntity ssrc = fait_control.findArrayEntity(sdt,null);
       ValueBase cv = nativeValue(sdt);
       cv = cv.forceNonNull();
@@ -277,7 +279,7 @@ public ValueBase nullValue()
 
 
 
-public ValueBase nullValue(FaitDataType dt)
+public ValueBase nullValue(JcodeDataType dt)
 {
    synchronized (null_map) {
       ValueBase cv = null_map.get(dt);
@@ -310,7 +312,7 @@ public ValueBase badValue()
 /*										*/
 /********************************************************************************/
 
-public ValueBase nativeValue(FaitDataType typ)
+public ValueBase nativeValue(JcodeDataType typ)
 {
    if (typ.isPrimitive()) return anyValue(typ);
 
@@ -325,7 +327,7 @@ public ValueBase nativeValue(FaitDataType typ)
 
 
 
-public ValueBase mutableValue(FaitDataType typ)
+public ValueBase mutableValue(JcodeDataType typ)
 {
    if (typ.isPrimitive()) return anyValue(typ);
 
@@ -359,13 +361,13 @@ public ValueBase anyNewObject()
 /********************************************************************************/
 
 
-public ValueBase initialFieldValue(FaitField fld,boolean nat)
+public ValueBase initialFieldValue(JcodeField fld,boolean nat)
 {
-   FaitDataType c = fld.getDeclaringClass();
+   JcodeDataType c = fld.getDeclaringClass();
    if (c.getName().startsWith("java.lang.")) nat = true;
-   if (!c.isProjectClass()) nat = true;
+   if (!fait_control.isProjectClass(c)) nat = true;
    ValueBase s0 = null;
-   FaitDataType ftyp = fld.getType();
+   JcodeDataType ftyp = fld.getType();
 
    if (nat) {
       boolean nonnull = false;			// specialize as needed

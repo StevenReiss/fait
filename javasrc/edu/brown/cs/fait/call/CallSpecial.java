@@ -36,6 +36,8 @@
 package edu.brown.cs.fait.call;
 
 import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.ivy.jcode.JcodeDataType;
+import edu.brown.cs.ivy.jcode.JcodeMethod;
 import edu.brown.cs.ivy.xml.*;
 
 import org.w3c.dom.*;
@@ -157,9 +159,9 @@ CallSpecial(FaitControl fc,Element xml,boolean formthd)
 /*										*/
 /********************************************************************************/
 
-@Override public IfaceValue getReturnValue(FaitMethod fm)
+@Override public IfaceValue getReturnValue(JcodeMethod fm)
 {
-   FaitDataType dt = null;
+   JcodeDataType dt = null;
    if (result_type != null && result_type.equals("void")) dt = fait_control.findDataType("V");
    else if (result_type != null) dt = getClassType(result_type);
    if (dt == null && alt_result != null) dt = getClassType(alt_result);
@@ -216,7 +218,7 @@ CallSpecial(FaitControl fc,Element xml,boolean formthd)
 /*										*/
 /********************************************************************************/
 
-private FaitDataType getClassType(String name)
+private JcodeDataType getClassType(String name)
 {
    return fait_control.findDataType(getInternalName(name));
 }

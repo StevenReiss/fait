@@ -39,6 +39,10 @@ package edu.brown.cs.fait.iface;
 import java.io.File;
 import java.util.*;
 
+import edu.brown.cs.ivy.jcode.JcodeDataType;
+import edu.brown.cs.ivy.jcode.JcodeField;
+import edu.brown.cs.ivy.jcode.JcodeMethod;
+
 
 public interface FaitControl extends FaitMaster {
 
@@ -61,20 +65,20 @@ File getDescriptionFile();
 /*										*/
 /********************************************************************************/
 
-FaitDataType findDataType(String cls);
-FaitDataType findClassType(String cls);
-FaitMethod findMethod(String cls,String method,String sign);
+JcodeDataType findDataType(String cls);
+JcodeDataType findClassType(String cls);
+JcodeMethod findMethod(String cls,String method,String sign);
 
-Iterable<FaitMethod> findAllMethods(FaitDataType typ,String method,String sign);
-FaitMethod findInheritedMethod(String cls,String name,String sign);
-FaitField findField(String cls,String fld);
-Collection<FaitMethod> getStartMethods();
-List<FaitMethod> findStaticInitializers(String cls);
+Iterable<JcodeMethod> findAllMethods(JcodeDataType typ,String method,String sign);
+JcodeMethod findInheritedMethod(String cls,String name,String sign);
+JcodeField findField(String cls,String fld);
+Collection<JcodeMethod> getStartMethods();
+List<JcodeMethod> findStaticInitializers(String cls);
 
 
 
-// FaitInstruction findCall(FaitMethod fm,int line,String rtn,int idx);
-// FaitInstruction findNew(FaitMethod fm,int line,String type,int idx);
+// FaitInstruction findCall(JcodeMethod fm,int line,String rtn,int idx);
+// FaitInstruction findNew(JcodeMethod fm,int line,String type,int idx);
 
 
 
@@ -84,19 +88,19 @@ List<FaitMethod> findStaticInitializers(String cls);
 /*										*/
 /********************************************************************************/
 
-IfaceEntity findAllocEntity(FaitLocation loc,FaitDataType typ,boolean unique);
+IfaceEntity findAllocEntity(FaitLocation loc,JcodeDataType typ,boolean unique);
 FaitEntity.UserEntity findUserEntity(String id,FaitLocation loc);
-IfaceEntity findFixedEntity(FaitDataType typ);
-IfaceEntity findMutableEntity(FaitDataType typ);
+IfaceEntity findFixedEntity(JcodeDataType typ);
+IfaceEntity findMutableEntity(JcodeDataType typ);
 IfaceEntity findStringEntity(String s);
-IfaceEntity findArrayEntity(FaitDataType base,IfaceValue size);
-IfaceEntity findPrototypeEntity(FaitDataType base,IfacePrototype from,FaitLocation src);
+IfaceEntity findArrayEntity(JcodeDataType base,IfaceValue size);
+IfaceEntity findPrototypeEntity(JcodeDataType base,IfacePrototype from,FaitLocation src);
 
-IfaceEntity findLocalEntity(FaitLocation loc,FaitDataType dt,boolean uniq);
+IfaceEntity findLocalEntity(FaitLocation loc,JcodeDataType dt,boolean uniq);
 
-// IfaceEntity findParameterEntity(FaitMethod mthd,int idx);
-// IfaceEntity findReturnEntity(FaitMethod method);
-// IfaceEntity findArrayEntity(FaitDataType typ,FaitValue size);
+// IfaceEntity findParameterEntity(JcodeMethod mthd,int idx);
+// IfaceEntity findReturnEntity(JcodeMethod method);
+// IfaceEntity findArrayEntity(JcodeDataType typ,FaitValue size);
 
 IfaceEntitySet createEmptyEntitySet();
 IfaceEntitySet createSingletonSet(FaitEntity fe);
@@ -109,21 +113,21 @@ IfaceEntitySet createSingletonSet(FaitEntity fe);
 /*										*/
 /********************************************************************************/
 
-IfaceValue findAnyValue(FaitDataType typ);
-IfaceValue findRangeValue(FaitDataType typ,long v0,long v1);
-IfaceValue findObjectValue(FaitDataType typ,IfaceEntitySet ss,NullFlags flags);
-IfaceValue findEmptyValue(FaitDataType typ,NullFlags flags);
+IfaceValue findAnyValue(JcodeDataType typ);
+IfaceValue findRangeValue(JcodeDataType typ,long v0,long v1);
+IfaceValue findObjectValue(JcodeDataType typ,IfaceEntitySet ss,NullFlags flags);
+IfaceValue findEmptyValue(JcodeDataType typ,NullFlags flags);
 IfaceValue findConstantStringValue();
 IfaceValue findConstantStringValue(String v);
 IfaceValue findMainArgsValue();
 IfaceValue findNullValue();
-IfaceValue findNullValue(FaitDataType typ);
+IfaceValue findNullValue(JcodeDataType typ);
 IfaceValue findBadValue();
-IfaceValue findNativeValue(FaitDataType typ);
-IfaceValue findMutableValue(FaitDataType typ);
+IfaceValue findNativeValue(JcodeDataType typ);
+IfaceValue findMutableValue(JcodeDataType typ);
 IfaceValue findAnyObjectValue();
 IfaceValue findAnyNewObjectValue();
-IfaceValue findInitialFieldValue(FaitField fld,boolean isnative);
+IfaceValue findInitialFieldValue(JcodeField fld,boolean isnative);
 
 
 
@@ -134,8 +138,8 @@ IfaceValue findInitialFieldValue(FaitField fld,boolean isnative);
 /********************************************************************************/
 
 IfaceState createState(int nlocal);
-IfaceValue getFieldValue(IfaceState st,FaitField fld,IfaceValue base,boolean thisref,FaitLocation src);
-boolean setFieldValue(IfaceState st,FaitField fld,IfaceValue v,IfaceValue base,boolean thisref,FaitLocation src);
+IfaceValue getFieldValue(IfaceState st,JcodeField fld,IfaceValue base,boolean thisref,FaitLocation src);
+boolean setFieldValue(IfaceState st,JcodeField fld,IfaceValue v,IfaceValue base,boolean thisref,FaitLocation src);
 
 
 
@@ -145,8 +149,8 @@ boolean setFieldValue(IfaceState st,FaitField fld,IfaceValue v,IfaceValue base,b
 /*										*/
 /********************************************************************************/
 
-IfacePrototype createPrototype(FaitDataType dt);
-IfaceCall findPrototypeMethod(FaitMethod fm);
+IfacePrototype createPrototype(JcodeDataType dt);
+IfaceCall findPrototypeMethod(JcodeMethod fm);
 
 
 
@@ -156,10 +160,10 @@ IfaceCall findPrototypeMethod(FaitMethod fm);
 /*										*/
 /********************************************************************************/
 
-IfaceSpecial getCallSpecial(FaitMethod fm);
+IfaceSpecial getCallSpecial(JcodeMethod fm);
 FaitMethodData createMethodData(FaitCall fc);
-IfaceCall findCall(FaitMethod fm,List<IfaceValue> args,InlineType inline);
-Collection<IfaceCall> getAllCalls(FaitMethod fm);
+IfaceCall findCall(JcodeMethod fm,List<IfaceValue> args,InlineType inline);
+Collection<IfaceCall> getAllCalls(JcodeMethod fm);
 Collection<IfaceCall> getAllCalls();
 
 
@@ -171,8 +175,10 @@ Collection<IfaceCall> getAllCalls();
 /********************************************************************************/
 
 void queueLocation(FaitLocation loc);
-void handleCallback(FaitLocation frm,FaitMethod fm,List<IfaceValue> args,String cbid);
+void handleCallback(FaitLocation frm,JcodeMethod fm,List<IfaceValue> args,String cbid);
 
+boolean isProjectClass(JcodeDataType t);
+boolean isInProject(JcodeMethod m);
 
 
 /********************************************************************************/

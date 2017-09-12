@@ -37,11 +37,13 @@ package edu.brown.cs.fait.value;
 
 
 import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.ivy.jcode.JcodeConstants;
+import edu.brown.cs.ivy.jcode.JcodeDataType;
 
 import java.util.*;
 
 
-class ValueObject extends ValueBase implements FaitOpcodes
+class ValueObject extends ValueBase implements JcodeConstants
 {
 
 
@@ -52,8 +54,8 @@ class ValueObject extends ValueBase implements FaitOpcodes
 /********************************************************************************/
 
 private NullFlags	null_flags;
-private Map<FaitDataType,ValueBase> restrict_map;
-private Map<FaitDataType,ValueBase> remove_map;
+private Map<JcodeDataType,ValueBase> restrict_map;
+private Map<JcodeDataType,ValueBase> remove_map;
 private ValueBase	nonnull_value;
 private ValueBase	testnull_value;
 
@@ -66,7 +68,7 @@ private ValueBase	testnull_value;
 /*										*/
 /********************************************************************************/
 
-ValueObject(ValueFactory vf,FaitDataType typ,IfaceEntitySet es,NullFlags fgs)
+ValueObject(ValueFactory vf,JcodeDataType typ,IfaceEntitySet es,NullFlags fgs)
 {
    super(vf,typ,es);
 
@@ -99,10 +101,10 @@ ValueObject(ValueFactory vf,FaitDataType typ,IfaceEntitySet es,NullFlags fgs)
 /*										*/
 /********************************************************************************/
 
-@Override public ValueBase restrictByType(FaitDataType dt,boolean proj,FaitLocation src)
+@Override public ValueBase restrictByType(JcodeDataType dt,boolean proj,FaitLocation src)
 {
    synchronized (this) {
-      if (restrict_map == null) restrict_map = new HashMap<FaitDataType,ValueBase>(4);
+      if (restrict_map == null) restrict_map = new HashMap<JcodeDataType,ValueBase>(4);
     }
 
    synchronized (restrict_map) {
@@ -120,7 +122,7 @@ ValueObject(ValueFactory vf,FaitDataType typ,IfaceEntitySet es,NullFlags fgs)
 	    else nv = value_factory.emptyValue(dt,null_flags);
 	  }
 	 else {
-	    FaitDataType ndt = getSetType(ns);
+	    JcodeDataType ndt = getSetType(ns);
 	    if (ndt != null) nv = value_factory.objectValue(ndt,ns,null_flags);
 	    else if (canBeNull()) nv = value_factory.nullValue(dt);
 	    else nv = value_factory.objectValue(dt,ns,null_flags);
@@ -133,10 +135,10 @@ ValueObject(ValueFactory vf,FaitDataType typ,IfaceEntitySet es,NullFlags fgs)
 
 
 
-@Override public IfaceValue removeByType(FaitDataType dt,FaitLocation loc)
+@Override public IfaceValue removeByType(JcodeDataType dt,FaitLocation loc)
 {
    synchronized (this) {
-      if (remove_map == null) remove_map = new HashMap<FaitDataType,ValueBase>();
+      if (remove_map == null) remove_map = new HashMap<JcodeDataType,ValueBase>();
     }
 
    synchronized (remove_map) {
@@ -149,7 +151,7 @@ ValueObject(ValueFactory vf,FaitDataType typ,IfaceEntitySet es,NullFlags fgs)
 	    else nv = null;
 	  }
 	 else {
-	    FaitDataType ndt = getSetType(es);
+	    JcodeDataType ndt = getSetType(es);
 	    if (ndt != null) nv = value_factory.objectValue(ndt,es,null_flags);
 	    else if (canBeNull()) nv = value_factory.nullValue();
 	    else nv = null;
@@ -162,7 +164,7 @@ ValueObject(ValueFactory vf,FaitDataType typ,IfaceEntitySet es,NullFlags fgs)
 
 
 
-@Override public IfaceValue makeSubtype(FaitDataType dt)
+@Override public IfaceValue makeSubtype(JcodeDataType dt)
 {
    if (dt != getDataType() && dt.isDerivedFrom(getDataType())) {
       return value_factory.objectValue(dt,getEntitySet(),null_flags);
@@ -236,7 +238,7 @@ ValueObject(ValueFactory vf,FaitDataType typ,IfaceEntitySet es,NullFlags fgs)
 	 fgs == cvo.getNullFlags())
       return cvo;
 
-   FaitDataType typ = getSetType(es);
+   JcodeDataType typ = getSetType(es);
    if (typ == null) typ = getDataType().findCommonParent(cvo.getDataType());
 
    return value_factory.objectValue(typ,es,fgs);
@@ -259,10 +261,10 @@ ValueObject(ValueFactory vf,FaitDataType typ,IfaceEntitySet es,NullFlags fgs)
 /*										*/
 /********************************************************************************/
 
-@Override public IfaceValue performOperation(FaitDataType typ,IfaceValue rhs,int op,FaitLocation src)
+@Override public IfaceValue performOperation(JcodeDataType typ,IfaceValue rhs,int op,FaitLocation src)
 {
    switch (op) {
-      case FaitOpcodes.INSTANCEOF :
+      case JcodeConstants.INSTANCEOF :
 	 if (canBeNull()) break;
 	 ValueBase ncv = restrictByType(rhs.getDataType(),false,src);
 	 if (ncv.isEmptyEntitySet())
@@ -355,12 +357,12 @@ ValueObject(ValueFactory vf,FaitDataType typ,IfaceEntitySet es,NullFlags fgs)
 /*										*/
 /********************************************************************************/
 
-private static FaitDataType getSetType(IfaceEntitySet es)
+private static JcodeDataType getSetType(IfaceEntitySet es)
 {
-   FaitDataType typ = null;
+   JcodeDataType typ = null;
 
    for (IfaceEntity ie : es.getEntities()) {
-      FaitDataType styp = ie.getDataType();
+      JcodeDataType styp = ie.getDataType();
       if (styp != null) {
 	 if (typ == null) typ = styp;
 	 else typ = typ.findCommonParent(styp);

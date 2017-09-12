@@ -36,8 +36,7 @@
 
 package edu.brown.cs.fait.iface;
 
-
-
+import edu.brown.cs.ivy.jcode.JcodeDataType;
 
 public interface FaitValue extends FaitConstants {
 
@@ -57,7 +56,7 @@ boolean isBad();
 boolean isCategory2();
 boolean isNative();
 
-FaitDataType getDataType();
+JcodeDataType getDataType();
 
 Iterable<IfaceEntity> getEntities();
 

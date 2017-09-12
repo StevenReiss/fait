@@ -36,18 +36,16 @@
 
 package edu.brown.cs.fait.iface;
 
-
-
-
+import edu.brown.cs.ivy.jcode.JcodeField;
 
 public interface IfaceEntity extends FaitEntity {
 
 
 IfaceEntity makeNonunique();
 
-void setFieldContents(IfaceValue fv,FaitField fld);
-boolean addToFieldContents(IfaceValue fv,FaitField fld);
-FaitValue getFieldValue(FaitField fld);
+void setFieldContents(IfaceValue fv,JcodeField fld);
+boolean addToFieldContents(IfaceValue fv,JcodeField fld);
+FaitValue getFieldValue(JcodeField fld);
 
 void setArrayContents(IfaceValue fv);
 boolean addToArrayContents(IfaceValue fv,IfaceValue idx,FaitLocation loc);

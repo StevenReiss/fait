@@ -37,6 +37,7 @@ package edu.brown.cs.fait.entity;
 
 
 import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.ivy.jcode.JcodeDataType;
 
 
 
@@ -50,8 +51,8 @@ class EntityArray extends EntityBase
 /*										*/
 /********************************************************************************/
 
-private FaitDataType		base_class;
-private FaitDataType		array_class;
+private JcodeDataType		base_class;
+private JcodeDataType		array_class;
 private IfaceValue		array_values;
 private IfaceValue		size_value;
 
@@ -63,7 +64,7 @@ private IfaceValue		size_value;
 /*										*/
 /********************************************************************************/
 
-EntityArray(FaitControl ctrl,FaitDataType cls,IfaceValue size)
+EntityArray(FaitControl ctrl,JcodeDataType cls,IfaceValue size)
 {
    base_class = cls;
    array_class = ctrl.findDataType("[" + cls.getDescriptor());
@@ -87,7 +88,7 @@ EntityArray(FaitControl ctrl,FaitDataType cls,IfaceValue size)
 /*										*/
 /********************************************************************************/
 
-@Override public FaitDataType getDataType()
+@Override public JcodeDataType getDataType()
 {
    return array_class;
 }

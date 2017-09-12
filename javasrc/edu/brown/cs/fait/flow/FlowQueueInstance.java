@@ -36,6 +36,8 @@
 package edu.brown.cs.fait.flow;
 
 import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.ivy.jcode.JcodeInstruction;
+import edu.brown.cs.ivy.jcode.JcodeMethod;
 
 import java.util.*;
 
@@ -50,9 +52,9 @@ class FlowQueueInstance implements FlowConstants
 /*                                                                              */
 /********************************************************************************/
 
-private LinkedList<FaitInstruction>      work_list;
+private LinkedList<JcodeInstruction>      work_list;
 private IfaceCall                        for_call;
-private Map<FaitInstruction,IfaceState>  state_map;
+private Map<JcodeInstruction,IfaceState>  state_map;
 
 
 /********************************************************************************/
@@ -64,8 +66,8 @@ private Map<FaitInstruction,IfaceState>  state_map;
 FlowQueueInstance(IfaceCall fc)
 {
    for_call = fc;
-   work_list = new LinkedList<FaitInstruction>();
-   state_map = new HashMap<FaitInstruction,IfaceState>();
+   work_list = new LinkedList<JcodeInstruction>();
+   state_map = new HashMap<JcodeInstruction,IfaceState>();
 }
 
 
@@ -77,11 +79,11 @@ FlowQueueInstance(IfaceCall fc)
 
 IfaceCall getCall()                             { return for_call; }
 boolean isEmpty()                               { return work_list.isEmpty(); }
-IfaceState getState(FaitInstruction fi)         { return state_map.get(fi); }
+IfaceState getState(JcodeInstruction fi)         { return state_map.get(fi); }
 
-FaitInstruction getInstruction(int ino)
+JcodeInstruction getInstruction(int ino)
 {
-   FaitMethod fm = for_call.getMethod();
+   JcodeMethod fm = for_call.getMethod();
    return fm.getInstruction(ino);
 }
 
@@ -93,14 +95,14 @@ FaitInstruction getInstruction(int ino)
 /*                                                                              */
 /********************************************************************************/
 
-FaitInstruction getNext()
+JcodeInstruction getNext()
 {
    if (work_list.isEmpty()) return null;
    return work_list.removeFirst();
 }
 
 
-void mergeState(IfaceState st,FaitInstruction ins)
+void mergeState(IfaceState st,JcodeInstruction ins)
 {
    if (st == null) return;
    if (ins == null) ins = for_call.getMethod().getInstruction(0);
@@ -116,7 +118,7 @@ void mergeState(IfaceState st,FaitInstruction ins)
 }
    
 
-void lookAt(FaitInstruction ins)
+void lookAt(JcodeInstruction ins)
 {
    if (ins != null && getState(ins) != null) work_list.addLast(ins);
 }

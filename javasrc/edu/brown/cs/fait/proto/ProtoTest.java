@@ -36,6 +36,8 @@
 package edu.brown.cs.fait.proto;
 
 import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.ivy.jcode.JcodeDataType;
+import edu.brown.cs.ivy.jcode.JcodeMethod;
 
 import org.junit.*;
 
@@ -80,23 +82,23 @@ public ProtoTest()
 
 @Test public void mapTest()
 {
-   FaitDataType dt = fait_control.findDataType("Ljava/util/ArrayList;");
+   JcodeDataType dt = fait_control.findDataType("Ljava/util/ArrayList;");
    IfacePrototype p1 = fait_control.createPrototype(dt);
    Assert.assertNotNull(p1);
-   FaitMethod fm = fait_control.findMethod("java.util.ArrayList","add","(Ljava/lang/Object;)Z");
+   JcodeMethod fm = fait_control.findMethod("java.util.ArrayList","add","(Ljava/lang/Object;)Z");
    Assert.assertNotNull(fm);
    Assert.assertTrue(p1.isMethodRelevant(fm));
 
-   FaitDataType t1 = fait_control.findDataType("Lspr/onsets/OnsetMain;");
+   JcodeDataType t1 = fait_control.findDataType("Lspr/onsets/OnsetMain;");
    IfaceValue v1 = fait_control.findAnyValue(t1);
    List<IfaceValue> args = new ArrayList<IfaceValue>();
    args.add(fait_control.findAnyValue(dt));
    args.add(v1);
    p1.handleCall(fm,args,null);
-   FaitMethod fm2 = fait_control.findMethod("java.util.ArrayList","get","(I)Ljava/lang/Object;");
+   JcodeMethod fm2 = fait_control.findMethod("java.util.ArrayList","get","(I)Ljava/lang/Object;");
    Assert.assertNotNull(fm2);
    Assert.assertTrue(p1.isMethodRelevant(fm2));
-   FaitDataType t2 = fait_control.findDataType("I");
+   JcodeDataType t2 = fait_control.findDataType("I");
    IfaceValue v3 = fait_control.findRangeValue(t2,0,0);
    args.set(1,v3);
    IfaceValue v4 = p1.handleCall(fm2,args,null);

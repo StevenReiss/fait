@@ -40,13 +40,16 @@ package edu.brown.cs.fait.iface;
 
 import java.util.List;
 
+import edu.brown.cs.ivy.jcode.JcodeInstruction;
+import edu.brown.cs.ivy.jcode.JcodeMethod;
+
 public interface FaitLocation extends FaitConstants {
 
-FaitMethod getMethod();
+JcodeMethod getMethod();
 IfaceCall getCall();
-FaitInstruction getInstruction();
+JcodeInstruction getInstruction();
 boolean sameBaseLocation(FaitLocation loc);
-void handleCallback(FaitMethod fm,List<IfaceValue> args,String cbid);
+void handleCallback(JcodeMethod fm,List<IfaceValue> args,String cbid);
 
 }	// end of interface FaitLocation
 

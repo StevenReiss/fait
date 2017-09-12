@@ -36,6 +36,7 @@
 package edu.brown.cs.fait.entity;
 
 import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.ivy.jcode.JcodeDataType;
 
 import java.util.*;
 
@@ -61,7 +62,7 @@ private FaitValue	base_value;
 /*										*/
 /********************************************************************************/
 
-EntityFixed(FaitDataType dt,boolean mutable)
+EntityFixed(JcodeDataType dt,boolean mutable)
 {
    super(dt);
    base_value = null;
@@ -92,7 +93,7 @@ EntityFixed(FaitDataType dt,boolean mutable)
    if (fv != null) return fv;
 
    if (getDataType().isArray() && base_value == null) {
-      FaitDataType bty = getDataType().getBaseDataType();
+      JcodeDataType bty = getDataType().getBaseDataType();
       if (is_mutable || bty.isAbstract()) {
          base_value = fc.findMutableValue(bty);
        }
@@ -113,7 +114,7 @@ EntityFixed(FaitDataType dt,boolean mutable)
 /*										*/
 /********************************************************************************/
 
-@Override public Collection<IfaceEntity> mutateTo(FaitDataType dt,FaitLocation loc,EntityFactory factory)
+@Override public Collection<IfaceEntity> mutateTo(JcodeDataType dt,FaitLocation loc,EntityFactory factory)
 {
    IfaceEntity eb = null;
    if (is_mutable && dt.isDerivedFrom(getDataType())) {
@@ -126,7 +127,7 @@ EntityFixed(FaitDataType dt,boolean mutable)
     }
    else if (getDataType().isInterface() || getDataType().isAbstract()) {
       if (dt.isInterface()) {
-	 FaitDataType cdt = getDataType().findChildForInterface(dt);
+	 JcodeDataType cdt = getDataType().findChildForInterface(dt);
 	 if (cdt != null) {
 	   eb = (EntityBase) factory.createFixedEntity(cdt);
 	  }
@@ -144,7 +145,7 @@ EntityFixed(FaitDataType dt,boolean mutable)
       System.err.println("SPECIAL CASE:");
     }
    
-   if (dt.isProjectClass() && loc != null) {
+   if (factory.isProjectClass(dt) && loc != null) {
       factory.addLocalReference(dt,loc);
       //TODO: If dt is in project then return all compatible local entities
       // and note that this has to be updated when a new entity is added

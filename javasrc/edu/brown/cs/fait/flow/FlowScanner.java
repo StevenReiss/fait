@@ -36,10 +36,14 @@
 package edu.brown.cs.fait.flow;
 
 import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.ivy.jcode.JcodeConstants;
+import edu.brown.cs.ivy.jcode.JcodeDataType;
+import edu.brown.cs.ivy.jcode.JcodeInstruction;
+import edu.brown.cs.ivy.jcode.JcodeMethod;
 
 import java.util.*;
 
-class FlowScanner implements FlowConstants, FaitOpcodes
+class FlowScanner implements FlowConstants, JcodeConstants
 {
 
 
@@ -76,7 +80,7 @@ FlowScanner(FaitControl fc,FlowQueue fq)
 void scanCode(FlowQueueInstance wq)
 {
    while (!wq.isEmpty()) {
-      FaitInstruction fi = wq.getNext();
+      JcodeInstruction fi = wq.getNext();
       try {
 	 processInstruction(fi,wq);
        }
@@ -94,7 +98,7 @@ void scanCode(FlowQueueInstance wq)
 /*										*/
 /********************************************************************************/
 
-private void processInstruction(FaitInstruction ins,FlowQueueInstance wq)
+private void processInstruction(JcodeInstruction ins,FlowQueueInstance wq)
 {
    IfaceState st1 = wq.getState(ins);
    IfaceCall call = wq.getCall();
@@ -112,7 +116,7 @@ private void processInstruction(FaitInstruction ins,FlowQueueInstance wq)
    boolean oref;
    IfaceEntity ent;
    TestBranch brslt;
-   FaitDataType dtyp;
+   JcodeDataType dtyp;
 
    if (ins.getIndex() == 0 && call.getMethod().isSynchronized()) {
       if (!call.getMethod().isStatic()) {
@@ -121,8 +125,8 @@ private void processInstruction(FaitInstruction ins,FlowQueueInstance wq)
        }
     }
 
-   FaitInstruction nins = call.getMethod().getInstruction(ins.getIndex() + 1);
-   FaitInstruction pins = nins;
+   JcodeInstruction nins = call.getMethod().getInstruction(ins.getIndex() + 1);
+   JcodeInstruction pins = nins;
    FlowLocation here = new FlowLocation(flow_queue,call,ins);
 
    switch (ins.getOpcode()) {
@@ -150,8 +154,8 @@ private void processInstruction(FaitInstruction ins,FlowQueueInstance wq)
 	 break;
       case CHECKCAST :
 	 v0 = st1.popStack();
-	 boolean pfg = ins.getTypeReference().isProjectClass();
-	 if (pfg && v0.getDataType().isProjectClass()) pfg = false;
+	 boolean pfg = fait_control.isProjectClass(ins.getTypeReference());
+	 if (pfg && fait_control.isProjectClass(v0.getDataType())) pfg = false;
 	 if (pfg && v0.getDataType().isJavaLangObject()) pfg = false;
 	 if (pfg && v0.getDataType().isInterface()) pfg = false;
 	 v0 = v0.restrictByType(ins.getTypeReference(),pfg,here);
@@ -395,7 +399,7 @@ private void processInstruction(FaitInstruction ins,FlowQueueInstance wq)
       case LOOKUPSWITCH :
       case TABLESWITCH :
 	 v0 = st1.popStack();
-	 for (FaitInstruction xin : ins.getTargetInstructions()) {
+	 for (JcodeInstruction xin : ins.getTargetInstructions()) {
 	    wq.mergeState(st1,xin);
 	  }
 	 nins = null;
@@ -432,7 +436,7 @@ private void processInstruction(FaitInstruction ins,FlowQueueInstance wq)
       case INVOKESPECIAL :
       case INVOKESTATIC :
       case INVOKEVIRTUAL :
-	 FaitMethod fm = ins.getMethodReference();
+	 JcodeMethod fm = ins.getMethodReference();
 	 st1 = handleAccess(here,st1);
 	 if (st1 == null) break;
 	 if (!flow_queue.handleCall(here,st1,wq)) {
@@ -583,7 +587,7 @@ private void processInstruction(FaitInstruction ins,FlowQueueInstance wq)
 /*										*/
 /********************************************************************************/
 
-private IfaceEntity getLocalEntity(IfaceCall call,FaitInstruction ins)
+private IfaceEntity getLocalEntity(IfaceCall call,JcodeInstruction ins)
 {
    IfaceEntity ns = call.getBaseEntity(ins);
 
@@ -614,7 +618,7 @@ private IfaceEntity getLocalEntity(IfaceCall call,FaitInstruction ins)
 
 private IfaceState handleAccess(FlowLocation loc,IfaceState st)
 {
-   FaitInstruction ins = loc.getInstruction();
+   JcodeInstruction ins = loc.getInstruction();
 
    // First determine which argument
    int act = 0;
@@ -637,7 +641,7 @@ private IfaceState handleAccess(FlowLocation loc,IfaceState st)
       case INVOKEINTERFACE :
       case INVOKESPECIAL :
       case INVOKEVIRTUAL :
-	 FaitMethod mthd = ins.getMethodReference();
+	 JcodeMethod mthd = ins.getMethodReference();
 	 if (mthd == null) return st;
 	 if (mthd.isStatic() || mthd.isConstructor()) return st;
 	 act = mthd.getNumArguments();

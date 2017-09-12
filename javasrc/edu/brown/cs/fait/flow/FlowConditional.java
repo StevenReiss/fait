@@ -36,6 +36,10 @@
 package edu.brown.cs.fait.flow;
 
 import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.ivy.jcode.JcodeConstants;
+import edu.brown.cs.ivy.jcode.JcodeDataType;
+import edu.brown.cs.ivy.jcode.JcodeField;
+import edu.brown.cs.ivy.jcode.JcodeInstruction;
 
 
 /**
@@ -49,7 +53,7 @@ import edu.brown.cs.fait.iface.*;
  *	or local based on what branch is taken.
  **/
 
-class FlowConditional implements FlowConstants, FaitOpcodes
+class FlowConditional implements FlowConstants, JcodeConstants
 {
 
 
@@ -83,7 +87,7 @@ FlowConditional(FaitControl fc)
 /*										*/
 /********************************************************************************/
 
-IfaceState handleImplications(FlowQueueInstance wq,FaitInstruction ins,
+IfaceState handleImplications(FlowQueueInstance wq,JcodeInstruction ins,
       IfaceState st0,TestBranch brslt)
 {
    int act = 1;
@@ -117,7 +121,7 @@ IfaceState handleImplications(FlowQueueInstance wq,FaitInstruction ins,
 	       break;
 	  }
        }
-      FaitInstruction tins = ins.getTargetInstruction();
+      JcodeInstruction tins = ins.getTargetInstruction();
       wq.mergeState(st1,tins);
     }
 
@@ -156,10 +160,10 @@ IfaceState handleImplications(FlowQueueInstance wq,FaitInstruction ins,
 
 IfaceState handleAccess(FaitLocation loc,int act,IfaceState st0)
 {
-   FaitInstruction ins = loc.getInstruction();
+   JcodeInstruction ins = loc.getInstruction();
    boolean inst = !ins.getMethod().isStatic();
 
-   FaitInstruction sino = skipWhere(ins.getPrevious(),act);
+   JcodeInstruction sino = skipWhere(ins.getPrevious(),act);
 
    WhereItem where = getWhere(sino,1);
 
@@ -179,12 +183,12 @@ IfaceState handleAccess(FaitLocation loc,int act,IfaceState st0)
 /*										*/
 /********************************************************************************/
 
-private WhereItem getWhere(FaitInstruction ins,int act)
+private WhereItem getWhere(JcodeInstruction ins,int act)
 {
    if (ins == null) return null;
 
    WhereItem where = null;
-   FaitField fld = null;
+   JcodeField fld = null;
 
    while (where == null && ins != null) {
       switch (ins.getOpcode()) {
@@ -207,7 +211,7 @@ private WhereItem getWhere(FaitInstruction ins,int act)
 	 case ISTORE : case ISTORE_0 : case ISTORE_1 : case ISTORE_2 : case ISTORE_3 :
 	 case LSTORE : case LSTORE_0 : case LSTORE_1 : case LSTORE_2 : case LSTORE_3 :
 	 case ASTORE : case ASTORE_0 : case ASTORE_1 : case ASTORE_2 : case ASTORE_3 :
-	    FaitInstruction pins = ins.getPrevious();
+	    JcodeInstruction pins = ins.getPrevious();
 	    if (pins != null) {
 	       switch (pins.getOpcode()) {
 		  case DUP : case DUP_X1 : case DUP_X2 : case DUP2 :
@@ -255,7 +259,7 @@ private WhereItem getWhere(FaitInstruction ins,int act)
 
 
 
-private FaitInstruction skipWhere(FaitInstruction ins,int act)
+private JcodeInstruction skipWhere(JcodeInstruction ins,int act)
 {
    int tot = 0;
    while (ins != null && tot < act) {
@@ -283,10 +287,10 @@ private FaitInstruction skipWhere(FaitInstruction ins,int act)
 private class WhereItem {
 
    private int var_number;
-   private FaitField field_name;
+   private JcodeField field_name;
    private long int_value;
 
-   WhereItem(int var,FaitField fld) {
+   WhereItem(int var,JcodeField fld) {
       var_number = var;
       field_name = fld;
       int_value = 0;
@@ -341,7 +345,7 @@ private class WhereItem {
     }
 
    IfaceState setEqual(IfaceState cs,boolean clone,boolean inst) {
-      FaitDataType dt = fait_control.findDataType("I");
+      JcodeDataType dt = fait_control.findDataType("I");
       IfaceValue v = fait_control.findRangeValue(dt,int_value,int_value);
       if (field_name == null) {
 	 if (var_number >= 0) {

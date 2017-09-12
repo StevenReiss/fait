@@ -35,13 +35,13 @@
 
 package edu.brown.cs.fait.iface;
 
-
+import edu.brown.cs.ivy.jcode.JcodeInstruction;
 
 public interface FaitMethodData extends FaitConstants
 {
 
-void setAssociation(AssociationType typ,FaitInstruction ins,FaitValue v);
-FaitValue getAssociation(AssociationType typ,FaitInstruction ins);
+void setAssociation(AssociationType typ,JcodeInstruction ins,FaitValue v);
+FaitValue getAssociation(AssociationType typ,JcodeInstruction ins);
 
 void clear();
 

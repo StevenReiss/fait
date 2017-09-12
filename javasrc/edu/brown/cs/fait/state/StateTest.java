@@ -36,6 +36,7 @@
 package edu.brown.cs.fait.state;
 
 import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.ivy.jcode.JcodeDataType;
 
 import org.junit.*;
 
@@ -81,7 +82,7 @@ public StateTest()
 @Test public void stackCheck()
 {
    IfaceState s1 = fait_control.createState(4);
-   FaitDataType t1 = fait_control.findDataType("I");
+   JcodeDataType t1 = fait_control.findDataType("I");
    
    IfaceValue v1 = fait_control.findRangeValue(t1,1,1);
    IfaceValue v2 = fait_control.findRangeValue(t1,2,2);

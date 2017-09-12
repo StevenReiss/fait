@@ -36,6 +36,8 @@
 package edu.brown.cs.fait.entity;
 
 import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.ivy.jcode.JcodeDataType;
+import edu.brown.cs.ivy.jcode.JcodeField;
 
 
 
@@ -62,7 +64,7 @@ private EntityObject    non_unique;
 /*                                                                              */
 /********************************************************************************/
 
-EntityLocal(FaitLocation where,FaitDataType cls,boolean uniq)
+EntityLocal(FaitLocation where,JcodeDataType cls,boolean uniq)
 {
    super(cls);
    base_location = where;
@@ -109,14 +111,14 @@ FaitEntity getNonunique()               { return non_unique; }
 
 
 
-@Override public void setFieldContents(IfaceValue fv,FaitField fld)
+@Override public void setFieldContents(IfaceValue fv,JcodeField fld)
 {
    if (non_unique != null) non_unique.setFieldContents(fv,fld);
    super.setFieldContents(fv,fld);
 }
 
 
-@Override public boolean addToFieldContents(IfaceValue fv,FaitField fld)
+@Override public boolean addToFieldContents(IfaceValue fv,JcodeField fld)
 {
    boolean fg = false;
    
@@ -130,7 +132,7 @@ FaitEntity getNonunique()               { return non_unique; }
 }
 
 
-@Override public FaitValue getFieldValue(FaitField fld)
+@Override public FaitValue getFieldValue(JcodeField fld)
 {
    if (non_unique != null) return non_unique.getFieldValue(fld);
    return super.getFieldValue(fld);

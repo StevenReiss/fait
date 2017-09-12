@@ -36,6 +36,7 @@
 package edu.brown.cs.fait.proto;
 
 import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.ivy.jcode.JcodeDataType;
 
 import java.util.*;
 import java.lang.reflect.*;
@@ -53,10 +54,10 @@ public class ProtoFactory implements ProtoConstants
 /********************************************************************************/
 
 private FaitControl	fait_control;
-private Map<FaitDataType,Class<?>> class_map;
+private Map<JcodeDataType,Class<?>> class_map;
 
 private static final Class<?> [] cnst_params = new Class<?> [] {
-   FaitControl.class, FaitDataType.class
+   FaitControl.class, JcodeDataType.class
 };
 
 
@@ -69,7 +70,7 @@ private static final Class<?> [] cnst_params = new Class<?> [] {
 public ProtoFactory(FaitControl fc)
 {
    fait_control = fc;
-   class_map = new HashMap<FaitDataType,Class<?>>();
+   class_map = new HashMap<JcodeDataType,Class<?>>();
 }
 
 
@@ -80,13 +81,13 @@ public ProtoFactory(FaitControl fc)
 /*                                                                              */
 /********************************************************************************/
 
-public IfacePrototype createPrototype(FaitDataType dt)
+public IfacePrototype createPrototype(JcodeDataType dt)
 {
    Class<?> c = null;
    
    synchronized (class_map) {
       if (!class_map.containsKey(dt)) {
-         if (!dt.isProjectClass()) {
+         if (!fait_control.isProjectClass(dt)) {
             if (dt.isDerivedFrom(fait_control.findDataType("Ljava/util/Collection;"))) {
                c = ProtoCollection.class;
              }

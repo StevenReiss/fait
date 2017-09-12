@@ -39,8 +39,7 @@
 
 package edu.brown.cs.fait.iface;
 
-
-
+import edu.brown.cs.ivy.jcode.JcodeDataType;
 
 public interface IfaceEntitySet extends FaitConstants {
 
@@ -54,8 +53,8 @@ boolean overlaps(IfaceEntitySet s);
 
 Iterable<IfaceEntity> getEntities();
 
-IfaceEntitySet restrictByType(FaitDataType dt,boolean proj,FaitLocation loc);
-IfaceEntitySet removeByType(FaitDataType dt,FaitLocation loc);
+IfaceEntitySet restrictByType(JcodeDataType dt,boolean proj,FaitLocation loc);
+IfaceEntitySet removeByType(JcodeDataType dt,FaitLocation loc);
 
 IfaceEntitySet addToSet(IfaceEntitySet es);
 

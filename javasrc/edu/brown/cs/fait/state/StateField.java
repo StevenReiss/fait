@@ -36,6 +36,8 @@
 package edu.brown.cs.fait.state;
 
 import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.ivy.jcode.JcodeField;
+import edu.brown.cs.ivy.jcode.JcodeMethod;
 
 import java.util.*;
 
@@ -52,9 +54,9 @@ class StateField implements StateConstants
 /********************************************************************************/
 
 private FaitControl			fait_control;
-private Map<FaitField,IfaceValue>	field_map;
-private Set<FaitField>			anonymous_fields;
-private Map<FaitField,Set<FaitLocation>> field_uses;
+private Map<JcodeField,IfaceValue>	field_map;
+private Set<JcodeField>			anonymous_fields;
+private Map<JcodeField,Set<FaitLocation>> field_uses;
 
 
 
@@ -68,9 +70,9 @@ private Map<FaitField,Set<FaitLocation>> field_uses;
 StateField(FaitControl fc)
 {
    fait_control = fc;
-   field_map = new HashMap<FaitField,IfaceValue>();
-   anonymous_fields = new HashSet<FaitField>();
-   field_uses = new HashMap<FaitField,Set<FaitLocation>>();
+   field_map = new HashMap<JcodeField,IfaceValue>();
+   anonymous_fields = new HashSet<JcodeField>();
+   field_uses = new HashMap<JcodeField,Set<FaitLocation>>();
 }
 
 
@@ -81,7 +83,7 @@ StateField(FaitControl fc)
 /*										*/
 /********************************************************************************/
 
-IfaceValue getFieldValue(StateBase state,FaitField fld,IfaceValue base,boolean thisref,FaitLocation src)
+IfaceValue getFieldValue(StateBase state,JcodeField fld,IfaceValue base,boolean thisref,FaitLocation src)
 {
    IfaceValue v0 = null;
 
@@ -104,7 +106,7 @@ IfaceValue getFieldValue(StateBase state,FaitField fld,IfaceValue base,boolean t
     }
 
    boolean allok = true;
-   if (base != null && !anonymous_fields.contains(fld) && fld.getDeclaringClass().isProjectClass()) {
+   if (base != null && !anonymous_fields.contains(fld) && fait_control.isProjectClass(fld.getDeclaringClass())) {
       for (IfaceEntity ent : base.getEntities()) {
 	 IfaceValue fv = (IfaceValue) ent.getFieldValue(fld);
 	 if (fv != null) {
@@ -138,14 +140,14 @@ IfaceValue getFieldValue(StateBase state,FaitField fld,IfaceValue base,boolean t
 
 
 
-boolean setFieldValue(StateBase st,FaitField fld,
+boolean setFieldValue(StateBase st,JcodeField fld,
       boolean thisref,IfaceValue v0,IfaceValue base,FaitLocation src)
 {
    if (v0.mustBeNull()) {
       v0 = v0.restrictByType(fld.getType(),false,src);
     }
 
-   FaitMethod fm = src.getMethod();
+   JcodeMethod fm = src.getMethod();
 
    if (thisref || fm.isStaticInitializer()) {
       st.setFieldValue(fld,v0);
@@ -159,7 +161,7 @@ boolean setFieldValue(StateBase st,FaitField fld,
 
    boolean chng = false;
 
-   if (base != null && fld.getDeclaringClass().isProjectClass()) {
+   if (base != null && fait_control.isProjectClass(fld.getDeclaringClass())) {
       for (IfaceEntity ent : base.getEntities()) {
 	 IfaceValue vb = (IfaceValue) ent.getFieldValue(fld);
 	 if (vb == null) ent.setFieldContents(v0,fld);
@@ -175,7 +177,7 @@ boolean setFieldValue(StateBase st,FaitField fld,
    synchronized(field_map) {
       IfaceValue s1 = field_map.get(fld);
       if (s1 == null) {
-	 if (!fld.getDeclaringClass().isProjectClass())
+	 if (!fait_control.isProjectClass(fld.getDeclaringClass()))
 	    s1 = fait_control.findInitialFieldValue(fld,true);
        }
       if (s1 == null) {
@@ -204,7 +206,7 @@ boolean setFieldValue(StateBase st,FaitField fld,
 /*										*/
 /********************************************************************************/
 
-void handleFieldChanged(FaitField fld)
+void handleFieldChanged(JcodeField fld)
 {
    synchronized (field_uses) {
       Set<FaitLocation> uses = field_uses.get(fld);

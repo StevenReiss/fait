@@ -36,6 +36,8 @@
 package edu.brown.cs.fait.entity;
 
 import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.ivy.jcode.JcodeField;
+import edu.brown.cs.ivy.jcode.JcodeDataType;
 
 import java.util.*;
 
@@ -84,7 +86,7 @@ protected EntityBase()
 
 @Override public int getId()				{ return entity_id; }
 
-@Override public FaitDataType getDataType()		{ return null; }
+@Override public JcodeDataType getDataType()		{ return null; }
 @Override public FaitLocation getLocation()	{ return null; }
 @Override public boolean isUsedInLock() 		{ return used_in_lock; }
 @Override public UserEntity getUserEntity()		{ return null; }
@@ -118,17 +120,17 @@ static EntityBase getEntity(int id)
 
 @Override public IfaceEntity makeNonunique()				{ return null; }
 
-public Collection<IfaceEntity> mutateTo(FaitDataType dt,FaitLocation fl,EntityFactory factory)
+public Collection<IfaceEntity> mutateTo(JcodeDataType dt,FaitLocation fl,EntityFactory factory)
 {
    return null;
 }
 
-@Override public void setFieldContents(IfaceValue fv,FaitField fld)	 { }
-@Override public boolean addToFieldContents(IfaceValue fv,FaitField fld)
+@Override public void setFieldContents(IfaceValue fv,JcodeField fld)	 { }
+@Override public boolean addToFieldContents(IfaceValue fv,JcodeField fld)
 {
    return false;
 }
-@Override public FaitValue getFieldValue(FaitField fld) 	
+@Override public FaitValue getFieldValue(JcodeField fld) 	
 {
    return null;
 }

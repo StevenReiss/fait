@@ -37,11 +37,15 @@ package edu.brown.cs.fait.iface;
 
 import java.util.*;
 
+import edu.brown.cs.ivy.jcode.JcodeDataType;
+import edu.brown.cs.ivy.jcode.JcodeInstruction;
+import edu.brown.cs.ivy.jcode.JcodeMethod;
+
 public interface IfaceCall extends FaitCall
 {
 
-FaitMethod getMethod();
-FaitDataType getMethodClass();
+JcodeMethod getMethod();
+JcodeDataType getMethodClass();
 int getInstanceNumber();
 IfaceState getStartState();
 IfaceValue getResultValue();
@@ -58,15 +62,15 @@ void setPrototype();
 
 boolean getIsAsync();
 
-FaitValue getAssociation(AssociationType typ,FaitInstruction ins);
-void setAssociation(AssociationType typ,FaitInstruction ins,IfaceValue v);
+FaitValue getAssociation(AssociationType typ,JcodeInstruction ins);
+void setAssociation(AssociationType typ,JcodeInstruction ins,IfaceValue v);
 
-IfaceEntity getArrayEntity(FaitInstruction ins);
-void setArrayEntity(FaitInstruction ins,IfaceEntity e);
-IfaceEntity getBaseEntity(FaitInstruction ins);
-void setBaseEntity(FaitInstruction ins,IfaceEntity e);
-FaitEntity.UserEntity getUserEntity(FaitInstruction ins);
-void setUserEntity(FaitInstruction ins,FaitEntity.UserEntity e);
+IfaceEntity getArrayEntity(JcodeInstruction ins);
+void setArrayEntity(JcodeInstruction ins,IfaceEntity e);
+IfaceEntity getBaseEntity(JcodeInstruction ins);
+void setBaseEntity(JcodeInstruction ins,IfaceEntity e);
+FaitEntity.UserEntity getUserEntity(JcodeInstruction ins);
+void setUserEntity(JcodeInstruction ins,FaitEntity.UserEntity e);
 
 IfaceValue getThisValue();
 Iterable<IfaceValue> getParameterValues();
@@ -76,20 +80,20 @@ boolean addException(IfaceValue exception);
 boolean hasResult();
 boolean addResult(IfaceValue v);
 
-Collection<FaitMethod>	replaceWith(List<IfaceValue> args);
-IfaceValue fixReplaceArgs(FaitMethod fm,LinkedList<IfaceValue> args);
+Collection<JcodeMethod>	replaceWith(List<IfaceValue> args);
+IfaceValue fixReplaceArgs(JcodeMethod fm,LinkedList<IfaceValue> args);
 
 void addCallbacks(FaitLocation loc,List<IfaceValue> args);
-FaitMethod findCallbackMethod(FaitDataType cls,String mthd,int asz,boolean intf);
+JcodeMethod findCallbackMethod(JcodeDataType cls,String mthd,int asz,boolean intf);
 
 void noteCallSite(FaitLocation loc);
 Collection<FaitLocation> getCallSites();
-void noteMethodCalled(FaitInstruction ins,FaitMethod m,IfaceCall called);
-IfaceCall getMethodCalled(FaitInstruction ins,FaitMethod m);
-Collection<IfaceCall> getAllMethodsCalled(FaitInstruction ins);
+void noteMethodCalled(JcodeInstruction ins,JcodeMethod m,IfaceCall called);
+IfaceCall getMethodCalled(JcodeInstruction ins,JcodeMethod m);
+Collection<IfaceCall> getAllMethodsCalled(JcodeInstruction ins);
 
-void addDeadInstruction(FaitInstruction ins);
-void removeDeadInstruction(FaitInstruction ins);
+void addDeadInstruction(JcodeInstruction ins);
+void removeDeadInstruction(JcodeInstruction ins);
 
 void clearForUpdate(IfaceUpdater upd);
 void handleUpdates(IfaceUpdater upd);

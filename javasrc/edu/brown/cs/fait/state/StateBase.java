@@ -36,6 +36,9 @@
 package edu.brown.cs.fait.state;
 
 import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.ivy.jcode.JcodeDataType;
+import edu.brown.cs.ivy.jcode.JcodeField;
+import edu.brown.cs.ivy.jcode.JcodeInstruction;
 
 import java.util.*;
 
@@ -55,9 +58,9 @@ class StateBase implements StateConstants, IfaceState
 private IfaceValue []		local_values;
 private Stack<IfaceValue>	stack_values;
 
-private Map<FaitField,IfaceValue>	field_map;
+private Map<JcodeField,IfaceValue>	field_map;
 
-private Stack<FaitInstruction>	return_stack;
+private Stack<JcodeInstruction>	return_stack;
 private List<StateBase> 	state_set;
 
 
@@ -74,7 +77,7 @@ StateBase(int numlocal)
 {
    local_values = new IfaceValue[numlocal];
    stack_values = new Stack<IfaceValue>();
-   field_map = new HashMap<FaitField,IfaceValue>(4);
+   field_map = new HashMap<JcodeField,IfaceValue>(4);
    state_set = null;
    return_stack = null;
 
@@ -101,13 +104,13 @@ StateBase(int numlocal)
 
    if (return_stack == null) ns.return_stack = null;
    else {
-      ns.return_stack = new Stack<FaitInstruction>();
+      ns.return_stack = new Stack<>();
       ns.return_stack.addAll(return_stack);
     }
 
    ns.state_set = null;
 
-   ns.field_map = new HashMap<FaitField,IfaceValue>(field_map);
+   ns.field_map = new HashMap<JcodeField,IfaceValue>(field_map);
 
    return ns;
 }
@@ -229,14 +232,14 @@ StateBase(int numlocal)
 /*										*/
 /********************************************************************************/
 
-@Override public IfaceValue getFieldValue(FaitField fld)
+@Override public IfaceValue getFieldValue(JcodeField fld)
 {
    return field_map.get(fld);
 }
 
 
 
-@Override public void setFieldValue(FaitField fld,IfaceValue v)
+@Override public void setFieldValue(JcodeField fld,IfaceValue v)
 {
    if (fld.isVolatile() || v == null) return;
 
@@ -249,7 +252,7 @@ StateBase(int numlocal)
 
 
 
-@Override public Iterable<FaitField> getKnownFields()
+@Override public Iterable<JcodeField> getKnownFields()
 {
    return field_map.keySet();
 }
@@ -274,19 +277,19 @@ StateBase(int numlocal)
 /*										*/
 /********************************************************************************/
 
-@Override public void pushReturn(FaitInstruction ins)
+@Override public void pushReturn(JcodeInstruction ins)
 {
-   if (return_stack == null) return_stack = new Stack<FaitInstruction>();
+   if (return_stack == null) return_stack = new Stack<>();
    return_stack.push(ins);
 }
 
 
 
-@Override public FaitInstruction popReturn()
+@Override public JcodeInstruction popReturn()
 {
    if (return_stack == null) return null;
 
-   FaitInstruction v = return_stack.pop();
+   JcodeInstruction v = return_stack.pop();
    if (return_stack.empty()) return_stack = null;
 
    return v;
@@ -408,9 +411,9 @@ private boolean checkMergeWithState(StateBase cs)
        }
     }
 
-   for (Iterator<Map.Entry<FaitField,IfaceValue>> it = field_map.entrySet().iterator(); it.hasNext(); ) {
-      Map.Entry<FaitField,IfaceValue> ent = it.next();
-      FaitField fld = ent.getKey();
+   for (Iterator<Map.Entry<JcodeField,IfaceValue>> it = field_map.entrySet().iterator(); it.hasNext(); ) {
+      Map.Entry<JcodeField,IfaceValue> ent = it.next();
+      JcodeField fld = ent.getKey();
       IfaceValue val = ent.getValue();
       IfaceValue nval = cs.getFieldValue(fld);
       if (nval == null) {
@@ -437,9 +440,9 @@ private boolean checkMergeWithState(StateBase cs)
 /*										*/
 /********************************************************************************/
 
-@Override public void startInitialization(FaitDataType dt)	{ }
+@Override public void startInitialization(JcodeDataType dt)	{ }
 
-@Override public boolean testDoingInitialization(FaitDataType dt)	{ return false; }
+@Override public boolean testDoingInitialization(JcodeDataType dt)	{ return false; }
 @Override public boolean addInitializations(IfaceState s)	{ return false; }
 
 

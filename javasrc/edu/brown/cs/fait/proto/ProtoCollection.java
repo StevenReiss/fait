@@ -36,6 +36,8 @@
 package edu.brown.cs.fait.proto;
 
 import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.ivy.jcode.JcodeDataType;
+import edu.brown.cs.ivy.jcode.JcodeMethod;
 
 import java.util.*;
 
@@ -69,7 +71,7 @@ private Set<FaitLocation> first_element;
 /*										*/
 /********************************************************************************/
 
-public ProtoCollection(FaitControl fc,FaitDataType dt)
+public ProtoCollection(FaitControl fc,JcodeDataType dt)
 {
    super(fc,dt);
 
@@ -101,10 +103,10 @@ public ProtoCollection(FaitControl fc,FaitDataType dt)
 /*										*/
 /********************************************************************************/
 
-public IfaceValue prototype__constructor(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
+public IfaceValue prototype__constructor(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
 {
    if (args.size() == 2) {
-      FaitDataType atyp = fm.getArgType(0);
+      JcodeDataType atyp = fm.getArgType(0);
       if (atyp.getName().equals("int")) ;
       else if (atyp.getName().equals("java.util.Comparator")) {
 	 comparator_value = args.get(1);
@@ -125,7 +127,7 @@ public IfaceValue prototype__constructor(FaitMethod fm,List<IfaceValue> args,Fai
 /*										*/
 /********************************************************************************/
 
-public synchronized  IfaceValue prototype_add(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
+public synchronized  IfaceValue prototype_add(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
 {
    IfaceValue nv = args.get(1);
 
@@ -150,7 +152,7 @@ public synchronized  IfaceValue prototype_add(FaitMethod fm,List<IfaceValue> arg
 
 
 
-public synchronized IfaceValue prototype_addAll(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
+public synchronized IfaceValue prototype_addAll(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
 {
    IfaceValue nv;
 
@@ -182,7 +184,7 @@ public synchronized IfaceValue prototype_addAll(FaitMethod fm,List<IfaceValue> a
 
 
 
-public IfaceValue prototype_push(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
+public IfaceValue prototype_push(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
 {
    IfaceValue nv = args.get(1);
 
@@ -193,59 +195,59 @@ public IfaceValue prototype_push(FaitMethod fm,List<IfaceValue> args,FaitLocatio
 
 
 
-public IfaceValue prototype_addElement(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
+public IfaceValue prototype_addElement(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
 {
    return prototype_add(fm,args,src);
 }
 
 
-public IfaceValue prototype_addFirst(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
+public IfaceValue prototype_addFirst(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
 {
    return prototype_add(fm,args,src);
 }
 
 
 
-public IfaceValue prototype_addLast(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
+public IfaceValue prototype_addLast(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
 {
    return prototype_add(fm,args,src);
 }
 
 
-public IfaceValue prototype_insertElementAt(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
+public IfaceValue prototype_insertElementAt(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
 {
    return prototype_add(fm,args,src);
 }
 
 
-public IfaceValue prototype_indexOf(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
+public IfaceValue prototype_indexOf(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
 {
    if (element_value == null) return returnInt(-1);
    return returnAny(fm);
 }
 
 
-public IfaceValue prototype_setElementAt(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
+public IfaceValue prototype_setElementAt(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
 {
    return prototype_add(fm,args,src);
 }
 
 
-public IfaceValue prototype_offer(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
-{
-   return prototype_add(fm,args,src);
-}
-
-
-
-public IfaceValue prototype_put(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
+public IfaceValue prototype_offer(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
 {
    return prototype_add(fm,args,src);
 }
 
 
 
-public IfaceValue prototype_set(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
+public IfaceValue prototype_put(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
+{
+   return prototype_add(fm,args,src);
+}
+
+
+
+public IfaceValue prototype_set(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
 {
    return prototype_add(fm,args,src);
 }
@@ -259,7 +261,7 @@ public IfaceValue prototype_set(FaitMethod fm,List<IfaceValue> args,FaitLocation
 /*										*/
 /********************************************************************************/
 
-public IfaceValue prototype_clone(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
+public IfaceValue prototype_clone(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
 {
    IfaceValue av = fait_control.findAnyValue(getDataType());
    if (av != null) return av;
@@ -272,7 +274,7 @@ public IfaceValue prototype_clone(FaitMethod fm,List<IfaceValue> args,FaitLocati
 }
 
 
-public IfaceValue prototype_comparator(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
+public IfaceValue prototype_comparator(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
 {
    if (comparator_value != null) return comparator_value;
 
@@ -281,7 +283,7 @@ public IfaceValue prototype_comparator(FaitMethod fm,List<IfaceValue> args,FaitL
 
 
 
-public synchronized IfaceValue prototype_contains(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
+public synchronized IfaceValue prototype_contains(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
 {
    IfaceValue v = args.get(1);
 
@@ -297,7 +299,7 @@ public synchronized IfaceValue prototype_contains(FaitMethod fm,List<IfaceValue>
 
 
 
-public synchronized IfaceValue prototype_containsAll(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
+public synchronized IfaceValue prototype_containsAll(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
 {
    addElementChange(src);
    
@@ -305,7 +307,7 @@ public synchronized IfaceValue prototype_containsAll(FaitMethod fm,List<IfaceVal
 }
 
 
-public IfaceValue prototype_size(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
+public IfaceValue prototype_size(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
 {
    first_element.add(src);
 
@@ -316,7 +318,7 @@ public IfaceValue prototype_size(FaitMethod fm,List<IfaceValue> args,FaitLocatio
 
 
 
-public IfaceValue prototype_isEmpty(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
+public IfaceValue prototype_isEmpty(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
 {
    first_element.add(src);
 
@@ -328,7 +330,7 @@ public IfaceValue prototype_isEmpty(FaitMethod fm,List<IfaceValue> args,FaitLoca
 
 
 
-public synchronized IfaceValue prototype_setSize(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
+public synchronized IfaceValue prototype_setSize(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
 {
    IfaceValue cv = args.get(1);
    IfaceValue zero = fait_control.findRangeValue(fait_control.findDataType("I"),0,0);
@@ -352,7 +354,7 @@ public synchronized IfaceValue prototype_setSize(FaitMethod fm,List<IfaceValue> 
 /*										*/
 /********************************************************************************/
 
-public synchronized IfaceValue prototype_toArray(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
+public synchronized IfaceValue prototype_toArray(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
 {
    IfaceValue cv = null;
 
@@ -366,7 +368,7 @@ public synchronized IfaceValue prototype_toArray(FaitMethod fm,List<IfaceValue> 
     }
    else {
       if (array_entity == null) {
-	 FaitDataType dt = fait_control.findDataType("Ljava/lang/Object;");
+	 JcodeDataType dt = fait_control.findDataType("Ljava/lang/Object;");
 	 array_entity = fait_control.findArrayEntity(dt,prototype_size(fm,null,src));
        }
       array_entity.addToArrayContents(element_value,null,src);
@@ -380,7 +382,7 @@ public synchronized IfaceValue prototype_toArray(FaitMethod fm,List<IfaceValue> 
 
 
 
-public IfaceValue prototype_copyInto(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
+public IfaceValue prototype_copyInto(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
 {
    prototype_toArray(fm,args,src);
 
@@ -396,7 +398,7 @@ public IfaceValue prototype_copyInto(FaitMethod fm,List<IfaceValue> args,FaitLoc
 /*										*/
 /********************************************************************************/
 
-public IfaceValue prototype_get(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
+public IfaceValue prototype_get(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
 {
    if (!fm.getReturnType().isVoid()) addElementChange(src);
 
@@ -404,63 +406,63 @@ public IfaceValue prototype_get(FaitMethod fm,List<IfaceValue> args,FaitLocation
 }
 
 
-public IfaceValue prototype_elementAt(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
+public IfaceValue prototype_elementAt(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
 {
    return prototype_get(fm,args,src);
 }
 
 
-public IfaceValue prototype_first(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
+public IfaceValue prototype_first(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
 {
    return prototype_get(fm,args,src);
 }
 
 
-public IfaceValue prototype_firstElement(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
+public IfaceValue prototype_firstElement(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
 {
    return prototype_get(fm,args,src);
 }
 
 
-public IfaceValue prototype_lastElement(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
-{
-   return prototype_get(fm,args,src);
-}
-
-
-
-public IfaceValue prototype_getFirst(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
-{
-   return prototype_get(fm,args,src);
-}
-
-
-public IfaceValue prototype_getLast(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
-{
-   return prototype_get(fm,args,src);
-}
-
-
-public IfaceValue prototype_peek(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
-{
-   return prototype_get(fm,args,src);
-}
-
-
-public IfaceValue prototype_poll(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
-{
-   return prototype_get(fm,args,src);
-}
-
-
-public IfaceValue prototype_pop(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
+public IfaceValue prototype_lastElement(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
 {
    return prototype_get(fm,args,src);
 }
 
 
 
-public IfaceValue prototype_take(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
+public IfaceValue prototype_getFirst(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
+{
+   return prototype_get(fm,args,src);
+}
+
+
+public IfaceValue prototype_getLast(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
+{
+   return prototype_get(fm,args,src);
+}
+
+
+public IfaceValue prototype_peek(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
+{
+   return prototype_get(fm,args,src);
+}
+
+
+public IfaceValue prototype_poll(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
+{
+   return prototype_get(fm,args,src);
+}
+
+
+public IfaceValue prototype_pop(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
+{
+   return prototype_get(fm,args,src);
+}
+
+
+
+public IfaceValue prototype_take(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
 {
    return prototype_get(fm,args,src);
 }
@@ -474,7 +476,7 @@ public IfaceValue prototype_take(FaitMethod fm,List<IfaceValue> args,FaitLocatio
 /*										*/
 /********************************************************************************/
 
-public IfaceValue prototype_remove(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
+public IfaceValue prototype_remove(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
 {
    if (!fm.getReturnType().isVoid()) addElementChange(src);
 
@@ -499,35 +501,35 @@ public IfaceValue prototype_remove(FaitMethod fm,List<IfaceValue> args,FaitLocat
 
 
 
-public IfaceValue prototype_removeElement(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
+public IfaceValue prototype_removeElement(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
 {
    return prototype_remove(fm,args,src);
 }
 
 
 
-public IfaceValue prototype_removeElementAt(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
+public IfaceValue prototype_removeElementAt(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
 {
    return prototype_remove(fm,args,src);
 }
 
 
 
-public IfaceValue prototype_removeFirst(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
+public IfaceValue prototype_removeFirst(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
 {
    return prototype_remove(fm,args,src);
 }
 
 
 
-public IfaceValue prototype_removeLast(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
+public IfaceValue prototype_removeLast(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
 {
    return prototype_remove(fm,args,src);
 }
 
 
 
-public IfaceValue prototype_removeRange(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
+public IfaceValue prototype_removeRange(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
 {
    return prototype_remove(fm,args,src);
 }
@@ -545,9 +547,9 @@ public IfaceValue prototype_removeRange(FaitMethod fm,List<IfaceValue> args,Fait
 /********************************************************************************/
 
 
-public IfaceValue prototype_subList(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
+public IfaceValue prototype_subList(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
 {
-   FaitDataType dt = fait_control.findDataType("Ljava/util/List;");
+   JcodeDataType dt = fait_control.findDataType("Ljava/util/List;");
    IfaceEntity ie = fait_control.findPrototypeEntity(dt,this,src);
    IfaceEntitySet eset = fait_control.createSingletonSet(ie);
    IfaceValue v = fait_control.findObjectValue(dt,eset,NullFlags.NON_NULL);
@@ -557,30 +559,30 @@ public IfaceValue prototype_subList(FaitMethod fm,List<IfaceValue> args,FaitLoca
 
 
 
-public IfaceValue prototype_headSet(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
+public IfaceValue prototype_headSet(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
 {
    return prototype_subList(fm,args,src);
 }
 
 
 
-public IfaceValue prototype_subSet(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
+public IfaceValue prototype_subSet(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
 {
    return prototype_subList(fm,args,src);
 }
 
 
 
-public IfaceValue prototype_tailSet(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
+public IfaceValue prototype_tailSet(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
 {
    return prototype_subList(fm,args,src);
 }
 
 
 
-public synchronized IfaceValue prototype_elements(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
+public synchronized IfaceValue prototype_elements(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
 {
-   FaitDataType dt = fait_control.findDataType("Ljava/util/Enumeration;");
+   JcodeDataType dt = fait_control.findDataType("Ljava/util/Enumeration;");
 
    if (enum_entity == null) {
       ProtoBase cp = new CollectionEnum(fait_control);
@@ -595,7 +597,7 @@ public synchronized IfaceValue prototype_elements(FaitMethod fm,List<IfaceValue>
 
 
 
-public IfaceValue prototype_equals(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
+public IfaceValue prototype_equals(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
 {
    return returnAny(fm);
 }
@@ -609,10 +611,10 @@ public IfaceValue prototype_equals(FaitMethod fm,List<IfaceValue> args,FaitLocat
 /*										*/
 /********************************************************************************/
 
-synchronized public IfaceValue prototype_iterator(FaitMethod fm,
+synchronized public IfaceValue prototype_iterator(JcodeMethod fm,
       List<IfaceValue> args,FaitLocation src)
 {
-   FaitDataType dt = fait_control.findDataType("Ljava/util/Iterator;");
+   JcodeDataType dt = fait_control.findDataType("Ljava/util/Iterator;");
 
    if (iter_entity == null) {
       ProtoBase cp = new CollectionIter(fait_control);
@@ -626,10 +628,10 @@ synchronized public IfaceValue prototype_iterator(FaitMethod fm,
 }
 
 
-synchronized public IfaceValue prototype_listIterator(FaitMethod fm,
+synchronized public IfaceValue prototype_listIterator(JcodeMethod fm,
       List<IfaceValue> args,FaitLocation src)
 {
-   FaitDataType dt = fait_control.findDataType("Ljava/util/ListIterator;");
+   JcodeDataType dt = fait_control.findDataType("Ljava/util/ListIterator;");
 
    if (listiter_entity == null) {
       ProtoBase cp = new CollectionListIter(fait_control);
@@ -732,7 +734,7 @@ private class CollectionIter extends ProtoBase {
       super(fc,fc.findDataType("Ljava/util/Iterator;"));
     }
 
-   public IfaceValue prototype_hasNext(FaitMethod fm,List<IfaceValue> args,FaitLocation src) {
+   public IfaceValue prototype_hasNext(JcodeMethod fm,List<IfaceValue> args,FaitLocation src) {
       synchronized (ProtoCollection.this) {
 	 first_element.add(src);
 	 if (element_value == null) return returnFalse();
@@ -740,7 +742,7 @@ private class CollectionIter extends ProtoBase {
        }
     }
 
-   public IfaceValue prototype_next(FaitMethod fm,List<IfaceValue> args,FaitLocation src) {
+   public IfaceValue prototype_next(JcodeMethod fm,List<IfaceValue> args,FaitLocation src) {
       synchronized (ProtoCollection.this) {
 	 addElementChange(src);
 	 return element_value;
@@ -760,11 +762,11 @@ private class CollectionListIter extends ProtoBase {
       super(fc,fc.findDataType("Ljava/util/ListIterator;"));
     }
 
-   public IfaceValue prototype_add(FaitMethod fm,List<IfaceValue> args,FaitLocation src) {
+   public IfaceValue prototype_add(JcodeMethod fm,List<IfaceValue> args,FaitLocation src) {
       return ProtoCollection.this.prototype_add(fm,args,src);
     }
 
-   public IfaceValue prototype_hasNext(FaitMethod fm,List<IfaceValue> args,FaitLocation src) {
+   public IfaceValue prototype_hasNext(JcodeMethod fm,List<IfaceValue> args,FaitLocation src) {
       synchronized (ProtoCollection.this) {
 	 first_element.add(src);
 	 if (element_value == null) return returnFalse();
@@ -772,22 +774,22 @@ private class CollectionListIter extends ProtoBase {
        }
     }
 
-   public IfaceValue prototype_hasPrevious(FaitMethod fm,List<IfaceValue> args,FaitLocation src) {
+   public IfaceValue prototype_hasPrevious(JcodeMethod fm,List<IfaceValue> args,FaitLocation src) {
       return prototype_hasNext(fm,args,src);
     }
 
-   public IfaceValue prototype_next(FaitMethod fm,List<IfaceValue> args,FaitLocation src) {
+   public IfaceValue prototype_next(JcodeMethod fm,List<IfaceValue> args,FaitLocation src) {
       synchronized (ProtoCollection.this) {
 	 addElementChange(src);
 	 return element_value;
        }
     }
 
-   public IfaceValue prototype_previous(FaitMethod fm,List<IfaceValue> args,FaitLocation src) {
+   public IfaceValue prototype_previous(JcodeMethod fm,List<IfaceValue> args,FaitLocation src) {
       return prototype_next(fm,args,src);
     }
 
-   public IfaceValue prototype_set(FaitMethod fm,List<IfaceValue> args,FaitLocation src) {
+   public IfaceValue prototype_set(JcodeMethod fm,List<IfaceValue> args,FaitLocation src) {
       return ProtoCollection.this.prototype_set(fm,args,src);
     }
 
@@ -803,7 +805,7 @@ private class CollectionEnum extends ProtoBase {
       super(fc,fc.findDataType("Ljava/util/Enumeration;"));
     }
 
-   public IfaceValue prototype_hasMoreElements(FaitMethod fm,List<IfaceValue> args,FaitLocation src) {
+   public IfaceValue prototype_hasMoreElements(JcodeMethod fm,List<IfaceValue> args,FaitLocation src) {
       synchronized (ProtoCollection.this) {
 	 first_element.add(src);
 	 if (element_value == null) return returnFalse();
@@ -811,7 +813,7 @@ private class CollectionEnum extends ProtoBase {
        }
     }
 
-   public IfaceValue prototype_nextElement(FaitMethod fm,List<IfaceValue> args,FaitLocation src) {
+   public IfaceValue prototype_nextElement(JcodeMethod fm,List<IfaceValue> args,FaitLocation src) {
       synchronized (ProtoCollection.this) {
 	 addElementChange(src);
 	 return element_value;

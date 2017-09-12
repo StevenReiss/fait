@@ -38,10 +38,12 @@ package edu.brown.cs.fait.iface;
 
 import java.util.*;
 
+import edu.brown.cs.ivy.jcode.JcodeMethod;
+
 public interface IfaceSpecial extends FaitConstants
 {
 
-IfaceValue getReturnValue(FaitMethod mthd);
+IfaceValue getReturnValue(JcodeMethod mthd);
 boolean returnsArg0();
 boolean isConstructor();
 String getReplaceName();

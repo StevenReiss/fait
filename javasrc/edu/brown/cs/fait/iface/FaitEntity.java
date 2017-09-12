@@ -36,9 +36,7 @@
 
 package edu.brown.cs.fait.iface;
 
-
-
-
+import edu.brown.cs.ivy.jcode.JcodeDataType;
 
 public interface FaitEntity extends FaitConstants {
 
@@ -52,7 +50,7 @@ public interface FaitEntity extends FaitConstants {
 
 int getId();
 
-FaitDataType getDataType();
+JcodeDataType getDataType();
 
 FaitLocation getLocation();
 

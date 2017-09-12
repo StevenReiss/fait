@@ -36,6 +36,8 @@
 package edu.brown.cs.fait.flow;
 
 import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.ivy.jcode.JcodeField;
+import edu.brown.cs.ivy.jcode.JcodeInstruction;
 
 import java.util.*;
 
@@ -52,8 +54,8 @@ class FlowField implements FlowConstants
 
 private FaitControl			fait_control;
 private FlowQueue			flow_queue;
-private Map<FaitField,IfaceValue>	field_map;
-private Map<FaitField,Set<FlowLocation>> field_accessors;
+private Map<JcodeField,IfaceValue>	field_map;
+private Map<JcodeField,Set<FlowLocation>> field_accessors;
 
 
 
@@ -67,8 +69,8 @@ FlowField(FaitControl fc,FlowQueue fq)
 {
    fait_control = fc;
    flow_queue = fq;
-   field_map = new HashMap<FaitField,IfaceValue>();
-   field_accessors = new HashMap<FaitField,Set<FlowLocation>>();
+   field_map = new HashMap<JcodeField,IfaceValue>();
+   field_accessors = new HashMap<JcodeField,Set<FlowLocation>>();
 }
 
 
@@ -81,8 +83,8 @@ FlowField(FaitControl fc,FlowQueue fq)
 
 IfaceValue handleFieldGet(FlowLocation loc,IfaceState st,boolean thisref,IfaceValue base)
 {
-   FaitInstruction ins = loc.getInstruction();
-   FaitField fld = ins.getFieldReference();
+   JcodeInstruction ins = loc.getInstruction();
+   JcodeField fld = ins.getFieldReference();
    if (fld == null)
       System.err.println("FIELD NOT FOUND");
 
@@ -139,8 +141,8 @@ IfaceValue handleFieldGet(FlowLocation loc,IfaceState st,boolean thisref,IfaceVa
 void handleFieldSet(FlowLocation loc,IfaceState st,boolean thisref,
       IfaceValue v0,IfaceValue base)
 {
-   FaitInstruction ins = loc.getInstruction();
-   FaitField fld = ins.getFieldReference();
+   JcodeInstruction ins = loc.getInstruction();
+   JcodeField fld = ins.getFieldReference();
    IfaceCall mthd = loc.getCall();
 
    if (v0.mustBeNull()) {
@@ -179,7 +181,7 @@ void handleFieldSet(FlowLocation loc,IfaceState st,boolean thisref,
 }
 
 
-void handleFieldChanged(FaitField fld)
+void handleFieldChanged(JcodeField fld)
 {
    Set<FlowLocation> locs;
 

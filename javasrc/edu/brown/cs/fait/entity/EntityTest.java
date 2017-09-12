@@ -65,7 +65,7 @@ private EntityFactory	entity_factory;
 
 public EntityTest()
 {
-   entity_factory = new EntityFactory();
+   entity_factory = new EntityFactory(null);
 }
 
 

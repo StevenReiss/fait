@@ -36,6 +36,7 @@
 package edu.brown.cs.fait.flow;
 
 import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.ivy.jcode.JcodeMethod;
 
 import java.util.*;
 
@@ -76,12 +77,12 @@ public FlowFactory(FaitControl fc)
 
 public void analyze(int nthread)
 {
-   Collection<FaitMethod> start = fait_control.getStartMethods();
+   Collection<JcodeMethod> start = fait_control.getStartMethods();
    FlowQueue fq = new FlowQueue(fait_control);
    List<IfaceValue> sargl = new LinkedList<IfaceValue>();
    sargl.add(fait_control.findMainArgsValue());
 
-   for (FaitMethod fm : start) {
+   for (JcodeMethod fm : start) {
       IfaceCall ic = fait_control.findCall(fm,sargl,InlineType.NONE);
       fq.queueMethodStart(ic);
     }
@@ -106,7 +107,7 @@ public void queueLocation(FaitLocation loc)
 }
 
 
-public void handleCallback(FaitLocation frm,FaitMethod fm,List<IfaceValue> args,String cbid) 
+public void handleCallback(FaitLocation frm,JcodeMethod fm,List<IfaceValue> args,String cbid) 
 {
    frm.handleCallback(fm,args,cbid);
 }

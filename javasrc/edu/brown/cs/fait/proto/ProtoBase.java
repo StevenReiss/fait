@@ -36,6 +36,9 @@
 package edu.brown.cs.fait.proto;
 
 import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.ivy.jcode.JcodeDataType;
+import edu.brown.cs.ivy.jcode.JcodeField;
+import edu.brown.cs.ivy.jcode.JcodeMethod;
 
 import java.lang.reflect.Method;
 import java.util.*;
@@ -52,11 +55,11 @@ abstract class ProtoBase implements IfacePrototype, ProtoConstants
 /*										*/
 /********************************************************************************/
 protected FaitControl	fait_control;
-private FaitDataType	proto_type;
-private Map<FaitMethod,Method> method_map;
+private JcodeDataType	proto_type;
+private Map<JcodeMethod,Method> method_map;
 
 private static Class<?> [] call_params = new Class<?> [] {
-   FaitMethod.class, List.class, FaitLocation.class
+   JcodeMethod.class, List.class, FaitLocation.class
 };
 
 
@@ -67,11 +70,11 @@ private static Class<?> [] call_params = new Class<?> [] {
 /*										*/
 /********************************************************************************/
 
-protected ProtoBase(FaitControl fc,FaitDataType base)
+protected ProtoBase(FaitControl fc,JcodeDataType base)
 {
    fait_control = fc;
    proto_type = base;
-   method_map = new HashMap<FaitMethod,Method>();
+   method_map = new HashMap<JcodeMethod,Method>();
 }
 
 
@@ -82,7 +85,7 @@ protected ProtoBase(FaitControl fc,FaitDataType base)
 /*										*/
 /********************************************************************************/
 
-FaitDataType getDataType()			{ return proto_type; }
+JcodeDataType getDataType()			{ return proto_type; }
 
 
 
@@ -93,11 +96,11 @@ FaitDataType getDataType()			{ return proto_type; }
 /*										*/
 /********************************************************************************/
 
-@Override public void setField(IfaceValue v,FaitField fld)	 { }
+@Override public void setField(IfaceValue v,JcodeField fld)	 { }
 
-@Override public boolean addToField(IfaceValue v,FaitField fld)        { return false; }
+@Override public boolean addToField(IfaceValue v,JcodeField fld)        { return false; }
 
-@Override public IfaceValue getField(FaitField fld)				{ return null; }
+@Override public IfaceValue getField(JcodeField fld)				{ return null; }
 
 
 @Override public boolean setArrayContents(IfaceValue idx,IfaceValue v)		{ return false; }
@@ -113,11 +116,11 @@ FaitDataType getDataType()			{ return proto_type; }
 /*										*/
 /********************************************************************************/
 
-@Override public boolean isMethodRelevant(FaitMethod fm)
+@Override public boolean isMethodRelevant(JcodeMethod fm)
 {
    if (proto_type == null) return true;
 
-   FaitDataType dt = fm.getDeclaringClass();
+   JcodeDataType dt = fm.getDeclaringClass();
    if (proto_type == dt || proto_type.isDerivedFrom(dt)) return true;
 
    return false;
@@ -132,7 +135,7 @@ FaitDataType getDataType()			{ return proto_type; }
 /*										*/
 /********************************************************************************/
 
-@Override public IfaceValue handleCall(FaitMethod fm,List<IfaceValue> args,FaitLocation src)
+@Override public IfaceValue handleCall(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
 {
    Method mthd = null;
    synchronized (method_map) {
@@ -172,20 +175,20 @@ FaitDataType getDataType()			{ return proto_type; }
 /*										*/
 /********************************************************************************/
 
-protected IfaceValue returnAny(FaitMethod fm)
+protected IfaceValue returnAny(JcodeMethod fm)
 {
    return fait_control.findAnyValue(fm.getReturnType());
 }
 
 
 
-protected IfaceValue returnNative(FaitMethod fm)
+protected IfaceValue returnNative(JcodeMethod fm)
 {
    return fait_control.findNativeValue(fm.getReturnType());
 }
 
 
-protected IfaceValue returnMutable(FaitMethod fm)
+protected IfaceValue returnMutable(JcodeMethod fm)
 {
    return fait_control.findMutableValue(fm.getReturnType());
 }
@@ -216,7 +219,7 @@ protected IfaceValue returnInt(int v0,int v1)
 }
 
 
-protected IfaceValue returnNull(FaitMethod fm)
+protected IfaceValue returnNull(JcodeMethod fm)
 {
    return fait_control.findNullValue(fm.getReturnType());
 }

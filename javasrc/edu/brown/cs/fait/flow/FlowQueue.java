@@ -36,6 +36,9 @@
 package edu.brown.cs.fait.flow;
 
 import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.ivy.jcode.JcodeDataType;
+import edu.brown.cs.ivy.jcode.JcodeInstruction;
+import edu.brown.cs.ivy.jcode.JcodeMethod;
 
 import java.util.*;
 
@@ -59,15 +62,15 @@ private FlowCall				call_control;
 private Set<IfaceCall>				active_calls;
 
 private Map<IfaceCall,FlowQueueInstance>	call_map;
-private Map<IfaceCall,Set<FaitInstruction>>	call_queue;
+private Map<IfaceCall,Set<JcodeInstruction>>	call_queue;
 
-private Set<FaitDataType>			class_setup;
-private Map<FaitDataType,Collection<IfaceCall>> classsetup_map;
+private Set<JcodeDataType>			class_setup;
+private Map<JcodeDataType,Collection<IfaceCall>> classsetup_map;
 
-private Set<FaitDataType>			staticinit_set;
-private Set<FaitDataType>			staticinit_ran;
-private Set<FaitDataType>			staticinit_started;
-private Map<FaitDataType,Set<IfaceCall>>	staticinit_queue;
+private Set<JcodeDataType>			staticinit_set;
+private Set<JcodeDataType>			staticinit_ran;
+private Set<JcodeDataType>			staticinit_started;
+private Map<JcodeDataType,Set<IfaceCall>>	staticinit_queue;
 private List<IfaceCall> 			static_inits;
 
 
@@ -118,22 +121,22 @@ FlowQueue(FaitControl fc)
    active_calls = new HashSet<IfaceCall>();
 
    call_map = new LinkedHashMap<IfaceCall,FlowQueueInstance>();
-   call_queue = new HashMap<IfaceCall,Set<FaitInstruction>>();
+   call_queue = new HashMap<IfaceCall,Set<JcodeInstruction>>();
 
-   class_setup = new HashSet<FaitDataType>();
+   class_setup = new HashSet<JcodeDataType>();
    for (String s : preset_classes) {
-      FaitDataType dt = fait_control.findDataType(s);
+      JcodeDataType dt = fait_control.findDataType(s);
       if (dt != null) class_setup.add(dt);
     }
-   classsetup_map = new HashMap<FaitDataType,Collection<IfaceCall>>();
+   classsetup_map = new HashMap<JcodeDataType,Collection<IfaceCall>>();
 
-   staticinit_set = new HashSet<FaitDataType>();
+   staticinit_set = new HashSet<JcodeDataType>();
    staticinit_set.add(fait_control.findDataType("Ljava/lang/System;"));
    staticinit_set.add(fait_control.findDataType("Ljava/lang/Class;"));
-   staticinit_ran = new HashSet<FaitDataType>(staticinit_set);
-   staticinit_started = new HashSet<FaitDataType>(staticinit_set);
+   staticinit_ran = new HashSet<JcodeDataType>(staticinit_set);
+   staticinit_started = new HashSet<JcodeDataType>(staticinit_set);
    static_inits = new ArrayList<IfaceCall>();
-   staticinit_queue = new HashMap<FaitDataType,Set<IfaceCall>>();
+   staticinit_queue = new HashMap<JcodeDataType,Set<IfaceCall>>();
 
    field_control = new FlowField(fait_control,this);
    conditional_control = new FlowConditional(fait_control);
@@ -158,10 +161,10 @@ void queueMethodStart(IfaceCall c)
 
 void queueMethodCall(IfaceCall c,IfaceState st)
 {
-   FaitMethod m = c.getMethod();
+   JcodeMethod m = c.getMethod();
    if (!m.isStatic() && !m.isConstructor() && !m.isPrivate()) {
-      FaitDataType dt = m.getDeclaringClass();
-      if (dt.isProjectClass()) initialize(dt);
+      JcodeDataType dt = m.getDeclaringClass();
+      if (fait_control.isProjectClass(dt)) initialize(dt);
       else {
 	 synchronized (staticinit_set) {
 	    if (!staticinit_set.contains(dt)) return;
@@ -178,7 +181,7 @@ void queueMethodCall(IfaceCall c,IfaceState st)
 
 void queueForInitializers(IfaceCall c,IfaceState st)
 {
-   FaitMethod m = c.getMethod();
+   JcodeMethod m = c.getMethod();
    IfaceState sst = c.getStartState();
 
    if (st != null && !m.isStatic() && !m.isConstructor()) {
@@ -193,7 +196,7 @@ void queueForInitializers(IfaceCall c,IfaceState st)
 
 
 
-void queueMethodChange(IfaceCall c,FaitInstruction ins)
+void queueMethodChange(IfaceCall c,JcodeInstruction ins)
 {
    if (call_map.get(c) == null) return;
 
@@ -210,13 +213,13 @@ private void queueMethod(IfaceCall c)
       return;
     }
 
-   FaitInstruction ins = c.getMethod().getInstruction(0);
+   JcodeInstruction ins = c.getMethod().getInstruction(0);
    if (ins == null) return;
    queueMethod(c,ins);
 }
 
 
-private void queueMethod(IfaceCall c,FaitInstruction ins)
+private void queueMethod(IfaceCall c,JcodeInstruction ins)
 {
    if (c == null) return;
 
@@ -225,9 +228,9 @@ private void queueMethod(IfaceCall c,FaitInstruction ins)
    initialize(c.getMethodClass());
 
    synchronized (call_queue) {
-      Set<FaitInstruction> s = call_queue.get(c);
+      Set<JcodeInstruction> s = call_queue.get(c);
       if (s == null) {
-	 s = new HashSet<FaitInstruction>();
+	 s = new HashSet<JcodeInstruction>();
 	 call_queue.put(c,s);
 	 chng = true;
 	 call_queue.notifyAll();
@@ -260,16 +263,16 @@ boolean allDone()
 FlowQueueInstance setupNextFlowQueue()
 {
    IfaceCall cm = null;
-   Set<FaitInstruction> inset = null;
+   Set<JcodeInstruction> inset = null;
    FlowQueueInstance fqi = null;
    boolean newfqi = false;
 
    synchronized (call_queue) {
       while (!allDone()) {
-	 Iterator<Map.Entry<IfaceCall,Set<FaitInstruction>>> it;
+	 Iterator<Map.Entry<IfaceCall,Set<JcodeInstruction>>> it;
 	 it = call_queue.entrySet().iterator();
 	 while (it.hasNext()) {
-	    Map.Entry<IfaceCall,Set<FaitInstruction>> ent = it.next();
+	    Map.Entry<IfaceCall,Set<JcodeInstruction>> ent = it.next();
 	    if (active_calls.contains(ent.getKey())) continue;
 	    it.remove();
 	    if (ent.getKey().getMethod().getNumInstructions() > 0) {
@@ -305,9 +308,9 @@ FlowQueueInstance setupNextFlowQueue()
       fqi.mergeState(st0,null);
     }
    else if (inset != null) {
-      FaitInstruction i0 = cm.getMethod().getInstruction(0);
+      JcodeInstruction i0 = cm.getMethod().getInstruction(0);
       IfaceLog.logD1("Add instruction " + i0.getIndex());
-      for (FaitInstruction fi : inset) {
+      for (JcodeInstruction fi : inset) {
 	 if (fi == i0) fqi.mergeState(cm.getStartState(),fi);
 	 fqi.lookAt(fi);
        }
@@ -336,13 +339,13 @@ void doneWithFlowQueue(FlowQueueInstance fqi)
 /*										*/
 /********************************************************************************/
 
-void initialize(FaitDataType dt)
+void initialize(JcodeDataType dt)
 {
    initialize(dt,false);
 }
 
 
-void initialize(FaitDataType dt,boolean fakeinit)
+void initialize(JcodeDataType dt,boolean fakeinit)
 {
    Collection<IfaceCall> inits = new ArrayList<IfaceCall>();
 
@@ -354,9 +357,9 @@ void initialize(FaitDataType dt,boolean fakeinit)
 	 if (dt.getSuperType() != null) initialize(dt.getSuperType(),false);
 
 	 int ctr = 0;
-	 Collection<FaitMethod> sinit = fait_control.findStaticInitializers(dt.getName());
+	 Collection<JcodeMethod> sinit = fait_control.findStaticInitializers(dt.getName());
 	 if (sinit != null) {
-	    for (FaitMethod fm : fait_control.findStaticInitializers(dt.getName())) {
+	    for (JcodeMethod fm : fait_control.findStaticInitializers(dt.getName())) {
 	       ++ctr;
 	       IfaceCall c = fait_control.findCall(fm,null,InlineType.NONE);
 	       static_inits.add(c);
@@ -376,7 +379,7 @@ void initialize(FaitDataType dt,boolean fakeinit)
 }
 
 
-boolean canBeUsed(FaitDataType dt)
+boolean canBeUsed(JcodeDataType dt)
 {
    synchronized(staticinit_set) {
       if (staticinit_set.contains(dt)) return true;
@@ -387,10 +390,10 @@ boolean canBeUsed(FaitDataType dt)
 }
 
 
-boolean checkInitialized(IfaceState st,IfaceCall cm,FaitInstruction ins)
+boolean checkInitialized(IfaceState st,IfaceCall cm,JcodeInstruction ins)
 {
    synchronized (staticinit_set) {
-      FaitDataType bc = cm.getMethodClass();
+      JcodeDataType bc = cm.getMethodClass();
       int idx = ins.getIndex();
       if (idx == 0 && !getInitializerDone(bc)) {
 	 if (cm.getMethod().isStaticInitializer()) {
@@ -417,10 +420,10 @@ boolean checkInitialized(IfaceState st,IfaceCall cm,FaitInstruction ins)
 }
 
 
-void handleReturnSetup(FaitMethod fm)
+void handleReturnSetup(JcodeMethod fm)
 {
    if (fm.isStaticInitializer()) {
-      FaitDataType dt = fm.getDeclaringClass();
+      JcodeDataType dt = fm.getDeclaringClass();
       synchronized (staticinit_set) {
 	 staticinit_ran.add(dt);
 	 Set<IfaceCall> cs = staticinit_queue.get(dt);
@@ -442,7 +445,7 @@ private void requeueForInit(Collection<IfaceCall> s)
 }
 
 
-private boolean getInitializerDone(FaitDataType dt)
+private boolean getInitializerDone(JcodeDataType dt)
 {
    synchronized (staticinit_set) {
       initialize(dt);
@@ -454,13 +457,13 @@ private boolean getInitializerDone(FaitDataType dt)
 
 private void recheckAllInitializers()
 {
-   for (FaitDataType dt : classsetup_map.keySet()) {
+   for (JcodeDataType dt : classsetup_map.keySet()) {
       recheckInitializers(dt,false);
     }
 }
 
 
-private void recheckInitializers(FaitDataType dt,boolean del)
+private void recheckInitializers(JcodeDataType dt,boolean del)
 {
    Collection<IfaceCall> s;
 
@@ -506,7 +509,7 @@ IfaceState handleAccess(FaitLocation loc,int act,IfaceState st)
 
 
 
-IfaceState handleImplications(FlowQueueInstance wq,FaitInstruction ins,
+IfaceState handleImplications(FlowQueueInstance wq,JcodeInstruction ins,
       IfaceState st0,TestBranch br)
 {
    return conditional_control.handleImplications(wq,ins,st0,br);
@@ -520,7 +523,7 @@ IfaceState handleImplications(FlowQueueInstance wq,FaitInstruction ins,
 /*										*/
 /********************************************************************************/
 
-IfaceValue handleNewArraySet(FlowLocation loc,FaitDataType acls,int ndim,IfaceValue sz)
+IfaceValue handleNewArraySet(FlowLocation loc,JcodeDataType acls,int ndim,IfaceValue sz)
 {
    return array_control.handleNewArraySet(loc,acls,ndim,sz);
 }
@@ -588,7 +591,7 @@ boolean handleCall(FlowLocation loc,IfaceState st0,FlowQueueInstance wq)
 
 
 
-void handleCallback(FaitMethod fm,List<IfaceValue> args,String cbid)
+void handleCallback(JcodeMethod fm,List<IfaceValue> args,String cbid)
 {
    call_control.handleCallback(fm,args,cbid);
 }

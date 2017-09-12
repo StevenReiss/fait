@@ -36,6 +36,7 @@
 package edu.brown.cs.fait.value;
 
 import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.ivy.jcode.JcodeDataType;
 
 
 class ValueBad extends ValueBase
@@ -48,7 +49,7 @@ class ValueBad extends ValueBase
 /*										*/
 /********************************************************************************/
 
-ValueBad(ValueFactory vf,FaitDataType voidtype)
+ValueBad(ValueFactory vf,JcodeDataType voidtype)
 {
    super(vf,voidtype,null);
 }

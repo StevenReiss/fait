@@ -36,17 +36,19 @@
 package edu.brown.cs.fait.flow;
 
 import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.ivy.jcode.JcodeDataType;
+import edu.brown.cs.ivy.jcode.JcodeConstants;
 
 import java.util.*;
 
 
-class FlowArray implements FlowConstants, FaitOpcodes
+class FlowArray implements FlowConstants, JcodeConstants
 {
 
 
 /********************************************************************************/
 /*										*/
-/*	Private Storage 							*/
+/*	Private St      orage 							*/
 /*										*/
 /********************************************************************************/
 
@@ -78,13 +80,13 @@ FlowArray(FaitControl fc,FlowQueue fq)
 /*										*/
 /********************************************************************************/
 
-IfaceValue handleNewArraySet(FlowLocation loc,FaitDataType acls,int ndim,IfaceValue sz)
+IfaceValue handleNewArraySet(FlowLocation loc,JcodeDataType acls,int ndim,IfaceValue sz)
 {
    IfaceEntity as = loc.getCall().getArrayEntity(loc.getInstruction());
 
    if (as == null) {
       IfaceEntity as1 = null;
-      FaitDataType bcls = acls;
+      JcodeDataType bcls = acls;
       for (int i = 0; i < ndim; ++i) {
 	 as = fait_control.findArrayEntity(bcls,sz);
 	 sz = null;
@@ -130,7 +132,7 @@ IfaceValue handleArrayAccess(FlowLocation loc,IfaceValue arr,IfaceValue idx)
     }
 
    if (cv == null) {
-      FaitDataType base = null;
+      JcodeDataType base = null;
       switch (loc.getInstruction().getOpcode()) {
 	 default :
 	 case AALOAD :

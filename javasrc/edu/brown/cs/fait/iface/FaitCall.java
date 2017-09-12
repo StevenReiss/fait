@@ -38,11 +38,13 @@ package edu.brown.cs.fait.iface;
 
 import java.util.Collection;
 
+import edu.brown.cs.ivy.jcode.JcodeInstruction;
+
 
 public interface FaitCall extends FaitConstants
 {
 
-Collection<FaitInstruction> getDeadInstructions();
+Collection<JcodeInstruction> getDeadInstructions();
 
 
 }	// end of interface FaitCall

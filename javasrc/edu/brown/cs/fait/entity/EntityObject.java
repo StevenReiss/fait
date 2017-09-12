@@ -36,6 +36,8 @@
 package edu.brown.cs.fait.entity;
 
 import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.ivy.jcode.JcodeDataType;
+import edu.brown.cs.ivy.jcode.JcodeField;
 
 import java.util.*;
 
@@ -50,8 +52,8 @@ abstract class EntityObject extends EntityBase
 /*										*/
 /********************************************************************************/
 
-private FaitDataType	data_type;
-private Map<FaitField,IfaceValue> field_map;
+private JcodeDataType	data_type;
+private Map<JcodeField,IfaceValue> field_map;
 
 private boolean 	array_nonnull;
 private boolean 	array_canbenull;
@@ -64,10 +66,10 @@ private IfaceValue	array_value;
 /*										*/
 /********************************************************************************/
 
-protected EntityObject(FaitDataType dt)
+protected EntityObject(JcodeDataType dt)
 {
    data_type = dt;
-   field_map = new HashMap<FaitField,IfaceValue>(4);
+   field_map = new HashMap<JcodeField,IfaceValue>(4);
    array_value = null;
    array_nonnull = false;
    array_canbenull = false;
@@ -81,7 +83,7 @@ protected EntityObject(FaitDataType dt)
 /*										*/
 /********************************************************************************/
 
-@Override public FaitDataType getDataType()		{ return data_type; }
+@Override public JcodeDataType getDataType()		{ return data_type; }
 
 
 
@@ -91,7 +93,7 @@ protected EntityObject(FaitDataType dt)
 /*										*/
 /********************************************************************************/
 
-@Override public void setFieldContents(IfaceValue fv,FaitField fld)
+@Override public void setFieldContents(IfaceValue fv,JcodeField fld)
 {
    synchronized (field_map) {
       field_map.put(fld,fv);
@@ -99,7 +101,7 @@ protected EntityObject(FaitDataType dt)
 }
 
 
-@Override public boolean addToFieldContents(IfaceValue fv,FaitField fld)
+@Override public boolean addToFieldContents(IfaceValue fv,JcodeField fld)
 {
    if (fv == null) return false;
 
@@ -115,7 +117,7 @@ protected EntityObject(FaitDataType dt)
 }
 
 
-@Override public FaitValue getFieldValue(FaitField fld)
+@Override public FaitValue getFieldValue(JcodeField fld)
 {
    synchronized (field_map) {
       return field_map.get(fld);
@@ -126,7 +128,7 @@ protected EntityObject(FaitDataType dt)
 
 protected void copyFields(EntityObject toobj)
 {
-   for (Map.Entry<FaitField,IfaceValue> ent : field_map.entrySet()) {
+   for (Map.Entry<JcodeField,IfaceValue> ent : field_map.entrySet()) {
       toobj.setFieldContents(ent.getValue(),ent.getKey());
     }
 }

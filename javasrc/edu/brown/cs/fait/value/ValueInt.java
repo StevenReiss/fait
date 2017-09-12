@@ -36,9 +36,11 @@
 package edu.brown.cs.fait.value;
 
 import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.ivy.jcode.JcodeConstants;
+import edu.brown.cs.ivy.jcode.JcodeDataType;
 
 
-class ValueInt extends ValueNumber
+class ValueInt extends ValueNumber implements JcodeConstants
 {
 
 
@@ -60,13 +62,13 @@ private long		max_value;
 /*										*/
 /********************************************************************************/
 
-ValueInt(ValueFactory vf,FaitDataType dt)
+ValueInt(ValueFactory vf,JcodeDataType dt)
 {
    this(vf,dt,null);
 }
 
 
-ValueInt(ValueFactory vf,FaitDataType dt,IfaceEntitySet es)
+ValueInt(ValueFactory vf,JcodeDataType dt,IfaceEntitySet es)
 {
    super(vf,dt,es);
    have_range = false;
@@ -75,13 +77,13 @@ ValueInt(ValueFactory vf,FaitDataType dt,IfaceEntitySet es)
 }
 
 
-ValueInt(ValueFactory vf,FaitDataType dt,long minv,long maxv)
+ValueInt(ValueFactory vf,JcodeDataType dt,long minv,long maxv)
 {
    this(vf,dt,minv,maxv,null);
 }
 
 
-ValueInt(ValueFactory vf,FaitDataType dt,long minv,long maxv,IfaceEntitySet es)
+ValueInt(ValueFactory vf,JcodeDataType dt,long minv,long maxv,IfaceEntitySet es)
 {
    super(vf,dt,es);
    have_range = true;
@@ -110,7 +112,7 @@ long getMaxValue()			{ return max_value; }
 /********************************************************************************/
 
 @Override
-public IfaceValue performOperation(FaitDataType typ,IfaceValue rhsv,int op,FaitLocation src)
+public IfaceValue performOperation(JcodeDataType typ,IfaceValue rhsv,int op,FaitLocation src)
 {
    if (rhsv == null) rhsv = this;
 
@@ -132,17 +134,17 @@ public IfaceValue performOperation(FaitDataType typ,IfaceValue rhsv,int op,FaitL
    long mxv = max_value;
 
    switch (op) {
-      case FaitOpcodes.IINC :
-      case FaitOpcodes.IADD :
-      case FaitOpcodes.LADD :
+      case IINC :
+      case IADD :
+      case LADD :
 	 v0 += v1;
 	 if (rngok) {
 	    mnv += rhs.min_value;
 	    mxv += rhs.max_value;
 	  }
 	 break;
-      case FaitOpcodes.IDIV :
-      case FaitOpcodes.LDIV :
+      case IDIV :
+      case LDIV :
 	 if (valok && v1 == 0) valok = false;
 	 else if (valok) v0 /= v1;
 	 if (rngok) {
@@ -153,8 +155,8 @@ public IfaceValue performOperation(FaitDataType typ,IfaceValue rhsv,int op,FaitL
 	     }
 	  }
 	 break;
-      case FaitOpcodes.IMUL :
-      case FaitOpcodes.LMUL :
+      case IMUL :
+      case LMUL :
 	 v0 *= v1;
 	 if (rngok) {
 	    mnv = min_value*rhs.min_value;
@@ -167,65 +169,65 @@ public IfaceValue performOperation(FaitDataType typ,IfaceValue rhsv,int op,FaitL
 	    mxv = Math.max(mxv,max_value*rhs.max_value);
 	  }
 	 break;
-      case FaitOpcodes.IREM :
-      case FaitOpcodes.LREM :
+      case IREM :
+      case LREM :
 	 if (v1 == 0) return value_factory.anyValue(typ);
 	 if (rngok) {
 	    if (rhs.min_value <= mxv) rngok = false;
 	  }
 	 break;
-      case FaitOpcodes.ISUB :
-      case FaitOpcodes.LSUB :
+      case ISUB :
+      case LSUB :
 	 v0 -= v1;
 	 if (rngok) {
 	    mnv -= rhs.max_value;
 	    mxv -= rhs.min_value;
 	  }
 	 break;
-      case FaitOpcodes.IAND :
-      case FaitOpcodes.LAND :
+      case IAND :
+      case LAND :
 	 v0 &= v1;
 	 rngok = false;
 	 break;
-      case FaitOpcodes.IOR :
-      case FaitOpcodes.LOR :
+      case IOR :
+      case LOR :
 	 v0 |= v1;
 	 rngok = false;
 	 break;
-      case FaitOpcodes.IXOR :
-      case FaitOpcodes.LXOR :
+      case IXOR :
+      case LXOR :
 	 v0 ^= v1;
 	 rngok = false;
 	 break;
-      case FaitOpcodes.ISHL :
-      case FaitOpcodes.LSHL :
+      case ISHL :
+      case LSHL :
 	 v0 <<= v1;
 	 rngok = false;
 	 break;
-      case FaitOpcodes.ISHR :
-      case FaitOpcodes.LSHR :
+      case ISHR :
+      case LSHR :
 	 v0 >>= v1;
 	 rngok = false;
 	 break;
-      case FaitOpcodes.IUSHR :
-      case FaitOpcodes.LUSHR :
+      case IUSHR :
+      case LUSHR :
 	 v0 >>>= v1;
 	 rngok = false;
 	 break;
-      case FaitOpcodes.I2B :
-      case FaitOpcodes.I2C :
-      case FaitOpcodes.I2S :
-      case FaitOpcodes.I2L :
-      case FaitOpcodes.L2I :
+      case I2B :
+      case I2C :
+      case I2S :
+      case I2L :
+      case L2I :
 	 break;
-      case FaitOpcodes.INEG :
-      case FaitOpcodes.LNEG :
+      case INEG :
+      case LNEG :
 	 v0 = -v0;
 	 mnv = -mxv;
 	 mxv = -mnv;
 	 break;
-      case FaitOpcodes.I2D :
-      case FaitOpcodes.L2D :
+      case I2D :
+      case L2D :
       default :
 	 valok = false;
 	 rngok = false;
@@ -260,8 +262,8 @@ public IfaceValue performOperation(FaitDataType typ,IfaceValue rhsv,int op,FaitL
    if (!(vb instanceof ValueInt)) return value_factory.badValue();
 
    ValueInt cvi = (ValueInt) vb;
-   FaitDataType fdt = getDataType();
-   FaitDataType mdt = cvi.getDataType();
+   JcodeDataType fdt = getDataType();
+   JcodeDataType mdt = cvi.getDataType();
 
    if (!have_range || (cvi.have_range && min_value <= cvi.min_value &&
 	 max_value >= cvi.max_value)) {
@@ -321,57 +323,57 @@ public IfaceValue performOperation(FaitDataType typ,IfaceValue rhsv,int op,FaitL
 
    if (have_range && rvi.have_range) {
       switch (op) {
-	 case FaitOpcodes.IF_ICMPEQ :
+	 case IF_ICMPEQ :
 	    if (min_value == max_value && min_value == rvi.min_value &&
 		  max_value == rvi.max_value)
 	       rslt = TestBranch.ALWAYS;
 	    else if (min_value > rvi.max_value || max_value < rvi.min_value)
 	       rslt = TestBranch.NEVER;
 	    break;
-	 case FaitOpcodes.IF_ICMPNE :
+	 case IF_ICMPNE :
 	    if (min_value == max_value && min_value == rvi.min_value &&
 		  max_value == rvi.max_value)
 	       rslt = TestBranch.NEVER;
 	    else if (min_value > rvi.max_value || max_value < rvi.min_value)
 	       rslt = TestBranch.ALWAYS;
 	    break;
-	 case FaitOpcodes.IF_ICMPLT :
+	 case IF_ICMPLT :
 	    if (max_value < rvi.min_value) rslt = TestBranch.ALWAYS;
 	    else if (min_value >= rvi.max_value) rslt = TestBranch.NEVER;
 	    break;
-	 case FaitOpcodes.IF_ICMPGE :
+	 case IF_ICMPGE :
 	    if (min_value >= rvi.max_value) rslt = TestBranch.ALWAYS;
 	    else if (max_value < rvi.min_value) rslt = TestBranch.NEVER;
 	    break;
-	 case FaitOpcodes.IF_ICMPGT :
+	 case IF_ICMPGT :
 	    if (min_value > rvi.max_value) rslt = TestBranch.ALWAYS;
 	    else if (max_value <= rvi.min_value) rslt = TestBranch.NEVER;
 	    break;
-	 case FaitOpcodes.IF_ICMPLE :
+	 case IF_ICMPLE :
 	    if (max_value <= rvi.min_value) rslt = TestBranch.ALWAYS;
 	    else if (min_value > rvi.max_value) rslt = TestBranch.NEVER;
 	    break;
-	 case FaitOpcodes.IFEQ :
+	 case IFEQ :
 	    if (min_value == max_value && min_value == 0) rslt = TestBranch.ALWAYS;
 	    else if (min_value > 0 || max_value < 0) rslt = TestBranch.NEVER;
 	    break;
-	 case FaitOpcodes.IFNE :
+	 case IFNE :
 	    if (min_value == max_value && min_value == 0) rslt = TestBranch.NEVER;
 	    else if (min_value > 0 || max_value < 0) rslt = TestBranch.ALWAYS;
 	    break;
-	 case FaitOpcodes.IFLT :
+	 case IFLT :
 	    if (max_value < 0) rslt = TestBranch.ALWAYS;
 	    else if (min_value >= 0) rslt = TestBranch.NEVER;
 	    break;
-	 case FaitOpcodes.IFLE :
+	 case IFLE :
 	    if (max_value < 0) rslt = TestBranch.ALWAYS;
 	    else if (min_value > 0) rslt = TestBranch.NEVER;
 	    break;
-	 case FaitOpcodes.IFGT :
+	 case IFGT :
 	    if (min_value > 0) rslt = TestBranch.ALWAYS;
 	    else if (max_value <= 0) rslt = TestBranch.NEVER;
 	    break;
-	 case FaitOpcodes.IFGE :
+	 case IFGE :
 	    if (min_value >= 0) rslt = TestBranch.ALWAYS;
 	    else if (max_value < 0) rslt = TestBranch.NEVER;
 	    break;

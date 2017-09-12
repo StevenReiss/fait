@@ -36,6 +36,7 @@
 package edu.brown.cs.fait.entity;
 
 import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.ivy.jcode.JcodeDataType;
 
 import java.util.*;
 
@@ -242,11 +243,11 @@ private void propogateMap(EntitySet rslt,List<IfaceEntity> props)
       if (rslt.next_map.size() != 0) return;
       for (Map.Entry<Object,EntitySet> ent : nexts.entrySet()) {
 	 Object o = ent.getKey();
-	 if (o instanceof FaitDataType) {
-	    FaitDataType bdt = (FaitDataType) o;
+	 if (o instanceof JcodeDataType) {
+	    JcodeDataType bdt = (JcodeDataType) o;
 	    boolean okfg = false;
 	    for (IfaceEntity ie : props) {
-	       FaitDataType fdt1 = ie.getDataType();
+	       JcodeDataType fdt1 = ie.getDataType();
 	       if (fdt1 == null ||
 		     entity_factory.compatibleTypes(fdt1,bdt)) {
 		  okfg = false;
@@ -269,20 +270,20 @@ private void propogateMap(EntitySet rslt,List<IfaceEntity> props)
 /*										*/
 /********************************************************************************/
 
-@Override public IfaceEntitySet restrictByType(FaitDataType dt,boolean proj,FaitLocation fl)
+@Override public IfaceEntitySet restrictByType(JcodeDataType dt,boolean proj,FaitLocation fl)
 {
    return handleTypeRestricts(dt,proj,false,fl);
 }
 
 
-@Override public IfaceEntitySet removeByType(FaitDataType dt,FaitLocation fl)
+@Override public IfaceEntitySet removeByType(JcodeDataType dt,FaitLocation fl)
 {
    return handleTypeRestricts(dt,false,true,fl);
 }
 
 
 
-EntitySet handleTypeRestricts(FaitDataType dt,boolean proj,boolean comp,FaitLocation fl)
+EntitySet handleTypeRestricts(JcodeDataType dt,boolean proj,boolean comp,FaitLocation fl)
 {
    if (dt == null) return this;
 
@@ -333,11 +334,11 @@ EntitySet handleTypeRestricts(FaitDataType dt,boolean proj,boolean comp,FaitLoca
 
 private static class RestrictInfo {
 
-   private FaitDataType data_type;
+   private JcodeDataType data_type;
    private boolean in_project;
    private boolean complement_result;
 
-   RestrictInfo(FaitDataType dt,boolean pro,boolean comp) {
+   RestrictInfo(JcodeDataType dt,boolean pro,boolean comp) {
       data_type = dt;
       in_project = pro;
       complement_result = comp;

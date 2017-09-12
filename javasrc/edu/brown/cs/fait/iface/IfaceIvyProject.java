@@ -1,8 +1,8 @@
 /********************************************************************************/
 /*                                                                              */
-/*              FaitUpdater.java                                                */
+/*              IfaceIvyProject.java                                            */
 /*                                                                              */
-/*      Class to handle incremental updates                                     */
+/*      description of class                                                    */
 /*                                                                              */
 /********************************************************************************/
 /*      Copyright 2011 Brown University -- Steven P. Reiss                    */
@@ -36,22 +36,100 @@
 package edu.brown.cs.fait.iface;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
-import edu.brown.cs.ivy.jcode.JcodeMethod;
+import edu.brown.cs.ivy.project.IvyProject;
 
-
-public interface FaitUpdater extends FaitConstants
+public class IfaceIvyProject implements FaitProject
 {
 
-void noteChanged(File file);
-void noteChanged(JcodeMethod mthd);
 
-boolean updateChanged();
+/********************************************************************************/
+/*                                                                              */
+/*      Private Storage                                                         */
+/*                                                                              */
+/********************************************************************************/
 
-}       // end of interface FaitUpdater
+private IvyProject      base_project;
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Constructors                                                            */
+/*                                                                              */
+/********************************************************************************/
+
+public IfaceIvyProject(IvyProject ip)
+{
+   base_project = ip;
+}
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Abstract Method Implementations                                         */
+/*                                                                              */
+/********************************************************************************/
+
+@Override public boolean isProjectClass(String cls)
+{
+   return base_project.isUserClass(cls);
+}
+
+
+
+@Override public String getClasspath()
+{
+   StringBuffer buf = new StringBuffer();
+   for (String s : base_project.getClassPath()) {
+      if (buf.length() > 0) buf.append(File.pathSeparator);
+      buf.append(s);
+    }
+   return buf.toString();
+}
+
+
+
+@Override public Collection<String> getBaseClasses()
+{
+   Collection<String> rslt = new ArrayList<>();
+   for (String s : base_project.getStartClasses()) {
+      rslt.add(s);
+    }
+   return rslt;
+}
+
+
+
+@Override public Collection<String> getStartClasses()
+{
+   return null;
+}
+
+
+
+@Override public FaitMethodData createMethodData(FaitCall arg0)
+{
+   return null;
+}
+
+
+
+@Override public List<File> getDescriptionFile()
+{
+   return null;
+}
+
+
+
+}       // end of class IfaceIvyProject
 
 
 
 
-/* end of FaitUpdater.java */
+/* end of IfaceIvyProject.java */
 

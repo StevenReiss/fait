@@ -36,6 +36,9 @@
 package edu.brown.cs.fait.value;
 
 import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.ivy.jcode.JcodeConstants;
+import edu.brown.cs.ivy.jcode.JcodeDataType;
+import edu.brown.cs.ivy.jcode.JcodeField;
 
 import org.junit.*;
 
@@ -81,8 +84,8 @@ public ValueTest()
 
 @Test public void createValues()
 {
-   FaitDataType t1 = fait_control.findDataType("Lspr.onsets.OnsetMain;");
-   FaitDataType t2 = fait_control.findDataType("I");
+   JcodeDataType t1 = fait_control.findDataType("Lspr.onsets.OnsetMain;");
+   JcodeDataType t2 = fait_control.findDataType("I");
    value_set[0] = fait_control.findAnyValue(t2);
    value_set[1] = fait_control.findAnyValue(t1);
    value_set[2] = fait_control.findRangeValue(t2,1,2);
@@ -109,9 +112,9 @@ public ValueTest()
    value_set[16] = fait_control.findAnyValue(fait_control.findDataType("D"));
    Assert.assertSame("Float ignores range",value_set[15],value_set[16]);
 
-   FaitField f1 = fait_control.findField("spr.onsets.OnsetMain","card_deck");
-   FaitField f2 = fait_control.findField("spr.onsets.OnsetMain","target_size");
-   FaitField f3 = fait_control.findField("spr.onsets.OnsetExprSet$Expr","expr_text");
+   JcodeField f1 = fait_control.findField("spr.onsets.OnsetMain","card_deck");
+   JcodeField f2 = fait_control.findField("spr.onsets.OnsetMain","target_size");
+   JcodeField f3 = fait_control.findField("spr.onsets.OnsetExprSet$Expr","expr_text");
    value_set[17] = fait_control.findInitialFieldValue(f1,false);
    value_set[18] = fait_control.findInitialFieldValue(f2,false);
    value_set[19] = fait_control.findInitialFieldValue(f3,false);
@@ -122,8 +125,8 @@ public ValueTest()
    Assert.assertSame("Merge float and double",value_set[21],value_set[15]);
 
    value_set[22] = fait_control.findRangeValue(fait_control.findDataType("I"),2,2);
-   value_set[23] = value_set[22].performOperation(t2,value_set[2],FaitOpcodes.ISUB,null);    // 2 - {1,2}
-   value_set[24] = value_set[23].performOperation(t2,value_set[22],FaitOpcodes.IMUL,null);    // 2*(2-{1,2})
+   value_set[23] = value_set[22].performOperation(t2,value_set[2],JcodeConstants.ISUB,null);    // 2 - {1,2}
+   value_set[24] = value_set[23].performOperation(t2,value_set[22],JcodeConstants.IMUL,null);    // 2*(2-{1,2})
    value_set[25] = fait_control.findRangeValue(t2,0,2);
    Assert.assertSame("Integer arithmetic",value_set[24],value_set[25]);
    value_set[26] = fait_control.findAnyValue(fait_control.findDataType("B"));

@@ -35,7 +35,9 @@
 
 package edu.brown.cs.fait.iface;
 
-
+import edu.brown.cs.ivy.jcode.JcodeDataType;
+import edu.brown.cs.ivy.jcode.JcodeField;
+import edu.brown.cs.ivy.jcode.JcodeInstruction;
 
 public interface IfaceState extends FaitState
 {
@@ -52,22 +54,22 @@ IfaceValue getLocal(int idx);
 void setLocal(int idx,IfaceValue v);
 boolean addToLocal(int idx,IfaceValue v);
 
-IfaceValue getFieldValue(FaitField fld);
-void setFieldValue(FaitField fld,IfaceValue v);
+IfaceValue getFieldValue(JcodeField fld);
+void setFieldValue(JcodeField fld,IfaceValue v);
 
-Iterable<FaitField> getKnownFields();
+Iterable<JcodeField> getKnownFields();
 boolean hasKnownFields();
 void discardFields();
 
-void pushReturn(FaitInstruction ins);
-FaitInstruction popReturn();
+void pushReturn(JcodeInstruction ins);
+JcodeInstruction popReturn();
 
 IfaceState mergeWith(IfaceState st);
 boolean compatibleWith(IfaceState st);
 
-void startInitialization(FaitDataType typ);
+void startInitialization(JcodeDataType typ);
 
-boolean testDoingInitialization(FaitDataType typ);
+boolean testDoingInitialization(JcodeDataType typ);
 boolean addInitializations(IfaceState st);
 
 void handleUpdate(IfaceUpdater upd);

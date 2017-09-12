@@ -36,6 +36,7 @@
 package edu.brown.cs.fait.call;
 
 import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.ivy.jcode.JcodeMethod;
 import edu.brown.cs.ivy.xml.*;
 
 
@@ -55,10 +56,10 @@ public class CallFactory implements CallConstants
 /********************************************************************************/
 
 private FaitControl	fait_control;
-private Map<FaitMethod,Map<Object,CallBase>> method_map;
-private Map<FaitMethod,CallBase> proto_map;
+private Map<JcodeMethod,Map<Object,CallBase>> method_map;
+private Map<JcodeMethod,CallBase> proto_map;
 
-private Map<FaitMethod,CallSpecial> special_methods;
+private Map<JcodeMethod,CallSpecial> special_methods;
 private Map<String,CallSpecial> call_methods;
 
 
@@ -75,9 +76,9 @@ private final static Object DEFAULT_OBJECT = new Object();
 public CallFactory(FaitControl fc)
 {
    fait_control = fc;
-   method_map = new HashMap<FaitMethod,Map<Object,CallBase>>();
-   proto_map = new HashMap<FaitMethod,CallBase>();
-   special_methods = new HashMap<FaitMethod,CallSpecial>();
+   method_map = new HashMap<>();
+   proto_map = new HashMap<JcodeMethod,CallBase>();
+   special_methods = new HashMap<JcodeMethod,CallSpecial>();
    call_methods = new HashMap<String,CallSpecial>();
 }
 
@@ -89,7 +90,7 @@ public CallFactory(FaitControl fc)
 /*										*/
 /********************************************************************************/
 
-public IfaceCall findCall(FaitMethod fm,List<IfaceValue> args,InlineType inline)
+public IfaceCall findCall(JcodeMethod fm,List<IfaceValue> args,InlineType inline)
 {
    Object key = null;
 
@@ -203,7 +204,7 @@ private boolean matchInlineValues(IfaceValue v1,IfaceValue v2)
 /*										*/
 /********************************************************************************/
 
-public IfaceCall findPrototypeMethod(FaitMethod fm)
+public IfaceCall findPrototypeMethod(JcodeMethod fm)
 {
    synchronized (proto_map) {
       CallBase cb = proto_map.get(fm);
@@ -224,7 +225,7 @@ public IfaceCall findPrototypeMethod(FaitMethod fm)
 /*										*/
 /********************************************************************************/
 
-public Collection<IfaceCall> getAllCalls(FaitMethod fm)
+public Collection<IfaceCall> getAllCalls(JcodeMethod fm)
 {
    Map<Object,CallBase> mm;
    synchronized (method_map) {
@@ -288,7 +289,7 @@ public void addSpecialFile(Element xml)
 }
 
 
-public IfaceSpecial getSpecial(FaitMethod fm)
+public IfaceSpecial getSpecial(JcodeMethod fm)
 {
    CallSpecial cs = null;
    synchronized (special_methods) {
@@ -322,14 +323,14 @@ public IfaceSpecial getSpecial(IfaceCall fc)
 
 
 
-public boolean canBeCallback(FaitMethod fm)
+public boolean canBeCallback(JcodeMethod fm)
 {
    IfaceSpecial is = getSpecial(fm);
 
    return is.getCallbackId() != null;
 }
 
-public String getCallbackStart(FaitMethod fm)
+public String getCallbackStart(JcodeMethod fm)
 {
    IfaceSpecial is = getSpecial(fm);
    if (is != null && is.getCallbacks() == null) return is.getCallbackId();
@@ -337,7 +338,7 @@ public String getCallbackStart(FaitMethod fm)
    return null;
 }
 
-public boolean getIsArrayCopy(FaitMethod fm)
+public boolean getIsArrayCopy(JcodeMethod fm)
 {
    IfaceSpecial is = getSpecial(fm);
    if (is != null) return is.getIsArrayCopy();
@@ -346,7 +347,7 @@ public boolean getIsArrayCopy(FaitMethod fm)
 }
 
 
-public boolean canBeReplaced(FaitMethod fm)
+public boolean canBeReplaced(JcodeMethod fm)
 {
    IfaceSpecial is = getSpecial(fm);
    if (is != null) return is.getReplaceName() != null;

@@ -36,6 +36,8 @@
 package edu.brown.cs.fait.entity;
 
 import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.ivy.jcode.JcodeDataType;
+import edu.brown.cs.ivy.jcode.JcodeField;
 
 import java.util.*;
 
@@ -51,7 +53,7 @@ class EntityProto extends EntityBase
 
 private IfacePrototype          proto_handler;
 
-private FaitDataType            data_type;
+private JcodeDataType            data_type;
 private FaitLocation            source_location;
 private boolean                 is_mutable;
 private boolean                 is_native;
@@ -65,7 +67,7 @@ private boolean                 is_native;
 /*                                                                              */
 /********************************************************************************/
 
-EntityProto(FaitDataType typ,IfacePrototype from,FaitLocation src)
+EntityProto(JcodeDataType typ,IfacePrototype from,FaitLocation src)
 {
    data_type = typ;
    source_location = src;
@@ -75,7 +77,7 @@ EntityProto(FaitDataType typ,IfacePrototype from,FaitLocation src)
 }
 
 
-EntityProto(FaitDataType typ,IfacePrototype from,boolean mutable)
+EntityProto(JcodeDataType typ,IfacePrototype from,boolean mutable)
 {
    data_type = typ;
    source_location = null;
@@ -93,7 +95,7 @@ EntityProto(FaitDataType typ,IfacePrototype from,boolean mutable)
 /*                                                                              */
 /********************************************************************************/
 
-@Override public FaitDataType getDataType()             { return data_type; }
+@Override public JcodeDataType getDataType()             { return data_type; }
 @Override public IfacePrototype getPrototype()          { return proto_handler; }
 @Override public boolean isNative()                     { return is_native; }
 
@@ -106,17 +108,17 @@ EntityProto(FaitDataType typ,IfacePrototype from,boolean mutable)
 /*                                                                              */
 /********************************************************************************/
 
-@Override public void setFieldContents(IfaceValue v,FaitField fld)
+@Override public void setFieldContents(IfaceValue v,JcodeField fld)
 {
    proto_handler.setField(v,fld);
 }
 
-@Override public boolean addToFieldContents(IfaceValue v,FaitField fld)
+@Override public boolean addToFieldContents(IfaceValue v,JcodeField fld)
 {
    return proto_handler.addToField(v,fld);
 }
 
-@Override public IfaceValue getFieldValue(FaitField fld)
+@Override public IfaceValue getFieldValue(JcodeField fld)
 {
    return proto_handler.getField(fld);
 }
@@ -154,15 +156,15 @@ EntityProto(FaitDataType typ,IfacePrototype from,boolean mutable)
 /*                                                                              */
 /********************************************************************************/
 
-@Override public Collection<IfaceEntity> mutateTo(FaitDataType typ,FaitLocation src,EntityFactory ef)
+@Override public Collection<IfaceEntity> mutateTo(JcodeDataType typ,FaitLocation src,EntityFactory ef)
 {
-   FaitDataType rslt = null;
+   JcodeDataType rslt = null;
    boolean mut = false;
    
    if (is_mutable && typ.isDerivedFrom(getDataType())) rslt = typ;
    if (getDataType().isInterface() || getDataType().isAbstract()) {
       if (typ.isInterface()) {
-         FaitDataType ctyp = getDataType().findChildForInterface(typ);
+         JcodeDataType ctyp = getDataType().findChildForInterface(typ);
          if (ctyp != null) rslt = ctyp;
        }
       else if (typ.isDerivedFrom(getDataType())) rslt = typ;

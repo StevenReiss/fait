@@ -39,8 +39,7 @@
 
 package edu.brown.cs.fait.iface;
 
-
-
+import edu.brown.cs.ivy.jcode.JcodeDataType;
 
 public interface IfaceValue extends FaitValue {
 
@@ -52,17 +51,17 @@ public interface IfaceValue extends FaitValue {
 /********************************************************************************/
 
 IfaceValue mergeValue(IfaceValue v);
-IfaceValue restrictByType(FaitDataType dt,boolean pfg,FaitLocation src);
-IfaceValue removeByType(FaitDataType dt,FaitLocation src);
-IfaceValue makeSubtype(FaitDataType dt);
+IfaceValue restrictByType(JcodeDataType dt,boolean pfg,FaitLocation src);
+IfaceValue removeByType(JcodeDataType dt,FaitLocation src);
+IfaceValue makeSubtype(JcodeDataType dt);
 IfaceValue forceNonNull();
 IfaceValue allowNull();
 IfaceValue setTestNull();
 IfaceValue addEntity(IfaceEntitySet e);
 
-IfaceValue performOperation(FaitDataType dt,IfaceValue rhs,int op,FaitLocation src);
+IfaceValue performOperation(JcodeDataType dt,IfaceValue rhs,int op,FaitLocation src);
 TestBranch branchTest(IfaceValue rhs,int op);
-
+ 
 IfaceEntitySet getModelEntitySet();
 boolean isGoodEntitySet();
 

@@ -36,6 +36,7 @@
 package edu.brown.cs.fait.value;
 
 import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.ivy.jcode.JcodeDataType;
 
 import java.util.*;
 
@@ -50,7 +51,7 @@ abstract class ValueBase implements IfaceValue, ValueConstants
 /*										*/
 /********************************************************************************/
 
-private FaitDataType	data_type;
+private JcodeDataType	data_type;
 private IfaceEntitySet	entity_set;
 protected ValueFactory	value_factory;
 
@@ -63,7 +64,7 @@ protected ValueFactory	value_factory;
 /*										*/
 /********************************************************************************/
 
-protected ValueBase(ValueFactory vf,FaitDataType dt,IfaceEntitySet eset)
+protected ValueBase(ValueFactory vf,JcodeDataType dt,IfaceEntitySet eset)
 {
    value_factory = vf;
    data_type = dt;
@@ -78,7 +79,7 @@ protected ValueBase(ValueFactory vf,FaitDataType dt,IfaceEntitySet eset)
 /*										*/
 /********************************************************************************/
 
-@Override public FaitDataType getDataType()		{ return data_type; }
+@Override public JcodeDataType getDataType()		{ return data_type; }
 
 protected IfaceEntitySet getEntitySet() 		{ return entity_set; }
 
@@ -165,17 +166,17 @@ FaitControl getFaitControl()
 @Override public ValueBase setTestNull()		{ return this; }
 
 
-@Override public IfaceValue restrictByType(FaitDataType dt,boolean proj,FaitLocation src)
+@Override public IfaceValue restrictByType(JcodeDataType dt,boolean proj,FaitLocation src)
 {
    return this;
 }
 
-@Override public IfaceValue removeByType(FaitDataType dt,FaitLocation src)
+@Override public IfaceValue removeByType(JcodeDataType dt,FaitLocation src)
 {
    return this;
 }
 
-@Override public IfaceValue makeSubtype(FaitDataType dt)
+@Override public IfaceValue makeSubtype(JcodeDataType dt)
 {
    return this;
 }
@@ -200,7 +201,7 @@ abstract protected IfaceValue newEntityValue(IfaceEntitySet es);
 /*										*/
 /********************************************************************************/
 
-@Override public IfaceValue performOperation(FaitDataType dt,IfaceValue rhs,int op,FaitLocation loc)
+@Override public IfaceValue performOperation(JcodeDataType dt,IfaceValue rhs,int op,FaitLocation loc)
 {
    return value_factory.anyValue(dt);
 }

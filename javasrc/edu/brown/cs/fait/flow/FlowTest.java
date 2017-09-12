@@ -36,6 +36,7 @@
 package edu.brown.cs.fait.flow;
 
 import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.ivy.jcode.JcodeInstruction;
 
 import org.junit.*;
 
@@ -174,22 +175,22 @@ public void flowTestS6()
 private void showResults()
 {
    for (IfaceCall ic : fait_control.getAllCalls()) {
-      if (!ic.getMethod().isInProject()) {
-	 Collection<FaitInstruction> cins = ic.getDeadInstructions();
+      if (!fait_control.isInProject(ic.getMethod())) {
+	 Collection<JcodeInstruction> cins = ic.getDeadInstructions();
 	 if (cins != null && !cins.isEmpty()) {
 	    IfaceLog.logD("Dead instructions for " + ic.getLogName() + ":");
-	    for (FaitInstruction fi : cins) {
+	    for (JcodeInstruction fi : cins) {
 	       IfaceLog.logD1("OP: " + fi.toString());
 	     }
 	  }
        }
     }
    for (IfaceCall ic : fait_control.getAllCalls()) {
-      if (ic.getMethod().isInProject()) {
-	 Collection<FaitInstruction> cins = ic.getDeadInstructions();
+      if (fait_control.isInProject(ic.getMethod())) {
+	 Collection<JcodeInstruction> cins = ic.getDeadInstructions();
 	 if (cins != null && !cins.isEmpty()) {
 	    IfaceLog.logI1("Dead instructions for " + ic.getLogName() + ":");
-	    for (FaitInstruction fi : cins) {
+	    for (JcodeInstruction fi : cins) {
 	       IfaceLog.logI("OP: " + fi.toString());
 	     }
 	  }
