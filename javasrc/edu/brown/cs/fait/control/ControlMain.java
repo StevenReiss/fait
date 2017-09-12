@@ -43,7 +43,6 @@ import edu.brown.cs.ivy.jcode.JcodeDataType;
 import edu.brown.cs.ivy.jcode.JcodeFactory;
 import edu.brown.cs.ivy.jcode.JcodeField;
 import edu.brown.cs.ivy.jcode.JcodeMethod;
-import edu.brown.cs.ivy.project.IvyProject;
 import edu.brown.cs.fait.state.*;
 import edu.brown.cs.fait.proto.*;
 import edu.brown.cs.fait.call.*;
