@@ -104,7 +104,12 @@ public EntityTest()
 {
    IfaceEntitySet es0 = entity_factory.createEmptySet();
    IfaceEntitySet es1 = entity_factory.createEmptySet();
-
+   
+   for (int i = 0; i < 10000; ++i) {
+      String id = "Source_" + i;
+      entity_factory.createUserEntity(id,null);
+    }
+   
    for (int i = 0; i < 100; i += 6) {
       IfaceEntity ie = entity_factory.getEntity(i);
       IfaceEntitySet ns = entity_factory.createSingletonSet(ie);

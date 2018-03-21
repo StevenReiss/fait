@@ -36,8 +36,6 @@
 package edu.brown.cs.fait.entity;
 
 import edu.brown.cs.fait.iface.*;
-import edu.brown.cs.ivy.jcode.JcodeField;
-import edu.brown.cs.ivy.jcode.JcodeDataType;
 
 import java.util.*;
 
@@ -86,8 +84,8 @@ protected EntityBase()
 
 @Override public int getId()				{ return entity_id; }
 
-@Override public JcodeDataType getDataType()		{ return null; }
-@Override public FaitLocation getLocation()	{ return null; }
+@Override public IfaceType getDataType()		{ return null; }
+@Override public IfaceLocation getLocation()	        { return null; }
 @Override public boolean isUsedInLock() 		{ return used_in_lock; }
 @Override public UserEntity getUserEntity()		{ return null; }
 @Override public IfacePrototype getPrototype()          { return null; }
@@ -118,27 +116,48 @@ static EntityBase getEntity(int id)
 /*										*/
 /********************************************************************************/
 
-@Override public IfaceEntity makeNonunique()				{ return null; }
-
-public Collection<IfaceEntity> mutateTo(JcodeDataType dt,FaitLocation fl,EntityFactory factory)
+public Collection<IfaceEntity> mutateTo(IfaceType dt,EntityFactory factory)
 {
    return null;
 }
 
-@Override public void setFieldContents(IfaceValue fv,JcodeField fld)	 { }
-@Override public boolean addToFieldContents(IfaceValue fv,JcodeField fld)
+
+
+
+
+@Override public final void setFieldContents(IfaceValue fv,IfaceField fld)	
+{
+   if (fld != null) setFieldContents(fv,fld.getKey());
+}
+
+@Override public void setFieldContents(IfaceValue fv,String key)        { }
+
+
+@Override public boolean addToFieldContents(IfaceValue fv,String key)
 {
    return false;
 }
-@Override public FaitValue getFieldValue(JcodeField fld) 	
+
+@Override public final boolean addToFieldContents(IfaceValue fv,IfaceField fld)
+{
+   if (fld == null) return false;
+   return addToFieldContents(fv,fld.getKey());
+}
+
+@Override public IfaceValue getFieldValue(String key) 	
 {
    return null;
 }
 
+@Override public final IfaceValue getFieldValue(IfaceField fld)
+{
+   if (fld == null) return null;
+   return getFieldValue(fld.getKey());
+}
 
 @Override public void setArrayContents(IfaceValue fv)			{ }
-@Override public FaitValue getArrayValue(IfaceValue idx,FaitControl fc) { return null; }
-@Override public boolean addToArrayContents(IfaceValue fv,IfaceValue idx,FaitLocation loc)
+@Override public IfaceValue getArrayValue(IfaceValue id,IfaceControl ctl)       { return null; }
+@Override public boolean addToArrayContents(IfaceValue fv,IfaceValue idx,IfaceLocation loc)
 {
    return false;
 }
@@ -156,6 +175,16 @@ public Collection<IfaceEntity> mutateTo(JcodeDataType dt,FaitLocation fl,EntityF
 @Override public void handleUpdates(IfaceUpdater upd)			{ }
 
 
+
+/********************************************************************************/
+/*                                                                              */
+/*      Lambda-related methods                                                  */
+/*                                                                              */
+/********************************************************************************/
+
+@Override public Map<Object,IfaceValue> getBindings()           { return null; }
+@Override public String getMethodName()                         { return null; }
+@Override public boolean isFunctionRef()                        { return false; }
 
 
 

@@ -12,13 +12,15 @@
 	 <pathelement location='${IVYBIN}' />
 	 <fileset dir='${FAIT}/lib/' includes='asm5.jar' />
 	 <pathelement location='${PRO}/bubbles/lib/junit.jar' />
+	 <fileset dir='${PRO}/ivy/lib/eclipsejar' includes='*.jar' />
       </path>
       <path id='test.classpath'>
 	 <pathelement location='${FAIT}/java' />
 	 <pathelement location='${IVYBIN}' />
 	 <fileset dir='${FAIT}/lib/' includes='asm5.jar' />
 	 <pathelement location='${PRO}/bubbles/lib/junit.jar' />
-      </path>
+	  <fileset dir='${PRO}/ivy/lib/eclipsejar' includes='*.jar' />
+     </path>
    </target>
 
    <target name='compile' depends='init'>

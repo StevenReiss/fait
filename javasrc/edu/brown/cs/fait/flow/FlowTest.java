@@ -36,7 +36,6 @@
 package edu.brown.cs.fait.flow;
 
 import edu.brown.cs.fait.iface.*;
-import edu.brown.cs.ivy.jcode.JcodeInstruction;
 
 import org.junit.*;
 
@@ -53,7 +52,7 @@ public class FlowTest implements FlowConstants
 /*										*/
 /********************************************************************************/
 
-private FaitControl	fait_control;
+private IfaceControl	fait_control;
 private Collection<String> start_classes;
 
 
@@ -77,18 +76,19 @@ public FlowTest()
 /*										*/
 /********************************************************************************/
 
-// @Test
+@Test
 public void flowTestOnsets()
 {
-   fait_control = FaitControl.Factory.getControl();
-   fait_control.setProject(new TestProject());
+   FaitLog.setLogLevel(FaitLog.LogLevel.DEBUG);
+   FaitLog.setLogFile("/vol/spr/faittestonsets.log");
+   
+   IfaceProject proj = IfaceControl.Factory.createSimpleProject("/home/spr/sampler","spr.");
+   fait_control = IfaceControl.Factory.createControl(proj);
 
    start_classes = new ArrayList<String>();
    start_classes.add("spr.onsets.OnsetMain");
 
-   IfaceLog.setLevel(LogLevel.DEBUG);
-
-   fait_control.analyze(1);
+   fait_control.analyze(1,false);
 
 }
 
@@ -97,15 +97,16 @@ public void flowTestOnsets()
 // @Test
 public void flowTestOnsetsThreaded()
 {
-   fait_control = FaitControl.Factory.getControl();
-   fait_control.setProject(new TestProject());
+   IfaceProject proj = IfaceControl.Factory.createSimpleProject("/home/spr/sampler",
+         "spr.onset.");
+   fait_control = IfaceControl.Factory.createControl(proj);
 
    start_classes = new ArrayList<String>();
    start_classes.add("spr.onsets.OnsetMain");
 
-   IfaceLog.setLevel(LogLevel.DEBUG);
+   FaitLog.setLogLevel(FaitLog.LogLevel.DEBUG);
 
-   fait_control.analyze(4);
+   fait_control.analyze(4,false);
 
    showResults();
 }
@@ -115,15 +116,18 @@ public void flowTestOnsetsThreaded()
 @Test
 public void flowTestSolar()
 {
-   fait_control = FaitControl.Factory.getControl();
-   fait_control.setProject(new TestProjectSolar());
+   IfaceProject proj = IfaceControl.Factory.createSimpleProject(
+         "/home/spr/solar/java:/pro/ivy/java:/home/spr/jogamp/jogl-all.jar:/home/spr/jogamp/gluegen-rt.jar",
+         "edu.brown.cs.");
+   fait_control = IfaceControl.Factory.createControl(proj);
 
    start_classes = new ArrayList<String>();
    start_classes.add("edu.brown.cs.cs032.solar.SolarMain");
 
-   IfaceLog.setLevel(LogLevel.DEBUG);
+   FaitLog.setLogLevel(FaitLog.LogLevel.DEBUG);
+   FaitLog.setLogFile("/vol/spr/faittestsolar.log");
 
-   fait_control.analyze(4);
+   fait_control.analyze(4,false);
 
    showResults();
 }
@@ -134,15 +138,44 @@ public void flowTestSolar()
 @Test
 public void flowTestUpod()
 {
-   IfaceLog.setLevel(LogLevel.DEBUG);
+   FaitLog.setLogLevel(FaitLog.LogLevel.DEBUG);
+   FaitLog.setLogFile("/vol/spr/faittestupod.log");
    
-   fait_control = FaitControl.Factory.getControl();
-   fait_control.setProject(new TestProjectUpod());
+   String lib = "/research/people/spr/upod/lib/";
+   String glib = lib + "google/lib/";
+   String gdep = lib + "google/deps/";
+   String cp = "/research/people/spr/upod/java";
+   cp += File.pathSeparator + "/research/ivy/java";
+   cp += File.pathSeparator + lib + "nanohttpd.jar";
+   cp += File.pathSeparator + lib + "json.jar"; 
+   cp += File.pathSeparator + lib + "stringtemplate.jar"; 
+   cp += File.pathSeparator + lib + "velocity-1.7.jar"; 
+   cp += File.pathSeparator + lib + "velocity-1.7-dep.jar";
+   cp += File.pathSeparator + lib + "jsoup-1.7.2.jar";
+   cp += File.pathSeparator + glib + "gdata-base-1.0.jar";
+   cp += File.pathSeparator + glib + "gdata-calendar-2.0.jar"; 
+   cp += File.pathSeparator + glib + "gdata-client-1.0.jar"; 
+   cp += File.pathSeparator + glib + "gdata-core-1.0.jar";
+   cp += File.pathSeparator + gdep + "guava-11.0.2.jar";
+   cp += File.pathSeparator + gdep + "jsr305.jar";
+   cp += File.pathSeparator + "/research/s6/public/batik-1.7/batik.jar";
+   File bdir = new File("/research/s6/public/batik-1.7/lib");
+   for (File f : bdir.listFiles()) {
+      String fnm = f.getPath();
+      if (fnm.contains("batik-") && fnm.endsWith(".jar")) {
+         cp += File.pathSeparator + fnm;
+       }
+    }
+   
+   
+   IfaceProject proj = IfaceControl.Factory.createSimpleProject(cp,
+         "edu.brown.cs.");
+   fait_control = IfaceControl.Factory.createControl(proj);
    
    start_classes = new ArrayList<String>();
    start_classes.add("edu.brown.cs.upod.smartsign.SmartSignMain");
    
-   fait_control.analyze(1);
+   fait_control.analyze(1,false);
    
    showResults();
 }
@@ -150,15 +183,27 @@ public void flowTestUpod()
 // @Test
 public void flowTestS6()
 {
-   fait_control = FaitControl.Factory.getControl();
-   fait_control.setProject(new TestProjectS6());
+   String cp = "/pro/s6/java";
+   cp += File.pathSeparator + "/pro/ivy/java";
+   cp += File.pathSeparator + "/pro/ivy/lib";
+   cp += System.getenv("ECLIPSEPATH");
+   cp += File.pathSeparator + "/pro/s6/lib/json.jar";
+   cp += File.pathSeparator + "/pro/ivy/lib/asm5.jar";
+   cp += File.pathSeparator + "/pro/s6/lib/junit.jar";
+   cp += File.pathSeparator + "/pro/s6/lib/jsoup.jar";
+   cp += File.pathSeparator + "/pro/s6/lib/ddmlib.jar";
+   cp += File.pathSeparator + "/pro/s6/lib/jtar-1.1.jar";
+      
+   IfaceProject proj = IfaceControl.Factory.createSimpleProject(cp,"edu.brown.cs.");
+   fait_control = IfaceControl.Factory.createControl(proj);
 
    start_classes = new ArrayList<String>();
    start_classes.add("edu.brown.cs.s6.engine.EngineMain");
 
-   IfaceLog.setLevel(LogLevel.DEBUG);
-
-   fait_control.analyze(1);
+   FaitLog.setLogLevel(FaitLog.LogLevel.DEBUG);
+   FaitLog.setLogFile("/vol/spr/faittests6.log");
+   
+   fait_control.analyze(1,false);
 // fait_control.analyze(4);
 
    showResults();
@@ -176,176 +221,39 @@ private void showResults()
 {
    for (IfaceCall ic : fait_control.getAllCalls()) {
       if (!fait_control.isInProject(ic.getMethod())) {
-	 Collection<JcodeInstruction> cins = ic.getDeadInstructions();
+	 Collection<IfaceProgramPoint> cins = ic.getErrorLocations();
 	 if (cins != null && !cins.isEmpty()) {
-	    IfaceLog.logD("Dead instructions for " + ic.getLogName() + ":");
-	    for (JcodeInstruction fi : cins) {
-	       IfaceLog.logD1("OP: " + fi.toString());
+	    FaitLog.logD("Errors for " + ic.getLogName() + ":");
+	    for (IfaceProgramPoint fi : cins) {
+               Collection<IfaceError> errs = ic.getErrors(fi);
+               if (errs != null) {
+                  for (IfaceError err : errs) {
+                     FaitLog.logD1("OP: " + fi.toString() + " " +
+                           err.getErrorLevel() + " " + err.getErrorMessage());
+                   }
+                }
 	     }
 	  }
        }
     }
    for (IfaceCall ic : fait_control.getAllCalls()) {
       if (fait_control.isInProject(ic.getMethod())) {
-	 Collection<JcodeInstruction> cins = ic.getDeadInstructions();
+	 Collection<IfaceProgramPoint> cins = ic.getErrorLocations();
 	 if (cins != null && !cins.isEmpty()) {
-	    IfaceLog.logI1("Dead instructions for " + ic.getLogName() + ":");
-	    for (JcodeInstruction fi : cins) {
-	       IfaceLog.logI("OP: " + fi.toString());
+	    FaitLog.logI1("Errors for " + ic.getLogName() + ":");
+	    for (IfaceProgramPoint fi : cins) {
+               Collection<IfaceError> errs = ic.getErrors(fi);
+               if (errs != null) {
+                  for (IfaceError err : errs) {
+                     FaitLog.logD1("OP: " + fi.toString() + " " +
+                           err.getErrorLevel() + " " + err.getErrorMessage());
+                   }
+                }
 	     }
 	  }
        }
     }
 }
-
-
-
-/********************************************************************************/
-/*										*/
-/*	Test project								*/
-/*										*/
-/********************************************************************************/
-
-private class TestProject implements FaitProject {
-
-@Override public String getClasspath() {
-   return "/home/spr/sampler";
-}
-
-@Override public Collection<String> getBaseClasses() {
-   Collection<String> rslt = new ArrayList<String>();
-   rslt.add("spr.onsets.OnsetMain");
-   return rslt;
-}
-@Override public Collection<String> getStartClasses()	     { return start_classes; }
-
-@Override public List<File> getDescriptionFile()		{ return null; }
-
-@Override public boolean isProjectClass(String cls) {
-   if (cls.startsWith("spr.")) return true;
-   return false;
-}
-
-@Override public FaitMethodData createMethodData(FaitCall fc)	{ return null; }
-
-}	// end of inner class TestProject
-
-
-
-private class TestProjectS6 implements FaitProject {
-
-@Override public String getClasspath() {
-   String cp = "/pro/s6/java:/pro/ivy/java:/pro/ivy/lib/jikesbt.jar:";
-   cp += System.getenv("ECLIPSEPATH") + ":";
-   cp += "/pro/s6/lib/asm-3.1.jar:/pro/s6/lib/json.jar:";
-   cp += "/gpfs/main/research/ivy/lib/mysql.jar";
-   return cp;
-}
-
-@Override public Collection<String> getBaseClasses() {
-   Collection<String> rslt = new ArrayList<String>();
-   rslt.add("edu.brown.cs.s6.engine.EngineMain");
-   return rslt;
-}
-@Override public Collection<String> getStartClasses()	     { return start_classes; }
-
-@Override public List<File> getDescriptionFile()		{ return null; }
-
-@Override public boolean isProjectClass(String cls) {
-   if (cls.startsWith("edu.brown.cs.")) return true;
-   return false;
-}
-
-@Override public FaitMethodData createMethodData(FaitCall fc)	{ return null; }
-
-}	// end of inner class TestProjectS6
-
-
-
-private class TestProjectSolar implements FaitProject {
-
-@Override public String getClasspath() {
-   String cp = "/home/spr/solar/java:/pro/ivy/java:/home/spr/jogl/jogl-linux64/jogl.jar";
-   return cp;
-}
-
-@Override public Collection<String> getBaseClasses() {
-   Collection<String> rslt = new ArrayList<String>();
-   rslt.add("edu.brown.cs.cs032.solar.SolarMain");
-   return rslt;
-}
-@Override public Collection<String> getStartClasses()	     { return start_classes; }
-
-@Override public List<File> getDescriptionFile()		{ return null; }
-
-@Override public boolean isProjectClass(String cls) {
-   if (cls.startsWith("edu.brown.cs.")) return true;
-   return false;
-}
-
-@Override public FaitMethodData createMethodData(FaitCall fc)	{ return null; }
-
-}	// end of inner class TestProjectSolar
-
-
-
-
-private class TestProjectUpod implements FaitProject {
-
-@Override public String getClasspath() {
-   String lib = "/research/people/spr/upod/lib/";
-   String glib = lib + "google/lib/";
-   String gdep = lib + "google/deps/";
-   String cp = "/research/people/spr/upod/java";
-   cp += ":/research/ivy/java";
-   cp += ":" + lib + "nanohttpd.jar";
-   cp += ":" + lib + "json.jar"; 
-   cp += ":" + lib + "stringtemplate.jar"; 
-   cp += ":" + lib + "velocity-1.7.jar"; 
-   cp += ":" + lib + "velocity-1.7-dep.jar";
-   cp += ":" + lib + "jsoup-1.7.2.jar";
-   cp += ":" + glib + "gdata-base-1.0.jar";
-   cp += ":" + glib + "gdata-calendar-2.0.jar"; 
-   cp += ":" + glib + "gdata-client-1.0.jar"; 
-   cp += ":" + glib + "gdata-core-1.0.jar";
-   cp += ":" + gdep + "guava-11.0.2.jar";
-   cp += ":" + gdep + "jsr305.jar";
-   cp += ":/research/s6/public/batik-1.7/batik.jar";
-   File bdir = new File("/research/s6/public/batik-1.7/lib");
-   for (File f : bdir.listFiles()) {
-      String fnm = f.getPath();
-      if (fnm.contains("batik-") && fnm.endsWith(".jar")) {
-         cp += ":" + fnm;
-       }
-    }
-   
-   return cp;
-}
-
-@Override public Collection<String> getBaseClasses() {
-   Collection<String> rslt = new ArrayList<String>();
-   rslt.add("edu.brown.cs.upod.smartsign.SmartSignMain");
-   return rslt;
-}
-@Override public Collection<String> getStartClasses()	     { return start_classes; }
-
-@Override public List<File> getDescriptionFile()		
-{ 
-   List<File> files = new ArrayList<File>();
-   files.add(new File("/research/people/spr/fait/lib/faitivy.xml"));
-   files.add(new File("/research/people/spr/upod/upod.fait"));
-   return files; 
-}
-
-@Override public boolean isProjectClass(String cls) {
-   if (cls.startsWith("edu.brown.cs.")) return true;
-   return false;
-}
-
-@Override public FaitMethodData createMethodData(FaitCall fc)	{ return null; }
-
-}	// end of inner class TestProjectUpod
-
 
 
 

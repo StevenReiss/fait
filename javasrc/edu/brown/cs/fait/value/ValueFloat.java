@@ -36,7 +36,6 @@
 package edu.brown.cs.fait.value;
 
 import edu.brown.cs.fait.iface.*;
-import edu.brown.cs.ivy.jcode.JcodeDataType;
 
 
 class ValueFloat extends ValueNumber
@@ -49,12 +48,12 @@ class ValueFloat extends ValueNumber
 /*										*/
 /********************************************************************************/
 
-ValueFloat(ValueFactory vf,JcodeDataType dt)
+ValueFloat(ValueFactory vf,IfaceType dt)
 {
    this(vf,dt,null);
 }
 
-ValueFloat(ValueFactory vf,JcodeDataType dt,IfaceEntitySet es)
+ValueFloat(ValueFactory vf,IfaceType dt,IfaceEntitySet es)
 {
    super(vf,dt,es);
 }
@@ -78,6 +77,15 @@ ValueFloat(ValueFactory vf,JcodeDataType dt,IfaceEntitySet es)
 
    return this;
 }
+
+
+@Override public IfaceValue restrictByType(IfaceType dt)
+{
+   IfaceType nt = getDataType().restrictBy(dt);
+   if (nt == getDataType()) return this;
+   return value_factory.anyValue(nt);
+}
+
 
 
 @Override protected IfaceValue newEntityValue(IfaceEntitySet cs)

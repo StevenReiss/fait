@@ -36,9 +36,6 @@
 package edu.brown.cs.fait.proto;
 
 import edu.brown.cs.fait.iface.*;
-import edu.brown.cs.ivy.jcode.JcodeDataType;
-import edu.brown.cs.ivy.jcode.JcodeField;
-import edu.brown.cs.ivy.jcode.JcodeMethod;
 
 import java.lang.reflect.Method;
 import java.util.*;
@@ -54,12 +51,12 @@ abstract class ProtoBase implements IfacePrototype, ProtoConstants
 /*	Private Storage 							*/
 /*										*/
 /********************************************************************************/
-protected FaitControl	fait_control;
-private JcodeDataType	proto_type;
-private Map<JcodeMethod,Method> method_map;
+protected IfaceControl	fait_control;
+private IfaceType	proto_type;
+private Map<IfaceMethod,Method> method_map;
 
 private static Class<?> [] call_params = new Class<?> [] {
-   JcodeMethod.class, List.class, FaitLocation.class
+   IfaceMethod.class, List.class, IfaceLocation.class
 };
 
 
@@ -70,11 +67,11 @@ private static Class<?> [] call_params = new Class<?> [] {
 /*										*/
 /********************************************************************************/
 
-protected ProtoBase(FaitControl fc,JcodeDataType base)
+protected ProtoBase(IfaceControl fc,IfaceType base)
 {
    fait_control = fc;
    proto_type = base;
-   method_map = new HashMap<JcodeMethod,Method>();
+   method_map = new HashMap<>();
 }
 
 
@@ -85,7 +82,7 @@ protected ProtoBase(FaitControl fc,JcodeDataType base)
 /*										*/
 /********************************************************************************/
 
-JcodeDataType getDataType()			{ return proto_type; }
+IfaceType getDataType()			{ return proto_type; }
 
 
 
@@ -96,16 +93,17 @@ JcodeDataType getDataType()			{ return proto_type; }
 /*										*/
 /********************************************************************************/
 
-@Override public void setField(IfaceValue v,JcodeField fld)	 { }
+@Override public void setField(IfaceValue v,String fldkey)	        { }
 
-@Override public boolean addToField(IfaceValue v,JcodeField fld)        { return false; }
+@Override public boolean addToField(IfaceValue v,String fldkey)         { return false; }
 
-@Override public IfaceValue getField(JcodeField fld)				{ return null; }
+@Override public IfaceValue getField(String fldkey)	                { return null; }
 
 
-@Override public boolean setArrayContents(IfaceValue idx,IfaceValue v)		{ return false; }
+@Override public boolean setArrayContents(IfaceValue idx,IfaceValue v)	{ return false; }
 
-@Override public IfaceValue getArrayContents(IfaceValue f)			{ return null; }
+@Override public IfaceValue getArrayContents(IfaceValue f)		{ return null; }
+
 
 
 
@@ -116,11 +114,12 @@ JcodeDataType getDataType()			{ return proto_type; }
 /*										*/
 /********************************************************************************/
 
-@Override public boolean isMethodRelevant(JcodeMethod fm)
+@Override public boolean isMethodRelevant(IfaceMethod fm)
 {
    if (proto_type == null) return true;
+   //TODO: needs to handle methods that come from extends to a prototyped class
 
-   JcodeDataType dt = fm.getDeclaringClass();
+   IfaceType dt = fm.getDeclaringClass();
    if (proto_type == dt || proto_type.isDerivedFrom(dt)) return true;
 
    return false;
@@ -135,7 +134,7 @@ JcodeDataType getDataType()			{ return proto_type; }
 /*										*/
 /********************************************************************************/
 
-@Override public IfaceValue handleCall(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
+@Override public IfaceValue handleCall(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
 {
    Method mthd = null;
    synchronized (method_map) {
@@ -175,20 +174,20 @@ JcodeDataType getDataType()			{ return proto_type; }
 /*										*/
 /********************************************************************************/
 
-protected IfaceValue returnAny(JcodeMethod fm)
-{
-   return fait_control.findAnyValue(fm.getReturnType());
-}
-
-
-
-protected IfaceValue returnNative(JcodeMethod fm)
+protected IfaceValue returnAny(IfaceMethod fm)
 {
    return fait_control.findNativeValue(fm.getReturnType());
 }
 
 
-protected IfaceValue returnMutable(JcodeMethod fm)
+
+protected IfaceValue returnNative(IfaceMethod fm)
+{
+   return fait_control.findNativeValue(fm.getReturnType());
+}
+
+
+protected IfaceValue returnMutable(IfaceMethod fm)
 {
    return fait_control.findMutableValue(fm.getReturnType());
 }
@@ -196,30 +195,30 @@ protected IfaceValue returnMutable(JcodeMethod fm)
 
 protected IfaceValue returnTrue()
 {
-   return fait_control.findRangeValue(fait_control.findDataType("Z"),1,1);
+   return fait_control.findRangeValue(fait_control.findDataType("boolean"),1,1);
 }
 
 
 protected IfaceValue returnFalse()
 {
-   return fait_control.findRangeValue(fait_control.findDataType("Z"),0,0);
+   return fait_control.findRangeValue(fait_control.findDataType("boolean"),0,0);
 }
 
 
 protected IfaceValue returnInt(int v)
 {
-   return fait_control.findRangeValue(fait_control.findDataType("I"),v,v);
+   return fait_control.findRangeValue(fait_control.findDataType("int"),v,v);
 }
 
 
 
 protected IfaceValue returnInt(int v0,int v1)
 {
-   return fait_control.findRangeValue(fait_control.findDataType("I"),v0,v1);
+   return fait_control.findRangeValue(fait_control.findDataType("int"),v0,v1);
 }
 
 
-protected IfaceValue returnNull(JcodeMethod fm)
+protected IfaceValue returnNull(IfaceMethod fm)
 {
    return fait_control.findNullValue(fm.getReturnType());
 }
@@ -227,7 +226,7 @@ protected IfaceValue returnNull(JcodeMethod fm)
 
 protected IfaceValue returnVoid()
 {
-   return fait_control.findAnyValue(fait_control.findDataType("V"));
+   return fait_control.findAnyValue(fait_control.findDataType("void"));
 }
 
 

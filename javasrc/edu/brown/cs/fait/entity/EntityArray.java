@@ -36,8 +36,10 @@
 package edu.brown.cs.fait.entity;
 
 
+import java.util.HashMap;
+import java.util.Map;
+
 import edu.brown.cs.fait.iface.*;
-import edu.brown.cs.ivy.jcode.JcodeDataType;
 
 
 
@@ -51,10 +53,11 @@ class EntityArray extends EntityBase
 /*										*/
 /********************************************************************************/
 
-private JcodeDataType		base_class;
-private JcodeDataType		array_class;
+private IfaceType		base_class;
+private IfaceType		array_class;
 private IfaceValue		array_values;
 private IfaceValue		size_value;
+private Map<Integer,IfaceValue> known_values;
 
 
 
@@ -64,20 +67,26 @@ private IfaceValue		size_value;
 /*										*/
 /********************************************************************************/
 
-EntityArray(FaitControl ctrl,JcodeDataType cls,IfaceValue size)
+EntityArray(IfaceControl ctrl,IfaceType cls,IfaceValue size)
 {
    base_class = cls;
-   array_class = ctrl.findDataType("[" + cls.getDescriptor());
+   array_class = ctrl.findDataType(cls.getName() + "[]",FaitAnnotation.NON_NULL);
 
-   if (size == null) size = ctrl.findAnyValue(ctrl.findDataType("I"));
+   if (size == null) size = ctrl.findAnyValue(ctrl.findDataType("int"));
+   else if (!size.getDataType().isNumericType()) {
+      size = ctrl.findAnyValue(ctrl.findDataType("int"));
+    }
+    
    size_value = size;
 
-   if (base_class.isPrimitive()) {
+   if (base_class.isPrimitiveType()) {
       array_values = ctrl.findRangeValue(base_class,0,0);
     }
    else {
       array_values = ctrl.findNullValue(base_class);
     }
+   
+   known_values = new HashMap<>();
 }
 
 
@@ -88,7 +97,7 @@ EntityArray(FaitControl ctrl,JcodeDataType cls,IfaceValue size)
 /*										*/
 /********************************************************************************/
 
-@Override public JcodeDataType getDataType()
+@Override public IfaceType getDataType()
 {
    return array_class;
 }
@@ -107,12 +116,26 @@ EntityArray(FaitControl ctrl,JcodeDataType cls,IfaceValue size)
 
 
 
-@Override public synchronized boolean addToArrayContents(IfaceValue v,IfaceValue idx,FaitLocation loc)
+@Override public synchronized boolean addToArrayContents(IfaceValue v,IfaceValue idx,IfaceLocation loc)
 {
    if (v != null) {
-      v = v.restrictByType(base_class,false,loc);
+      v = v.restrictByType(base_class);
     }
 
+   if (known_values != null) {
+      if (idx == null) known_values = null;
+      else {
+         Integer idxv = idx.getIndexValue();
+         if (idxv != null) {
+            IfaceValue iv0 = known_values.get(idxv);
+            IfaceValue v1 = v;
+            if (iv0 != null) v1 = v1.mergeValue(iv0);
+            known_values.put(idxv,v1);
+          }
+         else known_values = null;
+       }
+    }
+   
    v = array_values.mergeValue(v);
    if (v == array_values) return false;
 
@@ -123,12 +146,28 @@ EntityArray(FaitControl ctrl,JcodeDataType cls,IfaceValue size)
 
 
 
-@Override public FaitValue getArrayValue(IfaceValue idx,FaitControl fc)
+@Override public IfaceValue getArrayValue(IfaceValue idx,IfaceControl ctl)
 {
+   if (known_values != null && idx != null) {
+      Integer idxv = idx.getIndexValue();
+      if (idxv != null) {
+         IfaceValue v1 = known_values.get(idxv);
+         if (v1 != null) return v1;
+       }
+    }
+   
    return array_values;
 }
 
 
+@Override public IfaceValue getFieldValue(String fld)
+{
+   if (fld != null && fld.equals("length") && size_value != null) {
+      return size_value;
+    }
+
+   return super.getFieldValue(fld);
+}
 
 /********************************************************************************/
 /*										*/

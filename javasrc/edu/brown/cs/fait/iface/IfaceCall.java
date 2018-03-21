@@ -37,16 +37,13 @@ package edu.brown.cs.fait.iface;
 
 import java.util.*;
 
-import edu.brown.cs.ivy.jcode.JcodeDataType;
-import edu.brown.cs.ivy.jcode.JcodeInstruction;
-import edu.brown.cs.ivy.jcode.JcodeMethod;
 
-public interface IfaceCall extends FaitCall
+public interface IfaceCall extends FaitConstants
 {
 
-JcodeMethod getMethod();
-JcodeDataType getMethodClass();
-int getInstanceNumber();
+IfaceMethod getMethod();
+IfaceType getMethodClass();
+
 IfaceState getStartState();
 IfaceValue getResultValue();
 IfaceValue getExceptionValue();
@@ -60,42 +57,50 @@ void setCanExit();
 boolean isPrototype();
 void setPrototype();
 
+QueueLevel getQueueLevel();
+void setQueueLevel(QueueLevel lvl);
+
 boolean getIsAsync();
 
-FaitValue getAssociation(AssociationType typ,JcodeInstruction ins);
-void setAssociation(AssociationType typ,JcodeInstruction ins,IfaceValue v);
+IfaceControl getControl();
 
-IfaceEntity getArrayEntity(JcodeInstruction ins);
-void setArrayEntity(JcodeInstruction ins,IfaceEntity e);
-IfaceEntity getBaseEntity(JcodeInstruction ins);
-void setBaseEntity(JcodeInstruction ins,IfaceEntity e);
-FaitEntity.UserEntity getUserEntity(JcodeInstruction ins);
-void setUserEntity(JcodeInstruction ins,FaitEntity.UserEntity e);
+
+IfaceProgramPoint getStartPoint();
+
+IfaceEntity getArrayEntity(IfaceProgramPoint ins);
+void setArrayEntity(IfaceProgramPoint ins,IfaceEntity e);
+IfaceEntity getBaseEntity(IfaceProgramPoint ins);
+void setBaseEntity(IfaceProgramPoint ins,IfaceEntity e);
+IfaceEntity.UserEntity getUserEntity(IfaceProgramPoint ins);
+void setUserEntity(IfaceProgramPoint ins,IfaceEntity.UserEntity e);
 
 IfaceValue getThisValue();
 Iterable<IfaceValue> getParameterValues();
 
-boolean addCall(List<IfaceValue> args);
+boolean addCall(IfaceProgramPoint pt,List<IfaceValue> args);
 boolean addException(IfaceValue exception);
 boolean hasResult();
 boolean addResult(IfaceValue v);
 
-Collection<JcodeMethod>	replaceWith(List<IfaceValue> args);
-IfaceValue fixReplaceArgs(JcodeMethod fm,LinkedList<IfaceValue> args);
+Collection<IfaceMethod> replaceWith(IfaceProgramPoint where,List<IfaceValue> args);
+IfaceValue fixReplaceArgs(IfaceMethod fm,LinkedList<IfaceValue> args);
 
-void addCallbacks(FaitLocation loc,List<IfaceValue> args);
-JcodeMethod findCallbackMethod(JcodeDataType cls,String mthd,int asz,boolean intf);
+void addCallbacks(IfaceLocation loc,List<IfaceValue> args);
+IfaceMethod findCallbackMethod(IfaceType cls,String mthd,int asz,boolean intf);
 
-void noteCallSite(FaitLocation loc);
-Collection<FaitLocation> getCallSites();
-void noteMethodCalled(JcodeInstruction ins,JcodeMethod m,IfaceCall called);
-IfaceCall getMethodCalled(JcodeInstruction ins,JcodeMethod m);
-Collection<IfaceCall> getAllMethodsCalled(JcodeInstruction ins);
+void noteCallSite(IfaceLocation loc);
+Collection<IfaceLocation> getCallSites();
+void noteMethodCalled(IfaceProgramPoint ins,IfaceMethod m,IfaceCall called);
+IfaceCall getMethodCalled(IfaceProgramPoint ins,IfaceMethod m);
+Collection<IfaceCall> getAllMethodsCalled(IfaceProgramPoint ins);
 
-void addDeadInstruction(JcodeInstruction ins);
-void removeDeadInstruction(JcodeInstruction ins);
+void addError(IfaceProgramPoint ins,IfaceError err);
 
-void clearForUpdate(IfaceUpdater upd);
+void removeErrors(IfaceProgramPoint ins);
+List<IfaceProgramPoint> getErrorLocations();
+Collection<IfaceError> getErrors(IfaceProgramPoint pt);
+
+void removeForUpdate(IfaceUpdater upd);
 void handleUpdates(IfaceUpdater upd);
 
 String getLogName();

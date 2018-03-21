@@ -36,7 +36,6 @@
 package edu.brown.cs.fait.entity;
 
 import edu.brown.cs.fait.iface.*;
-import edu.brown.cs.ivy.jcode.JcodeDataType;
 
 import java.util.*;
 
@@ -52,7 +51,7 @@ class EntityFixed extends EntityObject
 /********************************************************************************/
 
 private boolean 	is_mutable;
-private FaitValue	base_value;
+private IfaceValue	base_value;
 
 
 
@@ -62,7 +61,7 @@ private FaitValue	base_value;
 /*										*/
 /********************************************************************************/
 
-EntityFixed(JcodeDataType dt,boolean mutable)
+EntityFixed(IfaceType dt,boolean mutable)
 {
    super(dt);
    base_value = null;
@@ -87,13 +86,13 @@ EntityFixed(JcodeDataType dt,boolean mutable)
 /*										*/
 /********************************************************************************/
 
-@Override public FaitValue getArrayValue(IfaceValue idx,FaitControl fc)
+@Override public IfaceValue getArrayValue(IfaceValue idx,IfaceControl fc)
 {
-   FaitValue fv = super.getArrayValue(idx,fc);
+   IfaceValue fv = super.getArrayValue(idx,fc);
    if (fv != null) return fv;
 
-   if (getDataType().isArray() && base_value == null) {
-      JcodeDataType bty = getDataType().getBaseDataType();
+   if (getDataType().isArrayType() && base_value == null) {
+      IfaceType bty = getDataType().getBaseType();
       if (is_mutable || bty.isAbstract()) {
          base_value = fc.findMutableValue(bty);
        }
@@ -114,20 +113,20 @@ EntityFixed(JcodeDataType dt,boolean mutable)
 /*										*/
 /********************************************************************************/
 
-@Override public Collection<IfaceEntity> mutateTo(JcodeDataType dt,FaitLocation loc,EntityFactory factory)
+@Override public Collection<IfaceEntity> mutateTo(IfaceType dt,EntityFactory factory)
 {
    IfaceEntity eb = null;
    if (is_mutable && dt.isDerivedFrom(getDataType())) {
-      if (dt.isInterface() || dt.isAbstract()) {
+      if (dt.isInterfaceType() || dt.isAbstract() || dt.getChildTypes().size() > 0) {
 	 eb = factory.createMutableEntity(dt);
        }
       else {
 	 eb = factory.createFixedEntity(dt);
        }
     }
-   else if (getDataType().isInterface() || getDataType().isAbstract()) {
-      if (dt.isInterface()) {
-	 JcodeDataType cdt = getDataType().findChildForInterface(dt);
+   else if (getDataType().isInterfaceType() || getDataType().isAbstract()) {
+      if (dt.isInterfaceType()) {
+	 IfaceType cdt = getDataType().findChildForInterface(dt);
 	 if (cdt != null) {
 	   eb = (EntityBase) factory.createFixedEntity(cdt);
 	  }
@@ -137,7 +136,7 @@ EntityFixed(JcodeDataType dt,boolean mutable)
        }
     }
    else if (is_mutable && getDataType().isJavaLangObject()) {
-      if (dt.isInterface() || dt.isAbstract()) {
+      if (dt.isInterfaceType() || dt.isAbstract()) {
 	 eb = (EntityBase) factory.createMutableEntity(dt);
        }
     }
@@ -145,12 +144,6 @@ EntityFixed(JcodeDataType dt,boolean mutable)
       System.err.println("SPECIAL CASE:");
     }
    
-   if (factory.isProjectClass(dt) && loc != null) {
-      factory.addLocalReference(dt,loc);
-      //TODO: If dt is in project then return all compatible local entities
-      // and note that this has to be updated when a new entity is added
-    }
-
    if (eb == null) return null;
    Collection<IfaceEntity> rslt = new ArrayList<IfaceEntity>();
    rslt.add(eb);

@@ -36,7 +36,6 @@
 package edu.brown.cs.fait.value;
 
 import edu.brown.cs.fait.iface.*;
-import edu.brown.cs.ivy.jcode.JcodeDataType;
 
 
 
@@ -60,7 +59,7 @@ abstract class ValueNumber extends ValueBase
 /*										*/
 /********************************************************************************/
 
-protected ValueNumber(ValueFactory vf,JcodeDataType dt,IfaceEntitySet es)
+protected ValueNumber(ValueFactory vf,IfaceType dt,IfaceEntitySet es)
 {
    super(vf,dt,es);
 }

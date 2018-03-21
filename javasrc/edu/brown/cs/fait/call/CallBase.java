@@ -36,11 +36,9 @@
 package edu.brown.cs.fait.call;
 
 import edu.brown.cs.fait.iface.*;
-import edu.brown.cs.ivy.jcode.JcodeDataType;
-import edu.brown.cs.ivy.jcode.JcodeInstruction;
-import edu.brown.cs.ivy.jcode.JcodeMethod;
 
 import java.util.*;
+
 
 
 class CallBase implements CallConstants, IfaceCall
@@ -53,9 +51,8 @@ class CallBase implements CallConstants, IfaceCall
 /*										*/
 /********************************************************************************/
 
-private FaitControl	fait_control;
-private JcodeMethod	for_method;
-private int		inline_counter;
+private IfaceControl	fait_control;
+private IfaceMethod	for_method;
 private IfaceSpecial	special_data;
 private IfaceValue	result_set;
 private IfaceValue	exception_set;
@@ -66,16 +63,16 @@ private boolean 	is_proto;
 private boolean 	can_exit;
 private int		num_adds;
 private int		num_result;
-private FaitMethodData	method_data;
+private QueueLevel	queue_level;
 
-private Map<JcodeInstruction,IfaceEntity>	array_map;
-private Map<JcodeInstruction,IfaceEntity>	entity_map;
-private Map<JcodeInstruction,IfaceEntity>	userentity_map;
+private Map<IfaceProgramPoint,IfaceEntity> array_map;
+private Map<IfaceProgramPoint,IfaceEntity> entity_map;
+private Map<IfaceProgramPoint,IfaceEntity.UserEntity> userentity_map;
 
-private Map<JcodeInstruction,Map<JcodeMethod,IfaceCall>> method_map;
-private Set<FaitLocation> call_set;
+private Map<IfaceProgramPoint,Map<IfaceMethod,IfaceCall>> method_map;
+private Set<IfaceLocation> call_set;
 
-private Set<JcodeInstruction>	dead_set;
+private Map<IfaceProgramPoint,Collection<IfaceError>> error_set;
 
 
 
@@ -86,16 +83,16 @@ private Set<JcodeInstruction>	dead_set;
 /*										*/
 /********************************************************************************/
 
-CallBase(FaitControl fc,JcodeMethod fm,int ct)
+CallBase(IfaceControl fc,IfaceMethod fm,IfaceProgramPoint pt)
 {
-   fait_control = fc;
-   for_method = fm;
-   inline_counter = ct;
-   special_data = fc.getCallSpecial(fm);
+   this(fc);
 
-   if (fm.getReturnType().isVoid()) result_set = null;
-   else result_set = fc.findAnyValue(fm.getReturnType());
-   exception_set = null;
+   for_method = fm;
+   special_data = fc.getCallSpecial(pt,fm);
+
+   if (fm.getReturnType() != null && !fm.getReturnType().isVoidType()) {
+      result_set = fc.findAnyValue(fm.getReturnType());
+    }
 
    start_state = fc.createState(fm.getLocalSize());
 
@@ -106,7 +103,7 @@ CallBase(FaitControl fc,JcodeMethod fm,int ct)
       start_state.setLocal(idx++,fv);
     }
    for (int i = 0; ; ++i) {
-      JcodeDataType atyp = fm.getArgType(i);
+      IfaceType atyp = fm.getArgType(i);
       if (atyp == null) break;
       IfaceValue fv = fc.findAnyValue(atyp);
       if (i == 0 && fm.isStatic() && fm.getName().equals("main"))
@@ -114,14 +111,6 @@ CallBase(FaitControl fc,JcodeMethod fm,int ct)
       start_state.setLocal(idx++,fv);
       if (atyp.isCategory2()) ++idx;
     }
-
-   num_adds = 0;
-   num_result = 0;
-
-   is_clone = false;
-   is_arg0 = false;
-   is_proto = false;
-   can_exit = false;
 
    if (fm.getName().equals("clone") && fm.getDeclaringClass().isJavaLangObject()) {
       is_clone = true;
@@ -131,11 +120,11 @@ CallBase(FaitControl fc,JcodeMethod fm,int ct)
       is_arg0 = special_data.returnsArg0();
       can_exit = special_data.getExits();
       // this null needs to be a FaitLocaiton with fm as the method
-      IfaceValue rv = special_data.getReturnValue(for_method);
+      IfaceValue rv = special_data.getReturnValue(null,for_method);
       addResult(rv);
       if (rv != null) {
 	 IfaceValue ev = null;
-	 for (JcodeDataType edt : fm.getExceptionTypes()) {
+	 for (IfaceType edt : fm.getExceptionTypes()) {
 	    IfaceValue ecv = fc.findNativeValue(edt);
 	    ecv = ecv.forceNonNull();
 	    ev = ecv.mergeValue(ev);
@@ -149,21 +138,43 @@ CallBase(FaitControl fc,JcodeMethod fm,int ct)
 	 result_set = fc.findNativeValue(fm.getReturnType());
       ++num_result;
     }
-   else if (fm.getNumInstructions() == 0 && !fait_control.isInProject(fm)) {
+   else if (!fm.hasCode() && !fait_control.isInProject(fm)) {
       if (result_set == null || !result_set.isGoodEntitySet())
 	 result_set = fc.findMutableValue(fm.getReturnType());
       ++num_result;
     }
-
-   method_data = fc.createMethodData(this);
-
-   array_map = Collections.synchronizedMap(new HashMap<JcodeInstruction,IfaceEntity>(4));
-   entity_map = Collections.synchronizedMap(new HashMap<JcodeInstruction,IfaceEntity>(4));
-   userentity_map = Collections.synchronizedMap(new HashMap<JcodeInstruction,IfaceEntity>(4));
-   method_map = new HashMap<JcodeInstruction,Map<JcodeMethod,IfaceCall>>();
-   call_set = new HashSet<FaitLocation>();
-   dead_set = new HashSet<JcodeInstruction>();
 }
+
+
+private CallBase(IfaceControl fc)
+{
+   fait_control = fc;
+   for_method = null;
+   special_data = null;
+
+   result_set = null;
+   exception_set = null;
+
+   start_state = null;
+
+   num_adds = 0;
+   num_result = 0;
+
+   is_clone = false;
+   is_arg0 = false;
+   is_proto = false;
+   can_exit = false;
+
+   queue_level = QueueLevel.NORMAL;
+
+   array_map = Collections.synchronizedMap(new IdentityHashMap<>(4));
+   entity_map = Collections.synchronizedMap(new IdentityHashMap<>(4));
+   userentity_map = Collections.synchronizedMap(new IdentityHashMap<>(4));
+   method_map = new IdentityHashMap<>();
+   call_set = new HashSet<>();
+   error_set = new IdentityHashMap<>();
+}
+
 
 
 
@@ -173,10 +184,15 @@ CallBase(FaitControl fc,JcodeMethod fm,int ct)
 /*										*/
 /********************************************************************************/
 
-@Override public JcodeMethod getMethod() 	{ return for_method; }
-@Override public JcodeDataType getMethodClass()	{ return for_method.getDeclaringClass(); }
+@Override public IfaceMethod getMethod()	{ return for_method; }
+@Override public IfaceControl getControl()	{ return fait_control; }
 
-@Override public int getInstanceNumber()	{ return inline_counter; }
+@Override public IfaceType getMethodClass()
+{
+   return for_method.getDeclaringClass();
+}
+
+
 
 @Override public IfaceState getStartState()	{ return start_state; }
 
@@ -202,84 +218,98 @@ CallBase(FaitControl fc,JcodeMethod fm,int ct)
 
 
 
-/********************************************************************************/
-/*										*/
-/*	Methods to handle saved maps						*/
-/*										*/
-/********************************************************************************/
-
-@Override public FaitValue getAssociation(AssociationType typ,JcodeInstruction ins)
-{
-   if (method_data == null) return null;
-
-   return method_data.getAssociation(typ,ins);
-}
 
 
-@Override public void setAssociation(AssociationType typ,JcodeInstruction ins,IfaceValue v)
-{
-   if (method_data != null) method_data.setAssociation(typ,ins,v);
-}
 
 
-@Override public IfaceEntity getArrayEntity(JcodeInstruction ins)
+
+
+@Override public IfaceEntity getArrayEntity(IfaceProgramPoint ins)
 {
    return array_map.get(ins);
 }
 
-@Override public void setArrayEntity(JcodeInstruction ins,IfaceEntity e)
+@Override public void setArrayEntity(IfaceProgramPoint ins,IfaceEntity e)
 {
    array_map.put(ins,e);
 }
 
 
-@Override public IfaceEntity getBaseEntity(JcodeInstruction ins)
+@Override public IfaceEntity getBaseEntity(IfaceProgramPoint ins)
 {
    return entity_map.get(ins);
 }
 
-@Override public void setBaseEntity(JcodeInstruction ins,IfaceEntity e)
+
+
+@Override public void setBaseEntity(IfaceProgramPoint ins,IfaceEntity e)
 {
    entity_map.put(ins,e);
 }
 
 
-@Override public FaitEntity.UserEntity getUserEntity(JcodeInstruction ins)
+@Override public IfaceEntity.UserEntity getUserEntity(IfaceProgramPoint ins)
 {
-   return (FaitEntity.UserEntity) userentity_map.get(ins);
+   return userentity_map.get(ins);
 }
 
-@Override public void setUserEntity(JcodeInstruction ins,FaitEntity.UserEntity e)
+@Override public void setUserEntity(IfaceProgramPoint ins,IfaceEntity.UserEntity e)
 {
-   userentity_map.put(ins,(IfaceEntity) e);
+   userentity_map.put(ins,e);
 }
 
 
-@Override public void addDeadInstruction(JcodeInstruction ins)
+
+@Override public void addError(IfaceProgramPoint ins,IfaceError err)
 {
-   synchronized (dead_set) {
-      dead_set.add(ins);
+   synchronized (error_set) {
+      Collection<IfaceError> errs = error_set.get(ins);
+      if (errs == null) {
+	 errs = new HashSet<>(2);
+	 error_set.put(ins,errs);
+       }
+      errs.add(err);
     }
 }
 
 
 
-@Override public void removeDeadInstruction(JcodeInstruction ins)
+
+
+
+
+
+
+
+@Override public void removeErrors(IfaceProgramPoint ins)
 {
-   synchronized (dead_set) {
-      dead_set.remove(ins);
+   synchronized (error_set) {
+      error_set.remove(ins);
     }
 }
 
 
-@Override public Collection<JcodeInstruction> getDeadInstructions()
+
+@Override public List<IfaceProgramPoint> getErrorLocations()
 {
-   synchronized (dead_set) {
-      return new ArrayList<JcodeInstruction>(dead_set);
+   synchronized (error_set) {
+      List<IfaceProgramPoint> rslt = new ArrayList<>(error_set.keySet());
+      return rslt;
     }
 }
 
 
+@Override public Collection<IfaceError> getErrors(IfaceProgramPoint pt)
+{
+   synchronized (error_set) {
+      return error_set.get(pt);
+    }
+}
+
+@Override public IfaceProgramPoint getStartPoint()
+{
+   return for_method.getStart();
+}
 
 
 /********************************************************************************/
@@ -329,7 +359,7 @@ CallBase(FaitControl fc,JcodeMethod fm,int ct)
 /*										*/
 /********************************************************************************/
 
-@Override public boolean addCall(List<IfaceValue> args)
+@Override public boolean addCall(IfaceProgramPoint pt,List<IfaceValue> args)
 {
    boolean chng = false;
 
@@ -382,7 +412,7 @@ CallBase(FaitControl fc,JcodeMethod fm,int ct)
 @Override synchronized public boolean addResult(IfaceValue v)
 {
    if (v == null) {				// handle void routines
-      ++num_result;
+      if (num_result++ == 0) return true;
       return false;
     }
 
@@ -411,41 +441,38 @@ CallBase(FaitControl fc,JcodeMethod fm,int ct)
 /*										*/
 /********************************************************************************/
 
-@Override public Collection<JcodeMethod> replaceWith(List<IfaceValue> args)
+@Override public Collection<IfaceMethod> replaceWith(IfaceProgramPoint pt,List<IfaceValue> args)
 {
    if (special_data == null) return Collections.singletonList(for_method);
-   
+
    String nm = special_data.getReplaceName();
-   
+
    if (special_data.isConstructor()) {
-      IfaceValue fv = special_data.getReturnValue(for_method);
-      List<Integer> vals = special_data.getCallbackArgs();
-      List<IfaceValue> nargs = new ArrayList<IfaceValue>();
-      nargs.add(fv);
-      if (vals != null) {
-         for (Integer i : vals) {
-            IfaceValue av = null;
-            int iv = i;
-            if (iv == -1) {
-               av = fait_control.findNullValue();
-             }
-            else {
-               av = args.get(i);
-             }
-            if (av != null) nargs.add(av);
-          }
-       }
+      IfaceValue fv = special_data.getReturnValue(pt,for_method);
+      List<IfaceValue> nargs = special_data.getCallbackArgs(args,fv);
       String rtyp = fv.getDataType().getName();
       nm = rtyp + ".<init>";
       args.clear();
       args.addAll(nargs);
     }
-   
+
    if (nm == null)
       return Collections.singletonList(for_method);
-  
-   JcodeMethod nfm = null;
-   Collection<JcodeMethod> rslt = new ArrayList<JcodeMethod>();
+
+   IfaceMethod nfm = null;
+   Collection<IfaceMethod> rslt = new ArrayList<>();
+
+   String desc = "(";
+   String statdesc = "(";
+   int act = 0; 
+   for (IfaceValue v : args) {
+      String d = v.getDataType().getJavaTypeName();
+      if (act++ > 0) desc += d;
+      statdesc += d;
+    }
+   desc += ")";
+   statdesc += ")";
+
 
    StringTokenizer tok = new StringTokenizer(nm);
    while (tok.hasMoreTokens()) {
@@ -454,13 +481,18 @@ CallBase(FaitControl fc,JcodeMethod fm,int ct)
       if (idx > 0) {
 	 String cls = nm.substring(0,idx);
 	 String mnm = nm.substring(idx+1);
-	 nfm = fait_control.findMethod(cls,mnm,null);
+	 nfm = fait_control.findMethod(cls,mnm,desc);
+	 if (nfm != null && nfm.isStatic()) nfm = null;
+	 if (nfm == null) {
+	    nfm = fait_control.findMethod(cls,mnm,statdesc);
+	    if (nfm != null && !nfm.isStatic()) nfm = null;
+	  }
        }
       else {
 	 IfaceValue v0 = args.get(0);
-	 JcodeDataType dt = v0.getDataType();
+	 IfaceType dt = v0.getDataType();
 	 while (dt != null) {
-	    nfm = fait_control.findMethod(dt.getName(),nm,null);
+	    nfm = fait_control.findMethod(dt.getName(),nm,desc);
 	    if (nfm != null) break;
 	    dt = dt.getSuperType();
 	  }
@@ -476,7 +508,7 @@ CallBase(FaitControl fc,JcodeMethod fm,int ct)
 
 
 
-@Override public IfaceValue fixReplaceArgs(JcodeMethod fm,LinkedList<IfaceValue> args)
+@Override public IfaceValue fixReplaceArgs(IfaceMethod fm,LinkedList<IfaceValue> args)
 {
    IfaceValue rslt = null;
 
@@ -487,14 +519,14 @@ CallBase(FaitControl fc,JcodeMethod fm,int ct)
 
 
 
-private void fixArgs(JcodeMethod fm,List<IfaceValue> args)
+private void fixArgs(IfaceMethod fm,List<IfaceValue> args)
 {
    int bct = 1;
    if (fm.isStatic()) bct = 0;
    int act = 0;
 
    for (int i = 0; ; ++i) {
-      JcodeDataType aty = fm.getArgType(i);
+      IfaceType aty = fm.getArgType(i);
       if (aty == null) break;
       if (act + bct >= args.size()) {
 	 IfaceValue v = fait_control.findNativeValue(aty);
@@ -517,60 +549,57 @@ private void fixArgs(JcodeMethod fm,List<IfaceValue> args)
 /*										*/
 /********************************************************************************/
 
-@Override public void addCallbacks(FaitLocation loc,List<IfaceValue> args)
+@Override public void addCallbacks(IfaceLocation loc,List<IfaceValue> args)
 {
    if (special_data == null) return;
    Iterable<String> it = special_data.getCallbacks();
    if (it == null) return;
-   
-   IfaceLog.logD("Check callbacks " + args);
-   
-   List<Integer> argnos = special_data.getCallbackArgs();
-   List<IfaceValue> nargs = new ArrayList<IfaceValue>();
-   for (Integer iv0 : argnos) {
-      int i0 = iv0;
-      IfaceValue cv = args.get(i0);
-      nargs.add(cv);
-    }
+
+   if (FaitLog.isTracing()) FaitLog.logD("Check callbacks " + args);
+
+   List<IfaceValue> nargs = special_data.getCallbackArgs(args,null);
    IfaceValue cv0 = nargs.get(0);
-   JcodeDataType typ = cv0.getDataType();
+   IfaceType typ = cv0.getDataType();
    if (typ == null) return;
-   
+
    for (String cbn : it) {
-      JcodeMethod fm = findCallbackMethod(typ,cbn,nargs.size(),true);
+      IfaceMethod fm = findCallbackMethod(typ,cbn,nargs.size(),true);
       if (fm != null) {
-         List<IfaceValue> rargs = new ArrayList<IfaceValue>(nargs);
-         fixArgs(fm,rargs);
-         IfaceLog.logD("Use callback " + fm + " " + rargs);
-         fait_control.handleCallback(loc,fm,rargs,special_data.getCallbackId());
+	 List<IfaceValue> rargs = new ArrayList<IfaceValue>(nargs);
+	 fixArgs(fm,rargs);
+	 if (FaitLog.isTracing()) FaitLog.logD("Use callback " + fm + " " + rargs);
+	 fait_control.handleCallback(loc,fm,rargs,special_data.getCallbackId());
        }
-      else IfaceLog.logD("No callback found for " + cbn + " in " + typ);
+      else {
+	 if (FaitLog.isTracing())
+	    FaitLog.logD("No callback found for " + cbn + " in " + typ);
+       }
     }
 }
 
 
-@Override public JcodeMethod findCallbackMethod(JcodeDataType cls,String mthd,int asz,boolean intf)
+@Override public IfaceMethod findCallbackMethod(IfaceType cls,String mthd,int asz,boolean intf)
 {
-   for (JcodeMethod fm : fait_control.findAllMethods(cls,mthd,null)) {
+   for (IfaceMethod fm : fait_control.findAllMethods(cls,mthd)) {
       if (fm.getName().equals(mthd)) {
-         if (fm.isStatic() && fm.getNumArguments() >= asz) return fm;
-         else if (fm.getNumArguments() + 1 >= asz) return fm;
+	 if (fm.isStatic() && fm.getNumArgs() >= asz) return fm;
+	 else if (fm.getNumArgs() + 1 >= asz) return fm;
        }
     }
-   
-   JcodeDataType fdt = cls.getSuperType();
+
+   IfaceType fdt = cls.getSuperType();
    if (fdt != null) {
-      JcodeMethod fm = findCallbackMethod(fdt,mthd,asz,intf);
+      IfaceMethod fm = findCallbackMethod(fdt,mthd,asz,intf);
       if (fm != null) return fm;
     }
-   
+
    if (intf) {
-      for (JcodeDataType sdt : cls.getInterfaces()) {
-         JcodeMethod fm = findCallbackMethod(sdt,mthd,asz,true);
-         if (fm != null) return fm;
+      for (IfaceType sdt : cls.getInterfaces()) {
+	 IfaceMethod fm = findCallbackMethod(sdt,mthd,asz,true);
+	 if (fm != null) return fm;
        }
     }
-   
+
    return null;
 }
 
@@ -581,7 +610,7 @@ private void fixArgs(JcodeMethod fm,List<IfaceValue> args)
 /*										*/
 /********************************************************************************/
 
-@Override public void noteCallSite(FaitLocation loc)
+@Override public void noteCallSite(IfaceLocation loc)
 {
    if (loc == null) return;
 
@@ -591,20 +620,20 @@ private void fixArgs(JcodeMethod fm,List<IfaceValue> args)
 }
 
 
-@Override public Collection<FaitLocation> getCallSites()
+@Override public Collection<IfaceLocation> getCallSites()
 {
    synchronized (call_set) {
-      return new ArrayList<FaitLocation>(call_set);
+      return new ArrayList<IfaceLocation>(call_set);
     }
 }
 
 
-@Override public void noteMethodCalled(JcodeInstruction ins,JcodeMethod m,IfaceCall called)
+@Override public void noteMethodCalled(IfaceProgramPoint ins,IfaceMethod m,IfaceCall called)
 {
    synchronized (method_map) {
-      Map<JcodeMethod,IfaceCall> mm = method_map.get(ins);
+      Map<IfaceMethod,IfaceCall> mm = method_map.get(ins);
       if (mm == null) {
-	 mm = new HashMap<JcodeMethod,IfaceCall>(4);
+	 mm = new HashMap<IfaceMethod,IfaceCall>(4);
 	 method_map.put(ins,mm);
        }
       mm.put(m,called);
@@ -612,21 +641,35 @@ private void fixArgs(JcodeMethod fm,List<IfaceValue> args)
 }
 
 
-@Override public IfaceCall getMethodCalled(JcodeInstruction ins,JcodeMethod m)
+private void removeMethodCall(IfaceLocation loc,IfaceCall c)
+{
+   IfaceProgramPoint ipt = loc.getProgramPoint();
+   synchronized (method_map) {
+      Map<IfaceMethod,IfaceCall> mm = method_map.get(ipt);
+      if (mm == null) return;
+      for (Iterator<IfaceCall> it = mm.values().iterator(); it.hasNext(); ) {
+	 IfaceCall ic = it.next();
+	 if (ic == c) it.remove();
+       }
+    }
+}
+
+
+@Override public IfaceCall getMethodCalled(IfaceProgramPoint ins,IfaceMethod m)
 {
    synchronized (method_map) {
-      Map<JcodeMethod,IfaceCall> mm = method_map.get(ins);
+      Map<IfaceMethod,IfaceCall> mm = method_map.get(ins);
       if (mm == null) return null;
       return mm.get(m);
     }
 }
 
 
-@Override public Collection<IfaceCall> getAllMethodsCalled(JcodeInstruction ins)
+@Override public Collection<IfaceCall> getAllMethodsCalled(IfaceProgramPoint ins)
 {
    Collection<IfaceCall> rslt = new ArrayList<IfaceCall>();
    synchronized (method_map) {
-      Map<JcodeMethod,IfaceCall> mm = method_map.get(ins);
+      Map<IfaceMethod,IfaceCall> mm = method_map.get(ins);
       if (mm != null) rslt.addAll(mm.values());
     }
    return rslt;
@@ -641,11 +684,47 @@ private void fixArgs(JcodeMethod fm,List<IfaceValue> args)
 /*										*/
 /********************************************************************************/
 
-@Override public void clearForUpdate(IfaceUpdater upd)
+@Override public void removeForUpdate(IfaceUpdater upd)
 {
-   // this needs to be handled
+   FaitLog.logD("Remove for update: " +  getMethod().getFullName());
+
+   // first remove all entities created in this call
+   for (IfaceEntity ie : entity_map.values()) {
+      upd.addEntityToRemove(ie);
+    }
+   // TODO: handle user entities here as well
+
+   // next find all items called from here and remove this as a caller
+   // if we were the only caller, then remove that call as well
+   for (Map<IfaceMethod,IfaceCall> mm : method_map.values()) {
+      for (IfaceCall ic : mm.values()) {
+	 CallBase cb = (CallBase) ic;
+	 if (cb.removeCaller(this)) upd.removeCall(cb);
+       }
+    }
+
+   // finally remove this call from any call site for it and requeue
+   // that call to be evaluated.  Ignore if the call site will also
+   // be eliminated
+   for (IfaceLocation loc : call_set) {
+      if (upd.shouldUpdate(loc.getCall())) continue;
+      upd.addToWorkQueue(loc.getCall(),loc.getProgramPoint());
+      CallBase cb = (CallBase) loc.getCall();
+      cb.removeMethodCall(loc,this);
+    }
 }
 
+
+private boolean removeCaller(IfaceCall src)
+{
+   synchronized (call_set) {
+      for (Iterator<IfaceLocation> it = call_set.iterator(); it.hasNext(); ) {
+	 IfaceLocation loc = it.next();
+	 if (loc.getCall() == src) it.remove();
+       }
+      return call_set.isEmpty();
+    }
+}
 
 @Override public void handleUpdates(IfaceUpdater upd)
 {
@@ -672,7 +751,7 @@ private void fixArgs(JcodeMethod fm,List<IfaceValue> args)
       int sid = -1;
       if (for_method.isStatic()) sid = 0;
       for (int i = sid; ; ++i) {
-	 JcodeDataType dt;
+	 IfaceType dt;
 	 if (i < 0) dt = for_method.getDeclaringClass();
 	 else dt = for_method.getArgType(i);
 	 if (dt == null) break;
@@ -696,11 +775,22 @@ private void fixArgs(JcodeMethod fm,List<IfaceValue> args)
 
 @Override public String getLogName()
 {
-   JcodeMethod fm = getMethod();
+   IfaceMethod fm = getMethod();
 
-   return fm.getDeclaringClass().getName() + "." + fm.getName() + fm.getDescription() + " " + hashCode();
+   return fm.getFullName() + fm.getDescription() + " " + hashCode();
 }
 
+
+@Override public QueueLevel getQueueLevel()
+{
+   return queue_level;
+}
+
+
+@Override public void setQueueLevel(QueueLevel lvl)
+{
+   if (lvl.ordinal() < queue_level.ordinal()) queue_level = lvl;
+}
 
 }	// end of class CallBase
 

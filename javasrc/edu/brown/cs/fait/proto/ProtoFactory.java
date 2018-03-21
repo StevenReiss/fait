@@ -36,7 +36,6 @@
 package edu.brown.cs.fait.proto;
 
 import edu.brown.cs.fait.iface.*;
-import edu.brown.cs.ivy.jcode.JcodeDataType;
 
 import java.util.*;
 import java.lang.reflect.*;
@@ -53,11 +52,11 @@ public class ProtoFactory implements ProtoConstants
 /*										*/
 /********************************************************************************/
 
-private FaitControl	fait_control;
-private Map<JcodeDataType,Class<?>> class_map;
+private IfaceControl	fait_control;
+private Map<IfaceType,Class<?>> class_map;
 
 private static final Class<?> [] cnst_params = new Class<?> [] {
-   FaitControl.class, JcodeDataType.class
+   IfaceControl.class, IfaceType.class
 };
 
 
@@ -67,10 +66,10 @@ private static final Class<?> [] cnst_params = new Class<?> [] {
 /*										*/
 /********************************************************************************/
 
-public ProtoFactory(FaitControl fc)
+public ProtoFactory(IfaceControl fc)
 {
    fait_control = fc;
-   class_map = new HashMap<JcodeDataType,Class<?>>();
+   class_map = new HashMap<>();
 }
 
 
@@ -81,17 +80,17 @@ public ProtoFactory(FaitControl fc)
 /*                                                                              */
 /********************************************************************************/
 
-public IfacePrototype createPrototype(JcodeDataType dt)
+public IfacePrototype createPrototype(IfaceType dt)
 {
    Class<?> c = null;
    
    synchronized (class_map) {
       if (!class_map.containsKey(dt)) {
          if (!fait_control.isProjectClass(dt)) {
-            if (dt.isDerivedFrom(fait_control.findDataType("Ljava/util/Collection;"))) {
+            if (dt.isDerivedFrom(fait_control.findDataType("java.util.Collection"))) {
                c = ProtoCollection.class;
              }
-            else if (dt.isDerivedFrom(fait_control.findDataType("Ljava/util/Map;"))) {
+            else if (dt.isDerivedFrom(fait_control.findDataType("java.util.Map"))) {
                c = ProtoMap.class;
              }
           }
@@ -100,7 +99,9 @@ public IfacePrototype createPrototype(JcodeDataType dt)
       else c = class_map.get(dt);
     }
    
-   if (c == null) return null;
+   if (c == null) {
+      return null;
+    }
    
    ProtoBase pb = null;
    try {
@@ -109,7 +110,10 @@ public IfacePrototype createPrototype(JcodeDataType dt)
     }
    catch (NoSuchMethodException e) { }
    catch (Exception e) {
-      System.err.println("FAIT: Problem creating class prototype for " + dt + ": " + e);
+      FaitLog.logE("Problem creating class prototype for " + dt + ": " + e,e);
+    }
+   if (pb == null) {
+      FaitLog.logE("Missed prototype");
     }
    
    return pb;

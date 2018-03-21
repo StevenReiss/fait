@@ -36,12 +36,9 @@
 package edu.brown.cs.fait.call;
 
 import edu.brown.cs.fait.iface.*;
-import edu.brown.cs.ivy.jcode.JcodeMethod;
 
 import org.junit.*;
 
-import java.util.*;
-import java.io.*;
 
 
 public class CallTest implements FaitConstants
@@ -54,7 +51,7 @@ public class CallTest implements FaitConstants
 /*										*/
 /********************************************************************************/
 
-private FaitControl	fait_control;
+private IfaceControl	fait_control;
 
 
 
@@ -66,9 +63,9 @@ private FaitControl	fait_control;
 
 public CallTest()
 {
-   fait_control = FaitControl.Factory.getControl();
-
-   fait_control.setProject(new TestProject());
+   IfaceProject proj = IfaceControl.Factory.createSimpleProject("/home/spr/sampler",
+         "spr.onsets.");
+   fait_control = IfaceControl.Factory.createControl(proj);
 }
 
 
@@ -81,13 +78,13 @@ public CallTest()
       
 @Test public void callCheck()
 { 
-   JcodeMethod fm1 = fait_control.findMethod("java.util.regex.Pattern","matcher",null);
-   JcodeMethod fm2 = fait_control.findMethod("java.lang.StringBuilder","toString",null);
-   JcodeMethod fm3 = fait_control.findMethod("java.lang.Object","notify",null);
+   IfaceMethod fm1 = fait_control.findMethod("java.util.regex.Pattern","matcher",null);
+   IfaceMethod fm2 = fait_control.findMethod("java.lang.StringBuilder","toString",null);
+   IfaceMethod fm3 = fait_control.findMethod("java.lang.Object","notify",null);
 
-   IfaceSpecial s1 = fait_control.getCallSpecial(fm1);
-   IfaceSpecial s2 = fait_control.getCallSpecial(fm2);
-   IfaceSpecial s3 = fait_control.getCallSpecial(fm3);
+   IfaceSpecial s1 = fait_control.getCallSpecial(null,fm1);
+   IfaceSpecial s2 = fait_control.getCallSpecial(null,fm2);
+   IfaceSpecial s3 = fait_control.getCallSpecial(null,fm3);
 
    Assert.assertNotNull("matcher should be special",s1);
    Assert.assertNotNull("StringBuilder.toString should be special",s2);
@@ -96,35 +93,7 @@ public CallTest()
 
 
 
-/********************************************************************************/
-/*										*/
-/*	Project to test with							*/
-/*										*/
-/********************************************************************************/
 
-private static class TestProject implements FaitProject {
-
-   @Override public String getClasspath() {
-      return "/home/spr/sampler";
-    }
-
-   @Override public Collection<String> getBaseClasses() {
-      Collection<String> rslt = new ArrayList<String>();
-      rslt.add("spr.onsets.OnsetMain");
-      return rslt;
-    }
-   @Override public Collection<String> getStartClasses()        { return null; }
-   
-   @Override public List<File> getDescriptionFile()		{ return null; }
-
-   @Override public boolean isProjectClass(String cls) {
-      if (cls.startsWith("spr.")) return true;
-      return false;
-    }
-
-   @Override public FaitMethodData createMethodData(FaitCall fc)   { return null; }
-
-}	// end of inner class TestProject
 
 }	// end of class CallTest
 

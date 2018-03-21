@@ -1,4 +1,7 @@
-<project name='fait' default='all'>
+<project name='fait' default='bubbles'>
+
+   <property name='PRO' value='/pro' />
+   <property name='BUBBLESLIB' value='${PRO}/bubbles/lib' />
 
    <target name='all'>
       <ant antfile="build.xml" dir="javasrc" />
@@ -14,28 +17,55 @@
       <zip zipfile='lib/apidoc.zip' basedir='doc' />
    </target>
 
-   <target name='jar' depends='all'>
+   <target name='jar' depends='all' >
+      <jar destfile='faitdbg.jar'>
+	 <manifest>
+	 </manifest>
+	 <fileset dir='./java' includes='**/*.class' />
+	 <fileset dir='/pro/ivy/java' includes='**/*.class' />
+	 <zipfileset src='/pro/ivy/lib/junit.jar' excludes='META-INF/*' />
+	 <zipfileset src='/pro/ivy/lib/asm5.jar' excludes='META-INF/*' />
+	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.core.commands.jar' excludes='META-INF/*' />
+	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.core.contenttype.jar' excludes='META-INF/*' />
+	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.core.filebuffers.jar' excludes='META-INF/*' />
+	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.core.filesystem.jar' excludes='META-INF/*' />
+	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.core.jobs.jar' excludes='META-INF/*' />
+	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.core.net.jar' excludes='META-INF/*' />
+	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.core.resources.jar' excludes='META-INF/*' />
+	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.core.runtime.jar' excludes='META-INF/*' />
+	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.debug.core.jar' excludes='META-INF/*' />
+	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.debug.ui.jar' excludes='META-INF/*' />
+	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.equinox.app.jar' excludes='META-INF/*' />
+	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.equinox.common.jar' excludes='META-INF/*' />
+	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.equinox.preferences.jar' excludes='META-INF/*' />
+	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.equinox.registry.jar' excludes='META-INF/*' />
+	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.jdt.core.jar' excludes='META-INF/*' />
+	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.jdt.core.manipulation.jar' excludes='META-INF/*' />
+	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.jdt.debug.jdi.jar' excludes='META-INF/*' />
+	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.jdt.debug.jdimodel.jar' excludes='META-INF/*' />
+	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.jdt.ui.jar' excludes='META-INF/*' />
+	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.jface.jar' excludes='META-INF/*' />
+	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.jface.text.jar' excludes='META-INF/*' />
+	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.ltk.core.refactoring.jar' excludes='META-INF/*' />
+	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.osgi.jar' excludes='META-INF/*' />
+	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.osgi.services.jar' excludes='META-INF/*' />
+	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.osgi.util.jar' excludes='META-INF/*' />
+	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.search.jar' excludes='META-INF/*' />
+	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.swt.gtk.linux.x86_64.jar' excludes='META-INF/*' />
+	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.swt.jar' excludes='META-INF/*' />
+	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.text.jar' excludes='META-INF/*' />
+	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.ui.ide.jar' excludes='META-INF/*' />
+	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.ui.workbench.jar' excludes='META-INF/*' />
+      </jar>
+   </target>
+
+   <target name='bubbles' depends='all'>
       <jar destfile='fait.jar'>
 	 <manifest>
 	 </manifest>
 	 <fileset dir='./java' includes='**/*.class' />
       </jar>
+      <copy file='fait.jar' tofile='${BUBBLESLIB}/fait.jar' />
    </target>
 
-
-
 </project>
-
-
-
-
-
-
-
-
-
-
-
-
-
-

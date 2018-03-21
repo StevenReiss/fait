@@ -6,14 +6,15 @@
 
    <target name='all'>
       <ant antfile="build.xml" dir="edu/brown/cs/fait/iface" />
+      <ant antfile="build.xml" dir="edu/brown/cs/fait/type" />
       <ant antfile="build.xml" dir="edu/brown/cs/fait/entity" />
-      <ant antfile="build.xml" dir="edu/brown/cs/fait/bcode" />
       <ant antfile="build.xml" dir="edu/brown/cs/fait/value" />
       <ant antfile="build.xml" dir="edu/brown/cs/fait/state" />
       <ant antfile="build.xml" dir="edu/brown/cs/fait/proto" />
       <ant antfile="build.xml" dir="edu/brown/cs/fait/call" />
       <ant antfile="build.xml" dir="edu/brown/cs/fait/flow" />
       <ant antfile="build.xml" dir="edu/brown/cs/fait/control" />
+      <ant antfile="build.xml" dir="edu/brown/cs/fait/server" />
    </target>
 
    <path id='jdocsrc'>
@@ -26,14 +27,15 @@
 
    <target name='doc'>
       <javadoc sourcepathref='jdocsrc' classpathref='bubbles.classpath' destdir='${PRO}/bubbles/doc'>
-	 <package name='edu.brown.cs.fait.bcode' />
 	 <package name='edu.brown.cs.fait.call' />
 	 <package name='edu.brown.cs.fait.control' />
 	 <package name='edu.brown.cs.fait.entity' />
 	 <package name='edu.brown.cs.fait.iface' />
 	 <package name='edu.brown.cs.fait.flow' />
 	 <package name='edu.brown.cs.fait.proto' />
+	 <package name='edu.brown.cs.fait.server' />
 	 <package name='edu.brown.cs.fait.state' />
+	 <package name='edu.brown.cs.fait.type' />
 	 <package name='edu.brown.cs.fait.value' />
       </javadoc>
    </target>

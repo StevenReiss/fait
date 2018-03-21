@@ -37,8 +37,6 @@
 package edu.brown.cs.fait.iface;
 
 
-
-
 public interface FaitConstants {
 
 
@@ -61,7 +59,7 @@ enum TestBranch {
 /*                                                                              */
 /********************************************************************************/
 
-enum NullFlags {
+enum XNullFlags {
    NON_NULL,                            // known non-null
    MUST_BE_NULL,                        // known null
    CAN_BE_NULL,                         // possibly null
@@ -98,24 +96,24 @@ enum NullFlags {
       return (ordinal() & EXPLICIT_BIT) != 0;
     }
    
-   public NullFlags merge(NullFlags f1) {
+   public XNullFlags merge(XNullFlags f1) {
       int v = (ordinal() | f1.ordinal()) & ~AND_BITS;
       int v1 = (ordinal() & f1.ordinal()) & AND_BITS;
       v |= v1;
       return values()[v];
     }
    
-   public NullFlags forceNonNull() {
+   public XNullFlags forceNonNull() {
       int v = (ordinal() & ~(MUST_BIT | CAN_BIT | EXPLICIT_BIT));
       return values()[v];
     }
    
-   public NullFlags forceTestForNull() {
+   public XNullFlags forceTestForNull() {
       int v = (ordinal() | TEST_BIT);
       return values()[v];
     }
    
-   public NullFlags fixup() {
+   public XNullFlags fixup() {
       int v = ordinal();
       if ((v & MUST_BIT) != 0) v |= CAN_BIT;
       return values()[v];
@@ -136,48 +134,49 @@ enum InlineType {
    DEFAULT,                             // inline based on source set
    THIS,                                // inline based on this argument
    SOURCES,                             // inline based on all sources
-   VALUES                               // inline based on all values
+   VALUES,                              // inline based on all values
+   SPECIAL,                             // based on special type
 }
 
 
-enum AssociationType {
-    NEW,
-    THROW,
-    CATCH,
-    THISREF,
-    FIELDSET,
-    FIELDUSE,
-    RETURN,
-    ALLRETURN,
-    THISARG,
-    ARG1,
-    ARG2,
-    ARG3,
-    ARG4,
-    ARG5,
-    ARG6,
-    ARG7,
-    ARG8,
-    ARG9,
-    SYNC
+
+
+enum QueueLevel {
+   STATIC_INIT,                         // static initializer or called therefrom
+   INIT,                                // constructor or called therefrom
+   NORMAL                               // normal method
+};
+
+
+
+enum ErrorLevel {
+   NOTE,                                // implied annotations, etc.
+   WARNING,                             // possible errors
+   ERROR                                // definite errors
 }
-
-
 
 
 /********************************************************************************/
 /*                                                                              */
-/*      Logging constants                                                       */
+/*      Operators                                                               */
 /*                                                                              */
 /********************************************************************************/
 
-enum LogLevel {
-   NONE,
-   ERROR,
-   WARNING,
-   INFO,
-   DEBUG
+enum FaitOperator {
+   MUL, DIV, MOD, ADD, SUB, LSH, RSH, RSHU, LSS, GTR, LEQ, GEQ, EQL, NEQ,
+   XOR, AND, OR, POSTINCR, POSTDECR, INCR, DECR, COMP, NEG, NOP, NOT,
+   ASG, ASG_ADD, ASG_SUB, ASG_MUL, ASG_DIV, ASG_AND, ASG_OR, ASG_XOR, ASG_MOD,
+   ASG_LSH, ASG_RSH, ASG_RSHU, SIG, INSTANCEOF, I2B, I2C, I2S, I2L,
+   TOFLOAT, TOINT, TOBYTE, TOCHAR, TOSHORT, TOLONG, TODOUBLE, COMPARE,
+   EQL_ZERO, NEQ_ZERO, GEQ_ZERO, GTR_ZERO, LEQ_ZERO, LSS_ZERO, NULL, NONNULL,
+   // special operators for subtype consideration
+   DEREFERENCE, STARTINIT, DONEINIT,
 }
+
+
+
+String INITER_NAME = "$$$$clinit$$$$";
+String TESTER_NAME = "$$$$test$$$$";
 
 
 

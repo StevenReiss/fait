@@ -36,14 +36,32 @@
 package edu.brown.cs.fait.flow;
 
 import edu.brown.cs.fait.iface.*;
-import edu.brown.cs.ivy.jcode.JcodeInstruction;
-import edu.brown.cs.ivy.jcode.JcodeMethod;
 
 import java.util.*;
 
 
-class FlowQueueInstance implements FlowConstants
+abstract class FlowQueueInstance implements FlowConstants
 {
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Factory methods                                                         */
+/*                                                                              */
+/********************************************************************************/
+
+static FlowQueueInstance createInstance(FlowQueue fq,IfaceCall cm,QueueLevel lvl)
+{
+   IfaceMethod sym = cm.getMethod();
+   if (sym.isEditable()) {
+      return new FlowQueueInstanceAst(fq,cm,lvl);
+    }
+   else {
+      return new FlowQueueInstanceByteCode(fq,cm,lvl);
+    }
+}
+
 
 
 /********************************************************************************/
@@ -52,9 +70,10 @@ class FlowQueueInstance implements FlowConstants
 /*                                                                              */
 /********************************************************************************/
 
-private LinkedList<JcodeInstruction>      work_list;
-private IfaceCall                        for_call;
-private Map<JcodeInstruction,IfaceState>  state_map;
+private FlowQueue                          work_queue;
+private LinkedList<IfaceProgramPoint>      work_list;
+private IfaceCall                          for_call;
+private Map<IfaceProgramPoint,IfaceState>  state_map;
 
 
 /********************************************************************************/
@@ -63,11 +82,12 @@ private Map<JcodeInstruction,IfaceState>  state_map;
 /*                                                                              */
 /********************************************************************************/
 
-FlowQueueInstance(IfaceCall fc)
+protected FlowQueueInstance(FlowQueue fq,IfaceCall fc,QueueLevel lvl)
 {
    for_call = fc;
-   work_list = new LinkedList<JcodeInstruction>();
-   state_map = new HashMap<JcodeInstruction,IfaceState>();
+   work_queue = fq;
+   work_list = new LinkedList<>();
+   state_map = new HashMap<>();
 }
 
 
@@ -79,14 +99,14 @@ FlowQueueInstance(IfaceCall fc)
 
 IfaceCall getCall()                             { return for_call; }
 boolean isEmpty()                               { return work_list.isEmpty(); }
-IfaceState getState(JcodeInstruction fi)         { return state_map.get(fi); }
+IfaceControl getControl()                       { return for_call.getControl(); }
+FlowQueue getWorkQueue()                        { return work_queue; }
 
-JcodeInstruction getInstruction(int ino)
+
+IfaceState getState(IfaceProgramPoint fi)        
 {
-   JcodeMethod fm = for_call.getMethod();
-   return fm.getInstruction(ino);
+   return state_map.get(fi); 
 }
-
 
 
 /********************************************************************************/
@@ -95,17 +115,22 @@ JcodeInstruction getInstruction(int ino)
 /*                                                                              */
 /********************************************************************************/
 
-JcodeInstruction getNext()
+IfaceProgramPoint getNext()
 {
    if (work_list.isEmpty()) return null;
    return work_list.removeFirst();
 }
 
-
-void mergeState(IfaceState st,JcodeInstruction ins)
+void mergeState(IfaceState st)
 {
-   if (st == null) return;
-   if (ins == null) ins = for_call.getMethod().getInstruction(0);
+   mergeState(st,getCall().getMethod().getStart());
+}
+
+
+
+void mergeState(IfaceState st,IfaceProgramPoint ins)          
+{
+   if (st == null || ins == null) return;
    
    IfaceState ost = state_map.get(ins);
    if (ost == null) ost = st.cloneState();
@@ -116,12 +141,27 @@ void mergeState(IfaceState st,JcodeInstruction ins)
    state_map.put(ins,ost);
    work_list.addFirst(ins);
 }
-   
 
-void lookAt(JcodeInstruction ins)
+
+
+
+void lookAt(IfaceProgramPoint ins)
 {
    if (ins != null && getState(ins) != null) work_list.addLast(ins);
 }
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Scanning methods                                                        */
+/*                                                                              */
+/********************************************************************************/
+
+abstract void scanCode(IfaceControl ctrl,FlowQueue fq);
+
+abstract void handleThrow(IfaceLocation loc,IfaceValue v0,IfaceState st0);
+
 
 
 

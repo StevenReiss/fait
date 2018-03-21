@@ -36,9 +36,10 @@
 package edu.brown.cs.fait.value;
 
 import edu.brown.cs.fait.iface.*;
-import edu.brown.cs.ivy.jcode.JcodeDataType;
+import edu.brown.cs.fait.type.CheckNullness;
 
 import java.util.*;
+
 
 
 abstract class ValueBase implements IfaceValue, ValueConstants
@@ -51,7 +52,7 @@ abstract class ValueBase implements IfaceValue, ValueConstants
 /*										*/
 /********************************************************************************/
 
-private JcodeDataType	data_type;
+private IfaceType	data_type;
 private IfaceEntitySet	entity_set;
 protected ValueFactory	value_factory;
 
@@ -64,7 +65,7 @@ protected ValueFactory	value_factory;
 /*										*/
 /********************************************************************************/
 
-protected ValueBase(ValueFactory vf,JcodeDataType dt,IfaceEntitySet eset)
+protected ValueBase(ValueFactory vf,IfaceType dt,IfaceEntitySet eset)
 {
    value_factory = vf;
    data_type = dt;
@@ -79,7 +80,7 @@ protected ValueBase(ValueFactory vf,JcodeDataType dt,IfaceEntitySet eset)
 /*										*/
 /********************************************************************************/
 
-@Override public JcodeDataType getDataType()		{ return data_type; }
+@Override public IfaceType getDataType()		{ return data_type; }
 
 protected IfaceEntitySet getEntitySet() 		{ return entity_set; }
 
@@ -94,23 +95,20 @@ protected IfaceEntitySet getEntitySet() 		{ return entity_set; }
 
 @Override public boolean canBeNull()
 {
-   return getNullFlags().canBeNull();
+   return !data_type.checkValue(CheckNullness.NullState.NON_NULL);
 }
 
 
 @Override public boolean mustBeNull()
 {
-   return getNullFlags().mustBeNull();
+   return data_type.checkValue(CheckNullness.NullState.MUST_BE_NULL);
 }
 
 
-@Override public boolean testForNull()
-{
-   return getNullFlags().testForNull();
-}
 
 
-NullFlags getNullFlags()		      { return NullFlags.NON_NULL; }
+
+
 
 
 @Override public boolean isEmptyEntitySet()
@@ -130,7 +128,7 @@ NullFlags getNullFlags()		      { return NullFlags.NON_NULL; }
 }
 
 
-@Override public boolean containsEntity(FaitEntity src)
+@Override public boolean containsEntity(IfaceEntity src)
 {
    if (entity_set == null) return false;
    return entity_set.contains(src);
@@ -145,7 +143,7 @@ NullFlags getNullFlags()		      { return NullFlags.NON_NULL; }
 
 
 
-FaitControl getFaitControl()
+IfaceControl getFaitControl()
 {
    return value_factory.getFaitControl();
 }
@@ -162,21 +160,22 @@ FaitControl getFaitControl()
 @Override abstract public IfaceValue mergeValue(IfaceValue v);
 
 @Override public ValueBase forceNonNull()		{ return this; }
+@Override public IfaceValue forceInitialized(FaitAnnotation what)
+{
+   IfaceType t0 = getDataType().getAnnotatedType(what);
+   if (t0 == getDataType()) return this;
+   
+   return restrictByType(t0);
+}
 @Override public ValueBase allowNull()			{ return this; }
-@Override public ValueBase setTestNull()		{ return this; }
 
 
-@Override public IfaceValue restrictByType(JcodeDataType dt,boolean proj,FaitLocation src)
-{
-   return this;
-}
 
-@Override public IfaceValue removeByType(JcodeDataType dt,FaitLocation src)
-{
-   return this;
-}
 
-@Override public IfaceValue makeSubtype(JcodeDataType dt)
+
+
+
+@Override public IfaceValue makeSubtype(IfaceType dt)
 {
    return this;
 }
@@ -201,12 +200,24 @@ abstract protected IfaceValue newEntityValue(IfaceEntitySet es);
 /*										*/
 /********************************************************************************/
 
-@Override public IfaceValue performOperation(JcodeDataType dt,IfaceValue rhs,int op,FaitLocation loc)
+@Override public final IfaceValue performOperation(IfaceType dt,IfaceValue rhs,FaitOperator op,IfaceLocation loc)
+{
+   IfaceValue iv = localPerformOperation(dt,rhs,op,loc);
+   return iv;
+}
+
+
+protected IfaceValue localPerformOperation(IfaceType dt,IfaceValue rhs,FaitOperator op,IfaceLocation loc)
 {
    return value_factory.anyValue(dt);
 }
 
-@Override public TestBranch branchTest(IfaceValue rhs,int op)
+@Override public IfaceImplications getImpliedValues(IfaceValue rhs,FaitOperator op)
+{
+   return null;
+}
+
+@Override public TestBranch branchTest(IfaceValue rhs,FaitOperator op)
 {
    return TestBranch.ANY;
 }
@@ -219,9 +230,51 @@ abstract protected IfaceValue newEntityValue(IfaceEntitySet es);
 /*										*/
 /********************************************************************************/
 
-@Override public IfaceValue getArrayContents()				{ return null; }
+@Override public IfaceValue getArrayContents()		{ return null; }
+@Override public IfaceValue getArrayContents(IfaceValue idx) 
+{
+   return getArrayContents();
+}
+@Override public IfaceValue getArrayLength()
+{
+   IfaceType it = value_factory.getFaitControl().findDataType("int");
+   return value_factory.anyValue(it);
+}
+
 boolean markArrayNonNull()				{ return false; }
 boolean markArrayCanBeNull()				{ return false; }
+
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Reference access methods                                                */
+/*                                                                              */
+/********************************************************************************/
+
+@Override public boolean isReference()                  { return false; }
+@Override public int getRefSlot()                       { return -1; }
+@Override public IfaceValue getRefBase()                { return null; }
+@Override public IfaceField getRefField()               { return null; }
+@Override public IfaceValue getRefIndex()               { return null; }
+
+@Override public IfaceValue toFloating()                { return this; }
+@Override public Integer getIndexValue()                { return null; }
+
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Helper methods                                                          */
+/*                                                                              */
+/********************************************************************************/
+
+protected IfaceType findCommonParent(IfaceType t1,IfaceType t2)
+{
+   return value_factory.getFaitControl().findCommonParent(t1,t2);
+}
 
 
 
@@ -236,7 +289,7 @@ boolean markArrayCanBeNull()				{ return false; }
 {
    StringBuffer buf = new StringBuffer();
    buf.append("[");
-   buf.append(getDataType().getName());
+   buf.append(getDataType());
    buf.append("]");
    return buf.toString();
 }

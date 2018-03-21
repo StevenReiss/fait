@@ -36,7 +36,6 @@
 package edu.brown.cs.fait.value;
 
 import edu.brown.cs.fait.iface.*;
-import edu.brown.cs.ivy.jcode.JcodeDataType;
 
 
 class ValueBad extends ValueBase
@@ -49,7 +48,7 @@ class ValueBad extends ValueBase
 /*										*/
 /********************************************************************************/
 
-ValueBad(ValueFactory vf,JcodeDataType voidtype)
+ValueBad(ValueFactory vf,IfaceType voidtype)
 {
    super(vf,voidtype,null);
 }
@@ -63,6 +62,8 @@ ValueBad(ValueFactory vf,JcodeDataType voidtype)
 /********************************************************************************/
 
 @Override public IfaceValue mergeValue(IfaceValue cv)			{ return this; }
+
+@Override public IfaceValue restrictByType(IfaceType dt)                { return this; }
 
 @Override protected IfaceValue newEntityValue(IfaceEntitySet es)	{ return this; }
 

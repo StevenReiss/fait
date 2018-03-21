@@ -50,7 +50,7 @@ class FlowProcessor implements FlowConstants
 /*										*/
 /********************************************************************************/
 
-private FaitControl	fait_control;
+private IfaceControl	fait_control;
 private List<Worker>	worker_threads;
 private FlowQueue	flow_queue;
 
@@ -63,7 +63,7 @@ private FlowQueue	flow_queue;
 /*										*/
 /********************************************************************************/
 
-FlowProcessor(int nthread,FaitControl fc,FlowQueue q)
+FlowProcessor(int nthread,IfaceControl fc,FlowQueue q)
 {
    flow_queue = q;
    fait_control = fc;
@@ -93,11 +93,20 @@ void process()
       try {
 	 w.join();
        }
-      catch (InterruptedException e) { }
+      catch (InterruptedException e) {
+         if (Thread.currentThread().isInterrupted()) interruptWorkers();
+       }
     }
 }
 
 
+
+void interruptWorkers()
+{
+   for (Worker w : worker_threads) {
+      w.interrupt();
+    }
+}
 
 
 
@@ -118,19 +127,19 @@ private class Worker extends Thread implements IfaceWorkerThread {
     }
 
    @Override public void run() {
-      FlowScanner scan = new FlowScanner(fait_control,flow_queue);
       for ( ; ; ) {
          FlowQueueInstance fqi = flow_queue.setupNextFlowQueue();
          if (fqi == null) break;
          try {
-            scan.scanCode(fqi);
+            fqi.scanCode(fait_control,flow_queue);
           }
          catch (Throwable t) {
-            IfaceLog.logE("Problem processing instruction: " + t,t);
+            FaitLog.logE("Problem processing instruction: " + t,t);
           }
    
          //TODO: while checkExceptions(fqi) scan.scanCode(fqi)
          flow_queue.doneWithFlowQueue(fqi);
+         if (isInterrupted()) break;
        }
     }
 

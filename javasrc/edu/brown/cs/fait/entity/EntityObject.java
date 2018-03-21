@@ -36,8 +36,6 @@
 package edu.brown.cs.fait.entity;
 
 import edu.brown.cs.fait.iface.*;
-import edu.brown.cs.ivy.jcode.JcodeDataType;
-import edu.brown.cs.ivy.jcode.JcodeField;
 
 import java.util.*;
 
@@ -52,8 +50,8 @@ abstract class EntityObject extends EntityBase
 /*										*/
 /********************************************************************************/
 
-private JcodeDataType	data_type;
-private Map<JcodeField,IfaceValue> field_map;
+private IfaceType	data_type;
+private Map<String,IfaceValue> field_map;
 
 private boolean 	array_nonnull;
 private boolean 	array_canbenull;
@@ -66,10 +64,10 @@ private IfaceValue	array_value;
 /*										*/
 /********************************************************************************/
 
-protected EntityObject(JcodeDataType dt)
+protected EntityObject(IfaceType dt)
 {
    data_type = dt;
-   field_map = new HashMap<JcodeField,IfaceValue>(4);
+   field_map = new HashMap<>(4);
    array_value = null;
    array_nonnull = false;
    array_canbenull = false;
@@ -83,7 +81,7 @@ protected EntityObject(JcodeDataType dt)
 /*										*/
 /********************************************************************************/
 
-@Override public JcodeDataType getDataType()		{ return data_type; }
+@Override public IfaceType getDataType()		{ return data_type; }
 
 
 
@@ -93,31 +91,31 @@ protected EntityObject(JcodeDataType dt)
 /*										*/
 /********************************************************************************/
 
-@Override public void setFieldContents(IfaceValue fv,JcodeField fld)
+@Override public void setFieldContents(IfaceValue fv,String key)
 {
    synchronized (field_map) {
-      field_map.put(fld,fv);
+      field_map.put(key,fv);
     }
 }
 
 
-@Override public boolean addToFieldContents(IfaceValue fv,JcodeField fld)
+@Override public boolean addToFieldContents(IfaceValue fv,String key)
 {
    if (fv == null) return false;
-
+   
    synchronized (field_map) {
-      IfaceValue v1 = field_map.get(fld);
+      IfaceValue v1 = field_map.get(key);
       IfaceValue v2 = fv.mergeValue(v1);
       if (v1 == v2) return false;
-
-      field_map.put(fld,v2);
+      
+      field_map.put(key,v2);
     }
-
+   
    return true;
 }
 
 
-@Override public FaitValue getFieldValue(JcodeField fld)
+@Override public IfaceValue getFieldValue(String fld)
 {
    synchronized (field_map) {
       return field_map.get(fld);
@@ -128,7 +126,7 @@ protected EntityObject(JcodeDataType dt)
 
 protected void copyFields(EntityObject toobj)
 {
-   for (Map.Entry<JcodeField,IfaceValue> ent : field_map.entrySet()) {
+   for (Map.Entry<String,IfaceValue> ent : field_map.entrySet()) {
       toobj.setFieldContents(ent.getValue(),ent.getKey());
     }
 }
@@ -148,7 +146,7 @@ protected void copyFields(EntityObject toobj)
 
 
 
-@Override public synchronized boolean addToArrayContents(IfaceValue fv,IfaceValue idx,FaitLocation loc)
+@Override public synchronized boolean addToArrayContents(IfaceValue fv,IfaceValue idx,IfaceLocation loc)
 {
    if (fv == null) return false;
    fv = fv.mergeValue(array_value);
@@ -159,7 +157,7 @@ protected void copyFields(EntityObject toobj)
 
 
 
-@Override public FaitValue getArrayValue(IfaceValue idx,FaitControl fc)
+@Override public IfaceValue getArrayValue(IfaceValue idx,IfaceControl ctl)
 {
    if (array_nonnull && !array_canbenull && array_value != null)
       return array_value.forceNonNull();

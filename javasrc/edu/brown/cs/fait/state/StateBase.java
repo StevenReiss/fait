@@ -36,9 +36,6 @@
 package edu.brown.cs.fait.state;
 
 import edu.brown.cs.fait.iface.*;
-import edu.brown.cs.ivy.jcode.JcodeDataType;
-import edu.brown.cs.ivy.jcode.JcodeField;
-import edu.brown.cs.ivy.jcode.JcodeInstruction;
 
 import java.util.*;
 
@@ -58,10 +55,10 @@ class StateBase implements StateConstants, IfaceState
 private IfaceValue []		local_values;
 private Stack<IfaceValue>	stack_values;
 
-private Map<JcodeField,IfaceValue>	field_map;
+private Map<IfaceField,IfaceValue> field_map;
 
-private Stack<JcodeInstruction>	return_stack;
-private List<StateBase> 	state_set;
+private Stack<IfaceProgramPoint> return_stack;
+private List<StateBase>         state_set;
 
 
 
@@ -76,8 +73,8 @@ private List<StateBase> 	state_set;
 StateBase(int numlocal)
 {
    local_values = new IfaceValue[numlocal];
-   stack_values = new Stack<IfaceValue>();
-   field_map = new HashMap<JcodeField,IfaceValue>(4);
+   stack_values = new Stack<>();
+   field_map = new HashMap<>(4);
    state_set = null;
    return_stack = null;
 
@@ -110,7 +107,7 @@ StateBase(int numlocal)
 
    ns.state_set = null;
 
-   ns.field_map = new HashMap<JcodeField,IfaceValue>(field_map);
+   ns.field_map = new HashMap<>(field_map);
 
    return ns;
 }
@@ -211,7 +208,12 @@ StateBase(int numlocal)
 /*										*/
 /********************************************************************************/
 
-@Override public IfaceValue getLocal(int idx)		{ return local_values[idx]; }
+@Override public IfaceValue getLocal(int idx)		
+{ 
+   if (idx < 0 || idx >= local_values.length) return null;
+   
+   return local_values[idx];
+}
 
 @Override public void setLocal(int idx,IfaceValue v)	{ local_values[idx] = v; }
 
@@ -232,17 +234,16 @@ StateBase(int numlocal)
 /*										*/
 /********************************************************************************/
 
-@Override public IfaceValue getFieldValue(JcodeField fld)
+@Override public IfaceValue getFieldValue(IfaceField nm)
 {
-   return field_map.get(fld);
+   return field_map.get(nm);
 }
 
 
-
-@Override public void setFieldValue(JcodeField fld,IfaceValue v)
+@Override public void setFieldValue(IfaceField fld,IfaceValue v)
 {
-   if (fld.isVolatile() || v == null) return;
-
+   if ( v == null) return;
+   
    field_map.put(fld,v);
 }
 
@@ -252,7 +253,7 @@ StateBase(int numlocal)
 
 
 
-@Override public Iterable<JcodeField> getKnownFields()
+@Override public Collection<IfaceField> getKnownFields()
 {
    return field_map.keySet();
 }
@@ -277,7 +278,7 @@ StateBase(int numlocal)
 /*										*/
 /********************************************************************************/
 
-@Override public void pushReturn(JcodeInstruction ins)
+@Override public void pushReturn(IfaceProgramPoint ins)
 {
    if (return_stack == null) return_stack = new Stack<>();
    return_stack.push(ins);
@@ -285,11 +286,11 @@ StateBase(int numlocal)
 
 
 
-@Override public JcodeInstruction popReturn()
+@Override public IfaceProgramPoint popReturn()
 {
    if (return_stack == null) return null;
 
-   JcodeInstruction v = return_stack.pop();
+   IfaceProgramPoint v = return_stack.pop();
    if (return_stack.empty()) return_stack = null;
 
    return v;
@@ -411,9 +412,9 @@ private boolean checkMergeWithState(StateBase cs)
        }
     }
 
-   for (Iterator<Map.Entry<JcodeField,IfaceValue>> it = field_map.entrySet().iterator(); it.hasNext(); ) {
-      Map.Entry<JcodeField,IfaceValue> ent = it.next();
-      JcodeField fld = ent.getKey();
+   for (Iterator<Map.Entry<IfaceField,IfaceValue>> it = field_map.entrySet().iterator(); it.hasNext(); ) {
+      Map.Entry<IfaceField,IfaceValue> ent = it.next();
+      IfaceField fld = ent.getKey();
       IfaceValue val = ent.getValue();
       IfaceValue nval = cs.getFieldValue(fld);
       if (nval == null) {
@@ -440,9 +441,9 @@ private boolean checkMergeWithState(StateBase cs)
 /*										*/
 /********************************************************************************/
 
-@Override public void startInitialization(JcodeDataType dt)	{ }
+@Override public void startInitialization(IfaceType dt)	{ }
 
-@Override public boolean testDoingInitialization(JcodeDataType dt)	{ return false; }
+@Override public boolean testDoingInitialization(IfaceType dt)	{ return false; }
 @Override public boolean addInitializations(IfaceState s)	{ return false; }
 
 
@@ -454,7 +455,27 @@ private boolean checkMergeWithState(StateBase cs)
 /********************************************************************************/
 
 @Override public void handleUpdate(IfaceUpdater upd)
-{ }
+{ 
+   for (int i = 0; i < local_values.length; ++i) {
+      IfaceValue nvl = upd.getNewValue(local_values[i]);
+      if (nvl != null) local_values[i] = nvl;
+    }
+   for (int i = 0; i < stack_values.size(); ++i) {
+      IfaceValue ovl = stack_values.get(i);
+      IfaceValue nvl = upd.getNewValue(ovl);
+      if (nvl != null && nvl != ovl) stack_values.set(i,nvl);
+    }
+   for (Map.Entry<IfaceField,IfaceValue> ent : field_map.entrySet()) {
+      IfaceValue ovl = ent.getValue();
+      IfaceValue nvl = upd.getNewValue(ovl);
+      if (nvl != null && nvl != ovl) ent.setValue(nvl);
+    }
+   if (state_set != null) {
+      for (StateBase sb : state_set) {
+         sb.handleUpdate(upd);
+       }
+    }
+}
 
 
 

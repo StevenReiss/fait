@@ -39,11 +39,11 @@ package edu.brown.cs.fait.control;
 import edu.brown.cs.fait.iface.*;
 import edu.brown.cs.fait.entity.*;
 import edu.brown.cs.fait.value.*;
-import edu.brown.cs.ivy.jcode.JcodeDataType;
-import edu.brown.cs.ivy.jcode.JcodeFactory;
-import edu.brown.cs.ivy.jcode.JcodeField;
-import edu.brown.cs.ivy.jcode.JcodeMethod;
+import edu.brown.cs.ivy.jcode.JcodeInstruction;
+import edu.brown.cs.ivy.jcomp.JcompType;
+import edu.brown.cs.ivy.jcomp.JcompTyper;
 import edu.brown.cs.fait.state.*;
+import edu.brown.cs.fait.type.TypeFactory;
 import edu.brown.cs.fait.proto.*;
 import edu.brown.cs.fait.call.*;
 import edu.brown.cs.fait.flow.*;
@@ -51,8 +51,10 @@ import edu.brown.cs.fait.flow.*;
 import java.io.File;
 import java.util.*;
 
+import org.eclipse.jdt.core.dom.ASTNode;
 
-public class ControlMain implements FaitControl {
+
+public class ControlMain implements IfaceControl {
 
 
 
@@ -63,14 +65,17 @@ public class ControlMain implements FaitControl {
 /*										*/
 /********************************************************************************/
 
-private JcodeFactory	bcode_factory;
+private ControlByteCodeFactory bytecode_factory;
+private ControlAstFactory ast_factory;
 private EntityFactory	entity_factory;
 private ValueFactory	value_factory;
 private StateFactory	state_factory;
 private ProtoFactory	proto_factory;
 private CallFactory	call_factory;
 private FlowFactory	flow_factory;
-private FaitProject	user_project;
+private IfaceProject	user_project;
+private TypeFactory     type_factory;
+private Map<String,IfaceType> basic_types;
 
 
 
@@ -80,38 +85,39 @@ private FaitProject	user_project;
 /*										*/
 /********************************************************************************/
 
-public ControlMain()
+public ControlMain(IfaceProject ip)
 {
-   bcode_factory = new JcodeFactory(10);
+   basic_types = new HashMap<>();
+   
+   bytecode_factory = new ControlByteCodeFactory(this,ip.getJcodeFactory());
+   ast_factory = new ControlAstFactory(this,ip.getTyper());
+   
+   type_factory = new TypeFactory(this);
    entity_factory = new EntityFactory(this);
    value_factory = new ValueFactory(this);
    state_factory = new StateFactory(this);
    proto_factory = new ProtoFactory(this);
    call_factory = new CallFactory(this);
    flow_factory = new FlowFactory(this);
-   user_project = null;
-}
-
-
-
-/********************************************************************************/
-/*										*/
-/*	Setup methods								*/
-/*										*/
-/********************************************************************************/
-
-@Override public void setProject(FaitProject fp)
-{
-   user_project = fp;
+   
+   user_project = ip;
+   
    call_factory.addSpecialFile(getDescriptionFile());
-   if (fp.getDescriptionFile() != null) {
-      for (File ff : fp.getDescriptionFile()) {
-	 call_factory.addSpecialFile(ff);
+   if (ip.getDescriptionFiles() != null) {
+      for (File ff : ip.getDescriptionFiles()) {
+         call_factory.addSpecialFile(ff);
        }
     }
 }
 
 
+
+
+/********************************************************************************/
+/*										*/
+/*	Access methods 							*/
+/*										*/
+/********************************************************************************/
 
 @Override public File getDescriptionFile()
 {
@@ -126,66 +132,151 @@ public ControlMain()
 /*										*/
 /********************************************************************************/
 
-@Override public JcodeDataType findDataType(String cls)
+IfaceBaseType findJavaType(String cls)
 {
-   return bcode_factory.findNamedType(cls);
+   return ast_factory.getType(cls);
 }
 
 
-@Override public JcodeDataType findClassType(String cls)
+@Override public IfaceType findDataType(String cls)
 {
-   return bcode_factory.findNamedType(cls);
+   IfaceType rt = basic_types.get(cls);
+   if (rt != null) return rt;
+   return findDataType(cls,(IfaceAnnotation []) null);
 }
 
 
-@Override public JcodeMethod findMethod(String cls,String method,String sign)
+@Override public IfaceType findDataType(String cls,List<IfaceAnnotation> an)
 {
-   return bcode_factory.findMethod(null,cls,method,sign);
+   if (an == null) {
+      IfaceType rt = basic_types.get(cls);
+      if (rt == null) {
+         rt = type_factory.createType(findJavaType(cls),an);
+         basic_types.put(cls,rt);
+       }
+      return rt;
+    }
+   
+   return type_factory.createType(findJavaType(cls),an);
 }
 
 
-@Override public Iterable<JcodeMethod> findAllMethods(JcodeDataType dt,String mthd,String sgn)
+@Override public IfaceType findDataType(String cls,IfaceAnnotation ... ans)
 {
-   return bcode_factory.findAllMethods(dt,mthd,sgn);
-}
-
-@Override public JcodeMethod findInheritedMethod(String cls,String nm,String sgn)
-{
-   return bcode_factory.findInheritedMethod(cls,nm,sgn);
+   return type_factory.createType(findJavaType(cls),ans);
 }
 
 
-@Override public List<JcodeMethod> findStaticInitializers(String cls)
+@Override public IfaceType findConstantType(String cls,Object cnst)
 {
-   return bcode_factory.findStaticInitializers(cls);
+   return type_factory.createConstantType(findJavaType(cls),cnst);
 }
 
-@Override public JcodeField findField(String cls,String fld)
+
+@Override public IfaceType findConstantType(IfaceType t,Object cnst)
 {
-   return bcode_factory.findField(null,cls,fld);
+   return type_factory.createConstantType(t.getJavaType(),cnst);
 }
 
 
 
-public Collection<JcodeMethod> getStartMethods()
+
+
+
+
+
+IfaceType findDataType(IfaceBaseType bt,List<IfaceAnnotation> ans)
+{
+   return type_factory.createType(bt,ans);
+}
+
+
+@Override public IfaceMethod findMethod(String cls,String method,String sign)
+{
+   IfaceBaseType ctyp = findJavaType(cls);
+   if (ctyp.isEditable()) {
+      return ast_factory.findMethod(ctyp,method,sign);
+    }
+   else {
+      return bytecode_factory.findMethod(ctyp,method,sign);
+    }
+}
+
+public List<IfaceMethod> findAllMethods(IfaceBaseType typ,String name)
+{
+   if (typ.isEditable()) {
+      return ast_factory.findAllMethods(typ,name);
+    }
+   else {
+      return bytecode_factory.findAllMethods(typ,name);
+    }
+}
+
+
+@Override public List<IfaceMethod> findAllMethods(IfaceType typ,String name)
+{
+   return findAllMethods(typ.getJavaType(),name);
+}
+
+
+@Override public IfaceMethod findInheritedMethod(IfaceType cls,String nm,String sgn)
+{
+   IfaceMethod m = findMethod(cls.getName(),nm,sgn);
+   if (m != null) return m;
+   for (IfaceType ityp : cls.getInterfaces()) {
+      m = findInheritedMethod(ityp,nm,sgn);
+      if (m != null) return m;
+    }
+   return null;
+}
+
+
+@Override public IfaceField findField(IfaceType typ,String fld)
+{
+   if (typ.isEditable()) {
+      return ast_factory.findField(typ.getJavaType(),fld);
+    }
+   else {
+      int idx = fld.lastIndexOf(".");
+      if (idx > 0) fld = fld.substring(idx+1);
+      return bytecode_factory.findField(typ,fld);
+    }
+}
+
+
+
+public Collection<IfaceMethod> getStartMethods()
 {
    if (user_project == null) return null;
+   Collection<IfaceMethod> rslt = new HashSet<>();
    
-   Collection<String> snames = user_project.getStartClasses();
-   if (snames == null) snames = user_project.getBaseClasses();
-   
-   Collection<JcodeMethod> rslt = new HashSet<>();
-   
-   for (String s : snames) {
-      JcodeMethod jm = findMethod(s,"main","([Ljava/lang/String;)V");
-      if (jm != null) rslt.add(jm);      
+   JcompTyper typer = user_project.getTyper();
+   for (JcompType jt : typer.getAllTypes()) {
+      if (jt.isPrimitiveType()) continue;
+      if (jt.isErrorType()) continue;
+      if (jt.isAnnotationType()) continue;
+      IfaceBaseType it = ast_factory.getType(jt);
+      for (IfaceMethod im : findAllMethods(it,"main")) {
+         checkStartMethod(im,rslt);
+       }
+      for (IfaceMethod im : findAllMethods(it,TESTER_NAME)) {
+         checkStartMethod(im,rslt);
+       }
     }
    
    return rslt;
 }
 
-// FaitInstruction findCall(JcodeMethod fm,int line,String rtn,int idx);
-// FaitInstruction findNew(JcodeMethod fm,int line,String type,int idx);
+
+private void checkStartMethod(IfaceMethod im,Collection<IfaceMethod> rslt)
+{
+   if (!im.isStatic()) return;
+   if (im.isStaticInitializer()) return;
+   if (im.isConstructor()) return;
+   // might want additional checks, e.g. public, main args, ...
+   
+   rslt.add(im);
+}
 
 
 
@@ -195,24 +286,18 @@ public Collection<JcodeMethod> getStartMethods()
 /*										*/
 /********************************************************************************/
 
-@Override public IfaceEntity findAllocEntity(FaitLocation loc,JcodeDataType typ,boolean uniq)
-{
-   return entity_factory.createLocalEntity(loc,typ,uniq);
-}
-
-
-@Override public FaitEntity.UserEntity findUserEntity(String id,FaitLocation loc)
+@Override public IfaceEntity.UserEntity findUserEntity(String id,IfaceLocation loc)
 {
    return entity_factory.createUserEntity(id,loc);
 }
 
-@Override public IfaceEntity findFixedEntity(JcodeDataType typ)
+@Override public IfaceEntity findFixedEntity(IfaceType typ)
 {
    return entity_factory.createFixedEntity(typ);
 }
 
 
-@Override public IfaceEntity findMutableEntity(JcodeDataType typ)
+@Override public IfaceEntity findMutableEntity(IfaceType typ)
 {
    return entity_factory.createMutableEntity(typ);
 }
@@ -224,26 +309,37 @@ public Collection<JcodeMethod> getStartMethods()
 }
 
 
-@Override public IfaceEntity findArrayEntity(JcodeDataType base,IfaceValue size)
+@Override public IfaceEntity findArrayEntity(IfaceType base,IfaceValue size)
 {
    return entity_factory.createArrayEntity(this,base,size);
 }
 
 
-@Override public IfaceEntity findPrototypeEntity(JcodeDataType base,
-      IfacePrototype from,FaitLocation src)
+@Override public IfaceEntity findPrototypeEntity(IfaceType base,
+      IfacePrototype from,IfaceLocation src)
 {
    return entity_factory.createPrototypeEntity(this,base,from,src);
 }
 
 
-@Override public IfaceEntity findLocalEntity(FaitLocation loc,JcodeDataType dt,boolean uniq)
+@Override public IfaceEntity findLocalEntity(IfaceLocation loc,IfaceType dt)
 {
-   return entity_factory.createLocalEntity(loc,dt,uniq);
+   return entity_factory.createLocalEntity(loc,dt);
 }
 
-// IfaceEntity findParameterEntity(JcodeMethod mthd,int idx);
-// IfaceEntity findReturnEntity(JcodeMethod method);
+
+@Override public IfaceEntity findFunctionRefEntity(IfaceLocation loc,IfaceType dt,String method) 
+{
+   return entity_factory.createFunctionRefEntity(loc,dt,method);
+}
+
+
+@Override public IfaceEntity findFunctionRefEntity(IfaceLocation loc,IfaceType dt,
+      Map<Object,IfaceValue> bindings) 
+{
+   return entity_factory.createFunctionRefEntity(loc,dt,bindings);
+}
+
 
 
 
@@ -259,11 +355,16 @@ public Collection<JcodeMethod> getStartMethods()
 }
 
 
-@Override public IfaceEntitySet createSingletonSet(FaitEntity fe)
+@Override public IfaceEntitySet createSingletonSet(IfaceEntity fe)
 {
    return entity_factory.createSingletonSet(fe);
 }
 
+
+void updateEntitySets(IfaceUpdater upd)
+{
+   entity_factory.handleEntitySetUpdates(upd);
+}
 
 
 
@@ -280,16 +381,16 @@ public Collection<JcodeMethod> getStartMethods()
 
 
 
-@Override public IfaceValue getFieldValue(IfaceState st,JcodeField fld,IfaceValue base,boolean thisref,
-					     FaitLocation src)
+@Override public IfaceValue getFieldValue(IfaceState st,IfaceField fld,IfaceValue base,boolean thisref,
+					     IfaceLocation src)
 {
    return state_factory.getFieldValue(st,fld,base,thisref,src);
 }
 
 
 
-@Override public boolean setFieldValue(IfaceState st,JcodeField fld,IfaceValue v,
-					  IfaceValue base,boolean thisref,FaitLocation src)
+@Override public boolean setFieldValue(IfaceState st,IfaceField fld,IfaceValue v,
+					  IfaceValue base,boolean thisref,IfaceLocation src)
 {
    return state_factory.setFieldValue(st,fld,v,base,thisref,src);
 }
@@ -303,28 +404,18 @@ public Collection<JcodeMethod> getStartMethods()
 /*										*/
 /********************************************************************************/
 
-@Override public IfacePrototype createPrototype(JcodeDataType typ)
+@Override public IfacePrototype createPrototype(IfaceType typ)
 {
    return proto_factory.createPrototype(typ);
 }
 
-@Override public IfaceCall findPrototypeMethod(JcodeMethod fm)
+@Override public IfaceCall findPrototypeMethod(IfaceProgramPoint pt,IfaceMethod fm)
 {
-   return call_factory.findPrototypeMethod(fm);
+   return call_factory.findPrototypeMethod(pt,fm);
 }
 
 
 
-
-/********************************************************************************/
-/*										*/
-/*	Data access methods							*/
-/*										*/
-/********************************************************************************/
-
-// Collection<FaitInstruction> getAllUses(FaitEntity src);
-// Collection<FaitInstruction> getAllUses(JcodeMethod mthd);
-// FaitValue getValueAtInstruction(FaitInstruction ins,int idx);
 
 
 
@@ -334,25 +425,31 @@ public Collection<JcodeMethod> getStartMethods()
 /*										*/
 /********************************************************************************/
 
-@Override public IfaceValue findAnyValue(JcodeDataType typ)
+@Override public IfaceValue findAnyValue(IfaceType typ)
 {
    return value_factory.anyValue(typ);
 }
 
 
-@Override public IfaceValue findRangeValue(JcodeDataType typ,long v0,long v1)
+@Override public IfaceValue findRangeValue(IfaceType typ,long v0,long v1)
 {
    return value_factory.rangeValue(typ,v0,v1);
 }
 
 
-@Override public IfaceValue findObjectValue(JcodeDataType typ,IfaceEntitySet ss,NullFlags fgs)
+@Override public IfaceValue findRangeValue(IfaceType typ,double v0,double v1)
+{
+   return value_factory.rangeValue(typ,v0,v1);
+}
+
+
+@Override public IfaceValue findObjectValue(IfaceType typ,IfaceEntitySet ss,IfaceAnnotation ... fgs)
 {
    return value_factory.objectValue(typ,ss,fgs);
 }
 
 
-@Override public IfaceValue findEmptyValue(JcodeDataType typ,NullFlags fgs)
+@Override public IfaceValue findEmptyValue(IfaceType typ,IfaceAnnotation ... fgs)
 {
    return value_factory.emptyValue(typ,fgs);
 }
@@ -384,7 +481,7 @@ public Collection<JcodeMethod> getStartMethods()
 }
 
 
-@Override public IfaceValue findNullValue(JcodeDataType typ)
+@Override public IfaceValue findNullValue(IfaceType typ)
 {
    return value_factory.nullValue(typ);
 }
@@ -398,14 +495,14 @@ public Collection<JcodeMethod> getStartMethods()
 
 
 
-@Override public IfaceValue findNativeValue(JcodeDataType typ)
+@Override public IfaceValue findNativeValue(IfaceType typ)
 {
    return value_factory.nativeValue(typ);
 }
 
 
 
-@Override public IfaceValue findMutableValue(JcodeDataType typ)
+@Override public IfaceValue findMutableValue(IfaceType typ)
 {
    return value_factory.mutableValue(typ);
 }
@@ -424,9 +521,38 @@ public Collection<JcodeMethod> getStartMethods()
 }
 
 
-@Override public IfaceValue findInitialFieldValue(JcodeField fld,boolean isnative)
+@Override public IfaceValue findInitialFieldValue(IfaceField fld,boolean isnative)
 {
    return value_factory.initialFieldValue(fld,isnative);
+}
+
+
+@Override public IfaceValue findRefValue(IfaceType typ,IfaceValue base,IfaceField fld)
+{
+   return value_factory.refValue(typ,base,fld);
+}
+
+
+@Override public IfaceValue findRefValue(IfaceType typ,int slot)
+{
+   return value_factory.refValue(typ,slot);
+}
+
+
+@Override public IfaceValue findRefValue(IfaceType typ,IfaceValue base,IfaceValue idx)
+{
+   return value_factory.refValue(typ,base,idx);
+}
+
+@Override public IfaceValue findMarkerValue(IfaceProgramPoint pt,Object data)
+{
+   return value_factory.markerValue(pt,data);
+}
+
+
+void updateValues(IfaceUpdater upd)
+{
+   value_factory.handleUpdates(upd);
 }
 
 
@@ -437,25 +563,25 @@ public Collection<JcodeMethod> getStartMethods()
 /*										*/
 /********************************************************************************/
 
-@Override public IfaceSpecial getCallSpecial(JcodeMethod fm)
+@Override public IfaceSpecial getCallSpecial(IfaceProgramPoint pt,IfaceMethod fm)
 {
-   return call_factory.getSpecial(fm);
+   return call_factory.getSpecial(pt,fm);
 }
 
-@Override public FaitMethodData createMethodData(FaitCall fc)
+@Override public IfaceMethodData createMethodData(IfaceCall fc)
 {
    if (user_project == null) return null;
 
    return user_project.createMethodData(fc);
 }
 
-@Override public IfaceCall findCall(JcodeMethod fm,List<IfaceValue> args,InlineType inline)
+@Override public IfaceCall findCall(IfaceProgramPoint pt,IfaceMethod fm,List<IfaceValue> args,InlineType inline)
 {
-   return call_factory.findCall(fm,args,inline);
+   return call_factory.findCall(pt,fm,args,inline);
 }
 
 
-@Override public Collection<IfaceCall> getAllCalls(JcodeMethod fm)
+@Override public Collection<IfaceCall> getAllCalls(IfaceMethod fm)
 {
    return call_factory.getAllCalls(fm);
 }
@@ -467,6 +593,33 @@ public Collection<JcodeMethod> getStartMethods()
    return call_factory.getAllCalls();
 }
 
+@Override public void removeCalls(Collection<IfaceCall> calls)
+{
+   call_factory.removeCalls(calls);
+}
+
+
+@Override public IfaceAstReference getAstReference(ASTNode n)
+{
+   return ast_factory.getAstReference(n,null,null);
+}
+
+@Override public IfaceAstReference getAstReference(ASTNode n,ASTNode c)
+{
+   return ast_factory.getAstReference(n,c,null);
+}
+
+@Override public IfaceAstReference getAstReference(ASTNode n,IfaceAstStatus sts)
+{
+   return ast_factory.getAstReference(n,null,sts);
+}
+
+
+@Override public IfaceProgramPoint getProgramPoint(JcodeInstruction ins) 
+{
+   return bytecode_factory.getPoint(ins);
+}
+
 
 
 
@@ -476,21 +629,33 @@ public Collection<JcodeMethod> getStartMethods()
 /*										*/
 /********************************************************************************/
 
-@Override public void analyze(int nthread)
+@Override public void analyze(int nthread,boolean update)
 {
-   flow_factory.analyze(nthread);
+   flow_factory.analyze(nthread,update);
 }
 
 
-@Override public void queueLocation(FaitLocation loc)
+@Override public void queueLocation(IfaceLocation loc)
 {
    flow_factory.queueLocation(loc);
 }
 
 
-@Override public void handleCallback(FaitLocation frm,JcodeMethod fm,List<IfaceValue> args,String cbid)
+@Override public void queueLocation(IfaceCall ic,IfaceProgramPoint pt)
+{
+   flow_factory.queueMethodCall(ic,pt);
+}
+
+
+@Override public void handleCallback(IfaceLocation frm,IfaceMethod fm,List<IfaceValue> args,String cbid)
 {
    flow_factory.handleCallback(frm,fm,args,cbid);
+}
+
+
+void updateQueuedStates(IfaceUpdater upd)
+{
+   flow_factory.handleStateUpdate(upd);
 }
 
 
@@ -501,7 +666,7 @@ public Collection<JcodeMethod> getStartMethods()
 /*                                                                              */
 /********************************************************************************/
 
-@Override public boolean isProjectClass(JcodeDataType dt)
+@Override public boolean isProjectClass(IfaceType dt)
 {
    if (user_project == null) return false;
    
@@ -509,12 +674,148 @@ public Collection<JcodeMethod> getStartMethods()
 }
 
 
+boolean isProjectClass(IfaceBaseType dt)
+{
+   if (user_project == null) return false;
+   
+   return user_project.isProjectClass(dt.getName());
+}
 
-@Override public boolean isInProject(JcodeMethod jm)
+
+@Override public boolean isEditableClass(IfaceType dt)
+{
+   if (user_project == null) return false;
+   
+   return user_project.isEditableClass(dt.getName());
+}
+
+
+boolean isEditableClass(IfaceBaseType dt)
+{
+   if (user_project == null) return false;
+   
+   return user_project.isEditableClass(dt.getName());
+}
+
+
+
+@Override public boolean isInProject(IfaceMethod jm)
 {
    return isProjectClass(jm.getDeclaringClass());
 }
 
+
+
+public IfaceType findCommonParent(IfaceType t1,IfaceType t2)
+{
+   return t1.getCommonParent(t2);
+}
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Helper methods                                                          */
+/*                                                                              */
+/********************************************************************************/
+
+List<IfaceMethod> findParentMethods(IfaceType cls,String nm,String desc,
+      boolean check,boolean first,List<IfaceMethod> rslt)
+{
+   if (rslt == null) rslt = new ArrayList<>();
+   
+   if (first && !rslt.isEmpty()) return rslt;
+   
+   if (check) {
+      IfaceMethod fm = findMethod(cls.getName(),nm,desc);
+      if (fm != null) {
+         rslt.add(fm);
+         if (first) return rslt;
+       }
+    }
+   
+   if (nm.startsWith("<")) return rslt;
+   
+   IfaceType sc = cls.getSuperType();
+   if (sc != null) findParentMethods(sc,nm,desc,true,first,rslt);
+   for (IfaceType it : cls.getInterfaces()) {
+      findParentMethods(it,nm,desc,true,first,rslt);
+    }
+   
+   return rslt;
+}
+
+
+
+Collection<IfaceMethod> findChildMethods(IfaceType cls,String nm,String desc,
+      boolean check,Collection<IfaceMethod> rslt)
+{
+   if (rslt == null) rslt = new HashSet<>();
+   
+   if (check) {
+      IfaceMethod fm = findMethod(cls.getName(),nm,desc);
+      if (fm != null) rslt.add(fm);
+    }
+   
+   List<IfaceType> chld = cls.getChildTypes();
+   if (chld != null) {
+      for (IfaceType ct : chld) {
+         findChildMethods(ct,nm,desc,true,rslt);
+       }
+    }
+   
+   return rslt;
+}
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Special calls for lambda processing                                     */
+/*                                                                              */
+/********************************************************************************/
+
+@Override public IfaceType createFunctionRefType(String typ)
+{
+   IfaceBaseType t1 = bytecode_factory.buildMethodType(typ);
+   IfaceBaseType t2 = ast_factory.getFunctionRefType(t1);
+   return findDataType(t2,null);
+}
+
+
+IfaceBaseType createMethodType(IfaceType rtn,List<IfaceType> args)
+{
+   IfaceBaseType bt = ast_factory.getMethodType(rtn,args);
+   return bt;
+}
+
+/********************************************************************************/
+/*                                                                              */
+/*      Handle updates after a compilation                                      */
+/*                                                                              */
+/********************************************************************************/
+
+@Override public void updateAll()
+{
+   ast_factory.updateAll(user_project.getTyper());
+   bytecode_factory.updateAll();
+   // entity_factory.updateAll();
+   // value_factory.updateAll();
+   // state_factory.updateAll();
+   // proto_factory.updateAll();
+   // call_factory.updateAll();
+   // flow_factory.updateAll();
+}
+
+
+
+@Override public void doUpdate(IfaceUpdateSet updset)
+{
+   ControlUpdater upd = new ControlUpdater(this,updset); 
+   upd.processUpdate();
+   
+   ast_factory.updateAll(user_project.getTyper());
+   bytecode_factory.updateAll();
+}
 
 
 

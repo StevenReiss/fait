@@ -38,21 +38,19 @@ package edu.brown.cs.fait.iface;
 
 import java.util.*;
 
-import edu.brown.cs.ivy.jcode.JcodeMethod;
 
 public interface IfaceSpecial extends FaitConstants
 {
 
-IfaceValue getReturnValue(JcodeMethod mthd);
+IfaceValue getReturnValue(IfaceProgramPoint pt,IfaceMethod mthd);
 boolean returnsArg0();
 boolean isConstructor();
 String getReplaceName();
 
 Iterable<String> getCallbacks();
 String getCallbackId();
-List<Integer> getCallbackArgs();
+List<IfaceValue> getCallbackArgs(List<IfaceValue> args,IfaceValue newval);
 boolean getIsAsync();
-boolean getIsArrayCopy();
 boolean getExits();
 boolean getDontScan();
 

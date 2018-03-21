@@ -35,11 +35,9 @@
 
 package edu.brown.cs.fait.iface;
 
-import edu.brown.cs.ivy.jcode.JcodeDataType;
-import edu.brown.cs.ivy.jcode.JcodeField;
-import edu.brown.cs.ivy.jcode.JcodeInstruction;
+import java.util.Collection;
 
-public interface IfaceState extends FaitState
+public interface IfaceState extends FaitConstants
 {
 
 IfaceState cloneState();
@@ -54,22 +52,22 @@ IfaceValue getLocal(int idx);
 void setLocal(int idx,IfaceValue v);
 boolean addToLocal(int idx,IfaceValue v);
 
-IfaceValue getFieldValue(JcodeField fld);
-void setFieldValue(JcodeField fld,IfaceValue v);
+IfaceValue getFieldValue(IfaceField fld);
+void setFieldValue(IfaceField fnm,IfaceValue v);
 
-Iterable<JcodeField> getKnownFields();
+Collection<IfaceField> getKnownFields();
 boolean hasKnownFields();
 void discardFields();
 
-void pushReturn(JcodeInstruction ins);
-JcodeInstruction popReturn();
+void pushReturn(IfaceProgramPoint pt);
+IfaceProgramPoint popReturn();
 
 IfaceState mergeWith(IfaceState st);
 boolean compatibleWith(IfaceState st);
 
-void startInitialization(JcodeDataType typ);
+void startInitialization(IfaceType typ);
 
-boolean testDoingInitialization(JcodeDataType typ);
+boolean testDoingInitialization(IfaceType typ);
 boolean addInitializations(IfaceState st);
 
 void handleUpdate(IfaceUpdater upd);

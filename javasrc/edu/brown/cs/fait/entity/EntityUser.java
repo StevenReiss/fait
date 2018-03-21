@@ -40,7 +40,7 @@ import edu.brown.cs.fait.iface.*;
 
 
 
-class EntityUser extends EntityBase implements FaitEntity.UserEntity
+class EntityUser extends EntityBase implements IfaceEntity.UserEntity
 {
 
 
@@ -51,7 +51,7 @@ class EntityUser extends EntityBase implements FaitEntity.UserEntity
 /********************************************************************************/
 
 private String	entity_type;
-private FaitLocation base_location;
+private IfaceLocation base_location;
 
 
 
@@ -61,7 +61,7 @@ private FaitLocation base_location;
 /*										*/
 /********************************************************************************/
 
-EntityUser(String id,FaitLocation base)
+EntityUser(String id,IfaceLocation base)
 {
    entity_type = id;
    base_location = base;
@@ -79,7 +79,7 @@ EntityUser(String id,FaitLocation base)
 
 @Override public boolean isUserEntity()                 { return true; }
 
-@Override public FaitLocation getLocation()	        { return base_location; }
+@Override public IfaceLocation getLocation()	        { return base_location; }
 
 @Override public UserEntity getUserEntity()		{ return this; }
 

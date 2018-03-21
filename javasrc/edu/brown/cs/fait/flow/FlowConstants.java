@@ -43,8 +43,6 @@ interface FlowConstants extends FaitConstants
 
 
 
-
-
 }       // end of interface FlowConstants
 
 

@@ -12,6 +12,7 @@
    <PACKAGE NAME="sun.jkernel." />
    <PACKAGE NAME='sun.nio.' />
    <PACKAGE NAME='java.io.' />
+   <PACKAGE NAME='java.net.' />
    <PACKAGE NAME='com.sun.org.apache.' />
    <PACKAGE NAME='java.nio.charset' />
    <PACKAGE NAME='javax.crypto' />
@@ -21,6 +22,11 @@
    <PACKAGE NAME='sun.misc' />
    <PACKAGE NAME='sun.util.calendar' />
    <PACKAGE NAME='java.nio.file' />
+   <PACKAGE NAME="java.util.concurrent.atomic" />
+   <PACKAGE NAME="java.util.concurrent.locks" />
+   <PACKAGE NAME='sun.java2d.' />
+   <PACKAGE NAME='sun.awt.' />
+   <PACKAGE NAME='sun.util.logging' />
 
    <CLASS NAME="java.lang.reflect.Field" />
    <CLASS NAME='java.lang.ClassLoader' />
@@ -57,14 +63,17 @@
    <CLASS NAME="java.sql.Statement" />
    <CLASS NAME="java.sql.ResultSet" />
    <CLASS NAME="javax.media.opengl.GLCanvas" />
+   <CLASS NAME="javax.swing.ArrayTable" />
+   <CLASS NAME="java.lang.UNIXProcess" />
+   <CLASS NAME='java.util.concurrent.ThreadPoolExecutor' />
 
    <CLASS NAME="com.sun.org.apache.internal.impl.XMLErrorReporter" />
    <CLASS NAME="com.sun.org.apache.internal.impl.msg.XMLMessageFormatter" />
    <CLASS NAME='sun.misc.JavaLangAccess' />
 
-   <METHOD NAME="java.lang.System.arraycopy" ARRAYCOPY="1" />
    <METHOD NAME="java.lang.System.exit" EXIT="1" />
    <METHOD NAME="java.lang.Object.&lt;init&gt;" />
+<!--  <METHOD NAME="java.lang.Object.getClass" />       -->
    <METHOD NAME="java.lang.System.getProperties" />
    <METHOD NAME="java.lang.System.getProperty" />
    <METHOD NAME="java.lang.Class.newInstance" RETURN="java.lang.Object" MUTABLE="true" />

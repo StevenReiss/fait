@@ -38,7 +38,6 @@ package edu.brown.cs.fait.value;
 
 import edu.brown.cs.fait.iface.*;
 import edu.brown.cs.ivy.jcode.JcodeConstants;
-import edu.brown.cs.ivy.jcode.JcodeDataType;
 
 import java.util.*;
 
@@ -53,11 +52,8 @@ class ValueObject extends ValueBase implements JcodeConstants
 /*										*/
 /********************************************************************************/
 
-private NullFlags	null_flags;
-private Map<JcodeDataType,ValueBase> restrict_map;
-private Map<JcodeDataType,ValueBase> remove_map;
+private Map<IfaceType,ValueBase> restrict_map;
 private ValueBase	nonnull_value;
-private ValueBase	testnull_value;
 
 
 
@@ -68,29 +64,12 @@ private ValueBase	testnull_value;
 /*										*/
 /********************************************************************************/
 
-ValueObject(ValueFactory vf,JcodeDataType typ,IfaceEntitySet es,NullFlags fgs)
+ValueObject(ValueFactory vf,IfaceType typ,IfaceEntitySet es,IfaceAnnotation ... fgs)
 {
    super(vf,typ,es);
 
-   null_flags = fgs;
    restrict_map = null;
-   remove_map = null;
    nonnull_value = null;
-   testnull_value = null;
-}
-
-
-
-/********************************************************************************/
-/*										*/
-/*	Access methods								*/
-/*										*/
-/********************************************************************************/
-
-@Override NullFlags getNullFlags()	
-{
-   if (null_flags != null) return null_flags;
-   return super.getNullFlags();
 }
 
 
@@ -101,31 +80,32 @@ ValueObject(ValueFactory vf,JcodeDataType typ,IfaceEntitySet es,NullFlags fgs)
 /*										*/
 /********************************************************************************/
 
-@Override public ValueBase restrictByType(JcodeDataType dt,boolean proj,FaitLocation src)
+@Override public ValueBase restrictByType(IfaceType dt)
 {
    synchronized (this) {
-      if (restrict_map == null) restrict_map = new HashMap<JcodeDataType,ValueBase>(4);
+      if (restrict_map == null) restrict_map = new HashMap<>(4);
     }
 
    synchronized (restrict_map) {
       ValueBase nv = restrict_map.get(dt);
       if (nv == null) {
-	 IfaceEntitySet ns = getEntitySet().restrictByType(dt,proj,src);
+	 IfaceEntitySet ns = getEntitySet().restrictByType(dt);
 	 if (ns == getEntitySet()) {
 	    nv = this;
-	    if (ns.isEmpty() && mustBeNull() && dt != getDataType()) {
+	    if (ns.isEmpty() && mustBeNull() && !getDataType().isCompatibleWith(dt)) {
 	       nv = value_factory.nullValue(dt);
 	     }
 	  }
 	 else if (ns.isEmpty()) {
 	    if (canBeNull()) nv = value_factory.nullValue(dt);
-	    else nv = value_factory.emptyValue(dt,null_flags);
+	    else nv = value_factory.emptyValue(dt);
 	  }
 	 else {
-	    JcodeDataType ndt = getSetType(ns);
-	    if (ndt != null) nv = value_factory.objectValue(ndt,ns,null_flags);
+	    IfaceType ndt = getSetType(ns);
+            ndt = ndt.getAnnotatedType(dt);
+	    if (ndt != null) nv = value_factory.objectValue(ndt,ns);
 	    else if (canBeNull()) nv = value_factory.nullValue(dt);
-	    else nv = value_factory.objectValue(dt,ns,null_flags);
+	    else nv = value_factory.objectValue(dt,ns);
 	  }
 	 restrict_map.put(dt,nv);
        }
@@ -135,39 +115,14 @@ ValueObject(ValueFactory vf,JcodeDataType typ,IfaceEntitySet es,NullFlags fgs)
 
 
 
-@Override public IfaceValue removeByType(JcodeDataType dt,FaitLocation loc)
-{
-   synchronized (this) {
-      if (remove_map == null) remove_map = new HashMap<JcodeDataType,ValueBase>();
-    }
-
-   synchronized (remove_map) {
-      ValueBase nv = remove_map.get(dt);
-      if (nv == null) {
-	 IfaceEntitySet es = getEntitySet().removeByType(dt,loc);
-	 if (es == getEntitySet()) nv = this;
-	 else if (es.isEmpty()) {
-	    if (canBeNull()) nv = value_factory.nullValue();
-	    else nv = null;
-	  }
-	 else {
-	    JcodeDataType ndt = getSetType(es);
-	    if (ndt != null) nv = value_factory.objectValue(ndt,es,null_flags);
-	    else if (canBeNull()) nv = value_factory.nullValue();
-	    else nv = null;
-	  }
-	 remove_map.put(dt,nv);
-       }
-      return nv;
-    }
-}
 
 
 
-@Override public IfaceValue makeSubtype(JcodeDataType dt)
+
+@Override public IfaceValue makeSubtype(IfaceType dt)
 {
    if (dt != getDataType() && dt.isDerivedFrom(getDataType())) {
-      return value_factory.objectValue(dt,getEntitySet(),null_flags);
+      return value_factory.objectValue(dt,getEntitySet());
     }
    return this;
 }
@@ -178,11 +133,21 @@ ValueObject(ValueFactory vf,JcodeDataType typ,IfaceEntitySet es,NullFlags fgs)
    if (!canBeNull()) return this;
 
    if (nonnull_value == null) {
-      NullFlags nfg = null_flags.forceNonNull();
-      nonnull_value = value_factory.objectValue(getDataType(),getEntitySet(),nfg);
+      nonnull_value = value_factory.objectValue(getDataType(),getEntitySet(),FaitAnnotation.NON_NULL);
     }
 
    return nonnull_value;
+}
+
+
+@Override public ValueBase forceInitialized(FaitAnnotation what)
+{
+   IfaceType t0 = getDataType().getAnnotatedType(what);
+   if (t0 == getDataType()) return this;
+   
+   ValueBase v1 = value_factory.objectValue(t0,getEntitySet());
+   
+   return v1;
 }
 
 
@@ -193,7 +158,7 @@ ValueObject(ValueFactory vf,JcodeDataType typ,IfaceEntitySet es,NullFlags fgs)
 
    if (nonnull_value == null) {
       nonnull_value = value_factory.objectValue(getDataType(),getEntitySet(),
-	    NullFlags.CAN_BE_NULL);
+	    FaitAnnotation.NULLABLE);
     }
 
    return nonnull_value;
@@ -201,18 +166,7 @@ ValueObject(ValueFactory vf,JcodeDataType typ,IfaceEntitySet es,NullFlags fgs)
 
 
 
-@Override public ValueBase setTestNull()
-{
-   if (testForNull()) return this;
 
-   if (testnull_value == null) {
-      NullFlags nfg = null_flags.forceTestForNull();
-      testnull_value =value_factory.objectValue(getDataType(),
-	    getEntitySet(),nfg);
-    }
-
-   return testnull_value;
-}
 
 
 
@@ -225,23 +179,22 @@ ValueObject(ValueFactory vf,JcodeDataType typ,IfaceEntitySet es,NullFlags fgs)
     }
 
    ValueObject cvo = (ValueObject) cv;
-   NullFlags fgs = null_flags.merge(cvo.getNullFlags());
    IfaceEntitySet es = getEntitySet().addToSet(cvo.getEntitySet());
 
    if (es == getEntitySet() &&
-	 (getDataType() == cvo.getDataType() || !es.isEmpty()) &&
-	 fgs == null_flags)
+	 (getDataType() == cvo.getDataType() || !es.isEmpty()))
       return this;
 
    if (es == cvo.getEntitySet() &&
-	 (getDataType() == cvo.getDataType() || !es.isEmpty()) &&
-	 fgs == cvo.getNullFlags())
+	 (getDataType() == cvo.getDataType() || !es.isEmpty()))
       return cvo;
 
-   JcodeDataType typ = getSetType(es);
-   if (typ == null) typ = getDataType().findCommonParent(cvo.getDataType());
+   IfaceType typ = getSetType(es);
+   IfaceType t1 = findCommonParent(getDataType(),cvo.getDataType());
+   if (typ == null) typ = t1;
+   else typ = typ.getAnnotatedType(t1);
 
-   return value_factory.objectValue(typ,es,fgs);
+   return value_factory.objectValue(typ,es);
 }
 
 
@@ -250,7 +203,7 @@ ValueObject(ValueFactory vf,JcodeDataType typ,IfaceEntitySet es,NullFlags fgs)
 {
    IfaceEntitySet nes = getEntitySet().addToSet(es);
 
-   return new ValueObject(value_factory,getDataType(),nes,getNullFlags());
+   return new ValueObject(value_factory,getDataType(),nes);
 }
 
 
@@ -261,25 +214,104 @@ ValueObject(ValueFactory vf,JcodeDataType typ,IfaceEntitySet es,NullFlags fgs)
 /*										*/
 /********************************************************************************/
 
-@Override public IfaceValue performOperation(JcodeDataType typ,IfaceValue rhs,int op,FaitLocation src)
+@Override protected IfaceValue localPerformOperation(IfaceType typ,IfaceValue rhs,
+      FaitOperator op,IfaceLocation src)
 {
    switch (op) {
-      case JcodeConstants.INSTANCEOF :
+      case INSTANCEOF :
 	 if (canBeNull()) break;
-	 ValueBase ncv = restrictByType(rhs.getDataType(),false,src);
+	 ValueBase ncv = restrictByType(rhs.getDataType());
 	 if (ncv.isEmptyEntitySet())
 	    return value_factory.rangeValue(typ,0,0);
 	 if (ncv == this)
 	    return value_factory.rangeValue(typ,1,1);
 	 break;
+      case EQL :
+         if (rhs == this) return value_factory.rangeValue(typ,1,1);
+         if (rhs.mustBeNull() && mustBeNull()) return value_factory.rangeValue(typ,1,1);
+         if (rhs.mustBeNull() && !canBeNull()) return value_factory.rangeValue(typ,0,0);
+         if (!rhs.canBeNull() && mustBeNull()) return value_factory.rangeValue(typ,0,0);
+         break;
+      case NEQ :
+         if (rhs == this) return value_factory.rangeValue(typ,0,0);
+         if (rhs.mustBeNull() && mustBeNull()) return value_factory.rangeValue(typ,0,0);
+         if (rhs.mustBeNull() && !canBeNull()) return value_factory.rangeValue(typ,1,1);
+         if (!rhs.canBeNull() && mustBeNull()) return value_factory.rangeValue(typ,1,1);
+         break;
     }
 
    return super.performOperation(typ,rhs,op,src);
 }
 
 
+@Override public IfaceImplications getImpliedValues(IfaceValue rhsv,FaitOperator op)
+{
+   ValueBase rhs = (ValueBase) rhsv;
+   ValueImplications imp = null;
+   ValueBase lt = null;
+   ValueBase lf = null;
+   ValueBase rt = null;
+   ValueBase rf = null;
+   IfaceType rtyp = null;
+   if (rhs != null) rtyp = rhs.getDataType();
+   IfaceTypeImplications timp = getDataType().getImpliedTypes(op,rtyp);
+   
+   switch (op) {  
+      case NULL :
+         lt = value_factory.nullValue(timp.getLhsTrueType());
+         lf = forceNonNull();
+         break;
+      case NONNULL :
+         lt = forceNonNull();
+         lf = value_factory.nullValue(timp.getLhsFalseType());
+         break;
+      case EQL :
+         if (rhs.mustBeNull()) {
+            lt = value_factory.nullValue(timp.getLhsTrueType());
+            lf = forceNonNull();
+          }
+         else if (mustBeNull()) {
+            rt = value_factory.nullValue(timp.getRhsTrueType());
+            rf = forceNonNull();
+          }
+         else {
+            // IfaceEntitySet ls = getEntitySet();
+            // IfaceEntitySet rs = rhs.getEntitySet();
+            // compute ls intersect rs ?
+            // but allow generic things to match
+          }
+         break;
+      case NEQ :
+         if (rhs.mustBeNull()) {
+            lf = value_factory.nullValue(timp.getLhsFalseType());
+            lf = forceNonNull();
+          }
+         else if (mustBeNull()) {
+            rf = value_factory.nullValue(timp.getRhsFalseType());
+            rt = forceNonNull();
+          }
+         break;
+    }
+   
+   if (lf == this) lf = null;
+   if (lt == this) lt = null;
+   if (lf != null || lt != null) {
+      imp = new ValueImplications();
+      imp.setLhsValues(lt,lf);
+    }
+   if (rf == rhs) rf = null;
+   if (rt == rhs) rt = null;
+   if (rt != null || rf != null) {
+      if (imp == null) imp = new ValueImplications();
+      imp.setRhsValues(rt,rf);
+    }
+   
+   return imp;
+}
 
-@Override public TestBranch branchTest(IfaceValue rhs,int op)
+
+
+@Override public TestBranch branchTest(IfaceValue rhs,FaitOperator op)
 {
    if (rhs == null) rhs = this;
 
@@ -289,21 +321,21 @@ ValueObject(ValueFactory vf,JcodeDataType typ,IfaceEntitySet es,NullFlags fgs)
    TestBranch r = TestBranch.ANY;
 
    switch (op) {
-      case IF_ACMPEQ :
+      case EQL :
 	 if (mustBeNull() && vo.mustBeNull()) r = TestBranch.ALWAYS;
 	 else if (mustBeNull() && !vo.canBeNull()) r = TestBranch.NEVER;
 	 else if (!canBeNull() && vo.mustBeNull()) r = TestBranch.NEVER;
 	 break;
-      case IF_ACMPNE :
+      case NEQ :
 	 if (mustBeNull() && vo.mustBeNull()) r = TestBranch.NEVER;
 	 else if (mustBeNull() && !vo.canBeNull()) r = TestBranch.ALWAYS;
 	 else if (!canBeNull() && vo.mustBeNull()) r = TestBranch.ALWAYS;
 	 break;
-      case IFNONNULL :
+      case NONNULL :
 	 if (mustBeNull()) r = TestBranch.NEVER;
 	 else if (!canBeNull()) r = TestBranch.ALWAYS;
 	 break;
-      case IFNULL :
+      case NULL :
 	 if (mustBeNull()) r = TestBranch.ALWAYS;
 	 else if (!canBeNull()) r = TestBranch.NEVER;
 	 break;
@@ -311,7 +343,7 @@ ValueObject(ValueFactory vf,JcodeDataType typ,IfaceEntitySet es,NullFlags fgs)
 
    return r;
 }
-	
+
 @Override public boolean isNative()
 {
    for (IfaceEntity ent : getEntities()) {
@@ -357,15 +389,15 @@ ValueObject(ValueFactory vf,JcodeDataType typ,IfaceEntitySet es,NullFlags fgs)
 /*										*/
 /********************************************************************************/
 
-private static JcodeDataType getSetType(IfaceEntitySet es)
+private IfaceType getSetType(IfaceEntitySet es)
 {
-   JcodeDataType typ = null;
+   IfaceType typ = null;
 
    for (IfaceEntity ie : es.getEntities()) {
-      JcodeDataType styp = ie.getDataType();
+      IfaceType styp = ie.getDataType();
       if (styp != null) {
 	 if (typ == null) typ = styp;
-	 else typ = typ.findCommonParent(styp);
+	 else typ = findCommonParent(typ,styp);
        }
     }
 
@@ -385,7 +417,7 @@ private static JcodeDataType getSetType(IfaceEntitySet es)
    IfaceValue cnts = null;
 
    for (IfaceEntity ent : getEntities()) {
-      IfaceValue cv = (IfaceValue) ent.getArrayValue(null,getFaitControl());
+      IfaceValue cv = ent.getArrayValue(null,getFaitControl());
       if (cv != null) {
 	 if (cnts == null) cnts = cv;
 	 else cnts = cnts.mergeValue(cv);
@@ -394,6 +426,52 @@ private static JcodeDataType getSetType(IfaceEntitySet es)
 
    return cnts;
 }
+
+
+
+@Override public IfaceValue getArrayContents(IfaceValue idx)
+{
+   IfaceValue cv = null;
+   boolean nat = false;
+   
+   for (IfaceEntity xe : getEntities()) {
+      if (xe.getDataType().isArrayType()) {
+	 IfaceValue cv1 = xe.getArrayValue(idx,getFaitControl());
+	 if (cv == null) cv = cv1;
+	 else cv = cv.mergeValue(cv1);
+       }
+      else if (xe.isNative()) nat = true;
+    }
+   
+   if (cv == null) {
+      IfaceType base = getDataType();
+      if (base == null || !base.isArrayType()) return null;
+      else base = base.getBaseType();
+      if (nat) cv = value_factory.nativeValue(base);
+      else cv = value_factory.nullValue(base);
+    }
+   
+   return cv;
+}
+
+
+@Override public IfaceValue getArrayLength()
+{
+   IfaceValue cv = null;
+   for (IfaceEntity xe : getEntities()) {
+      if (xe.getDataType().isArrayType()) {
+         IfaceValue cv1 = xe.getFieldValue("length");
+         if (cv1 == null) return super.getArrayLength();
+         if (cv == null) cv = cv1;
+         else cv = cv.mergeValue(cv1);
+       }
+    }
+   if (cv == null) return super.getArrayLength();
+   
+   return cv;
+}
+
+
 
 /********************************************************************************/
 /*										*/
@@ -407,9 +485,7 @@ private static JcodeDataType getSetType(IfaceEntitySet es)
    StringBuffer rslt = new StringBuffer();
 
    rslt.append("[");
-   rslt.append(getDataType().getName());
-   if (mustBeNull()) rslt.append(" =null");
-   else if (canBeNull()) rslt.append(" ?null");
+   rslt.append(getDataType());
    rslt.append(" :: ");
    rslt.append(hashCode());
    rslt.append(" :: ");
@@ -426,6 +502,9 @@ private static JcodeDataType getSetType(IfaceEntitySet es)
 
    return rslt.toString();
 }
+
+
+
 
 
 

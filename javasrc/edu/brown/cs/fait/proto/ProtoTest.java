@@ -36,13 +36,11 @@
 package edu.brown.cs.fait.proto;
 
 import edu.brown.cs.fait.iface.*;
-import edu.brown.cs.ivy.jcode.JcodeDataType;
-import edu.brown.cs.ivy.jcode.JcodeMethod;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.*;
-
-import java.util.*;
-import java.io.*;
 
 
 public class ProtoTest implements FaitConstants
@@ -55,7 +53,7 @@ public class ProtoTest implements FaitConstants
 /*										*/
 /********************************************************************************/
 
-private FaitControl	fait_control;
+private IfaceControl	fait_control;
 
 
 
@@ -67,9 +65,9 @@ private FaitControl	fait_control;
 
 public ProtoTest()
 {
-   fait_control = FaitControl.Factory.getControl();
-
-   fait_control.setProject(new TestProject());
+   IfaceProject proj = IfaceControl.Factory.createSimpleProject("/home/spr/sampler",
+         "spr.onsets.");
+   fait_control = IfaceControl.Factory.createControl(proj);
 }
 
 
@@ -82,23 +80,23 @@ public ProtoTest()
 
 @Test public void mapTest()
 {
-   JcodeDataType dt = fait_control.findDataType("Ljava/util/ArrayList;");
+   IfaceType dt = fait_control.findDataType("java.util.ArrayList");
    IfacePrototype p1 = fait_control.createPrototype(dt);
    Assert.assertNotNull(p1);
-   JcodeMethod fm = fait_control.findMethod("java.util.ArrayList","add","(Ljava/lang/Object;)Z");
+   IfaceMethod fm = fait_control.findMethod("java.util.ArrayList","add","(Ljava/lang/Object;)Z");
    Assert.assertNotNull(fm);
    Assert.assertTrue(p1.isMethodRelevant(fm));
 
-   JcodeDataType t1 = fait_control.findDataType("Lspr/onsets/OnsetMain;");
+   IfaceType t1 = fait_control.findDataType("spr.onsets.OnsetMain");
    IfaceValue v1 = fait_control.findAnyValue(t1);
    List<IfaceValue> args = new ArrayList<IfaceValue>();
    args.add(fait_control.findAnyValue(dt));
    args.add(v1);
    p1.handleCall(fm,args,null);
-   JcodeMethod fm2 = fait_control.findMethod("java.util.ArrayList","get","(I)Ljava/lang/Object;");
+   IfaceMethod fm2 = fait_control.findMethod("java.util.ArrayList","get","(I)");
    Assert.assertNotNull(fm2);
    Assert.assertTrue(p1.isMethodRelevant(fm2));
-   JcodeDataType t2 = fait_control.findDataType("I");
+   IfaceType t2 = fait_control.findDataType("int");
    IfaceValue v3 = fait_control.findRangeValue(t2,0,0);
    args.set(1,v3);
    IfaceValue v4 = p1.handleCall(fm2,args,null);
@@ -109,35 +107,7 @@ public ProtoTest()
 
 
 
-/********************************************************************************/
-/*										*/
-/*	Project to test with							*/
-/*										*/
-/********************************************************************************/
 
-private static class TestProject implements FaitProject {
-
-   @Override public String getClasspath() {
-      return "/home/spr/sampler";
-    }
-
-   @Override public Collection<String> getBaseClasses() {
-      Collection<String> rslt = new ArrayList<String>();
-      rslt.add("spr.onsets.OnsetMain");
-      return rslt;
-    }
-
-   @Override public List<File> getDescriptionFile()		{ return null; }
-
-   @Override public boolean isProjectClass(String cls) {
-      if (cls.startsWith("spr.")) return true;
-      return false;
-    }
-   @Override public Collection<String> getStartClasses()        { return null; }
-   
-   @Override public FaitMethodData createMethodData(FaitCall fc)   { return null; }
-   
-}	// end of inner class TestProject
 
 }	// end of class ProtoTest
 

@@ -36,7 +36,6 @@
 package edu.brown.cs.fait.flow;
 
 import edu.brown.cs.fait.iface.*;
-import edu.brown.cs.ivy.jcode.JcodeMethod;
 
 import java.util.*;
 
@@ -51,7 +50,8 @@ public class FlowFactory implements FlowConstants
 /*										*/
 /********************************************************************************/
 
-private FaitControl	fait_control;
+private IfaceControl	fait_control;
+private FlowQueue       flow_queue;
 
 
 
@@ -61,9 +61,10 @@ private FaitControl	fait_control;
 /*										*/
 /********************************************************************************/
 
-public FlowFactory(FaitControl fc)
+public FlowFactory(IfaceControl fc)
 {
    fait_control = fc;
+   flow_queue = new FlowQueue(fc);
 }
 
 
@@ -75,19 +76,19 @@ public FlowFactory(FaitControl fc)
 /*										*/
 /********************************************************************************/
 
-public void analyze(int nthread)
+public void analyze(int nthread,boolean update)
 {
-   Collection<JcodeMethod> start = fait_control.getStartMethods();
-   FlowQueue fq = new FlowQueue(fait_control);
-   List<IfaceValue> sargl = new LinkedList<IfaceValue>();
-   sargl.add(fait_control.findMainArgsValue());
-
-   for (JcodeMethod fm : start) {
-      IfaceCall ic = fait_control.findCall(fm,sargl,InlineType.NONE);
-      fq.queueMethodStart(ic);
+   if (!update) {
+      Collection<IfaceMethod> start = fait_control.getStartMethods();
+      List<IfaceValue> sargl = new LinkedList<IfaceValue>();
+      sargl.add(fait_control.findMainArgsValue());
+      for (IfaceMethod fm : start) {
+         IfaceCall ic = fait_control.findCall(null,fm,sargl,InlineType.NONE);
+         flow_queue.queueMethodStart(ic,null);
+       }
     }
 
-   FlowProcessor fp = new FlowProcessor(nthread,fait_control,fq);
+   FlowProcessor fp = new FlowProcessor(nthread,fait_control,flow_queue);
    fp.process();
 }
 
@@ -100,14 +101,32 @@ public void analyze(int nthread)
 /*                                                                              */
 /********************************************************************************/
 
-public void queueLocation(FaitLocation loc)
+public void queueLocation(IfaceLocation loc)
 {
    FlowLocation fl = (FlowLocation) loc;
    fl.queueLocation();
 }
 
+public void queueMethodCall(IfaceCall ic,IfaceProgramPoint pt)
+{
+   flow_queue.queueMethodChange(ic,pt);
+}
 
-public void handleCallback(FaitLocation frm,JcodeMethod fm,List<IfaceValue> args,String cbid) 
+
+/********************************************************************************/
+/*                                                                              */
+/*      Update methods                                                          */
+/*                                                                              */
+/********************************************************************************/
+
+public void handleStateUpdate(IfaceUpdater upd)
+{
+   flow_queue.handleUpdate(upd);
+}
+
+
+
+public void handleCallback(IfaceLocation frm,IfaceMethod fm,List<IfaceValue> args,String cbid) 
 {
    frm.handleCallback(fm,args,cbid);
 }

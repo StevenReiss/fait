@@ -36,7 +36,6 @@
 package edu.brown.cs.fait.call;
 
 import edu.brown.cs.fait.iface.*;
-import edu.brown.cs.ivy.jcode.JcodeMethod;
 import edu.brown.cs.ivy.xml.*;
 
 
@@ -55,12 +54,12 @@ public class CallFactory implements CallConstants
 /*										*/
 /********************************************************************************/
 
-private FaitControl	fait_control;
-private Map<JcodeMethod,Map<Object,CallBase>> method_map;
-private Map<JcodeMethod,CallBase> proto_map;
+private IfaceControl	fait_control;
+private Map<IfaceMethod,Map<Object,CallBase>> method_map;
+private Map<IfaceMethod,CallBase> proto_map;
 
-private Map<JcodeMethod,CallSpecial> special_methods;
-private Map<String,CallSpecial> call_methods;
+private Map<IfaceMethod,CallSpecial> special_methods;
+private Map<String,List<CallSpecial>> call_methods;
 
 
 private final static Object DEFAULT_OBJECT = new Object();
@@ -73,13 +72,13 @@ private final static Object DEFAULT_OBJECT = new Object();
 /*										*/
 /********************************************************************************/
 
-public CallFactory(FaitControl fc)
+public CallFactory(IfaceControl fc)
 {
    fait_control = fc;
    method_map = new HashMap<>();
-   proto_map = new HashMap<JcodeMethod,CallBase>();
-   special_methods = new HashMap<JcodeMethod,CallSpecial>();
-   call_methods = new HashMap<String,CallSpecial>();
+   proto_map = new HashMap<>();
+   special_methods = new HashMap<>();
+   call_methods = new HashMap<>();
 }
 
 
@@ -90,11 +89,14 @@ public CallFactory(FaitControl fc)
 /*										*/
 /********************************************************************************/
 
-public IfaceCall findCall(JcodeMethod fm,List<IfaceValue> args,InlineType inline)
+public IfaceCall findCall(IfaceProgramPoint pt,IfaceMethod fm,List<IfaceValue> args,InlineType inline)
 {
    Object key = null;
 
-   if (args == null || args.size() == 0) key = DEFAULT_OBJECT;
+   if (inline == InlineType.SPECIAL) {
+      key = fait_control.getCallSpecial(pt,fm);
+    }
+   else if (args == null || args.size() == 0) key = DEFAULT_OBJECT;
    else if (fm.isStatic()) key = DEFAULT_OBJECT;
    else {
       IfaceValue fv = args.get(0);
@@ -133,7 +135,7 @@ public IfaceCall findCall(JcodeMethod fm,List<IfaceValue> args,InlineType inline
    synchronized (method_map) {
       mm = method_map.get(fm);
       if (mm == null) {
-	 mm = new HashMap<Object,CallBase>(4);
+	 mm = new HashMap<>(4);
 	 method_map.put(fm,mm);
        }
     }
@@ -155,7 +157,7 @@ public IfaceCall findCall(JcodeMethod fm,List<IfaceValue> args,InlineType inline
 	  }
        }
       if (cm == null) {
-	 cm = new CallBase(fait_control,fm,mm.size());
+	 cm = new CallBase(fait_control,fm,pt);
 	 mm.put(key,cm);
        }
     }
@@ -204,12 +206,12 @@ private boolean matchInlineValues(IfaceValue v1,IfaceValue v2)
 /*										*/
 /********************************************************************************/
 
-public IfaceCall findPrototypeMethod(JcodeMethod fm)
+public IfaceCall findPrototypeMethod(IfaceProgramPoint pt,IfaceMethod fm)
 {
    synchronized (proto_map) {
       CallBase cb = proto_map.get(fm);
       if (cb == null) {
-	 cb = new CallBase(fait_control,fm,0);
+	 cb = new CallBase(fait_control,fm,pt);
 	 cb.setPrototype();
 	 proto_map.put(fm,cb);
        }
@@ -225,7 +227,7 @@ public IfaceCall findPrototypeMethod(JcodeMethod fm)
 /*										*/
 /********************************************************************************/
 
-public Collection<IfaceCall> getAllCalls(JcodeMethod fm)
+public Collection<IfaceCall> getAllCalls(IfaceMethod fm)
 {
    Map<Object,CallBase> mm;
    synchronized (method_map) {
@@ -253,6 +255,24 @@ public Collection<IfaceCall> getAllCalls()
 }
 
 
+public void removeCalls(Collection<IfaceCall> calls)
+{
+   synchronized (method_map) {
+      for (IfaceCall call : calls) {
+         IfaceMethod im = call.getMethod();
+         Map<Object,CallBase> mthds = method_map.get(im);
+         if (mthds == null) continue;
+         for (Iterator<CallBase> it = mthds.values().iterator(); it.hasNext(); ) {
+            CallBase cb = it.next();
+            if (cb == call) it.remove();
+          }
+         if (mthds.isEmpty()) method_map.remove(im);
+         if (proto_map.get(im) == call) proto_map.remove(im);
+       }
+    }
+}
+
+
 
 /********************************************************************************/
 /*										*/
@@ -273,87 +293,119 @@ public void addSpecialFile(Element xml)
    for (Element n : IvyXml.children(xml,"PACKAGE")) {
       String pnam = IvyXml.getAttrString(n,"NAME");
       if (!pnam.endsWith(".")) pnam += ".";
-      call_methods.put(pnam,new CallSpecial(fait_control,n,false));
+      addSpecial(pnam,new CallSpecial(fait_control,n,false));
     }
    for (Element n : IvyXml.children(xml,"CLASS")) {
       String cnam = IvyXml.getAttrString(n,"NAME");
       if (!cnam.endsWith(".")) cnam += ".";
-      call_methods.put(cnam,new CallSpecial(fait_control,n,false));
+      addSpecial(cnam,new CallSpecial(fait_control,n,false));
     }
    for (Element n : IvyXml.children(xml,"METHOD")) {
       String mnam = IvyXml.getAttrString(n,"NAME");
       String msig = IvyXml.getAttrString(n,"SIGNATURE");
       if (msig != null) mnam += msig;
-      call_methods.put(mnam,new CallSpecial(fait_control,n,true));
+      addSpecial(mnam,new CallSpecial(fait_control,n,true));
     }
 }
 
 
-public IfaceSpecial getSpecial(JcodeMethod fm)
+
+private void addSpecial(String nm,CallSpecial cs)
+{
+   List<CallSpecial> lcs = call_methods.get(nm);
+   if (lcs == null) {
+      lcs = new ArrayList<>();
+      call_methods.put(nm,lcs);
+    }
+   if (cs.match(null)) lcs.add(cs);
+   else lcs.add(0,cs);
+}
+
+
+public IfaceSpecial getSpecial(IfaceProgramPoint pt,IfaceMethod fm)
 {
    CallSpecial cs = null;
    synchronized (special_methods) {
-      if (special_methods.containsKey(fm)) return special_methods.get(fm);
-      String fnm = fm.getDeclaringClass().getName() + "." + fm.getName();
-         
-      cs = call_methods.get(fnm + fm.getDescription());
-      if (cs == null) cs = call_methods.get(fnm);
-      if (cs == null) {
-	 String s = fnm;
-	 int ln = s.length();
-	 for ( ; ; ) {
-	    int idx = s.lastIndexOf(".",ln);
-	    if (idx < 0) break;
-	    s = s.substring(0,idx+1);
-	    ln = idx-1;
-	    cs = call_methods.get(s);
-	    if (cs != null) break;
-	  }
+      cs = special_methods.get(fm);
+      if (!special_methods.containsKey(fm)) {
+         String fnm = fm.getDeclaringClass().getName() + "." + fm.getName();
+         boolean usematch = false;
+         List<CallSpecial> lcs = null;
+         lcs = call_methods.get(fnm + fm.getDescription());
+         cs = findSpecial(lcs,pt);
+         if (lcs != null && (cs == null || lcs.size() > 1)) usematch = true;
+         if (cs == null) {
+            lcs = call_methods.get(fnm);
+            cs = findSpecial(lcs,pt);
+            if (lcs != null && (cs == null || lcs.size() > 1)) usematch = true;
+          }        
+         if (cs == null) {
+            String s = fnm;
+            int ln = s.length();
+            for ( ; ; ) {
+               int idx = s.lastIndexOf(".",ln);
+               if (idx < 0) break;
+               s = s.substring(0,idx+1);
+               ln = idx-1;
+               lcs = call_methods.get(s);
+               cs = findSpecial(lcs,pt);
+               if (lcs != null && (cs == null || lcs.size() > 1)) usematch = true; 
+               if (cs != null) break;
+             }
+          }
+         if (!usematch) {
+            if (cs == null || cs.match(null)) special_methods.put(fm,cs);
+          }
        }
-      special_methods.put(fm,cs);
     }
 
    return cs;
 }
 
-public IfaceSpecial getSpecial(IfaceCall fc)
+
+private CallSpecial findSpecial(List<CallSpecial> lcs,IfaceProgramPoint pt)
 {
-   return getSpecial(fc.getMethod());
+   if (lcs == null) return null;
+   for (CallSpecial cs : lcs) {
+      if (cs.match(pt)) return cs;
+    }
+   return null;
+}
+
+public IfaceSpecial getSpecial(IfaceProgramPoint pt,IfaceCall fc)
+{
+   return getSpecial(pt,fc.getMethod());
 }
 
 
 
-public boolean canBeCallback(JcodeMethod fm)
+public boolean canBeCallback(IfaceProgramPoint pt,IfaceMethod fm)
 {
-   IfaceSpecial is = getSpecial(fm);
-
+   IfaceSpecial is = getSpecial(pt,fm);
+   if (is == null) return false;
+   
    return is.getCallbackId() != null;
 }
 
-public String getCallbackStart(JcodeMethod fm)
+public String getCallbackStart(IfaceProgramPoint pt,IfaceMethod fm)
 {
-   IfaceSpecial is = getSpecial(fm);
+   IfaceSpecial is = getSpecial(pt,fm);
    if (is != null && is.getCallbacks() == null) return is.getCallbackId();
 
    return null;
 }
 
-public boolean getIsArrayCopy(JcodeMethod fm)
+
+
+
+public boolean canBeReplaced(IfaceProgramPoint pt,IfaceMethod fm)
 {
-   IfaceSpecial is = getSpecial(fm);
-   if (is != null) return is.getIsArrayCopy();
-
-   return false;
-}
-
-
-public boolean canBeReplaced(JcodeMethod fm)
-{
-   IfaceSpecial is = getSpecial(fm);
+   IfaceSpecial is = getSpecial(pt,fm);
    if (is != null) return is.getReplaceName() != null;
 
    return false;
 }
+
 
 
 }	// end of class CallFactory

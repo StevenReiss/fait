@@ -36,7 +36,6 @@
 package edu.brown.cs.fait.entity;
 
 import edu.brown.cs.fait.iface.*;
-import edu.brown.cs.ivy.jcode.JcodeDataType;
 
 import java.util.*;
 
@@ -54,7 +53,7 @@ class EntitySet implements IfaceEntitySet, EntityConstants
 
 private EntityFactory		entity_factory;
 private BitSet			set_contents;
-private Map<Object,EntitySet>	next_map;
+private Map<Object,EntitySet>   next_map;
 
 private static final Object	MODEL_SET = new Object();
 
@@ -70,7 +69,7 @@ EntitySet(EntityFactory ef,BitSet s)
 {
    entity_factory = ef;
    set_contents = (BitSet) s.clone();
-   next_map = new HashMap<Object,EntitySet>();
+   next_map = new HashMap<>();
 }
 
 
@@ -81,7 +80,7 @@ EntitySet(EntityFactory ef,BitSet s)
 /*										*/
 /********************************************************************************/
 
-@Override public boolean contains(FaitEntity s)
+@Override public boolean contains(IfaceEntity s)
 {
    return set_contents.get(s.getId());
 }
@@ -236,26 +235,26 @@ private void propogateMap(EntitySet rslt,List<IfaceEntity> props)
 
    Map<Object,EntitySet> nexts = null;
    synchronized (this) {
-      nexts = new HashMap<Object,EntitySet>(next_map);
+      nexts = new HashMap<>(next_map);
     }
 
    synchronized (rslt) {
       if (rslt.next_map.size() != 0) return;
       for (Map.Entry<Object,EntitySet> ent : nexts.entrySet()) {
-	 Object o = ent.getKey();
-	 if (o instanceof JcodeDataType) {
-	    JcodeDataType bdt = (JcodeDataType) o;
-	    boolean okfg = false;
-	    for (IfaceEntity ie : props) {
-	       JcodeDataType fdt1 = ie.getDataType();
-	       if (fdt1 == null ||
-		     entity_factory.compatibleTypes(fdt1,bdt)) {
-		  okfg = false;
-		  break;
-		}
-	     }
-	    if (okfg) rslt.next_map.put(bdt,ent.getValue());
-	  }
+         Object o = ent.getKey();
+         if (o instanceof IfaceType) {
+            IfaceType bdt = (IfaceType) o;
+            boolean okfg = false;
+            for (IfaceEntity ie : props) {
+               IfaceType fdt1 = ie.getDataType();
+               if (fdt1 == null ||
+                     entity_factory.compatibleTypes(fdt1,bdt)) {
+                  okfg = false;
+                  break;
+                }
+             }
+            if (okfg) rslt.next_map.put(bdt,ent.getValue());
+          }
        }
     }
 }
@@ -270,27 +269,22 @@ private void propogateMap(EntitySet rslt,List<IfaceEntity> props)
 /*										*/
 /********************************************************************************/
 
-@Override public IfaceEntitySet restrictByType(JcodeDataType dt,boolean proj,FaitLocation fl)
+@Override public IfaceEntitySet restrictByType(IfaceType dt)
 {
-   return handleTypeRestricts(dt,proj,false,fl);
-}
-
-
-@Override public IfaceEntitySet removeByType(JcodeDataType dt,FaitLocation fl)
-{
-   return handleTypeRestricts(dt,false,true,fl);
+   return handleTypeRestricts(dt);
 }
 
 
 
-EntitySet handleTypeRestricts(JcodeDataType dt,boolean proj,boolean comp,FaitLocation fl)
+
+
+
+EntitySet handleTypeRestricts(IfaceType dt)
 {
    if (dt == null) return this;
-
-   RestrictInfo restinfo = new RestrictInfo(dt,proj,comp);
-
-   synchronized (next_map) {
-      EntitySet es = next_map.get(restinfo);
+   
+   synchronized (this) {
+      EntitySet es = next_map.get(dt);
       if (es != null) return es;
 
       BitSet bs = null;
@@ -299,14 +293,15 @@ EntitySet handleTypeRestricts(JcodeDataType dt,boolean proj,boolean comp,FaitLoc
 	 EntityBase ie = (EntityBase) ie1;
 	 boolean fg = true;
 	 if (ie.getDataType() != null) {
-	    fg = entity_factory.compatibleTypes(ie.getDataType(),dt);
-	    if (comp) fg = !fg;
+            IfaceType ty1 = ie.getDataType();
+            ty1 = ty1.getRunTimeType();
+	    fg = entity_factory.compatibleTypes(ty1,dt);
 	  }
 	 if (!fg) {
 	    if (bs == null) bs = (BitSet) set_contents.clone();
 	    bs.clear(ie.getId());
 	    // TODO: might want to ignore cast if not in project
-	    Collection<IfaceEntity> bl = ie.mutateTo(dt,fl,entity_factory);
+	    Collection<IfaceEntity> bl = ie.mutateTo(dt,entity_factory);
 	    if (bl != null) {
 	       for (IfaceEntity xe : bl) {
 		  bs.set(xe.getId());
@@ -324,7 +319,10 @@ EntitySet handleTypeRestricts(JcodeDataType dt,boolean proj,boolean comp,FaitLoc
        }
 
       EntitySet rslt = (bs == null ? this : entity_factory.findSet(bs));
-      next_map.put(restinfo,rslt);
+      
+      synchronized (this) {
+         next_map.put(dt,rslt);
+       }
 
       return rslt;
     }
@@ -332,33 +330,7 @@ EntitySet handleTypeRestricts(JcodeDataType dt,boolean proj,boolean comp,FaitLoc
 
 
 
-private static class RestrictInfo {
 
-   private JcodeDataType data_type;
-   private boolean in_project;
-   private boolean complement_result;
-
-   RestrictInfo(JcodeDataType dt,boolean pro,boolean comp) {
-      data_type = dt;
-      in_project = pro;
-      complement_result = comp;
-    }
-
-   @Override public boolean equals(Object o) {
-      if (o == null || !(o instanceof RestrictInfo)) return false;
-      RestrictInfo ri = (RestrictInfo) o;
-      return data_type == ri.data_type && in_project == ri.in_project &&
-	 complement_result == ri.complement_result;
-    }
-
-   @Override public int hashCode() {
-      int hc = (data_type == null ? 0 : data_type.hashCode());
-      if (in_project) hc += 1024;
-      if (complement_result) hc += 2048;
-      return hc;
-    }
-
-}	// end of inner class RestrictInfo
 
 
 

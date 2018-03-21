@@ -36,8 +36,6 @@
 package edu.brown.cs.fait.call;
 
 import edu.brown.cs.fait.iface.*;
-import edu.brown.cs.ivy.jcode.JcodeDataType;
-import edu.brown.cs.ivy.jcode.JcodeMethod;
 import edu.brown.cs.ivy.xml.*;
 
 import org.w3c.dom.*;
@@ -54,7 +52,7 @@ class CallSpecial implements IfaceSpecial, CallConstants
 /*										*/
 /********************************************************************************/
 
-private FaitControl	fait_control;
+private IfaceControl	fait_control;
 private String		result_type;
 private String		alt_result;
 private boolean 	canbe_null;
@@ -64,11 +62,11 @@ private boolean 	return_arg0;
 private String		replace_name;
 private boolean 	dont_scan;
 private boolean 	async_call;
-private boolean 	array_copy;
 private List<String>	callback_names;
 private String		callback_id;
-private List<Integer>	callback_args;
+private List<ArgValue>	callback_args;
 private boolean 	does_exit;
+private List<When>      when_conditions;
 
 
 
@@ -79,7 +77,7 @@ private boolean 	does_exit;
 /*										*/
 /********************************************************************************/
 
-CallSpecial(FaitControl fc,Element xml,boolean formthd)
+CallSpecial(IfaceControl fc,Element xml,boolean formthd)
 {
    fait_control = fc;
 
@@ -99,7 +97,6 @@ CallSpecial(FaitControl fc,Element xml,boolean formthd)
    canbe_null = IvyXml.getAttrBool(xml,"NULL",!formthd);
    is_mutable = IvyXml.getAttrBool(xml,"MUTABLE",!formthd);
    does_exit = IvyXml.getAttrBool(xml,"EXIT");
-   array_copy = IvyXml.getAttrBool(xml,"ARRAYCOPY");
    async_call = IvyXml.getAttrBool(xml,"ASYNC");
    is_constructor = IvyXml.getAttrBool(xml,"CONSTRUCTOR");
 
@@ -111,7 +108,6 @@ CallSpecial(FaitControl fc,Element xml,boolean formthd)
    String cbnm = IvyXml.getAttrString(xml,"CALLBACK");
    if (cbnm != null) {
       callback_names = new ArrayList<String>();
-      callback_args = new ArrayList<Integer>();
       callback_id = IvyXml.getAttrString(xml,"CBID");
       for (StringTokenizer tok = new StringTokenizer(cbnm); tok.hasMoreTokens(); ) {
 	 String cn = tok.nextToken();
@@ -119,35 +115,21 @@ CallSpecial(FaitControl fc,Element xml,boolean formthd)
        }
       String args = IvyXml.getAttrString(xml,"CBARGS");
       if (args == null) args = "1";
-      for (StringTokenizer tok = new StringTokenizer(args); tok.hasMoreTokens(); ) {
-	 try {
-	    int i = Integer.parseInt(tok.nextToken());
-	    callback_args.add(i);
-	  }
-	 catch (NumberFormatException e) {
-	    System.err.println("FAIT: ARGS contains non-numeric value");
-	  }
-       }
+      callback_args = scanArgs(args);
     }
+   
    if (is_constructor) {
-      callback_args = new ArrayList<Integer>();
+      callback_args = new ArrayList<>();
       String args = IvyXml.getAttrString(xml,"ARGS");
-      for (StringTokenizer tok = new StringTokenizer(args); tok.hasMoreTokens(); ) {
-         String nvl = tok.nextToken();
-         int i = -99;
-         if (nvl.equalsIgnoreCase("NULL")) i = -1;
-         else if (nvl.equalsIgnoreCase("FALSE")) i = -2;
-         else if (nvl.equalsIgnoreCase("TRUE")) i = -3;
-         else {
-            try {
-               i = Integer.parseInt(nvl);
-             }
-            catch (NumberFormatException e) {
-               System.err.println("FAIT: ARGS contains bad value");
-             }
-          }
-         callback_args.add(i);
-       }
+      if (args == null) args = "*";
+      callback_args = scanArgs(args);
+    }
+   
+   when_conditions = null;
+   for (Element welt : IvyXml.children(xml,"WHEN")) {
+      if (when_conditions == null) when_conditions = new ArrayList<>();
+      When wh = new When(welt);
+      when_conditions.add(wh);
     }
 }
 
@@ -159,10 +141,11 @@ CallSpecial(FaitControl fc,Element xml,boolean formthd)
 /*										*/
 /********************************************************************************/
 
-@Override public IfaceValue getReturnValue(JcodeMethod fm)
+@Override public IfaceValue getReturnValue(IfaceProgramPoint pt,IfaceMethod fm)
 {
-   JcodeDataType dt = null;
-   if (result_type != null && result_type.equals("void")) dt = fait_control.findDataType("V");
+   IfaceType dt = null;
+   if (result_type != null && result_type.equals("void")) 
+      dt = fait_control.findDataType("void");
    else if (result_type != null) dt = getClassType(result_type);
    if (dt == null && alt_result != null) dt = getClassType(alt_result);
    if (dt == null) {
@@ -184,30 +167,46 @@ CallSpecial(FaitControl fc,Element xml,boolean formthd)
 }
 
 
-@Override public boolean returnsArg0()			{ return return_arg0; }
+@Override public boolean returnsArg0()	
+{ return return_arg0; }
 
-@Override public boolean isConstructor()                { return is_constructor; }
+@Override public boolean isConstructor() 
+{ return is_constructor; }
 
-@Override public String getReplaceName()		{ return replace_name; }
+@Override public String getReplaceName()	
+{ return replace_name; }
 
 
 
-@Override public Iterable<String> getCallbacks() {
+@Override public Iterable<String> getCallbacks() 
+{
    if (callback_names == null || callback_names.size() == 0) return null;
    return callback_names;
 }
 
-@Override public String getCallbackId() 		{ return callback_id; }
+@Override public String getCallbackId() 	
+{ return callback_id; }
 
-@Override public List<Integer> getCallbackArgs()	{ return callback_args; }
+@Override public List<IfaceValue> getCallbackArgs(List<IfaceValue> args,IfaceValue newval)
+{
+   if (callback_args == null) return args;
+   
+   List<IfaceValue> rslt = new ArrayList<>();
+   for (ArgValue av : callback_args) {
+      av.addValues(args,newval,rslt);
+    }
+   return rslt;
+}
 
-@Override public boolean getIsAsync()			{ return async_call; }
 
-@Override public boolean getIsArrayCopy()		{ return array_copy; }
+@Override public boolean getIsAsync()		
+{ return async_call; }
 
-@Override public boolean getExits()			{ return does_exit; }
+@Override public boolean getExits()	
+{ return does_exit; }
 
-@Override public boolean getDontScan()			{ return dont_scan; }
+@Override public boolean getDontScan()	
+{ return dont_scan; }
 
 
 
@@ -218,31 +217,192 @@ CallSpecial(FaitControl fc,Element xml,boolean formthd)
 /*										*/
 /********************************************************************************/
 
-private JcodeDataType getClassType(String name)
+private IfaceType getClassType(String name)
 {
-   return fait_control.findDataType(getInternalName(name));
+   if (Character.isLowerCase(name.charAt(0))) 
+      return fait_control.findDataType(name);
+   
+   return fait_control.findDataType(name);
 }
 
 
 
-private String getInternalName(String user)
+/********************************************************************************/
+/*                                                                              */
+/*      Application conditions                                                  */
+/*                                                                              */
+/********************************************************************************/
+
+boolean match(IfaceProgramPoint pt)
 {
-   int act = 0;
-   while (user.endsWith("[]")) {
-      ++act;
-      user = user.substring(0,user.length()-2);
+   if (when_conditions == null) return true;
+   if (pt == null) return false;
+   
+   for (When wh : when_conditions) {
+      if (wh.match(pt)) return true;
     }
+   
+   return false;
+}
 
-   String rslt = "L" + user.replace(".","/") + ";";
-   while (act > 0) {
-      rslt = "[" + rslt;
-      --act;
+
+
+private static class When {
+   
+   private String caller_name;
+   private String caller_description;
+   private int instance_number;
+   
+   When(Element xml) {
+      caller_name = IvyXml.getAttrString(xml,"CALLER");
+      caller_description = IvyXml.getAttrString(xml,"DESCRIPTION");
+      instance_number = IvyXml.getAttrInt(xml,"INSTANCE",-1);
     }
+   
+   boolean match(IfaceProgramPoint pt) {
+      if (pt == null) return false;
+      IfaceMethod im = pt.getMethod();
+      if (caller_name != null) {
+         String mnm = im.getName();
+         if (!caller_name.equals(mnm)) {
+            String cnm = im.getDeclaringClass().getName();
+            mnm = cnm + "." + mnm;
+            if (!caller_name.equals(mnm)) return false;
+          }
+       }
+      if (caller_description != null) {
+         String desc = im.getDescription();
+         if (!caller_description.equals(desc)) return false;
+       }
+      if (instance_number >= 0) {
+         // TODO: check for instance in method
+       }
+      
+      return true;
+    }
+}
 
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Argument Encoding                                                       */
+/*                                                                              */
+/********************************************************************************/
+
+private List<ArgValue> scanArgs(String coding)
+{
+   List<ArgValue> rslt = new ArrayList<>();
+   
+   for (StringTokenizer tok = new StringTokenizer(coding," \t,"); tok.hasMoreTokens(); ) {
+      String nvl = tok.nextToken();
+      ArgValue av = null;
+      if (nvl.equalsIgnoreCase("NULL")) {
+         av = new ConstArgValue(fait_control.findNullValue());
+       }
+      else if (nvl.equalsIgnoreCase("FALSE")) {
+         IfaceType bt = fait_control.findDataType("boolean");
+         av = new ConstArgValue(fait_control.findRangeValue(bt,0,0));
+       }
+      else if (nvl.equalsIgnoreCase("TRUE")) {
+         IfaceType bt = fait_control.findDataType("boolean");
+         av = new ConstArgValue(fait_control.findRangeValue(bt,1,1));
+       }
+      else if (nvl.equalsIgnoreCase("THIS") || nvl.equalsIgnoreCase("*")) {
+         av = new NewArgValue();
+       }
+      else if (nvl.equals("...") || nvl.equalsIgnoreCase("VARARGS")) {
+         av = new VarArgsValue();
+       }
+      else if (nvl.startsWith("*") && nvl.length() > 1) {
+         String tnm = nvl.substring(1);
+         IfaceType ntyp = fait_control.findDataType(tnm);
+         IfaceValue v = fait_control.findMutableValue(ntyp);
+         av = new ConstArgValue(v);
+       }
+      else {
+         try {
+            int i = Integer.parseInt(nvl);
+            av = new OrigArgValue(i);
+          }
+         catch (NumberFormatException e) {
+            FaitLog.logE("ARGS contains bad value: " + coding);
+          }
+       }
+      if (av != null) rslt.add(av);
+    }
+   
    return rslt;
 }
 
+private abstract static class ArgValue {
+   
+   abstract void addValues(List<IfaceValue> args,IfaceValue newval,List<IfaceValue> rslt);
+   
+}
 
+
+private static class OrigArgValue extends ArgValue {
+   
+   private int arg_index;
+   
+   OrigArgValue(int idx) {
+      arg_index = idx;
+    }
+   
+   @Override void addValues(List<IfaceValue> args,IfaceValue newval,List<IfaceValue> rslt) {
+      rslt.add(args.get(arg_index));
+    }
+   
+}       // end of inner class OrigArgValue
+
+
+private static class ConstArgValue extends ArgValue {
+  
+   private IfaceValue const_value;
+   
+   ConstArgValue(IfaceValue v) {
+      const_value = v;
+    }
+   
+   @Override void addValues(List<IfaceValue> args,IfaceValue newval,List<IfaceValue> rslt) {
+      rslt.add(const_value);
+    }
+   
+}       // end of inner class ConstArgValue
+
+
+
+private static class NewArgValue extends ArgValue {
+
+   NewArgValue() { }
+   
+   @Override void addValues(List<IfaceValue> args,IfaceValue newval,List<IfaceValue> rslt) {
+      if (newval != null) rslt.add(newval);
+      else rslt.add(args.get(0));
+    }
+   
+}       // end of inner class NewArgValue
+
+
+private class VarArgsValue extends ArgValue {
+   
+   VarArgsValue() { }
+   
+   @Override void addValues(List<IfaceValue> args,IfaceValue newval,List<IfaceValue> rslt) {
+      IfaceValue v0 = args.get(args.size()-1);
+      IfaceValue nargv = v0.getArrayLength();
+      Integer narg = nargv.getIndexValue();
+      if (narg == null) return;
+      for (int i = 0; i < narg; ++i) {
+         IfaceType ityp = fait_control.findDataType("int");
+         IfaceValue idx = fait_control.findRangeValue(ityp,i,i);
+         IfaceValue av = v0.getArrayContents(idx);
+         rslt.add(av);
+       }
+    }
+   
+}       // end of inner class VarArgsValue
 
 
 }	// end of class CallSpecial

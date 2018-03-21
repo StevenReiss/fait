@@ -36,8 +36,6 @@
 package edu.brown.cs.fait.proto;
 
 import edu.brown.cs.fait.iface.*;
-import edu.brown.cs.ivy.jcode.JcodeDataType;
-import edu.brown.cs.ivy.jcode.JcodeMethod;
 
 import java.util.*;
 
@@ -71,22 +69,23 @@ private boolean         is_empty;
 /*                                                                              */
 /********************************************************************************/
 
-public ProtoMap(FaitControl fc,JcodeDataType dt)
+public ProtoMap(IfaceControl fc,IfaceType dt)
 {
    super(fc,dt);
    
    is_empty = true;
-   key_set = new ProtoCollection(fc,fc.findDataType("Ljava/util/Set;"));
-   value_set = new ProtoCollection(fc,fc.findDataType("Ljava/util/Set;"));
-   entry_set = new ProtoCollection(fc,fc.findDataType("Ljava/util/Set;"));
+   key_set = new ProtoCollection(fc,fc.findDataType("java.util.Set",FaitAnnotation.NON_NULL));
+   value_set = new ProtoCollection(fc,fc.findDataType("java.util.Set",FaitAnnotation.NON_NULL));
+   entry_set = new ProtoCollection(fc,fc.findDataType("java.util.Set",FaitAnnotation.NON_NULL));
    key_entity = fc.findPrototypeEntity(key_set.getDataType(),key_set,null);
    value_entity = fc.findPrototypeEntity(value_set.getDataType(),value_set,null);
    entry_entity = fc.findPrototypeEntity(entry_set.getDataType(),entry_set,null);
    
    MapEntry ent = new MapEntry(fc);
-   map_source = fc.findPrototypeEntity(fc.findDataType("Ljava/util/Map$Entry;"),ent,null);
+   IfaceType etyp = fc.findDataType("java.util.Map$Entry",FaitAnnotation.NON_NULL);
+   map_source = fc.findPrototypeEntity(etyp,ent,null);
    IfaceEntitySet cset = fc.createSingletonSet(map_source);
-   map_value = fc.findObjectValue(map_source.getDataType(),cset,NullFlags.NON_NULL);
+   map_value = fc.findObjectValue(map_source.getDataType(),cset,FaitAnnotation.NON_NULL);
 }
 
 
@@ -98,11 +97,11 @@ public ProtoMap(FaitControl fc,JcodeDataType dt)
 /*                                                                              */
 /********************************************************************************/
 
-public IfaceValue prototype__constructor(JcodeMethod fm,List<IfaceValue> args,FaitLocation src) 
+public IfaceValue prototype__constructor(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src) 
 {
    if (args.size() == 2) {
       IfaceValue cv = args.get(1);
-      if (!cv.getDataType().isInt()) prototype_putAll(fm,args,src);
+      if (!cv.getDataType().isIntType()) prototype_putAll(fm,args,src);
     }
    
    return returnAny(fm);
@@ -110,40 +109,40 @@ public IfaceValue prototype__constructor(JcodeMethod fm,List<IfaceValue> args,Fa
 
 
 
-public IfaceValue prototype_containsKey(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
+public IfaceValue prototype_containsKey(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
 {
    return key_set.prototype_contains(fm,args,src);
 }
 
 
 
-public IfaceValue prototype_containsValue(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
+public IfaceValue prototype_containsValue(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
 {
    return value_set.prototype_contains(fm,args,src);
 }
 
 
 
-public IfaceValue prototype_contains(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
+public IfaceValue prototype_contains(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
 {
    return value_set.prototype_contains(fm,args,src);
 }
 
 
-public IfaceValue prototype_elements(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
+public IfaceValue prototype_elements(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
 {
    return value_set.prototype_elements(fm,args,src);
 }
 
 
-public IfaceValue prototype_entrySet(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
+public IfaceValue prototype_entrySet(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
 {
    IfaceEntitySet cset = fait_control.createSingletonSet(entry_entity);
-   return fait_control.findObjectValue(entry_entity.getDataType(),cset,NullFlags.NON_NULL);
+   return fait_control.findObjectValue(entry_entity.getDataType(),cset,FaitAnnotation.NON_NULL);
 }
 
 
-public synchronized IfaceValue prototype_get(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
+public synchronized IfaceValue prototype_get(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
 {
    value_set.addElementChange(src);
    
@@ -155,27 +154,32 @@ public synchronized IfaceValue prototype_get(JcodeMethod fm,List<IfaceValue> arg
    return fv;
 }
 
+public synchronized IfaceValue prototype_getProperty(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
+{
+   return prototype_get(fm,args,src);
+}
 
-public IfaceValue prototype_isEmpty(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
+
+public IfaceValue prototype_isEmpty(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
 {
    return key_set.prototype_isEmpty(fm,args,src);
 }
 
    
-public IfaceValue prototype_keySet(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
+public IfaceValue prototype_keySet(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
 {
    IfaceEntitySet cset = fait_control.createSingletonSet(key_entity);
-   return fait_control.findObjectValue(key_entity.getDataType(),cset,NullFlags.NON_NULL);
+   return fait_control.findObjectValue(key_entity.getDataType(),cset,FaitAnnotation.NON_NULL);
 }
 
 
-public IfaceValue prototype_keys(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
+public IfaceValue prototype_keys(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
 {
    return key_set.prototype_elements(fm,args,src);
 }
 
 
-public synchronized IfaceValue prototype_put(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
+public synchronized IfaceValue prototype_put(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
 {
    setNonEmpty();
    
@@ -197,15 +201,21 @@ public synchronized IfaceValue prototype_put(JcodeMethod fm,List<IfaceValue> arg
    
    return cv;
 }
+
+
+public synchronized IfaceValue prototype_setProperty(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
+{
+   return prototype_put(fm,args,src);
+}
    
 
-public IfaceValue prototype_putIfAbsent(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
+public IfaceValue prototype_putIfAbsent(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
 {
    return prototype_put(fm,args,src);
 }
 
 
-public synchronized IfaceValue prototype_putAll(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
+public synchronized IfaceValue prototype_putAll(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
 {
    setNonEmpty();
    
@@ -222,7 +232,7 @@ public synchronized IfaceValue prototype_putAll(JcodeMethod fm,List<IfaceValue> 
     }
    
    if (addany) {
-      IfaceValue cv = fait_control.findMutableValue(fait_control.findDataType("Ljava/lang/Object;"));
+      IfaceValue cv = fait_control.findMutableValue(fait_control.findDataType("java.lang.Object"));
       key_set.mergeElementValue(cv);
       value_set.mergeElementValue(cv);
     }
@@ -231,7 +241,7 @@ public synchronized IfaceValue prototype_putAll(JcodeMethod fm,List<IfaceValue> 
 }
 
 
-public IfaceValue prototype_remove(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
+public IfaceValue prototype_remove(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
 {
    key_set.prototype_remove(fm,args,src);
    
@@ -243,32 +253,32 @@ public IfaceValue prototype_remove(JcodeMethod fm,List<IfaceValue> args,FaitLoca
 }
 
 
-public IfaceValue protottype_size(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
+public IfaceValue protottype_size(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
 {
    return key_set.prototype_size(fm,args,src);
 }
 
 
 
-public IfaceValue prototype_values(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
+public IfaceValue prototype_values(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
 {
    IfaceEntitySet cset = fait_control.createSingletonSet(value_entity);
-   return fait_control.findObjectValue(value_entity.getDataType(),cset,NullFlags.NON_NULL);
+   return fait_control.findObjectValue(value_entity.getDataType(),cset,FaitAnnotation.NON_NULL);
 }
 
-public IfaceValue prototype_clone(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
+public IfaceValue prototype_clone(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
 {
    IfaceValue av = fait_control.findAnyValue(getDataType());
    if (av != null) return av;
    
    IfaceEntity subs = fait_control.findPrototypeEntity(getDataType(),this,src);
    IfaceEntitySet cset = fait_control.createSingletonSet(subs);
-   IfaceValue cv = fait_control.findObjectValue(getDataType(),cset,NullFlags.NON_NULL);
+   IfaceValue cv = fait_control.findObjectValue(getDataType(),cset,FaitAnnotation.NON_NULL);
    return cv;
 }
 
 
-public synchronized IfaceValue prototype_firstKey(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
+public synchronized IfaceValue prototype_firstKey(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
 {
    key_set.addElementChange(src);
    IfaceValue cv = key_set.getElementValue();
@@ -279,31 +289,31 @@ public synchronized IfaceValue prototype_firstKey(JcodeMethod fm,List<IfaceValue
 
 
 
-public IfaceValue prototype_lastKey(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
+public IfaceValue prototype_lastKey(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
 {
    return prototype_firstKey(fm,args,src);
 }
 
 
-public IfaceValue prototype_subMap(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
+public IfaceValue prototype_subMap(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
 {
-   JcodeDataType dt = fait_control.findDataType("Ljava/util/Map;");
+   IfaceType dt = fait_control.findDataType("java.util.Map",FaitAnnotation.NON_NULL);
    IfaceEntity subs = fait_control.findPrototypeEntity(dt,this,src);
    IfaceEntitySet cset = fait_control.createSingletonSet(subs);
-   IfaceValue cv = fait_control.findObjectValue(dt,cset,NullFlags.NON_NULL);
+   IfaceValue cv = fait_control.findObjectValue(dt,cset,FaitAnnotation.NON_NULL);
    
    return cv;
 }
 
 
-public IfaceValue prototype_headMap(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
+public IfaceValue prototype_headMap(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
 { 
    return prototype_headMap(fm,args,src);
 }
 
 
 
-public IfaceValue prototype_tailMap(JcodeMethod fm,List<IfaceValue> args,FaitLocation src)
+public IfaceValue prototype_tailMap(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
 { 
    return prototype_headMap(fm,args,src);
 }
@@ -352,26 +362,36 @@ private void setNonEmpty()
 @SuppressWarnings("unused")
 private class MapEntry extends ProtoBase {
 
-   MapEntry(FaitControl fc) {
-      super(fc,fc.findDataType("Ljava/util/Map$Entry;"));
+   MapEntry(IfaceControl fc) {
+      super(fc,fc.findDataType("java.util.Map$Entry",FaitAnnotation.NON_NULL));
     }
    
-   public IfaceValue prototype_getKey(JcodeMethod fm,List<IfaceValue> args,FaitLocation src) {
+   public IfaceValue prototype_getKey(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src) {
       synchronized (ProtoMap.this) {
          key_set.addElementChange(src);
-         return key_set.getElementValue();
+         IfaceValue rslt = key_set.getElementValue();
+         if (rslt == null) {
+            IfaceType ot = fait_control.findDataType("java.lang.Object");
+            rslt = fait_control.findMutableValue(ot);
+          }
+         return rslt;
        }
     }
 
-   public IfaceValue prototype_getValue(JcodeMethod fm,List<IfaceValue> args,FaitLocation src) {
+   public IfaceValue prototype_getValue(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src) {
       synchronized (ProtoMap.this) {
          value_set.addElementChange(src);
-         return value_set.getElementValue();
+         IfaceValue rslt = value_set.getElementValue();
+         if (rslt == null) {
+            IfaceType ot = fait_control.findDataType("java.lang.Object");
+            rslt = fait_control.findMutableValue(ot);
+          }
+         return rslt;
        }
     }
    
    
-   public IfaceValue prototype_setValue(JcodeMethod fm,List<IfaceValue> args,FaitLocation src) {
+   public IfaceValue prototype_setValue(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src) {
       return value_set.prototype_set(fm,args,src);
     }
    

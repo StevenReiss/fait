@@ -36,8 +36,6 @@
 package edu.brown.cs.fait.entity;
 
 import edu.brown.cs.fait.iface.*;
-import edu.brown.cs.ivy.jcode.JcodeDataType;
-import edu.brown.cs.ivy.jcode.JcodeField;
 
 
 
@@ -52,9 +50,7 @@ class EntityLocal extends EntityObject
 /*                                                                              */
 /********************************************************************************/
 
-private FaitLocation    base_location;
-private boolean         is_unique;
-private EntityObject    non_unique;
+private IfaceLocation    base_location;
 
 
 
@@ -64,12 +60,10 @@ private EntityObject    non_unique;
 /*                                                                              */
 /********************************************************************************/
 
-EntityLocal(FaitLocation where,JcodeDataType cls,boolean uniq)
+EntityLocal(IfaceLocation where,IfaceType cls)
 {
    super(cls);
    base_location = where;
-   is_unique = uniq;
-   non_unique = null;
 }
 
 
@@ -80,7 +74,7 @@ EntityLocal(FaitLocation where,JcodeDataType cls,boolean uniq)
 /*                                                                              */
 /********************************************************************************/
 
-@Override public FaitLocation getLocation()     { return base_location; }
+@Override public IfaceLocation getLocation()     { return base_location; }
 
 
 
@@ -90,52 +84,25 @@ EntityLocal(FaitLocation where,JcodeDataType cls,boolean uniq)
 /*                                                                              */
 /********************************************************************************/
 
-boolean isUnique()                      { return is_unique; }
-
-@Override public synchronized IfaceEntity makeNonunique()
+@Override public void setFieldContents(IfaceValue fv,String key)
 {
-   if (!is_unique) return this;
-   
-   if (non_unique == null) {
-      non_unique = new EntityLocal(base_location,getDataType(),false);
-      copyFields(non_unique);
-    }
-   
-   return non_unique;
+   super.setFieldContents(fv,key);
 }
 
 
-
-FaitEntity getNonunique()               { return non_unique; }
-
-
-
-
-@Override public void setFieldContents(IfaceValue fv,JcodeField fld)
-{
-   if (non_unique != null) non_unique.setFieldContents(fv,fld);
-   super.setFieldContents(fv,fld);
-}
-
-
-@Override public boolean addToFieldContents(IfaceValue fv,JcodeField fld)
+@Override public boolean addToFieldContents(IfaceValue fv,String key)
 {
    boolean fg = false;
    
-   if (non_unique != null) {
-      fg |= non_unique.addToFieldContents(fv,fld);
-    }
-   
-   fg |= super.addToFieldContents(fv,fld);
+   fg |= super.addToFieldContents(fv,key);
    
    return fg;
 }
 
 
-@Override public FaitValue getFieldValue(JcodeField fld)
+@Override public IfaceValue getFieldValue(String key)
 {
-   if (non_unique != null) return non_unique.getFieldValue(fld);
-   return super.getFieldValue(fld);
+   return super.getFieldValue(key);
 }
 
 
@@ -149,11 +116,10 @@ FaitEntity getNonunique()               { return non_unique; }
 
 @Override public String toString()
 {
-   String uq = (is_unique ? "New*" : "New");
    String loc = "NONE";
    if (base_location != null) loc = base_location.toString();
    
-   return "Local " + uq + " " + getDataType().getName() + " @ " + loc + " " + hashCode();
+   return "Local New " + getDataType().getName() + " @ " + loc + " " + hashCode();
 }
 
 

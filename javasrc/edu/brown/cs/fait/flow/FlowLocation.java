@@ -1,158 +1,176 @@
 /********************************************************************************/
-/*										*/
-/*		FlowLocation.java						*/
-/*										*/
-/*	Implementation of a location for processing				*/
-/*										*/
+/*                                                                              */
+/*              FlowLocation.java                                               */
+/*                                                                              */
+/*      Generic location                                                        */
+/*                                                                              */
 /********************************************************************************/
-/*	Copyright 2011 Brown University -- Steven P. Reiss		      */
+/*      Copyright 2011 Brown University -- Steven P. Reiss                    */
 /*********************************************************************************
- *  Copyright 2011, Brown University, Providence, RI.				 *
- *										 *
- *			  All Rights Reserved					 *
- *										 *
- *  Permission to use, copy, modify, and distribute this software and its	 *
- *  documentation for any purpose other than its incorporation into a		 *
- *  commercial product is hereby granted without fee, provided that the 	 *
- *  above copyright notice appear in all copies and that both that		 *
- *  copyright notice and this permission notice appear in supporting		 *
- *  documentation, and that the name of Brown University not be used in 	 *
- *  advertising or publicity pertaining to distribution of the software 	 *
- *  without specific, written prior permission. 				 *
- *										 *
- *  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS		 *
- *  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND		 *
- *  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY	 *
- *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY 	 *
- *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,		 *
- *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS		 *
- *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE 	 *
- *  OF THIS SOFTWARE.								 *
- *										 *
+ *  Copyright 2011, Brown University, Providence, RI.                            *
+ *                                                                               *
+ *                        All Rights Reserved                                    *
+ *                                                                               *
+ *  Permission to use, copy, modify, and distribute this software and its        *
+ *  documentation for any purpose other than its incorporation into a            *
+ *  commercial product is hereby granted without fee, provided that the          *
+ *  above copyright notice appear in all copies and that both that               *
+ *  copyright notice and this permission notice appear in supporting             *
+ *  documentation, and that the name of Brown University not be used in          *
+ *  advertising or publicity pertaining to distribution of the software          *
+ *  without specific, written prior permission.                                  *
+ *                                                                               *
+ *  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS                *
+ *  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND            *
+ *  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY      *
+ *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY          *
+ *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,              *
+ *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS               *
+ *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE          *
+ *  OF THIS SOFTWARE.                                                            *
+ *                                                                               *
  ********************************************************************************/
 
 
 
 package edu.brown.cs.fait.flow;
 
-import edu.brown.cs.fait.iface.*;
-import edu.brown.cs.ivy.jcode.JcodeInstruction;
-import edu.brown.cs.ivy.jcode.JcodeMethod;
-
 import java.util.List;
 
-class FlowLocation implements FaitLocation, FlowConstants
+import edu.brown.cs.fait.iface.IfaceCall;
+import edu.brown.cs.fait.iface.IfaceError;
+import edu.brown.cs.fait.iface.IfaceLocation;
+import edu.brown.cs.fait.iface.IfaceMethod;
+import edu.brown.cs.fait.iface.IfaceProgramPoint;
+import edu.brown.cs.fait.iface.IfaceValue;
+
+class FlowLocation implements IfaceLocation, FlowConstants
 {
 
 
 /********************************************************************************/
-/*										*/
-/*	Private Storage 							*/
-/*										*/
+/*                                                                              */
+/*      Private Storage                                                         */
+/*                                                                              */
 /********************************************************************************/
 
-private IfaceCall       for_call;
-private JcodeInstruction for_instruction;
-private FlowQueue       for_queue;
+private IfaceCall             for_call;
+private FlowQueue             for_queue;
+private IfaceProgramPoint     program_point;
 
 
 
 /********************************************************************************/
-/*										*/
-/*	Constructors								*/
-/*										*/
+/*                                                                              */
+/*      Constructors                                                            */
+/*                                                                              */
 /********************************************************************************/
 
-FlowLocation(FlowQueue fq,IfaceCall fc,JcodeInstruction ins)
+FlowLocation(FlowQueue fq,IfaceCall fc,IfaceProgramPoint pt)
 {
    for_queue = fq;
    for_call = fc;
-   for_instruction = ins;
+   program_point = pt;
 }
 
 
 
 /********************************************************************************/
-/*										*/
-/*	Access methods								*/
-/*										*/
+/*                                                                              */
+/*      Access methods v                                                        */
+/*                                                                              */
 /********************************************************************************/
 
-@Override public JcodeMethod getMethod()
+@Override public IfaceMethod getMethod()
 {
    return for_call.getMethod();
 }
 
 @Override public IfaceCall getCall()		 { return for_call; }
 
-@Override public JcodeInstruction getInstruction()
+@Override public IfaceProgramPoint getProgramPoint()
 {
-   return for_instruction;
+   return program_point;
 }
 
 
-@Override public boolean sameBaseLocation(FaitLocation loc)
+@Override public void noteError(IfaceError er)
 {
-   return loc.getMethod() == getMethod() && loc.getInstruction() == for_instruction;
-}
-
-/********************************************************************************/
-/*										*/
-/*	Comparison methods							*/
-/*										*/
-/********************************************************************************/
-
-@Override public boolean equals(Object o)
-{
-   if (o instanceof FlowLocation) {
-      FlowLocation loc = (FlowLocation) o;
-      return loc.for_call == for_call && loc.for_instruction == for_instruction;
-    }
-
-   return false;
+   if (er == null) return;
+   if (for_call == null || program_point == null) return;
+   for_call.addError(program_point,er);
 }
 
 
 
-@Override public int hashCode()
+public boolean sameBaseLocation(IfaceLocation loc)
 {
-   int hc = 0;
-   if (for_call != null) hc += for_call.hashCode();
-   if (for_instruction != null) hc += for_instruction.hashCode();
-
-   return hc;
+   return loc.getMethod().equals(getMethod()) && program_point.equals(loc.getProgramPoint());
 }
+
+
 
 
 /********************************************************************************/
 /*                                                                              */
-/*      Queueing methods                                                         */
+/*      Queueing methods                                                        */
 /*                                                                              */
 /********************************************************************************/
 
-void queueLocation()
+void queueLocation() 
 {
-   for_queue.queueMethodChange(for_call,for_instruction);
+   for_queue.queueMethodChange(for_call,getProgramPoint());
 }
 
-@Override public void handleCallback(JcodeMethod fm,List<IfaceValue> args,String cbid)
+
+@Override public void handleCallback(IfaceMethod fm,List<IfaceValue> args,String cbid)
 {
    for_queue.handleCallback(fm,args,cbid);
 }
 
 
+
 /********************************************************************************/
-/*										*/
-/*	Debugging methods							*/
-/*										*/
+/*                                                                              */
+/*      Equality methods                                                        */
+/*                                                                              */
+/********************************************************************************/
+
+public boolean equals(Object o)
+{
+   if (o instanceof FlowLocation) {
+      FlowLocation loc = (FlowLocation) o;
+      return for_call.equals(loc.for_call) && program_point.equals(loc.getProgramPoint());
+    }
+   return false;
+}
+
+
+public int hashCode() 
+{
+   int hc = 0;
+   if (for_call != null) hc += for_call.hashCode();
+   if (program_point != null) hc += program_point.hashCode();
+   return hc;
+}
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Debugging methods                                                       */
+/*                                                                              */
 /********************************************************************************/
 
 @Override public String toString()
 {
-   return for_call.getLogName() + " @ " + for_instruction.getIndex();
+   return for_call.getLogName() + "@" + program_point;
 }
 
-}	// end of class FlowLocation
+
+
+
+}       // end of class FlowLocation
 
 
 

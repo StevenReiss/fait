@@ -36,12 +36,9 @@
 package edu.brown.cs.fait.state;
 
 import edu.brown.cs.fait.iface.*;
-import edu.brown.cs.ivy.jcode.JcodeDataType;
 
 import org.junit.*;
 
-import java.util.*;
-import java.io.*;
 
 
 public class StateTest implements FaitConstants
@@ -54,7 +51,7 @@ public class StateTest implements FaitConstants
 /*										*/
 /********************************************************************************/
 
-private FaitControl	fait_control;
+private IfaceControl	fait_control;
 
 
 
@@ -66,9 +63,9 @@ private FaitControl	fait_control;
 
 public StateTest()
 {
-   fait_control = FaitControl.Factory.getControl();
-
-   fait_control.setProject(new TestProject());
+   IfaceProject proj = IfaceControl.Factory.createSimpleProject("/home/spr/sampler",
+         "spr.onsets.");
+   fait_control = IfaceControl.Factory.createControl(proj);
 }
 
 
@@ -82,7 +79,7 @@ public StateTest()
 @Test public void stackCheck()
 {
    IfaceState s1 = fait_control.createState(4);
-   JcodeDataType t1 = fait_control.findDataType("I");
+   IfaceType t1 = fait_control.findDataType("int");
    
    IfaceValue v1 = fait_control.findRangeValue(t1,1,1);
    IfaceValue v2 = fait_control.findRangeValue(t1,2,2);
@@ -97,37 +94,6 @@ public StateTest()
 }
 
 
-
-
-/********************************************************************************/
-/*										*/
-/*	Project to test with							*/
-/*										*/
-/********************************************************************************/
-
-private static class TestProject implements FaitProject {
-
-   @Override public String getClasspath() {
-      return "/home/spr/sampler";
-    }
-
-   @Override public Collection<String> getBaseClasses() {
-      Collection<String> rslt = new ArrayList<String>();
-      rslt.add("spr.onsets.OnsetMain");
-      return rslt;
-    }
-   @Override public Collection<String> getStartClasses()        { return null; }
-   
-   @Override public List<File> getDescriptionFile()		{ return null; }
-
-   @Override public boolean isProjectClass(String cls) {
-      if (cls.startsWith("spr.")) return true;
-      return false;
-    }
-
-   @Override public FaitMethodData createMethodData(FaitCall fc)   { return null; }
-   
-}	// end of inner class TestProject
 
 }	// end of class StateTest
 

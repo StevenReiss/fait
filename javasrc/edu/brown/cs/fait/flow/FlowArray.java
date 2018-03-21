@@ -36,23 +36,22 @@
 package edu.brown.cs.fait.flow;
 
 import edu.brown.cs.fait.iface.*;
-import edu.brown.cs.ivy.jcode.JcodeDataType;
-import edu.brown.cs.ivy.jcode.JcodeConstants;
 
 import java.util.*;
 
 
-class FlowArray implements FlowConstants, JcodeConstants
+
+class FlowArray implements FlowConstants
 {
 
 
 /********************************************************************************/
 /*										*/
-/*	Private St      orage 							*/
+/*	Private St	orage							*/
 /*										*/
 /********************************************************************************/
 
-private FaitControl		fait_control;
+private IfaceControl		fait_control;
 private FlowQueue		flow_queue;
 
 private Map<IfaceEntity,Set<FlowLocation>> entity_map;
@@ -65,11 +64,11 @@ private Map<IfaceEntity,Set<FlowLocation>> entity_map;
 /*										*/
 /********************************************************************************/
 
-FlowArray(FaitControl fc,FlowQueue fq)
+FlowArray(IfaceControl fc,FlowQueue fq)
 {
    fait_control = fc;
    flow_queue = fq;
-   entity_map = new HashMap<IfaceEntity,Set<FlowLocation>>();
+   entity_map = new HashMap<>();
 }
 
 
@@ -80,32 +79,32 @@ FlowArray(FaitControl fc,FlowQueue fq)
 /*										*/
 /********************************************************************************/
 
-IfaceValue handleNewArraySet(FlowLocation loc,JcodeDataType acls,int ndim,IfaceValue sz)
+IfaceValue handleNewArraySet(FlowLocation loc,IfaceType acls,int ndim,IfaceValue sz)
 {
-   IfaceEntity as = loc.getCall().getArrayEntity(loc.getInstruction());
+   IfaceEntity as = loc.getCall().getArrayEntity(loc.getProgramPoint());
 
    if (as == null) {
       IfaceEntity as1 = null;
-      JcodeDataType bcls = acls;
+      IfaceType bcls = acls;
       for (int i = 0; i < ndim; ++i) {
 	 as = fait_control.findArrayEntity(bcls,sz);
 	 sz = null;
 	 if (as1 != null) {
 	    IfaceEntitySet es = fait_control.createSingletonSet(as1);
-	    IfaceValue cv = fait_control.findObjectValue(bcls,es,NullFlags.NON_NULL);
+	    IfaceValue cv = fait_control.findObjectValue(bcls,es,FaitAnnotation.NON_NULL);
 	    as.setArrayContents(cv);
 	  }
 	 bcls = bcls.getArrayType();
 	 as1 = as;
        }
-      loc.getCall().setArrayEntity(loc.getInstruction(),as);
+      loc.getCall().setArrayEntity(loc.getProgramPoint(),as);
     }
 
    acls = acls.getArrayType();
 
-   IfaceLog.logD1("Array set = " + as + " " + acls.getName());
+   if (FaitLog.isTracing()) FaitLog.logD1("Array set = " + as + " " + acls.getName());
 
-   return fait_control.findObjectValue(acls,fait_control.createSingletonSet(as),NullFlags.NON_NULL);
+   return fait_control.findObjectValue(acls,fait_control.createSingletonSet(as),FaitAnnotation.NON_NULL);
 }
 
 
@@ -119,55 +118,17 @@ IfaceValue handleNewArraySet(FlowLocation loc,JcodeDataType acls,int ndim,IfaceV
 IfaceValue handleArrayAccess(FlowLocation loc,IfaceValue arr,IfaceValue idx)
 {
    IfaceValue cv = null;
-   boolean nat = false;
-
+   
    for (IfaceEntity xe : arr.getEntities()) {
-      if (xe.getDataType().isArray()) {
+      if (xe.getDataType().isArrayType()) {
 	 addReference(xe,loc);
-	 IfaceValue cv1 = (IfaceValue) xe.getArrayValue(idx,fait_control);
-	 if (cv == null) cv = cv1;
-	 else cv = cv.mergeValue(cv1);
        }
-      else if (xe.isNative()) nat = true;
     }
+   
+   cv = arr.getArrayContents(idx);
 
-   if (cv == null) {
-      JcodeDataType base = null;
-      switch (loc.getInstruction().getOpcode()) {
-	 default :
-	 case AALOAD :
-	    base = arr.getDataType();
-	    if (base == null || !base.isArray())
-	       base = fait_control.findDataType("Ljava/lang/Object;");
-	    else base = base.getBaseDataType();
-	    if (nat) cv = fait_control.findNativeValue(base);
-	    else cv = fait_control.findNullValue(base);
-	    break;
-	 case BALOAD :
-	    base = fait_control.findDataType("B");
-	    break;
-	 case CALOAD :
-	    base = fait_control.findDataType("C");
-	    break;
-	 case DALOAD :
-	    base = fait_control.findDataType("D");
-	    break;
-	 case FALOAD :
-	    base = fait_control.findDataType("F");
-	    break;
-	 case IALOAD :
-	    base = fait_control.findDataType("I");
-	    break;
-	 case LALOAD :
-	    base = fait_control.findDataType("L");
-	    break;
-	 case SALOAD :
-	    base = fait_control.findDataType("S");
-	    break;
-       }
-      if (cv == null && base != null) cv = fait_control.findAnyValue(base);
-    }
-
+   if (FaitLog.isTracing()) FaitLog.logD1("Array access " + arr + "[" + idx + "] = " + cv);
+   
    return cv;
 }
 
@@ -183,10 +144,14 @@ void handleArraySet(FlowLocation loc,IfaceValue arr,IfaceValue val,IfaceValue id
 {
    if (val.isBad()) return;
 
-   IfaceLog.logD1("Add to array set " + arr + "[" + idx + "] = " + val);
+   if (FaitLog.isTracing()) FaitLog.logD1("Add to array set " + arr + "[" + idx + "] = " + val);
+   
+   // IfaceType btyp = arr.getDataType().getBaseType();
+   // need declared type of the array, not the current type
+   // val = FlowScanner.checkAssignment(val,btyp,loc);
 
    for (IfaceEntity ce : arr.getEntities()) {
-      if (ce.getDataType().isArray()) {
+      if (ce.getDataType().isArrayType()) {
 	 if (ce.addToArrayContents(val,idx,loc)) {
 	    noteArrayChange(ce);
 	  }
@@ -235,7 +200,7 @@ private void addReference(IfaceEntity ent,FlowLocation loc)
    synchronized (entity_map) {
       Set<FlowLocation> locs = entity_map.get(ent);
       if (locs == null) {
-	 locs = new HashSet<FlowLocation>(4);
+	 locs = new HashSet<>(4);
 	 entity_map.put(ent,locs);
        }
       locs.add(loc);
@@ -254,8 +219,8 @@ void noteArrayChange(IfaceEntity arr)
 
    if (locs == null) return;
    for (FlowLocation loc : locs) {
-      flow_queue.queueMethodChange(loc.getCall(),loc.getInstruction());
-      IfaceLog.logD1("Array change method " + loc);
+      flow_queue.queueMethodChange(loc.getCall(),loc.getProgramPoint());
+      if (FaitLog.isTracing()) FaitLog.logD1("Array change method " + loc);
     }
 }
 
@@ -268,4 +233,363 @@ void noteArrayChange(IfaceEntity arr)
 
 
 /* end of FlowArray.java */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

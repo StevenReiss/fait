@@ -37,7 +37,6 @@ package edu.brown.cs.fait.value;
 
 import edu.brown.cs.fait.iface.*;
 import edu.brown.cs.ivy.jcode.JcodeConstants;
-import edu.brown.cs.ivy.jcode.JcodeDataType;
 
 
 class ValueInt extends ValueNumber implements JcodeConstants
@@ -62,13 +61,13 @@ private long		max_value;
 /*										*/
 /********************************************************************************/
 
-ValueInt(ValueFactory vf,JcodeDataType dt)
+ValueInt(ValueFactory vf,IfaceType dt)
 {
    this(vf,dt,null);
 }
 
 
-ValueInt(ValueFactory vf,JcodeDataType dt,IfaceEntitySet es)
+ValueInt(ValueFactory vf,IfaceType dt,IfaceEntitySet es)
 {
    super(vf,dt,es);
    have_range = false;
@@ -77,13 +76,13 @@ ValueInt(ValueFactory vf,JcodeDataType dt,IfaceEntitySet es)
 }
 
 
-ValueInt(ValueFactory vf,JcodeDataType dt,long minv,long maxv)
+ValueInt(ValueFactory vf,IfaceType dt,long minv,long maxv)
 {
    this(vf,dt,minv,maxv,null);
 }
 
 
-ValueInt(ValueFactory vf,JcodeDataType dt,long minv,long maxv,IfaceEntitySet es)
+ValueInt(ValueFactory vf,IfaceType dt,long minv,long maxv,IfaceEntitySet es)
 {
    super(vf,dt,es);
    have_range = true;
@@ -111,13 +110,14 @@ long getMaxValue()			{ return max_value; }
 /*										*/
 /********************************************************************************/
 
-@Override
-public IfaceValue performOperation(JcodeDataType typ,IfaceValue rhsv,int op,FaitLocation src)
+@Override protected IfaceValue localPerformOperation(IfaceType typ,IfaceValue rhsv,
+        FaitOperator op,IfaceLocation src)
 {
    if (rhsv == null) rhsv = this;
-
+   
    if (rhsv instanceof ValueBad) return value_factory.anyValue(typ);
-
+   if (!(rhsv instanceof ValueInt)) return value_factory.anyValue(typ);
+   
    ValueInt rhs = (ValueInt) rhsv;
 
    boolean valok = true;
@@ -134,17 +134,15 @@ public IfaceValue performOperation(JcodeDataType typ,IfaceValue rhsv,int op,Fait
    long mxv = max_value;
 
    switch (op) {
-      case IINC :
-      case IADD :
-      case LADD :
+      case INCR :
+      case ADD :
 	 v0 += v1;
 	 if (rngok) {
 	    mnv += rhs.min_value;
 	    mxv += rhs.max_value;
 	  }
 	 break;
-      case IDIV :
-      case LDIV :
+      case DIV :
 	 if (valok && v1 == 0) valok = false;
 	 else if (valok) v0 /= v1;
 	 if (rngok) {
@@ -155,8 +153,7 @@ public IfaceValue performOperation(JcodeDataType typ,IfaceValue rhsv,int op,Fait
 	     }
 	  }
 	 break;
-      case IMUL :
-      case LMUL :
+      case MUL :
 	 v0 *= v1;
 	 if (rngok) {
 	    mnv = min_value*rhs.min_value;
@@ -169,65 +166,112 @@ public IfaceValue performOperation(JcodeDataType typ,IfaceValue rhsv,int op,Fait
 	    mxv = Math.max(mxv,max_value*rhs.max_value);
 	  }
 	 break;
-      case IREM :
-      case LREM :
+      case MOD :
 	 if (v1 == 0) return value_factory.anyValue(typ);
 	 if (rngok) {
 	    if (rhs.min_value <= mxv) rngok = false;
 	  }
 	 break;
-      case ISUB :
-      case LSUB :
+      case SUB :
 	 v0 -= v1;
 	 if (rngok) {
 	    mnv -= rhs.max_value;
 	    mxv -= rhs.min_value;
 	  }
 	 break;
-      case IAND :
-      case LAND :
+      case AND :
 	 v0 &= v1;
 	 rngok = false;
 	 break;
-      case IOR :
-      case LOR :
+      case OR :
 	 v0 |= v1;
 	 rngok = false;
 	 break;
-      case IXOR :
-      case LXOR :
+      case XOR :
 	 v0 ^= v1;
 	 rngok = false;
 	 break;
-      case ISHL :
-      case LSHL :
+      case LSH :
 	 v0 <<= v1;
 	 rngok = false;
 	 break;
-      case ISHR :
-      case LSHR :
+      case RSH :
 	 v0 >>= v1;
 	 rngok = false;
 	 break;
-      case IUSHR :
-      case LUSHR :
+      case RSHU :
 	 v0 >>>= v1;
 	 rngok = false;
 	 break;
-      case I2B :
-      case I2C :
-      case I2S :
-      case I2L :
-      case L2I :
+      case TOBYTE :
+      case TOCHAR :
+      case TOSHORT :
+      case TOLONG :
+      case TOINT :
 	 break;
-      case INEG :
-      case LNEG :
+      case NEG :
 	 v0 = -v0;
 	 mnv = -mxv;
 	 mxv = -mnv;
 	 break;
-      case I2D :
-      case L2D :
+      case LSS :
+         if (rngok) {
+            if (max_value < rhs.min_value) {
+               v0 = 1;
+               valok = true;
+             }
+            else if (min_value >= rhs.max_value) {
+               v0 = 0;
+               valok = true;
+             }
+          }
+         break;
+      case LEQ :
+         if (rngok) {
+            if (max_value <= rhs.min_value) {
+               v0 = 1;
+               valok = true;
+             }
+            else if (min_value > rhs.max_value) {
+               v0 = 0;
+               valok = true;
+             }
+          }
+         break;
+      case GTR :
+         if (rngok) {
+            if (min_value > rhs.max_value) {
+               v0 = 1;
+               valok = true;
+             }
+            else if (max_value <= rhs.min_value) {
+               v0 = 0;
+               valok = true;
+             }
+          }
+         break;
+      case GEQ :
+         if (rngok) {
+            if (min_value >= rhs.max_value) {
+               v0 = 1;
+               valok = true;
+             }
+            else if (max_value < rhs.min_value) {
+               v0 = 0;
+               valok = true;
+             }
+          }
+         break;
+      case EQL :
+         if (v0 == v1) v0 = 1;
+         else v0 = 0;
+         break;
+      case NEQ :
+         if (v0 != v1) v0 = 1;
+         else v0 = 0;
+         break;
+         
+      case TODOUBLE :
       default :
 	 valok = false;
 	 rngok = false;
@@ -249,6 +293,155 @@ public IfaceValue performOperation(JcodeDataType typ,IfaceValue rhsv,int op,Fait
 
 
 
+
+
+@Override public IfaceImplications getImpliedValues(IfaceValue rhsv,FaitOperator op)
+{
+   ValueInt rhs = null;
+   IfaceType rtyp = null;
+   if (rhsv != null && rhsv instanceof ValueInt) {
+      rhs = (ValueInt) rhsv;
+      rtyp = rhs.getDataType();
+    }
+   
+   ValueImplications imp = null;
+   ValueBase lt = null;
+   ValueBase lf = null;
+   ValueBase rt = null;
+   ValueBase rf = null;
+   boolean flip = false;
+   
+   switch (op) {
+      case NEQ :
+         flip = true;
+         //$FALL-THROUGH$
+      case EQL :
+         if (have_range && rhs.have_range) {
+            long min = Math.max(min_value,rhs.min_value);
+            long max = Math.min(max_value,rhs.max_value);
+            lt = value_factory.rangeValue(getDataType(),min,max);
+            rt = value_factory.rangeValue(rhs.getDataType(),min,max);
+            if (rhs.min_value == rhs.max_value) {
+               if (min_value == rhs.min_value) {
+                  lf = value_factory.rangeValue(getDataType(),min_value+1,max_value);
+                }
+               else if (max_value == rhs.max_value) {
+                  lf = value_factory.rangeValue(getDataType(),min_value,max_value-1);
+                }
+             }
+            if (min_value == max_value) {
+               if (rhs.min_value == min_value) {
+                  rf = value_factory.rangeValue(rhs.getDataType(),rhs.min_value+1,rhs.max_value);
+                }
+               else if (rhs.max_value == max_value) {
+                  rf = value_factory.rangeValue(rhs.getDataType(),rhs.min_value,rhs.max_value-1);
+                }
+             }
+          }
+         break;
+      case GTR :
+         flip = true;
+	 //$FALL-THROUGH$
+      case LEQ :
+         if (have_range && rhs.have_range) {
+            lt = value_factory.rangeValue(getDataType(),min_value,Math.min(max_value,rhs.max_value));
+            lf = value_factory.rangeValue(getDataType(),Math.max(min_value,rhs.min_value+1),max_value);
+            rt = value_factory.rangeValue(getDataType(),Math.max(rhs.min_value,min_value),rhs.max_value);
+            rf = value_factory.rangeValue(getDataType(),rhs.min_value,Math.min(rhs.max_value,max_value-1));
+          }
+         break;
+      case GEQ :
+         flip = true;
+	 //$FALL-THROUGH$
+      case LSS :
+         if (have_range && rhs.have_range) {
+            lt = value_factory.rangeValue(getDataType(),min_value,Math.min(max_value,rhs.max_value-1));
+            lf = value_factory.rangeValue(getDataType(),Math.max(min_value,rhs.min_value),max_value);
+            rt = value_factory.rangeValue(rhs.getDataType(),Math.max(rhs.min_value,min_value+1),rhs.max_value);
+            rf = value_factory.rangeValue(rhs.getDataType(),rhs.min_value,Math.min(rhs.max_value,max_value));
+          }
+         break;
+      case NEQ_ZERO :
+         flip = true;
+	 //$FALL-THROUGH$
+      case EQL_ZERO :
+         lt = value_factory.rangeValue(getDataType(),0,0);
+         if (have_range && min_value == 0 && max_value > 0) {
+            lf = value_factory.rangeValue(getDataType(),1,max_value);
+          }
+         break;
+      case GEQ_ZERO :
+         flip = true;
+         //$FALL-THROUGH$
+      case LSS_ZERO :
+         if (have_range && min_value < 0) {
+            lt = value_factory.rangeValue(getDataType(),min_value,-1);
+            lf = value_factory.rangeValue(getDataType(),0,max_value);
+          }
+         break;
+      case GTR_ZERO :
+         flip = true;
+         //$FALL-THROUGH$
+      case LEQ_ZERO :
+         if (have_range && min_value <= 0) {
+            lt = value_factory.rangeValue(getDataType(),min_value,0);
+            lf = value_factory.rangeValue(getDataType(),1,max_value); 
+          }
+         break; 
+      default :
+         return null;
+    }
+   
+   if (flip) {
+      ValueBase t = lf;
+      lf = lt;
+      lt = t;
+      t = rf;
+      rf = rt;
+      rt = t;
+    }
+   
+   IfaceTypeImplications timp = null;
+   if (lf == this) lf = null;
+   if (lt == this) lt = null;
+   if (lf != null || lt != null) {
+      timp = getDataType().getImpliedTypes(op,rtyp);
+      if (lt != null) lt = (ValueBase) lt.restrictByType(timp.getLhsTrueType());
+      if (lf != null) lf = (ValueBase) lf.restrictByType(timp.getLhsFalseType());
+      imp = new ValueImplications();
+      if (timp == null) timp = getDataType().getImpliedTypes(op,rhs.getDataType());
+      imp.setLhsValues(lt,lf);
+    }
+   if (rf == rhs) rf = null;
+   if (rt == rhs) rt = null;
+   if (rt != null || rf != null) {
+      if (timp == null) timp = getDataType().getImpliedTypes(op,rtyp);
+      if (imp == null) imp = new ValueImplications();
+      if (rt != null) rt = (ValueBase) rt.restrictByType(timp.getRhsTrueType());
+      if (rf != null) rf = (ValueBase) rf.restrictByType(timp.getRhsFalseType());
+      imp.setRhsValues(rt,rf);
+    }
+   
+   return imp;
+   
+}
+
+
+@Override public IfaceValue toFloating()
+{
+   IfaceType dt = value_factory.getFaitControl().findDataType("double");
+   if (have_range) {
+      return value_factory.rangeValue(dt,(double) min_value,(double) max_value);
+    }
+   return value_factory.anyValue(dt);
+}
+
+@Override public Integer getIndexValue()
+{
+   if (have_range && min_value == max_value) return (int) min_value;
+   return null;
+}
+
 /********************************************************************************/
 /*										*/
 /*	Methods to handle merging values					*/
@@ -262,8 +455,8 @@ public IfaceValue performOperation(JcodeDataType typ,IfaceValue rhsv,int op,Fait
    if (!(vb instanceof ValueInt)) return value_factory.badValue();
 
    ValueInt cvi = (ValueInt) vb;
-   JcodeDataType fdt = getDataType();
-   JcodeDataType mdt = cvi.getDataType();
+   IfaceType fdt = getDataType();
+   IfaceType mdt = cvi.getDataType();
 
    if (!have_range || (cvi.have_range && min_value <= cvi.min_value &&
 	 max_value >= cvi.max_value)) {
@@ -286,6 +479,13 @@ public IfaceValue performOperation(JcodeDataType typ,IfaceValue rhsv,int op,Fait
    return value_factory.anyValue(fdt);
 }
 
+@Override public IfaceValue restrictByType(IfaceType dt) 
+{
+   IfaceType nt = getDataType().restrictBy(dt);
+   if (nt == getDataType()) return this;
+   if (have_range) return value_factory.rangeValue(nt,min_value,max_value);
+   return value_factory.anyValue(nt);
+}
 
 
 @Override protected IfaceValue newEntityValue(IfaceEntitySet cs)
@@ -313,7 +513,7 @@ public IfaceValue performOperation(JcodeDataType typ,IfaceValue rhsv,int op,Fait
 /*										*/
 /********************************************************************************/
 
-@Override public TestBranch branchTest(IfaceValue rhs,int op)
+@Override public TestBranch branchTest(IfaceValue rhs,FaitOperator op)
 {
    if (rhs == null) rhs = this;
 
@@ -323,57 +523,57 @@ public IfaceValue performOperation(JcodeDataType typ,IfaceValue rhsv,int op,Fait
 
    if (have_range && rvi.have_range) {
       switch (op) {
-	 case IF_ICMPEQ :
+	 case EQL :
 	    if (min_value == max_value && min_value == rvi.min_value &&
 		  max_value == rvi.max_value)
 	       rslt = TestBranch.ALWAYS;
 	    else if (min_value > rvi.max_value || max_value < rvi.min_value)
 	       rslt = TestBranch.NEVER;
 	    break;
-	 case IF_ICMPNE :
+	 case NEQ :
 	    if (min_value == max_value && min_value == rvi.min_value &&
 		  max_value == rvi.max_value)
 	       rslt = TestBranch.NEVER;
 	    else if (min_value > rvi.max_value || max_value < rvi.min_value)
 	       rslt = TestBranch.ALWAYS;
 	    break;
-	 case IF_ICMPLT :
+	 case LSS :
 	    if (max_value < rvi.min_value) rslt = TestBranch.ALWAYS;
 	    else if (min_value >= rvi.max_value) rslt = TestBranch.NEVER;
 	    break;
-	 case IF_ICMPGE :
+	 case GEQ :
 	    if (min_value >= rvi.max_value) rslt = TestBranch.ALWAYS;
 	    else if (max_value < rvi.min_value) rslt = TestBranch.NEVER;
 	    break;
-	 case IF_ICMPGT :
+	 case GTR :
 	    if (min_value > rvi.max_value) rslt = TestBranch.ALWAYS;
 	    else if (max_value <= rvi.min_value) rslt = TestBranch.NEVER;
 	    break;
-	 case IF_ICMPLE :
+	 case LEQ :
 	    if (max_value <= rvi.min_value) rslt = TestBranch.ALWAYS;
 	    else if (min_value > rvi.max_value) rslt = TestBranch.NEVER;
 	    break;
-	 case IFEQ :
+	 case EQL_ZERO :
 	    if (min_value == max_value && min_value == 0) rslt = TestBranch.ALWAYS;
 	    else if (min_value > 0 || max_value < 0) rslt = TestBranch.NEVER;
 	    break;
-	 case IFNE :
+	 case NEQ_ZERO :
 	    if (min_value == max_value && min_value == 0) rslt = TestBranch.NEVER;
 	    else if (min_value > 0 || max_value < 0) rslt = TestBranch.ALWAYS;
 	    break;
-	 case IFLT :
+	 case LSS_ZERO :
 	    if (max_value < 0) rslt = TestBranch.ALWAYS;
 	    else if (min_value >= 0) rslt = TestBranch.NEVER;
 	    break;
-	 case IFLE :
+	 case LEQ_ZERO :
 	    if (max_value < 0) rslt = TestBranch.ALWAYS;
 	    else if (min_value > 0) rslt = TestBranch.NEVER;
 	    break;
-	 case IFGT :
+	 case GTR_ZERO :
 	    if (min_value > 0) rslt = TestBranch.ALWAYS;
 	    else if (max_value <= 0) rslt = TestBranch.NEVER;
 	    break;
-	 case IFGE :
+	 case GEQ_ZERO :
 	    if (min_value >= 0) rslt = TestBranch.ALWAYS;
 	    else if (max_value < 0) rslt = TestBranch.NEVER;
 	    break;
@@ -398,7 +598,7 @@ public IfaceValue performOperation(JcodeDataType typ,IfaceValue rhsv,int op,Fait
 {
    StringBuffer rslt = new StringBuffer();
    rslt.append("[");
-   rslt.append(getDataType().getName());
+   rslt.append(getDataType());
    if (have_range) {
       rslt.append(" :: ");
       rslt.append(min_value);

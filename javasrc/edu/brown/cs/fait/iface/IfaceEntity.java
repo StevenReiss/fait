@@ -36,24 +36,64 @@
 
 package edu.brown.cs.fait.iface;
 
-import edu.brown.cs.ivy.jcode.JcodeField;
+import java.util.Map;
 
-public interface IfaceEntity extends FaitEntity {
+public interface IfaceEntity extends FaitConstants {
+
+int getId();
+
+IfaceType getDataType();
+
+IfaceLocation getLocation();
+
+boolean isUsedInLock();
 
 
-IfaceEntity makeNonunique();
 
-void setFieldContents(IfaceValue fv,JcodeField fld);
-boolean addToFieldContents(IfaceValue fv,JcodeField fld);
-FaitValue getFieldValue(JcodeField fld);
+
+
+/********************************************************************************/
+/*										*/
+/*	User sources								*/
+/*										*/
+/********************************************************************************/
+
+UserEntity getUserEntity();
+
+boolean isNative();
+
+boolean isUserEntity();
+
+
+interface UserEntity {
+   
+   String getEntityType();
+   
+}
+
+
+
+
+void setFieldContents(IfaceValue fv,String key);
+void setFieldContents(IfaceValue fv,IfaceField fld);
+boolean addToFieldContents(IfaceValue fv,String key);
+boolean addToFieldContents(IfaceValue fv,IfaceField fld);
+IfaceValue getFieldValue(String key);
+IfaceValue getFieldValue(IfaceField fld);
+
 
 void setArrayContents(IfaceValue fv);
-boolean addToArrayContents(IfaceValue fv,IfaceValue idx,FaitLocation loc);
-FaitValue getArrayValue(IfaceValue idx,FaitControl fc);
+boolean addToArrayContents(IfaceValue fv,IfaceValue idx,IfaceLocation loc);
+IfaceValue getArrayValue(IfaceValue idx,IfaceControl ctl);
 
 void handleUpdates(IfaceUpdater upd);
 
 IfacePrototype getPrototype();
+
+Map<Object,IfaceValue> getBindings();
+String getMethodName();
+boolean isFunctionRef();
+
 
 
 }	// end of interface IfaceEntity

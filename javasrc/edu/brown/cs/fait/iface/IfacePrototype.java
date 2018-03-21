@@ -38,24 +38,23 @@ package edu.brown.cs.fait.iface;
 
 import java.util.*;
 
-import edu.brown.cs.ivy.jcode.JcodeField;
-import edu.brown.cs.ivy.jcode.JcodeMethod;
 
 
 public interface IfacePrototype extends FaitConstants
 {
 
-void setField(IfaceValue v,JcodeField fld);
-boolean addToField(IfaceValue v,JcodeField fld);
-IfaceValue getField(JcodeField fld);
+void setField(IfaceValue v,String fldkey);
+boolean addToField(IfaceValue v,String fldkey);
+IfaceValue getField(String fldkey);
 
 boolean setArrayContents(IfaceValue idx,IfaceValue val);
 IfaceValue getArrayContents(IfaceValue idx);
 
 void handleUpdates(IfaceUpdater upd);
 
-boolean isMethodRelevant(JcodeMethod fm);
-IfaceValue handleCall(JcodeMethod fm,List<IfaceValue> args,FaitLocation src);
+boolean isMethodRelevant(IfaceMethod fm);
+IfaceValue handleCall(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src);
+
 
 
 }	// end of interface IfacePrototype

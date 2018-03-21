@@ -38,19 +38,23 @@ package edu.brown.cs.fait.iface;
 import java.util.*;
 
 
-public interface IfaceUpdater extends FaitUpdater
+
+public interface IfaceUpdater extends FaitConstants
 {
 
+IfaceValue getNewValue(IfaceValue v);
+IfaceEntitySet getNewEntitySet(IfaceEntitySet s);
+
+void addEntityToRemove(IfaceEntity ie);
 Collection<IfaceEntity> getEntitiesToRemove();
-Collection<IfaceEntitySet> getChangedEntitySets();
+void addToEntitySetMap(IfaceEntitySet oset,IfaceEntitySet nset);
+void addToValueMap(IfaceValue oval,IfaceValue nval);
 
-IfaceEntitySet getNewEntitySet(IfaceEntitySet ent);
+boolean shouldUpdate(IfaceCall ic);
+void removeCall(IfaceCall ic);
 
-IfaceValue getNewValue(IfaceValue val);
-
-void addEntitySetMap(IfaceEntitySet from,IfaceEntitySet to);
-void addValueMap(IfaceValue from,IfaceValue to);
-
+void addToWorkQueue(IfaceCall ic,IfaceProgramPoint pt);
+   
 }	// end of interface IfaceUpdater
 
 

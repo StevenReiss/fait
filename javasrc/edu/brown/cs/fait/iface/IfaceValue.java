@@ -39,9 +39,31 @@
 
 package edu.brown.cs.fait.iface;
 
-import edu.brown.cs.ivy.jcode.JcodeDataType;
+public interface IfaceValue extends FaitConstants {
 
-public interface IfaceValue extends FaitValue {
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Methods for external use                                                */
+/*                                                                              */
+/********************************************************************************/
+
+boolean canBeNull();
+boolean mustBeNull();
+
+boolean isEmptyEntitySet();
+boolean isBad();
+boolean isCategory2();
+boolean isNative();
+
+IfaceType getDataType();
+
+Iterable<IfaceEntity> getEntities();
+
+boolean containsEntity(IfaceEntity src);
+
+
 
 
 /********************************************************************************/
@@ -51,23 +73,36 @@ public interface IfaceValue extends FaitValue {
 /********************************************************************************/
 
 IfaceValue mergeValue(IfaceValue v);
-IfaceValue restrictByType(JcodeDataType dt,boolean pfg,FaitLocation src);
-IfaceValue removeByType(JcodeDataType dt,FaitLocation src);
-IfaceValue makeSubtype(JcodeDataType dt);
-IfaceValue forceNonNull();
-IfaceValue allowNull();
-IfaceValue setTestNull();
-IfaceValue addEntity(IfaceEntitySet e);
+IfaceValue restrictByType(IfaceType dt);
 
-IfaceValue performOperation(JcodeDataType dt,IfaceValue rhs,int op,FaitLocation src);
-TestBranch branchTest(IfaceValue rhs,int op);
+IfaceValue makeSubtype(IfaceType dt);
+IfaceValue forceNonNull();
+IfaceValue forceInitialized(FaitAnnotation what);
+IfaceValue allowNull();
+
+IfaceValue addEntity(IfaceEntitySet e);
+IfaceValue toFloating();
+Integer getIndexValue();
+
+
+IfaceValue performOperation(IfaceType dt,IfaceValue rhs,FaitOperator op,IfaceLocation src);
+TestBranch branchTest(IfaceValue rhs,FaitOperator op);
+IfaceImplications getImpliedValues(IfaceValue rhs,FaitOperator op);
  
 IfaceEntitySet getModelEntitySet();
 boolean isGoodEntitySet();
 
 IfaceValue getArrayContents();
+IfaceValue getArrayLength();
+IfaceValue getArrayContents(IfaceValue idx);
 
 boolean isAllNative();
+
+boolean isReference();
+int getRefSlot();
+IfaceValue getRefBase();
+IfaceField getRefField();
+IfaceValue getRefIndex();
 
 
 
