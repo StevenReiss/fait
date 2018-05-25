@@ -108,6 +108,9 @@ EntityLocal(IfaceLocation where,IfaceType cls)
 
 
 
+
+
+
 /********************************************************************************/
 /*                                                                              */
 /*      Output and debugging methods                                            */
@@ -121,6 +124,7 @@ EntityLocal(IfaceLocation where,IfaceType cls)
    
    return "Local New " + getDataType().getName() + " @ " + loc + " " + hashCode();
 }
+
 
 
 }       // end of class EntityLocal

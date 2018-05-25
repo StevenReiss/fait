@@ -84,12 +84,96 @@ public void analyze(int nthread,boolean update)
       sargl.add(fait_control.findMainArgsValue());
       for (IfaceMethod fm : start) {
          IfaceCall ic = fait_control.findCall(null,fm,sargl,InlineType.NONE);
+         ic.addCall(sargl);
          flow_queue.queueMethodStart(ic,null);
        }
     }
 
    FlowProcessor fp = new FlowProcessor(nthread,fait_control,flow_queue);
    fp.process();
+}
+
+
+public void analyze(IfaceMethod im,int nth)
+{
+   Set<IfaceType> done = new HashSet<>();
+   
+   
+   List<IfaceValue> args = new ArrayList<>();
+   IfaceValue thisv = null;
+   IfaceType ctyp = im.getDeclaringClass();
+   
+   fait_control.clearCallSpecial(im);
+   
+   preloadClasses(ctyp,done);
+   
+   if (!im.isStatic()) {
+      thisv = fait_control.findMutableValue(ctyp);
+      thisv.forceNonNull();
+      args.add(thisv);
+    }
+   
+   for (int i = 0; i < im.getNumArgs(); ++i) {
+      IfaceType atyp = im.getArgType(i);
+      if (atyp == null) {
+         System.err.println("MISSING ARG TYPE");
+         FaitLog.logI("MISSING ARG TYPE");
+         return;
+       }
+      preloadClasses(atyp,done);
+      args.add(fait_control.findMutableValue(atyp));
+    }
+   IfaceType rtyp = im.getReturnType();
+   if (rtyp == null) {
+      System.err.println("MISSING RETURN TYPE");
+      FaitLog.logI("MISSING RETURN TYPE");
+      return;
+    }
+   preloadClasses(rtyp,done);
+   
+   IfaceCall ic = fait_control.findCall(null,im,args,InlineType.NONE);
+   ic.addCall(args);
+   flow_queue.queueMethodStart(ic,null);
+   FlowProcessor fp = new FlowProcessor(nth,fait_control,flow_queue);
+   fp.process();
+   IfaceValue retv = ic.getResultValue();
+   boolean arg0 = false;
+   if (thisv != null && thisv == retv) arg0 = true;
+   
+   FaitLog.logI("RETURNS " + ic + " " + retv + " " + arg0);
+   System.err.println("RETURNS " + ic + " " + retv + " " + arg0);
+}
+
+
+private void preloadClasses(IfaceType typ,Set<IfaceType> done)
+{
+   if (typ == null || !done.add(typ)) return;
+   
+   if (typ.getSuperType() != null) {
+      preloadInitialize(typ.getSuperType());
+    }
+   
+   for (IfaceType ityp : typ.getInterfaces()) {
+      preloadClasses(ityp,done);
+    }
+   preloadInitialize(typ);
+   
+   for (IfaceType ctyp : typ.getChildTypes()) {
+      preloadClasses(ctyp,done);
+    }
+}
+
+
+private void preloadInitialize(IfaceType typ)
+{
+   if (typ == null) return;
+   
+   Collection<IfaceMethod> sinit = fait_control.findAllMethods(typ,"<clinit>");   
+   if (sinit != null) {
+      for (IfaceMethod sim : sinit) fait_control.clearCallSpecial(sim);
+    }
+   
+   flow_queue.initialize(typ);
 }
 
 
@@ -111,6 +195,12 @@ public void queueMethodCall(IfaceCall ic,IfaceProgramPoint pt)
 {
    flow_queue.queueMethodChange(ic,pt);
 }
+
+public void initialize(IfaceType typ)
+{
+   flow_queue.initialize(typ);
+}
+
 
 
 /********************************************************************************/

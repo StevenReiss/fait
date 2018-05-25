@@ -125,6 +125,9 @@ public Collection<IfaceEntity> mutateTo(IfaceType dt,EntityFactory factory)
 
 
 
+
+
+
 @Override public final void setFieldContents(IfaceValue fv,IfaceField fld)	
 {
    if (fld != null) setFieldContents(fv,fld.getKey());
@@ -187,6 +190,17 @@ public Collection<IfaceEntity> mutateTo(IfaceType dt,EntityFactory factory)
 @Override public boolean isFunctionRef()                        { return false; }
 
 
+/********************************************************************************/
+/*                                                                              */
+/*      Clean up methods                                                        */
+/*                                                                              */
+/********************************************************************************/
+
+static void clearAll()
+{
+   entity_counter = 0;
+   all_entities = new Vector<EntityBase>();
+}
 
 
 }	// end of class EntityBase

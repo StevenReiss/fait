@@ -36,7 +36,6 @@
 package edu.brown.cs.fait.value;
 
 import edu.brown.cs.fait.iface.FaitLog;
-import edu.brown.cs.fait.iface.IfaceEntitySet;
 import edu.brown.cs.fait.iface.IfaceField;
 import edu.brown.cs.fait.iface.IfaceType;
 import edu.brown.cs.fait.iface.IfaceValue;
@@ -78,7 +77,7 @@ ValueRef(ValueFactory vf,IfaceType dt,int var,IfaceValue base,IfaceField fld,Ifa
    if (base_value == null && field_name != null && !field_name.isStatic()) {
       System.err.println("ILLEGAL REFERENCE VALUE");
     }
-   if (base == null && var < 0 && fld == null && idx == null) {
+   if (base == null && var == NO_REF && fld == null && idx == null) {
       FaitLog.logE("ILLEGAL REFERENCE VALUE");
     }
 }
@@ -92,7 +91,19 @@ ValueRef(ValueFactory vf,IfaceType dt,int var,IfaceValue base,IfaceField fld,Ifa
 
 @Override public boolean isReference()                  { return true; }
 
-@Override public int getRefSlot()                       { return variable_slot; }
+@Override public int getRefSlot()                       
+{ 
+   if (variable_slot < 0) return NO_REF;
+   
+   return variable_slot; 
+}
+
+@Override public int getRefStack()
+{
+   if (variable_slot >= NO_REF) return NO_REF;
+   return -variable_slot - 2;
+}
+
 @Override public IfaceValue getRefBase()                { return base_value; }
 @Override public IfaceField getRefField()               { return field_name; }
 @Override public IfaceValue getRefIndex()               { return index_value; }
@@ -132,11 +143,22 @@ ValueRef(ValueFactory vf,IfaceType dt,int var,IfaceValue base,IfaceField fld,Ifa
 }
 
 
+/********************************************************************************/
+/*                                                                              */
+/*      Output methods                                                          */
+/*                                                                              */
+/********************************************************************************/
 
-@Override protected IfaceValue newEntityValue(IfaceEntitySet cs)
+@Override public String toString()
 {
-   throw new Error("attempt to create new entity for a reference");
+   StringBuffer buf = new StringBuffer();
+   buf.append("[ ^^^ ");
+   buf.append(getDataType());
+   buf.append("]");
+   return buf.toString();
 }
+
+
 
 
 

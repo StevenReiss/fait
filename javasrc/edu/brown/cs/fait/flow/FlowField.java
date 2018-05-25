@@ -119,6 +119,8 @@ IfaceValue handleFieldGet(FlowLocation loc,IfaceField fld,IfaceState st,boolean 
 	 IfaceValue v1 = fait_control.findInitialFieldValue(fld,nat);
 	 if (!v1.mustBeNull()) {
 	    v0 = v0.mergeValue(v1);
+            if (v0.getDataType().isVoidType())
+               System.err.println("SET FIELD VOID");
 	    field_map.put(key,v0);
 	  }
        }
@@ -141,8 +143,8 @@ void handleFieldSet(FlowLocation loc,IfaceField fld,IfaceState st,boolean thisre
 {
    IfaceType ftyp = fld.getType();
    String key = fld.getKey();
+   if (ftyp == null) return;
    
- 
    IfaceCall mthd = loc.getCall();
    
    if (v0.mustBeNull()) {
@@ -159,12 +161,12 @@ void handleFieldSet(FlowLocation loc,IfaceField fld,IfaceState st,boolean thisre
    
    boolean chng = false;
    synchronized (field_map) {
-      if (mthd.getMethod().isStaticInitializer() && !field_map.containsKey(key)) {
+      if (mthd != null && mthd.getMethod().isStaticInitializer() && !field_map.containsKey(key)) {
 	 field_map.put(key,v0);
        }
       
       IfaceValue v1 = field_map.get(key);
-      if (v1 == null) {
+      if (v1 == null || v1.getDataType().isVoidType()) {
 	 boolean nat = (base == null ? false : base.isNative());
 	 if (nat) v1 = fait_control.findInitialFieldValue(fld,nat);
 	 // else v1 = fait_control.findInitialFieldValue(fld,nat);
@@ -191,13 +193,14 @@ void handleFieldSet(FlowLocation loc,IfaceField fld,IfaceState st,boolean thisre
 
 void handleFieldChanged(IfaceField fld)
 {
-   Set<FlowLocation> locs;
+   Collection<FlowLocation> locs;
 
    synchronized (field_accessors) {
       locs = field_accessors.get(fld.getKey());
+      if (locs == null) return;
+      locs = new ArrayList<>(locs);
     }
 
-   if (locs == null) return;
    for (FlowLocation fl : locs) {
       if (FaitLog.isTracing()) FaitLog.logD1("Queue for field change " + fl);
       flow_queue.queueMethodChange(fl);

@@ -56,7 +56,9 @@ IfaceSubtype.Value getDefaultTypeValue(IfaceType type);                 // x.cla
 IfaceSubtype.Value getDefaultValue(IfaceValue v);
 
 IfaceSubtype.Value getComputedValue(IfaceValue rslt,FaitOperator op,IfaceValue lv,IfaceValue rv);
+IfaceSubtype.Value getComputedValue(FaitOperator op,IfaceSubtype.Value oval);
 IfaceSubtype.Value getImpliedValue(FaitOperator op,IfaceValue v0,IfaceValue v1,boolean branch);
+IfaceAnnotation getArgumentAnnotation(FaitOperator op,int opnd,IfaceValue [] vals);
 
 
 

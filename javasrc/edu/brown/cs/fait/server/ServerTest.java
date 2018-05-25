@@ -39,6 +39,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -68,7 +69,7 @@ public class ServerTest implements ServerConstants, MintConstants
 
 private static MintControl	mint_control;
 private Map<String,Element> done_map;
-
+private static Random random_gen = new Random();
 
 
 
@@ -94,48 +95,7 @@ public ServerTest()
 @Test 
 public synchronized void serverTestNim()
 {
-   String mid = "FAIT_TEST_NIM";
-   String pid = "nim";
-   setupBedrock("nim",mid,pid);
-   try {  
-      String [] args = new String[] { "-m", mid, "-DEBUG", "-TRACE",
-            "-LOG", "/home/spr/home/servertestnim.log" };
-      
-      ServerMain.main(args);
-      mint_control.register("<FAITEXEC TYPE='_VAR_0' />",new FaitHandler());
-      
-      String sid = "SERVER001";
-      CommandArgs cargs = new CommandArgs("PROJECT",pid);
-      Element xml= sendReply(sid,"BEGIN",cargs,null);
-      Assert.assertTrue(IvyXml.isElement(xml,"RESULT"));
-      
-      cargs = new CommandArgs("FILES",true);
-      Element pxml = sendBubblesXmlReply("OPENPROJECT",pid,cargs,null);
-      Assert.assertTrue(IvyXml.isElement(pxml,"RESULT"));
-      Element p1 = IvyXml.getChild(IvyXml.getChild(pxml,"PROJECT"),"FILES");
-      String files = "";
-      for (Element fe : IvyXml.children(p1,"FILE")) {
-         if (IvyXml.getAttrBool(fe,"SOURCE")) {
-            File f = new File(IvyXml.getText(fe));
-            if (f.exists() && f.getName().endsWith(".java")) {
-               files += "<FILE NAME='" + f.getPath() + "'/>";
-             }
-          }
-       }
-      xml = sendReply(sid,"ADDFILE",null,files);
-      Assert.assertTrue(IvyXml.isElement(xml,"RESULT"));
-      
-      String rid = "RETURN001";
-      cargs = new CommandArgs("ID",rid,"THREADS",1);
-      xml = sendReply(sid,"ANALYZE",cargs,null);
-      Assert.assertTrue(IvyXml.isElement(xml,"RESULT"));
-      Element rslt = waitForAnalysis(rid);
-      Assert.assertNotNull(rslt);
-      Assert.assertEquals(2,countStops(rslt));
-    }
-   finally {
-      shutdownBedrock();
-    }
+   runServerTest("nim","nim",2,null);
 }
 
 
@@ -149,18 +109,65 @@ public synchronized void serverTestNim()
 @Test
 public synchronized void serverTestNimUpdate()
 {
-   String mid = "FAIT_TEST_NIM";
-   String pid = "nim";
-   setupBedrock("nim",mid,pid);
+   runServerTest("nim","nim",2,"NimComputerPlayer");
+}
+
+
+
+
+/********************************************************************************/
+/*										*/
+/*	UPOD test								*/
+/*										*/
+/********************************************************************************/
+
+@Test
+public synchronized void serverTestUpod()
+{
+   runServerTest("upod","upod",0,null);
+}
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      SEEDE test                                                              */
+/*                                                                              */
+/********************************************************************************/
+
+@Test
+public synchronized void serverTestSeede()
+{
+   runServerTest("seede","seede",0,null);
+}
+
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Generic testing routine                                                 */
+/*                                                                              */
+/********************************************************************************/
+
+private void runServerTest(String pid,String dir,int ctr,String updfile)
+{
+   if (dir == null) dir = pid;
+   String mid = "FAIT_TEST_" + pid.toUpperCase();
+   
+   setupBedrock(dir,mid,pid);
+   int rint = random_gen.nextInt(1000000);
+   
    try {  
       String [] args = new String[] { "-m", mid, "-DEBUG", "-TRACE",
-            "-LOG", "/home/spr/home/updatetestnim.log" };
+            "-LOG", "/vol/spr/servertest" + pid + ".log" };
       
       ServerMain.main(args);
+      
       mint_control.register("<FAITEXEC TYPE='_VAR_0' />",new FaitHandler());
       
-      String sid = "SERVER001";
-      CommandArgs cargs = new CommandArgs("PROJECT",pid);
+      String sid = "SERVER" + rint;
+      CommandArgs cargs = null;
       Element xml= sendReply(sid,"BEGIN",cargs,null);
       Assert.assertTrue(IvyXml.isElement(xml,"RESULT"));
       
@@ -172,87 +179,35 @@ public synchronized void serverTestNimUpdate()
       File editfile = null;
       for (Element fe : IvyXml.children(p1,"FILE")) {
          if (IvyXml.getAttrBool(fe,"SOURCE")) {
-            File f = new File(IvyXml.getText(fe));
-            if (f.exists() && f.getName().endsWith(".java")) {
-               files += "<FILE NAME='" + f.getPath() + "'/>";
+            File f1 = new File(IvyXml.getAttrString(fe,"PATH"));
+            File f2 = new File(IvyXml.getText(fe));
+            if (f1.exists() && f1.getName().endsWith(".java")) {
+               // files += "<FILE NAME='" + f1.getPath() + "'/>";
              }
-            if (f.getPath().contains("NimComputerPlayer")) editfile = f;
+            if (f2.exists() && f2.getName().endsWith(".java")) {
+               files += "<FILE NAME='" + f2.getPath() + "'/>";
+             }
+            if (updfile != null && f1.getPath().contains(updfile)) editfile = f1;
           }
        }
       xml = sendReply(sid,"ADDFILE",null,files);
       Assert.assertTrue(IvyXml.isElement(xml,"RESULT"));
       
-      String rid = "RETURN001";
+      String rid = "RETURN" + rint;
       cargs = new CommandArgs("ID",rid,"THREADS",1);
       xml = sendReply(sid,"ANALYZE",cargs,null);
       Assert.assertTrue(IvyXml.isElement(xml,"RESULT"));
       Element rslt = waitForAnalysis(rid);
       Assert.assertNotNull(rslt);
-      Assert.assertEquals(2,countStops(rslt));
-      cargs = new CommandArgs("FILE",editfile.getPath(),"LENGTH",0,"OFFSET",0);
-      xml = sendReply(sid,"TESTEDIT",cargs,null);
-      rslt = waitForAnalysis(rid);
-      Assert.assertNotNull(rslt);
-      Assert.assertEquals(2,countStops(rslt));
-    }
-   finally {
-      shutdownBedrock();
-    }
-}
-
-
-
-
-/********************************************************************************/
-/*										*/
-/*	NIM test								*/
-/*										*/
-/********************************************************************************/
-
-@Test
-public synchronized void serverTestUpod()
-{
-   String mid = "FAIT_TEST_UPOD";
-   String pid = "upod";
-   setupBedrock("upod",mid,pid);
-   
-   try {  
-      String [] args = new String[] { "-m", mid, "-DEBUG", "-TRACE",
-            "-LOG", "/home/spr/home/servertestupod.log" };
+      Assert.assertEquals(ctr,countStops(rslt));
       
-      ServerMain.main(args);
-      
-      mint_control.register("<FAITEXEC TYPE='_VAR_0' />",new FaitHandler());
-      
-      String sid = "SERVER002";
-      // CommandArgs cargs = new CommandArgs("PROJECT",pid);
-      CommandArgs cargs = null;
-      Element xml= sendReply(sid,"BEGIN",cargs,null);
-      Assert.assertTrue(IvyXml.isElement(xml,"RESULT"));
-      
-      cargs = new CommandArgs("FILES",true);
-      Element pxml = sendBubblesXmlReply("OPENPROJECT",pid,cargs,null);
-      Assert.assertTrue(IvyXml.isElement(pxml,"RESULT"));
-      Element p1 = IvyXml.getChild(IvyXml.getChild(pxml,"PROJECT"),"FILES");
-      String files = "";
-      for (Element fe : IvyXml.children(p1,"FILE")) {
-         if (IvyXml.getAttrBool(fe,"SOURCE")) {
-            File f = new File(IvyXml.getText(fe));
-            if (f.exists() && f.getName().endsWith(".java")) {
-               files += "<FILE NAME='" + f.getPath() + "'/>";
-             }
-          }
+      if (updfile != null) {
+         cargs = new CommandArgs("FILE",editfile.getPath(),"LENGTH",0,"OFFSET",0);
+         xml = sendReply(sid,"TESTEDIT",cargs,null);
+         rslt = waitForAnalysis(rid);
+         Assert.assertNotNull(rslt);
+         Assert.assertEquals(ctr,countStops(rslt));
        }
-      xml = sendReply(sid,"ADDFILE",null,files);
-      Assert.assertTrue(IvyXml.isElement(xml,"RESULT"));
-      
-      String rid = "RETURN002";
-      cargs = new CommandArgs("ID",rid,"THREADS",1);
-      xml = sendReply(sid,"ANALYZE",cargs,null);
-      Assert.assertTrue(IvyXml.isElement(xml,"RESULT"));
-      Element rslt = waitForAnalysis(rid);
-      Assert.assertNotNull(rslt);
-      Assert.assertEquals(0,countStops(rslt));
     }
    finally {
       shutdownBedrock();
@@ -364,6 +319,7 @@ private static Element sendBubblesXmlReply(String cmd,String proj,Map<String,Obj
    MintDefaultReply mdr = new MintDefaultReply();
    sendBubblesMessage(cmd,proj,flds,cnts,mdr);
    Element pxml = mdr.waitForXml();
+   FaitLog.logD("RECEIVE from BUBBLES: " + IvyXml.convertXmlToString(pxml));
    return pxml;
 }
 
@@ -440,6 +396,7 @@ private static void setupBedrock(String dir,String mint,String proj)
    cmd += " -bhide";
    cmd += " -nosplash";
    cmd += " -vmargs -Dedu.brown.cs.bubbles.MINT=" + mint;
+   cmd += " -Xdebug -Xrunjdwp:transport=dt_socket,address=32328,server=y,suspend=n";
   // cmd += " -Xmx16000m";
    
    System.err.println("RUN: " + cmd);

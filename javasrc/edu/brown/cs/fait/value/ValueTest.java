@@ -119,7 +119,7 @@ public ValueTest()
    Assert.assertNotSame("Merge float and double",value_set[20],value_set[21]);
    Assert.assertSame("Merge float and double",value_set[21],value_set[15]);
 
-   value_set[22] = fait_control.findRangeValue(fait_control.findDataType("int"),2,2);
+   value_set[22] = fait_control.findConstantValue(fait_control.findDataType("int"),2);
    value_set[23] = value_set[22].performOperation(t2,value_set[2],FaitOperator.SUB,null);    // 2 - {1,2}
    value_set[24] = value_set[23].performOperation(t2,value_set[22],FaitOperator.MUL,null);    // 2*(2-{1,2})
    value_set[25] = fait_control.findRangeValue(t2,0,2);

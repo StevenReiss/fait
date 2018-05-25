@@ -325,6 +325,9 @@ void update()
 
 @Override public String toString()
 {
+   if (eval_node == null) 
+      return "UNKNOWN POSITION";
+   
    String typ = eval_node.getClass().getName();
    int idx = typ.lastIndexOf(".");
    if (idx > 0) typ = typ.substring(idx+1);

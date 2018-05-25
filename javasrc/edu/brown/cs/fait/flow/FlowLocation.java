@@ -37,6 +37,7 @@ package edu.brown.cs.fait.flow;
 
 import java.util.List;
 
+import edu.brown.cs.fait.iface.FaitLog;
 import edu.brown.cs.fait.iface.IfaceCall;
 import edu.brown.cs.fait.iface.IfaceError;
 import edu.brown.cs.fait.iface.IfaceLocation;
@@ -71,6 +72,9 @@ FlowLocation(FlowQueue fq,IfaceCall fc,IfaceProgramPoint pt)
    for_queue = fq;
    for_call = fc;
    program_point = pt;
+   if (fc == null) {
+      FaitLog.logD("Attempt to create a location without a call");
+    }
 }
 
 
@@ -140,6 +144,10 @@ public boolean equals(Object o)
 {
    if (o instanceof FlowLocation) {
       FlowLocation loc = (FlowLocation) o;
+      if (for_call == null) {
+         if (loc.for_call != null) return false;
+         return program_point.equals(loc.getProgramPoint());
+       }
       return for_call.equals(loc.for_call) && program_point.equals(loc.getProgramPoint());
     }
    return false;
@@ -164,6 +172,8 @@ public int hashCode()
 
 @Override public String toString()
 {
+   if (for_call == null) return "?@" + program_point;
+   
    return for_call.getLogName() + "@" + program_point;
 }
 

@@ -120,7 +120,7 @@ private CheckInitialization()
 
 @Override public InitializationState getDefaultValue(IfaceBaseType typ)
 {
-   return INITIALIZED;
+   return UNKNOWN;
 }
 
 

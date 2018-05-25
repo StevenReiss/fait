@@ -217,6 +217,7 @@ EntityProto(IfaceType typ,IfacePrototype from,boolean mutable)
       buf.append(" @ ");
       buf.append(source_location);
     }
+   
    return buf.toString();
 }
 

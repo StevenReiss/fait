@@ -74,6 +74,8 @@ private FlowQueue                          work_queue;
 private LinkedList<IfaceProgramPoint>      work_list;
 private IfaceCall                          for_call;
 private Map<IfaceProgramPoint,IfaceState>  state_map;
+private LinkedList<FlowBackElement>        back_list;
+
 
 
 /********************************************************************************/
@@ -87,6 +89,7 @@ protected FlowQueueInstance(FlowQueue fq,IfaceCall fc,QueueLevel lvl)
    for_call = fc;
    work_queue = fq;
    work_list = new LinkedList<>();
+   back_list = new LinkedList<>();
    state_map = new HashMap<>();
 }
 
@@ -99,6 +102,7 @@ protected FlowQueueInstance(FlowQueue fq,IfaceCall fc,QueueLevel lvl)
 
 IfaceCall getCall()                             { return for_call; }
 boolean isEmpty()                               { return work_list.isEmpty(); }
+boolean isBackEmpty()                           { return back_list.isEmpty(); }
 IfaceControl getControl()                       { return for_call.getControl(); }
 FlowQueue getWorkQueue()                        { return work_queue; }
 
@@ -138,6 +142,7 @@ void mergeState(IfaceState st,IfaceProgramPoint ins)
       ost = ost.mergeWith(st);
       if (ost == null) return;          // no change
     }
+   ost.setProgramPoint(ins);
    state_map.put(ins,ost);
    work_list.addFirst(ins);
 }
@@ -149,6 +154,29 @@ void lookAt(IfaceProgramPoint ins)
 {
    if (ins != null && getState(ins) != null) work_list.addLast(ins);
 }
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Back propagation methods                                                */
+/*                                                                              */
+/********************************************************************************/
+
+void queueBackPropagation(IfaceProgramPoint pt,IfaceValue ref,IfaceType typ)
+{
+   FlowBackElement fbe = new FlowBackElement(pt,ref,typ);
+   back_list.addFirst(fbe);
+}
+
+
+
+IfaceBackElement getNextBack()
+{
+   if (back_list.isEmpty()) return null;
+   return back_list.removeFirst();
+}
+
 
 
 

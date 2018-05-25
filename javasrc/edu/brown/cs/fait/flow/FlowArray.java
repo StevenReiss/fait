@@ -211,13 +211,15 @@ private void addReference(IfaceEntity ent,FlowLocation loc)
 
 void noteArrayChange(IfaceEntity arr)
 {
-   Set<FlowLocation> locs = null;
+   Collection<FlowLocation> locs = null;
 
    synchronized (entity_map) {
       locs = entity_map.get(arr);
+      if (locs != null) locs = new ArrayList<>(locs);
     }
 
    if (locs == null) return;
+   
    for (FlowLocation loc : locs) {
       flow_queue.queueMethodChange(loc.getCall(),loc.getProgramPoint());
       if (FaitLog.isTracing()) FaitLog.logD1("Array change method " + loc);

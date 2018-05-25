@@ -49,6 +49,8 @@ boolean stackIsCategory2();
 void handleDup(boolean dbl,int lvl);
 
 IfaceValue getLocal(int idx);
+IfaceValue getStack(int idx);
+void setStack(int idx,IfaceValue v);
 void setLocal(int idx,IfaceValue v);
 boolean addToLocal(int idx,IfaceValue v);
 
@@ -68,9 +70,20 @@ boolean compatibleWith(IfaceState st);
 void startInitialization(IfaceType typ);
 
 boolean testDoingInitialization(IfaceType typ);
-boolean addInitializations(IfaceState st);
+
 
 void handleUpdate(IfaceUpdater upd);
+
+void setProgramPoint(IfaceProgramPoint pt);
+IfaceProgramPoint getProgramPoint();
+
+int getNumPriorStates();
+IfaceState getPriorState(int idx);
+
+
+
+
+
 
 
 }	// end of interface IfaceState

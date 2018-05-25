@@ -433,17 +433,18 @@ private class AstType implements IfaceBaseType {
     }
 
    @Override public IfaceBaseType findChildForInterface(IfaceBaseType dt) {
-      JcompType jt = jcomp_type.findChildForInterface(getInternalType(dt));
+      JcompType jt = jcomp_type.findChildForInterface(jcomp_typer,getInternalType(dt));
       return getType(jt);
     }
 
    @Override public List<IfaceBaseType> getChildTypes() {
       List<IfaceBaseType> rslt = new ArrayList<>();
-      Collection<JcompType> typs = jcomp_type.getChildTypes();
+      Collection<String> typs = jcomp_type.getChildTypes();
       if (typs != null) {
-	 for (JcompType jt : typs) {
-	    rslt.add(getType(jt));
-	  }
+         for (String jtnm : typs) {
+            JcompType jt = jcomp_typer.findType(jtnm);
+            if (jt != null) rslt.add(getType(jt));
+          }
        }
       return rslt;
     }
@@ -633,7 +634,7 @@ private class AstMethod implements IfaceMethod {
 
    @Override public Collection<IfaceMethod> getChildMethods() {
       if (child_methods == null) {
-	child_methods = fait_control.findChildMethods(getDeclaringClass(),getName(),getDescription(),false,null);
+        child_methods = fait_control.findChildMethods(getDeclaringClass(),getName(),getDescription(),false,null);
        }
       return child_methods;
     }
@@ -846,53 +847,53 @@ private class AstField implements IfaceField {
       if (n == null) return null;
       Expression initv = null;
       if (n instanceof VariableDeclarationFragment) {
-	 VariableDeclarationFragment vdf = (VariableDeclarationFragment) n;
-	 initv = vdf.getInitializer();
+         VariableDeclarationFragment vdf = (VariableDeclarationFragment) n;
+         initv = vdf.getInitializer();
        }
       else if (n instanceof FieldDeclaration) {
-	 FieldDeclaration fd = (FieldDeclaration) n;
-	 for (Object o : fd.fragments()) {
-	    VariableDeclarationFragment vdf = (VariableDeclarationFragment) o;
-	    JcompSymbol js = JcompAst.getDefinition(vdf.getName());
-	    if (js == field_symbol) {
-	       initv = vdf.getInitializer();
-	       break;
-	     }
-	  }
+         FieldDeclaration fd = (FieldDeclaration) n;
+         for (Object o : fd.fragments()) {
+            VariableDeclarationFragment vdf = (VariableDeclarationFragment) o;
+            JcompSymbol js = JcompAst.getDefinition(vdf.getName());
+            if (js == field_symbol) {
+               initv = vdf.getInitializer();
+               break;
+             }
+          }
        }
       if (initv == null) return null;
       IfaceType typ = getType();
       typ = typ.getAnnotatedType(FaitAnnotation.INITIALIZED);
       if (initv instanceof NumberLiteral) {
-	 if (typ.isFloatingType()) {
-	    try {
-	       NumberLiteral nl = (NumberLiteral) initv;
-	       double v = Double.parseDouble(nl.getToken());
-	       return fait_control.findRangeValue(typ,v,v);
-	     }
-	    catch (NumberFormatException e) { }
-	  }
-	 else if (typ.isNumericType()) {
-	    try {
-	       NumberLiteral nl = (NumberLiteral) initv;
-	       long v = Long.parseLong(nl.getToken());
-	       return fait_control.findRangeValue(typ,v,v);
-	     }
-	    catch (NumberFormatException e) { }
-	  }
+         if (typ.isFloatingType()) {
+            try {
+               NumberLiteral nl = (NumberLiteral) initv;
+               double v = Double.parseDouble(nl.getToken());
+               return fait_control.findRangeValue(typ,v,v);
+             }
+            catch (NumberFormatException e) { }
+          }
+         else if (typ.isNumericType()) {
+            try {
+               NumberLiteral nl = (NumberLiteral) initv;
+               long v = Long.parseLong(nl.getToken());
+               return fait_control.findConstantValue(typ,v);
+             }
+            catch (NumberFormatException e) { }
+          }
        }
       else if (initv instanceof BooleanLiteral) {
-	 if (typ.isBooleanType()) {
-	     long v = ((BooleanLiteral) initv).booleanValue() ? 1 : 0;
-	     return fait_control.findRangeValue(typ,v,v);
-	  }
+         if (typ.isBooleanType()) {
+             long v = ((BooleanLiteral) initv).booleanValue() ? 1 : 0;
+             return fait_control.findRangeValue(typ,v,v);
+          }
        }
       else if (initv instanceof StringLiteral) {
-	 if (typ.isStringType()) {
-	    return fait_control.findConstantStringValue(((StringLiteral) initv).getLiteralValue());
-	  }
+         if (typ.isStringType()) {
+            return fait_control.findConstantStringValue(((StringLiteral) initv).getLiteralValue());
+          }
        }
-
+   
       return null;
     }
 
@@ -1101,6 +1102,8 @@ ASTNode mapAstNode(ASTNode orig)
 
 private ASTNode findCorrespondingNode(ASTNode start,ASTNode par,ASTNode child)
 {
+   if (par.getNodeType() != start.getNodeType()) return null;
+   
    StructuralPropertyDescriptor spd = child.getLocationInParent();
    if (spd.isChildProperty()) {
       return (ASTNode) start.getStructuralProperty(spd);
@@ -1109,6 +1112,7 @@ private ASTNode findCorrespondingNode(ASTNode start,ASTNode par,ASTNode child)
       List<?> oelts = (List<?>) par.getStructuralProperty(spd);
       int idx = oelts.indexOf(child);
       List<?> elts = (List<?>) start.getStructuralProperty(spd);
+      if (idx >= elts.size()) return null;
       return (ASTNode) elts.get(idx);
     }
 

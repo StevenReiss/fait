@@ -87,8 +87,15 @@ IfaceType getAnnotatedType(IfaceAnnotation ... an);
 IfaceType getAnnotatedType(IfaceType tannot);
 
 IfaceType getComputedType(IfaceValue r,FaitOperator op,IfaceValue lv,IfaceValue rv);
+IfaceType getComputedType(FaitOperator op);
 
 IfaceTypeImplications getImpliedTypes(FaitOperator op,IfaceType tr);
+List<IfaceType> getBackTypes(FaitOperator op,IfaceValue ... v);
+
+
+
+
+
 
 
 }       // end of interface IfaceFullType

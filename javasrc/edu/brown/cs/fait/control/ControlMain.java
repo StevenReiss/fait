@@ -39,6 +39,8 @@ package edu.brown.cs.fait.control;
 import edu.brown.cs.fait.iface.*;
 import edu.brown.cs.fait.entity.*;
 import edu.brown.cs.fait.value.*;
+import edu.brown.cs.ivy.jcode.JcodeClass;
+import edu.brown.cs.ivy.jcode.JcodeFactory;
 import edu.brown.cs.ivy.jcode.JcodeInstruction;
 import edu.brown.cs.ivy.jcomp.JcompType;
 import edu.brown.cs.ivy.jcomp.JcompTyper;
@@ -50,6 +52,7 @@ import edu.brown.cs.fait.flow.*;
 
 import java.io.File;
 import java.util.*;
+import java.util.function.Predicate;
 
 import org.eclipse.jdt.core.dom.ASTNode;
 
@@ -248,6 +251,11 @@ public List<IfaceMethod> findAllMethods(IfaceBaseType typ,String name)
 public Collection<IfaceMethod> getStartMethods()
 {
    if (user_project == null) return null;
+   
+   JcodeFactory jf = user_project.getJcodeFactory();
+   for (JcodeClass jc : jf.getAllPossibleClasses(new ProjectFilter())) { 
+      findJavaType(jc.getName());
+    }
    Collection<IfaceMethod> rslt = new HashSet<>();
    
    JcompTyper typer = user_project.getTyper();
@@ -255,6 +263,7 @@ public Collection<IfaceMethod> getStartMethods()
       if (jt.isPrimitiveType()) continue;
       if (jt.isErrorType()) continue;
       if (jt.isAnnotationType()) continue;
+      if (jt.isMethodType()) continue;
       IfaceBaseType it = ast_factory.getType(jt);
       for (IfaceMethod im : findAllMethods(it,"main")) {
          checkStartMethod(im,rslt);
@@ -266,6 +275,16 @@ public Collection<IfaceMethod> getStartMethods()
    
    return rslt;
 }
+
+
+
+private class ProjectFilter implements Predicate<String> {
+
+   @Override public boolean test(String t) {
+      return user_project.isProjectClass(t);
+    }
+   
+}       // end of inner class ProjectFilter
 
 
 private void checkStartMethod(IfaceMethod im,Collection<IfaceMethod> rslt)
@@ -427,9 +446,29 @@ void updateEntitySets(IfaceUpdater upd)
 
 @Override public IfaceValue findAnyValue(IfaceType typ)
 {
+   if (typ == null) return value_factory.anyObject();
    return value_factory.anyValue(typ);
 }
 
+
+@Override public IfaceValue findConstantValue(IfaceType typ,long v)
+{
+   return findRangeValue(typ,v,v);
+}
+
+
+@Override public IfaceValue findConstantValue(IfaceType typ,double v)
+{
+   return findRangeValue(typ,v,v);
+}
+
+
+@Override public IfaceValue findConstantValue(boolean v)
+{
+   IfaceType bt = findDataType("boolean");
+   if (v) return findRangeValue(bt,1,1);
+   else return findRangeValue(bt,0,0);
+}
 
 @Override public IfaceValue findRangeValue(IfaceType typ,long v0,long v1)
 {
@@ -439,7 +478,7 @@ void updateEntitySets(IfaceUpdater upd)
 
 @Override public IfaceValue findRangeValue(IfaceType typ,double v0,double v1)
 {
-   return value_factory.rangeValue(typ,v0,v1);
+   return value_factory.floatRangeValue(typ,v0,v1);
 }
 
 
@@ -538,6 +577,11 @@ void updateEntitySets(IfaceUpdater upd)
    return value_factory.refValue(typ,slot);
 }
 
+@Override public IfaceValue findRefStackValue(IfaceType typ,int slot)
+{
+   return value_factory.refValue(typ,-slot-2);
+}
+
 
 @Override public IfaceValue findRefValue(IfaceType typ,IfaceValue base,IfaceValue idx)
 {
@@ -566,6 +610,12 @@ void updateValues(IfaceUpdater upd)
 @Override public IfaceSpecial getCallSpecial(IfaceProgramPoint pt,IfaceMethod fm)
 {
    return call_factory.getSpecial(pt,fm);
+}
+
+
+@Override public void clearCallSpecial(IfaceMethod fm)
+{
+   call_factory.clearSpecial(fm);
 }
 
 @Override public IfaceMethodData createMethodData(IfaceCall fc)
@@ -635,6 +685,12 @@ void updateValues(IfaceUpdater upd)
 }
 
 
+@Override public void analyze(IfaceMethod im,int nth)
+{
+   flow_factory.analyze(im,nth);
+}
+
+
 @Override public void queueLocation(IfaceLocation loc)
 {
    flow_factory.queueLocation(loc);
@@ -644,6 +700,12 @@ void updateValues(IfaceUpdater upd)
 @Override public void queueLocation(IfaceCall ic,IfaceProgramPoint pt)
 {
    flow_factory.queueMethodCall(ic,pt);
+}
+
+
+@Override public void initialize(IfaceType typ)
+{
+   flow_factory.initialize(typ);
 }
 
 
@@ -817,6 +879,19 @@ IfaceBaseType createMethodType(IfaceType rtn,List<IfaceType> args)
    bytecode_factory.updateAll();
 }
 
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Handle clean up                                                         */
+/*                                                                              */
+/********************************************************************************/
+
+@Override public void clearAll()
+{
+   entity_factory.clearAll();
+}
 
 
 }	// end of class ControlMain

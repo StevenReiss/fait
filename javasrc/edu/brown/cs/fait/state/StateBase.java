@@ -59,8 +59,8 @@ private Map<IfaceField,IfaceValue> field_map;
 
 private Stack<IfaceProgramPoint> return_stack;
 private List<StateBase>         state_set;
-
-
+private Object                  prior_state;
+private IfaceProgramPoint       program_point;
 
 
 
@@ -77,6 +77,8 @@ StateBase(int numlocal)
    field_map = new HashMap<>(4);
    state_set = null;
    return_stack = null;
+   program_point = null;
+   prior_state = null;
 
    Arrays.fill(local_values,null);
 }
@@ -92,6 +94,7 @@ StateBase(int numlocal)
 @Override public IfaceState cloneState()
 {
    StateBase ns = new StateBase(local_values.length);
+   ns.addPriorState(this);
 
    System.arraycopy(local_values,0,ns.local_values,0,local_values.length);
 
@@ -128,6 +131,20 @@ StateBase(int numlocal)
 {
    StateBase sb = (StateBase) s;
    while (stack_values.size() > sb.stack_values.size()) stack_values.pop();
+}
+
+@Override public IfaceValue getStack(int idx)
+{
+   int ct = stack_values.size();
+   if (idx < 0 || idx >= ct) return null;
+   return stack_values.get(ct-1-idx);
+}
+
+@Override public void setStack(int idx,IfaceValue v) 
+{
+   int ct = stack_values.size();
+   if (idx < 0 || idx >= ct) return;
+   stack_values.set(ct-1-idx,v);
 }
 
 @Override public boolean stackIsCategory2()
@@ -214,6 +231,7 @@ StateBase(int numlocal)
    
    return local_values[idx];
 }
+
 
 @Override public void setLocal(int idx,IfaceValue v)	{ local_values[idx] = v; }
 
@@ -429,6 +447,8 @@ private boolean checkMergeWithState(StateBase cs)
 	  }
        }
     }
+   
+   addPriorState(cs);
 
    return change;
 }
@@ -444,7 +464,7 @@ private boolean checkMergeWithState(StateBase cs)
 @Override public void startInitialization(IfaceType dt)	{ }
 
 @Override public boolean testDoingInitialization(IfaceType dt)	{ return false; }
-@Override public boolean addInitializations(IfaceState s)	{ return false; }
+
 
 
 
@@ -479,6 +499,59 @@ private boolean checkMergeWithState(StateBase cs)
 
 
 
+/********************************************************************************/
+/*                                                                              */
+/*      Methods for handling back propagation                                   */
+/*                                                                              */
+/********************************************************************************/
+
+@Override public void setProgramPoint(IfaceProgramPoint pt)     { program_point = pt; }
+
+@Override public IfaceProgramPoint getProgramPoint()            { return program_point; }   
+
+@SuppressWarnings("unchecked") 
+void addPriorState(StateBase st)
+{
+   if (st == null) return;
+   if (prior_state == null) prior_state = st;
+   else {
+      List<IfaceState> priors = null;
+      if (prior_state instanceof IfaceState) {
+         if (prior_state == st) return;
+         priors = new ArrayList<>();
+         priors.add((IfaceState) prior_state);
+         prior_state = priors;
+       }
+      else {
+         priors = (List<IfaceState>) prior_state;
+         if (priors.contains(st)) return;
+       }
+      priors.add(st);
+    }
+}
+
+@Override public int getNumPriorStates()
+{
+   if (prior_state == null) return 0;
+   else if (prior_state instanceof IfaceState) return 1;
+   
+   List<?> priors = (List<?>) prior_state;
+   return priors.size();
+}
+
+
+@Override public IfaceState getPriorState(int idx)
+{
+   if (prior_state == null || idx < 0) return null;
+   if (prior_state instanceof IfaceState) {
+      if (idx == 0) return (IfaceState) prior_state;
+      return null;
+    }
+   List<?> priors = (List<?>) prior_state;
+   if (idx >= priors.size()) return null;
+   Object o = priors.get(idx);   
+   return (IfaceState) o;
+}
 
 }	// end of class StateBase
 

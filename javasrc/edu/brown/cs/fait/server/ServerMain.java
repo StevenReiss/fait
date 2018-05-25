@@ -288,6 +288,12 @@ boolean handleErrors(String proj,String file,Element message)
 }
 
 
+boolean isErrorFree()
+{
+   return error_handler.isErrorFree();
+}
+
+
 
 
 

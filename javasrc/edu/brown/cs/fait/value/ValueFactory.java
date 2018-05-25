@@ -36,6 +36,7 @@
 package edu.brown.cs.fait.value;
 
 import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.ivy.file.ConcurrentHashSet;
 
 import java.util.*;
 
@@ -53,10 +54,10 @@ public class ValueFactory implements ValueConstants
 /*										*/
 /********************************************************************************/
 
-private Map<IfaceType,ValueBase>	 any_map;
-private Map<IfaceType,List<ValueInt>>    range_map;
-private Map<IfaceType,ValueBase>	 null_map;
-private Map<IfaceType,ValueObject> empty_map;
+private Map<IfaceType,ValueBase>	any_map;
+private ConcurrentHashSet<ValueInt>	range_map;
+private Map<IfaceType,ValueBase>	null_map;
+private Map<IfaceType,ValueObject>	empty_map;
 
 private Map<IfaceEntitySet,List<ValueObject>> object_map;
 
@@ -81,7 +82,7 @@ public ValueFactory(IfaceControl fc)
 {
    fait_control = fc;
    any_map = new HashMap<>();
-   range_map = new WeakHashMap<>();
+   range_map = new ConcurrentHashSet<>();
    null_map = new HashMap<>();
    empty_map = new HashMap<>();
    object_map = new WeakHashMap<>();
@@ -104,6 +105,7 @@ public ValueFactory(IfaceControl fc)
 public ValueBase anyValue(IfaceType typ)
 {
    synchronized (any_map) {
+      if (typ == null) return anyObject();
       ValueBase cv = any_map.get(typ);
       if (cv == null) {
 	 if (typ.isPrimitiveType()) {
@@ -117,11 +119,11 @@ public ValueBase anyValue(IfaceType typ)
 	       cv = new ValueInt(this,typ);
 	     }
 	  }
-         else if (typ.isStringType()) {
-            cv = constantString();
-          }
-         else cv = new ValueObject(this,typ,fait_control.createEmptyEntitySet(),FaitAnnotation.NULLABLE);
-         any_map.put(typ,cv);
+	 else if (typ.isStringType()) {
+	    cv = constantString();
+	  }
+	 else cv = new ValueObject(this,typ,fait_control.createEmptyEntitySet(),FaitAnnotation.NULLABLE);
+	 any_map.put(typ,cv);
        }
       return cv;
     }
@@ -130,45 +132,46 @@ public ValueBase anyValue(IfaceType typ)
 
 
 
-public ValueBase rangeValue(IfaceType typ,long v0,long v1)
+public ValueBase rangeValue(IfaceType typ,Long v0,Long v1)
 {
    if (typ.isFloatingType()) {
-      return rangeValue(typ,(double) v0,(double) v1);
+      if (v0 != null && v1 != null)
+	 return floatRangeValue(typ,(double) v0,(double) v1);
+      else
+	 return anyValue(typ);
     }
-   if (v1 - v0 > VALUE_MAX_RANGE) {
-      return anyValue(typ);
-    }
-   if (v0 == v1) {
+   if (v0 != null && v0.equals(v1)) {
       typ = fait_control.findConstantType(typ,v0);
     }
-   if (v0 > v1) return null;
-   
-   List<ValueInt> l = null;
-   synchronized (range_map) {
-      l = range_map.get(typ);
-      if (l == null) {
-	 l = new ArrayList<ValueInt>();
-	 range_map.put(typ,l);
-       }
+   if (v0 != null && v1 != null && v0 > v1) {
+      FaitLog.logE("Inconsistent range value: " + v0 + " " + v1);
+      return anyValue(typ);
     }
-   synchronized (l) {
-      for (ValueInt cvi : l) {
-	 if (cvi.getMinValue() == v0 && cvi.getMaxValue() == v1) return cvi;
-       }
-      ValueInt cv = new ValueInt(this,typ,v0,v1);
-      l.add(cv);
-      return cv;
+
+   ValueInt cv = new ValueInt(this,typ,v0,v1);
+   ValueInt cv1 = range_map.addIfAbsent(cv);
+   if (cv1 == null || cv1 == cv) {
+      FaitLog.logD("Create new INTVALUE " + typ + " " + v0 + " " + v1);
+      cv1 = cv;
+      // if (v0 != null && v0 == 0 && v1 != null && v1 == 0) {
+	 // FaitLog.logD("RECHECK 0 " + typ + " " + typ.hashCode());
+       // }
     }
+
+   return cv1;
 }
 
 
 
-public ValueBase rangeValue(IfaceType typ,double v0,double v1)
+
+
+
+public ValueBase floatRangeValue(IfaceType typ,double v0,double v1)
 {
    if (v0 == v1) {
      typ = fait_control.findConstantType(typ,v0);
     }
-   
+
    return anyValue(typ);
    // return new ValueFloat(this,typ);
 }
@@ -186,7 +189,7 @@ public ValueBase objectValue(IfaceType typ,IfaceEntitySet ss,IfaceAnnotation ...
 public ValueBase objectValue(IfaceType typ,IfaceEntitySet ss,String conststr,IfaceAnnotation ... flags)
 {
    if (ss.isEmpty()) return emptyValue(typ,flags);
-   
+
    typ = typ.getAnnotatedType(flags);
    ss = ss.restrictByType(typ);
 
@@ -206,13 +209,13 @@ public ValueBase objectValue(IfaceType typ,IfaceEntitySet ss,String conststr,Ifa
        }
       ValueObject cv = null;
       if (typ.isStringType()) {
-         if (conststr != null) 
-            cv = new ValueString(this,typ,conststr,ss);
-         else
-            cv = new ValueString(this,typ,ss,flags);
+	 if (conststr != null)
+	    cv = new ValueString(this,typ,conststr,ss);
+	 else
+	    cv = new ValueString(this,typ,ss,flags);
        }
       else {
-         cv = new ValueObject(this,typ,ss,flags);
+	 cv = new ValueObject(this,typ,ss,flags);
        }
       l.add(cv);
 
@@ -225,14 +228,15 @@ public ValueBase objectValue(IfaceType typ,IfaceEntitySet ss,String conststr,Ifa
 
 public ValueBase emptyValue(IfaceType typ,IfaceAnnotation ... flags)
 {
+   if (typ == null) return nullValue();
    ValueObject cvo = null;
    IfaceType typ1 = typ.getAnnotatedType(flags);
-   
+
    synchronized (empty_map) {
       cvo = empty_map.get(typ1);
       if (cvo == null) {
-          cvo = new ValueObject(this,typ1,fait_control.createEmptyEntitySet());
-          empty_map.put(typ,cvo);
+	  cvo = new ValueObject(this,typ1,fait_control.createEmptyEntitySet());
+	  empty_map.put(typ,cvo);
        }
       return cvo;
     }
@@ -266,7 +270,7 @@ public ValueBase constantString(String v)
    IfaceType fdt = fait_control.findConstantType("java.lang.String",v);
    IfaceEntity src = fait_control.findStringEntity(v);
    IfaceEntitySet ss = fait_control.createSingletonSet(src);
-   
+
    return objectValue(fdt,ss,v);
 }
 
@@ -323,7 +327,7 @@ public ValueBase nullValue(IfaceType dt)
 
 
 public ValueBase badValue()
-{ 
+{
    synchronized (this) {
       if (bad_value == null) {
 	 bad_value = new ValueBad(this,fait_control.findDataType("void"));
@@ -337,7 +341,7 @@ public ValueBase badValue()
 public ValueBase markerValue(IfaceProgramPoint pt,Object data)
 {
    IfaceType ty = fait_control.findDataType("void");
-   
+
    return new ValueMarker(this,ty,pt,data);
 }
 
@@ -366,6 +370,7 @@ public ValueBase nativeValue(IfaceType typ)
 
 public ValueBase mutableValue(IfaceType typ)
 {
+   if (typ == null) return anyObject();
    if (typ.isPrimitiveType()) return anyValue(typ);
 
    IfaceEntity ent = fait_control.findMutableEntity(typ);
@@ -401,17 +406,18 @@ public IfaceValue initialFieldValue(IfaceField fld,boolean nat)
 {
    // TOOD:  Look for static constant fields and use the constant value
    IfaceType ftyp = fld.getType();
+   if (ftyp == null) return nullValue();
    IfaceType ctyp = fld.getDeclaringClass();
    String fnm = fld.getFullName();
    if (ctyp.getName().startsWith("java.lang.")) nat = true;
    if (!fait_control.isProjectClass(ctyp)) nat = true;
    ValueBase s0 = null;
-   
+
    if (fld.isStatic() && fld.isFinal()) {
        IfaceValue vinit = fld.getConstantValue();
        if (vinit != null) return vinit;
     }
-   
+
    if (nat) {
       boolean nonnull = false;			// specialize as needed
       ftyp = ftyp.getAnnotatedType(FaitAnnotation.INITIALIZED);
@@ -419,15 +425,15 @@ public IfaceValue initialFieldValue(IfaceField fld,boolean nat)
 	 nonnull = true;
 	 if (fnm.equals("in"))
 	    ftyp = fait_control.findDataType("java.io.FileInputStream",
-                  FaitAnnotation.NON_NULL,FaitAnnotation.INITIALIZED);
+		  FaitAnnotation.NON_NULL,FaitAnnotation.INITIALIZED);
 	 else if (fnm.equals("out") || fnm.equals("err"))
 	    ftyp = fait_control.findDataType("java.io.PrintStream",
-                  FaitAnnotation.NON_NULL,FaitAnnotation.INITIALIZED);
+		  FaitAnnotation.NON_NULL,FaitAnnotation.INITIALIZED);
        }
       else if (ctyp.getName().equals("java.lang.String")) nonnull = true;
       else if (ctyp.getName().equals("java.lang.ThreadGroup")) nonnull = false;
       else if (ctyp.getName().equals("java.lang.ClassLoader") &&
-            fnm.equals("parent")) nonnull = false;
+	    fnm.equals("parent")) nonnull = false;
       else if (ctyp.getName().startsWith("java.lang.")) nonnull = true;
       if (ftyp.isAbstract()) s0 = mutableValue(ftyp);
       else s0 = nativeValue(ftyp);
@@ -441,7 +447,7 @@ public IfaceValue initialFieldValue(IfaceField fld,boolean nat)
 	 s0 = emptyValue(ftyp,FaitAnnotation.NULLABLE);
        }
     }
-   
+
    return s0;
 }
 
@@ -457,13 +463,13 @@ public ValueBase refValue(IfaceType dt,IfaceValue base,IfaceField fld)
    if (base == null && fld != null && !fld.isStatic()) {
       FaitLog.logE("Illegal field reference");
     }
-   return new ValueRef(this,dt,-1,base,fld,null);
+   return new ValueRef(this,dt,NO_REF,base,fld,null);
 }
 
 
 public ValueBase refValue(IfaceType dt,IfaceValue base,IfaceValue idx)
 {
-   return new ValueRef(this,dt,-1,base,null,idx);
+   return new ValueRef(this,dt,NO_REF,base,null,idx);
 }
 
 
@@ -480,7 +486,7 @@ public void handleUpdates(IfaceUpdater upd)
    synchronized (object_map) {
       Collection<Map.Entry<IfaceEntitySet,List<ValueObject>>> ents = new ArrayList<>(object_map.entrySet());
       for (Map.Entry<IfaceEntitySet,List<ValueObject>> ent : ents) {
-         IfaceEntitySet oes = ent.getKey();
+	 IfaceEntitySet oes = ent.getKey();
 	 IfaceEntitySet nes = upd.getNewEntitySet(oes);
 	 if (nes != null && nes != oes) {
 	    for (ValueObject vo : ent.getValue()) {

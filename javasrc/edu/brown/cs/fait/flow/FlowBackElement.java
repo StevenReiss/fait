@@ -1,8 +1,8 @@
 /********************************************************************************/
 /*                                                                              */
-/*              IfaceProgramPoint.java                                          */
+/*              FlowBackElement.java                                            */
 /*                                                                              */
-/*      Represent a point in the program                                        */
+/*      Information for back propagation                                        */
 /*                                                                              */
 /********************************************************************************/
 /*      Copyright 2011 Brown University -- Steven P. Reiss                    */
@@ -33,46 +33,70 @@
 
 
 
-package edu.brown.cs.fait.iface;
+package edu.brown.cs.fait.flow;
 
-import java.util.List;
+import edu.brown.cs.fait.iface.FaitLog;
+import edu.brown.cs.fait.iface.IfaceBackElement;
+import edu.brown.cs.fait.iface.IfaceProgramPoint;
+import edu.brown.cs.fait.iface.IfaceType;
+import edu.brown.cs.fait.iface.IfaceValue;
 
-import edu.brown.cs.ivy.jcode.JcodeInstruction;
-import edu.brown.cs.ivy.xml.IvyXmlWriter;
-
-public interface IfaceProgramPoint extends FaitConstants
+class FlowBackElement implements IfaceBackElement, FlowConstants
 {
 
-JcodeInstruction getInstruction();
-IfaceAstReference getAstReference();
-boolean isByteCode();
 
-IfaceMethod getReferencedMethod();
-IfaceField getReferencedField();
-IfaceType getReferencedType();
-IfaceProgramPoint getReferencedTarget();
-List<IfaceProgramPoint> getReferencedTargets();
+/********************************************************************************/
+/*                                                                              */
+/*      Private Storage                                                         */
+/*                                                                              */
+/********************************************************************************/
 
-boolean isInterfaceCall();
-boolean isVirtualCall();
-boolean isMethodStart();
-
-IfaceProgramPoint getNext();
-IfaceProgramPoint getPrevious();
-
-IfaceMethod getMethod();
-
-void outputXml(IvyXmlWriter xw);
+private IfaceProgramPoint program_point;
+private IfaceValue ref_value;
+private IfaceType set_type;
 
 
 
 
 
+/********************************************************************************/
+/*                                                                              */
+/*      Constructors                                                            */
+/*                                                                              */
+/********************************************************************************/
 
-}       // end of interface IfaceProgramPoint
+FlowBackElement(IfaceProgramPoint pt,IfaceValue ref,IfaceType set) 
+{
+   if (pt == null) { 
+      FaitLog.logD("Attempt to create back element with no program point");
+    }
+   
+   program_point = pt;
+   ref_value = ref;
+   set_type = set;
+}
 
 
 
 
-/* end of IfaceProgramPoint.java */
+/********************************************************************************/
+/*                                                                              */
+/*      Access methods                                                          */
+/*                                                                              */
+/********************************************************************************/
+
+@Override public IfaceProgramPoint getProgramPoint()    { return program_point; }
+@Override public IfaceValue getReference()              { return ref_value; }
+@Override public IfaceType getSetType()                 { return set_type; }
+
+
+
+
+
+}       // end of class FlowBackElement
+
+
+
+
+/* end of FlowBackElement.java */
 

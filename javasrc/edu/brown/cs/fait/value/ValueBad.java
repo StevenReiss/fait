@@ -65,7 +65,7 @@ ValueBad(ValueFactory vf,IfaceType voidtype)
 
 @Override public IfaceValue restrictByType(IfaceType dt)                { return this; }
 
-@Override protected IfaceValue newEntityValue(IfaceEntitySet es)	{ return this; }
+
 
 @Override public boolean isBad()                                        { return true; }
 

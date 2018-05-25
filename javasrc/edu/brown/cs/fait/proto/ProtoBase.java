@@ -195,19 +195,19 @@ protected IfaceValue returnMutable(IfaceMethod fm)
 
 protected IfaceValue returnTrue()
 {
-   return fait_control.findRangeValue(fait_control.findDataType("boolean"),1,1);
+   return fait_control.findConstantValue(true);
 }
 
 
 protected IfaceValue returnFalse()
 {
-   return fait_control.findRangeValue(fait_control.findDataType("boolean"),0,0);
+   return fait_control.findConstantValue(false);
 }
 
 
 protected IfaceValue returnInt(int v)
 {
-   return fait_control.findRangeValue(fait_control.findDataType("int"),v,v);
+   return fait_control.findConstantValue(fait_control.findDataType("int"),v);
 }
 
 

@@ -97,7 +97,7 @@ public ProtoTest()
    Assert.assertNotNull(fm2);
    Assert.assertTrue(p1.isMethodRelevant(fm2));
    IfaceType t2 = fait_control.findDataType("int");
-   IfaceValue v3 = fait_control.findRangeValue(t2,0,0);
+   IfaceValue v3 = fait_control.findConstantValue(t2,0);
    args.set(1,v3);
    IfaceValue v4 = p1.handleCall(fm2,args,null);
    IfaceValue v5 = v1.allowNull();

@@ -49,9 +49,8 @@ class ValueInt extends ValueNumber implements JcodeConstants
 /*										*/
 /********************************************************************************/
 
-private boolean 	have_range;
-private long		min_value;
-private long		max_value;
+private Long		min_value;
+private Long		max_value;
 
 
 
@@ -70,22 +69,20 @@ ValueInt(ValueFactory vf,IfaceType dt)
 ValueInt(ValueFactory vf,IfaceType dt,IfaceEntitySet es)
 {
    super(vf,dt,es);
-   have_range = false;
-   min_value = 0;
-   max_value = 0;
+   min_value = null;
+   max_value = null;
 }
 
 
-ValueInt(ValueFactory vf,IfaceType dt,long minv,long maxv)
+ValueInt(ValueFactory vf,IfaceType dt,Long minv,Long maxv)
 {
    this(vf,dt,minv,maxv,null);
 }
 
 
-ValueInt(ValueFactory vf,IfaceType dt,long minv,long maxv,IfaceEntitySet es)
+ValueInt(ValueFactory vf,IfaceType dt,Long minv,Long maxv,IfaceEntitySet es)
 {
    super(vf,dt,es);
-   have_range = true;
    min_value = minv;
    max_value = maxv;
 }
@@ -98,8 +95,13 @@ ValueInt(ValueFactory vf,IfaceType dt,long minv,long maxv,IfaceEntitySet es)
 /*										*/
 /********************************************************************************/
 
-long getMinValue()			{ return min_value; }
-long getMaxValue()			{ return max_value; }
+Long getMinValue()			{ return min_value; }
+Long getMaxValue()			{ return max_value; }
+
+
+
+
+
 
 
 
@@ -111,182 +113,250 @@ long getMaxValue()			{ return max_value; }
 /********************************************************************************/
 
 @Override protected IfaceValue localPerformOperation(IfaceType typ,IfaceValue rhsv,
-        FaitOperator op,IfaceLocation src)
+      FaitOperator op,IfaceLocation src)
 {
    if (rhsv == null) rhsv = this;
-   
+
    if (rhsv instanceof ValueBad) return value_factory.anyValue(typ);
    if (!(rhsv instanceof ValueInt)) return value_factory.anyValue(typ);
-   
+
    ValueInt rhs = (ValueInt) rhsv;
 
-   boolean valok = true;
-   long v0 = 0;
-   long v1 = 0;
-   if (min_value == max_value) v0 = min_value;
-   else valok = false;
-   if (rhs.min_value == rhs.max_value) v1 = rhs.min_value;
-   else valok = false;
-
-   boolean rngok = (have_range && rhs.have_range);
-   if (!rngok) valok = false;
-   long mnv = min_value;
-   long mxv = max_value;
+   Long mnv = null;
+   Long mxv = null;
+   Long v0 = null;
+   Long v1 = null;
+   if (min_value != null && max_value != null && min_value.equals(max_value))
+      v0 = min_value;
+   if (rhs.min_value != null && rhs.max_value != null && rhs.min_value.equals(rhs.max_value))
+      v1 = rhs.min_value;
 
    switch (op) {
       case INCR :
       case ADD :
-	 v0 += v1;
-	 if (rngok) {
-	    mnv += rhs.min_value;
-	    mxv += rhs.max_value;
+	 if (min_value != null && rhs.min_value != null) {
+	    mnv = min_value + rhs.min_value;
+	  }
+	 if (max_value != null && rhs.max_value != null) {
+	    mxv = max_value + rhs.max_value;
 	  }
 	 break;
       case DIV :
-	 if (valok && v1 == 0) valok = false;
-	 else if (valok) v0 /= v1;
-	 if (rngok) {
-	    if (rhs.min_value <= 0 && rhs.max_value >= 0) rngok = false;
-	    else {
-	       mnv = Math.min(mnv/rhs.max_value,mnv/rhs.min_value);
-	       mxv = Math.max(mxv/rhs.max_value,mxv/rhs.min_value);
-	     }
+	 if (min_value != null && rhs.max_value != null && rhs.max_value.longValue() != 0) {
+	    mnv = min_value / rhs.max_value;
+	  }
+	 if (max_value != null && rhs.min_value != null && rhs.min_value.longValue() != 0) {
+	    mxv = max_value / rhs.min_value;
 	  }
 	 break;
       case MUL :
-	 v0 *= v1;
-	 if (rngok) {
-	    mnv = min_value*rhs.min_value;
-	    mnv = Math.min(mnv,min_value*rhs.max_value);
-	    mnv = Math.min(mnv,max_value*rhs.min_value);
-	    mnv = Math.min(mnv,max_value*rhs.max_value);
-	    mxv = min_value*rhs.min_value;
-	    mxv = Math.max(mxv,min_value*rhs.max_value);
-	    mxv = Math.max(mxv,max_value*rhs.min_value);
-	    mxv = Math.max(mxv,max_value*rhs.max_value);
+	 if (min_value != null && rhs.min_value != null) {
+	    mnv = min_value * rhs.min_value;
+	  }
+	 if (max_value != null && rhs.max_value != null) {
+	    mxv = max_value * rhs.max_value;
 	  }
 	 break;
       case MOD :
-	 if (v1 == 0) return value_factory.anyValue(typ);
-	 if (rngok) {
-	    if (rhs.min_value <= mxv) rngok = false;
+	 if (v0 != null && v1 != null && v1.longValue() != 0) {
+	    mnv = v0 % v1;
+	    mxv = mnv;
+	  }
+	 else if (rhs.max_value != null && rhs.max_value > 0) {
+	    mnv = 0l;
+	    mxv = rhs.max_value;
 	  }
 	 break;
       case SUB :
-	 v0 -= v1;
-	 if (rngok) {
-	    mnv -= rhs.max_value;
-	    mxv -= rhs.min_value;
+	 if (min_value != null && rhs.max_value != null && rhs.max_value.longValue() != 0) {
+	    mnv = min_value - rhs.max_value;
+	  }
+	 if (max_value != null && rhs.min_value != null && rhs.min_value.longValue() != 0) {
+	    mxv = max_value - rhs.min_value;
 	  }
 	 break;
       case AND :
-	 v0 &= v1;
-	 rngok = false;
+	 if (v0 != null && v1 != null) {
+	    mnv = v0 & v1;
+	    mxv = mnv;
+	  }
 	 break;
       case OR :
-	 v0 |= v1;
-	 rngok = false;
+	 if (v0 != null && v1 != null) {
+	    mnv = v0 | v1;
+	    mxv = mnv;
+	  }
+	 else if (min_value != null && rhs.min_value != null && max_value != null && rhs.max_value != null) {
+	    long x0 = Math.min(min_value,rhs.min_value);
+	    long x1 = Math.max(max_value,rhs.max_value);
+	    if (x0 >= -1 && x1 <= 1) {
+	       mnv = x0;
+	       mxv = x1;
+	     }
+	  }
 	 break;
       case XOR :
-	 v0 ^= v1;
-	 rngok = false;
+	 if (v0 != null && v1 != null) {
+	    mnv = v0 ^ v1;
+	    mxv = mnv;
+	  }
 	 break;
       case LSH :
-	 v0 <<= v1;
-	 rngok = false;
+	 if (v0 != null && v1 != null) {
+	    mnv = v0 << v1;
+	    mxv = mnv;
+	  }
 	 break;
       case RSH :
-	 v0 >>= v1;
-	 rngok = false;
+	 if (v0 != null && v1 != null) {
+	    mnv = v0 >> v1;
+	    mxv = mnv;
+	  }
+	 else if (v1 != null && v1 == 63) {
+	    mnv = -1L;
+	    mxv = 1L;
+	  }
 	 break;
       case RSHU :
-	 v0 >>>= v1;
-	 rngok = false;
+	 if (v0 != null && v1 != null) {
+	    mnv = v0 >>> v1;
+	    mxv = mnv;
+	  }
+	 else if (v1 != null && v1 == 63) {
+	    mnv = 0L;
+	    mxv = 1L;
+	  }
 	 break;
       case TOBYTE :
+	 if (v0 != null) {
+	    mnv = (long) v0.byteValue();
+	    mxv = mnv;
+	  }
+	 else {
+	    if (min_value == null) mnv = (long) Byte.MIN_VALUE;
+	    else mnv = Math.max(min_value.longValue(),Byte.MIN_VALUE);
+	    if (max_value == null) mxv = (long) Byte.MAX_VALUE;
+	    else mxv = Math.min(max_value.longValue(),Byte.MAX_VALUE);
+	  }
+	 break;
       case TOCHAR :
       case TOSHORT :
-      case TOLONG :
+	 if (v0 != null) {
+	    mnv = (long) v0.shortValue();
+	    mxv = mnv;
+	  }
+	 else {
+	    if (min_value == null) mnv = (long) Short.MIN_VALUE;
+	    else mnv = Math.max(min_value.longValue(),Short.MIN_VALUE);
+	    if (max_value == null) mxv = (long) Short.MAX_VALUE;
+	    else mxv = Math.min(max_value.longValue(),Short.MAX_VALUE);
+	  }
+	 break;
       case TOINT :
+	 if (v0 != null) {
+	    mnv = (long) v0.intValue();
+	    mxv = mnv;
+	  }
+	 else {
+	    if (min_value == null) mnv = null;
+	    else mnv = Math.max(min_value.longValue(),Integer.MIN_VALUE);
+	    if (max_value == null) mxv = null;
+	    else mxv = Math.min(max_value.longValue(),Integer.MAX_VALUE);
+	  }
+	 break;
+      case TOLONG :
+	 if (v0 != null) {
+	    mnv = v0;
+	    mxv = mnv;
+	  }
 	 break;
       case NEG :
-	 v0 = -v0;
-	 mnv = -mxv;
-	 mxv = -mnv;
+	 if (max_value != null) mnv = -max_value;
+	 if (min_value != null) mxv = -min_value;
 	 break;
       case LSS :
-         if (rngok) {
-            if (max_value < rhs.min_value) {
-               v0 = 1;
-               valok = true;
-             }
-            else if (min_value >= rhs.max_value) {
-               v0 = 0;
-               valok = true;
-             }
-          }
-         break;
+	 if (max_value != null && rhs.min_value != null && max_value < rhs.min_value) {
+	    mnv = 1l;
+	    mxv = 1l;
+	  }
+	 else if (min_value != null && rhs.max_value != null && min_value >= rhs.max_value) {
+	    mnv = 0l;
+	    mxv = mnv;
+	  }
+	 break;
       case LEQ :
-         if (rngok) {
-            if (max_value <= rhs.min_value) {
-               v0 = 1;
-               valok = true;
-             }
-            else if (min_value > rhs.max_value) {
-               v0 = 0;
-               valok = true;
-             }
-          }
-         break;
+	 if (max_value != null && rhs.min_value != null && max_value <= rhs.min_value) {
+	    mnv = 1l;
+	    mxv = 1l;
+	  }
+	 else if (min_value != null && rhs.max_value != null && min_value > rhs.max_value) {
+	    mnv = 0l;
+	    mxv = mnv;
+	  }
+	 break;
       case GTR :
-         if (rngok) {
-            if (min_value > rhs.max_value) {
-               v0 = 1;
-               valok = true;
-             }
-            else if (max_value <= rhs.min_value) {
-               v0 = 0;
-               valok = true;
-             }
-          }
-         break;
+	 if (min_value != null && rhs.max_value != null && min_value > rhs.max_value) {
+	    mnv = 1l;
+	    mxv = 1l;
+	  }
+	 else if (max_value != null && rhs.min_value != null && max_value <= rhs.min_value) {
+	    mnv = 0l;
+	    mxv = mnv;
+	  }
+	 break;
       case GEQ :
-         if (rngok) {
-            if (min_value >= rhs.max_value) {
-               v0 = 1;
-               valok = true;
-             }
-            else if (max_value < rhs.min_value) {
-               v0 = 0;
-               valok = true;
-             }
-          }
-         break;
+	 if (min_value != null && rhs.max_value != null && min_value >= rhs.max_value) {
+	    mnv = 1l;
+	    mxv = 1l;
+	  }
+	 else if (max_value != null && rhs.min_value != null && max_value < rhs.min_value) {
+	    mnv = 0l;
+	    mxv = mnv;
+	  }
+	 break;
       case EQL :
-         if (v0 == v1) v0 = 1;
-         else v0 = 0;
-         break;
+	 if (v0 != null && v1 != null) {
+	    if (v0.equals(v1)) mnv = 1l;
+	    else mnv = 0l;
+	    mxv = mnv;
+	  }
+	 else if (max_value != null && rhs.min_value != null && max_value < rhs.min_value) {
+	    mnv = 0l;
+	    mxv = mnv;
+	  }
+	 else if (min_value != null && rhs.max_value != null && min_value > rhs.max_value) {
+	    mnv = 0l;
+	    mxv = mnv;
+	  }
+	 break;
       case NEQ :
-         if (v0 != v1) v0 = 1;
-         else v0 = 0;
-         break;
-         
+	 if (v0 != null && v1 != null) {
+	    if (v0.equals(v1)) mnv = 0l;
+	    else mnv = 1l;
+	    mxv = mnv;
+	  }
+	 else if (max_value != null && rhs.min_value != null && max_value < rhs.min_value) {
+	    mnv = 1l;
+	    mxv = mnv;
+	  }
+	 else if (min_value != null && rhs.max_value != null && min_value > rhs.max_value) {
+	    mnv = 1l;
+	    mxv = mnv;
+	  }
+	 break;
+
       case TODOUBLE :
       default :
-	 valok = false;
-	 rngok = false;
 	 break;
     }
 
    ValueBase rslt;
-
-   if (valok) {
-      rslt = value_factory.rangeValue(typ,v0,v0);
+   if (mnv == null && mxv == null) {
+      rslt = value_factory.anyValue(typ);
     }
-   else if (rngok) {
+   else {
       rslt = value_factory.rangeValue(typ,mnv,mxv);
     }
-   else rslt = value_factory.anyValue(typ);
 
    return rslt;
 }
@@ -295,6 +365,7 @@ long getMaxValue()			{ return max_value; }
 
 
 
+@SuppressWarnings("fallthrough")
 @Override public IfaceImplications getImpliedValues(IfaceValue rhsv,FaitOperator op)
 {
    ValueInt rhs = null;
@@ -303,95 +374,165 @@ long getMaxValue()			{ return max_value; }
       rhs = (ValueInt) rhsv;
       rtyp = rhs.getDataType();
     }
-   
+
    ValueImplications imp = null;
    ValueBase lt = null;
    ValueBase lf = null;
    ValueBase rt = null;
    ValueBase rf = null;
    boolean flip = false;
-   
+   Long mnv,mxv;
+   Long v0 = null;
+   Long v1 = null;
+   if (min_value != null && min_value.equals(max_value)) v0 = min_value;
+   if (rhs != null && rhs.min_value != null && rhs.min_value.equals(rhs.max_value)) v1 = rhs.min_value;
+
    switch (op) {
       case NEQ :
-         flip = true;
-         //$FALL-THROUGH$
+	 flip = true;
+	 // fall through
       case EQL :
-         if (have_range && rhs.have_range) {
-            long min = Math.max(min_value,rhs.min_value);
-            long max = Math.min(max_value,rhs.max_value);
-            lt = value_factory.rangeValue(getDataType(),min,max);
-            rt = value_factory.rangeValue(rhs.getDataType(),min,max);
-            if (rhs.min_value == rhs.max_value) {
-               if (min_value == rhs.min_value) {
-                  lf = value_factory.rangeValue(getDataType(),min_value+1,max_value);
-                }
-               else if (max_value == rhs.max_value) {
-                  lf = value_factory.rangeValue(getDataType(),min_value,max_value-1);
-                }
-             }
-            if (min_value == max_value) {
-               if (rhs.min_value == min_value) {
+	 if (rhs == null) return null;
+	 mnv = null;
+	 if (min_value != null && rhs.min_value != null) {
+	    mnv = Math.max(min_value.longValue(),rhs.min_value.longValue());
+	  }
+	 mxv = null;
+	 if (max_value != null && rhs.max_value != null) {
+	    mxv = Math.min(max_value.longValue(),rhs.max_value.longValue());
+	  }
+	 if (mnv != null && mxv != null && mnv > mxv) {
+	    mnv = mxv = null;
+	  }
+	 lt = value_factory.rangeValue(getDataType(),
+	       (mnv == null ? min_value : mnv),
+	       (mxv == null ? max_value : mxv));
+	 rt = value_factory.rangeValue(rhs.getDataType(),
+	       (mnv == null ? rhs.min_value : mnv),
+	       (mxv == null ? rhs.max_value : mxv));
+	 if (v1 != null) {
+	    if (v1.equals(min_value) && min_value+1 <= max_value) {
+	       lf = value_factory.rangeValue(getDataType(),min_value+1,max_value);
+	     }
+	    else if (v1.equals(max_value) && min_value <= max_value-1) {
+	       lf = value_factory.rangeValue(getDataType(),min_value,max_value-1);
+	     }
+	  }
+	 if (v0 != null) {
+	    if (v0.equals(rhs.min_value)) {
+               if (rhs.max_value == null || rhs.min_value+1 <= rhs.max_value) {
                   rf = value_factory.rangeValue(rhs.getDataType(),rhs.min_value+1,rhs.max_value);
                 }
-               else if (rhs.max_value == max_value) {
+	     }
+	    else if (v0.equals(rhs.max_value)) {
+               if (rhs.min_value == null || rhs.min_value <= rhs.max_value-1) {
                   rf = value_factory.rangeValue(rhs.getDataType(),rhs.min_value,rhs.max_value-1);
                 }
-             }
-          }
-         break;
+	     }
+	  }
+	 break;
       case GTR :
-         flip = true;
-	 //$FALL-THROUGH$
+	 flip = true;
+	 // fall through
       case LEQ :
-         if (have_range && rhs.have_range) {
-            lt = value_factory.rangeValue(getDataType(),min_value,Math.min(max_value,rhs.max_value));
-            lf = value_factory.rangeValue(getDataType(),Math.max(min_value,rhs.min_value+1),max_value);
-            rt = value_factory.rangeValue(getDataType(),Math.max(rhs.min_value,min_value),rhs.max_value);
-            rf = value_factory.rangeValue(getDataType(),rhs.min_value,Math.min(rhs.max_value,max_value-1));
-          }
-         break;
+	 if (rhs == null) return null;
+	 if (max_value != null && rhs.max_value != null) {
+            long x1 = Math.min(max_value.longValue(),rhs.max_value.longValue());
+            if (min_value == null || x1 >= min_value) {
+               lt = value_factory.rangeValue(getDataType(),min_value,x1);
+             }
+            long x2 = Math.min(rhs.max_value.longValue(),max_value-1);
+            if (rhs.min_value == null || x2 >= rhs.min_value) {
+               rf = value_factory.rangeValue(rhs.getDataType(),rhs.min_value,x2);
+             }
+	  }
+	 if (min_value != null && rhs.min_value != null) {
+            long x1 = Math.max(min_value.longValue(),rhs.min_value + 1);
+            if (max_value == null || x1 <= max_value) {
+               lf = value_factory.rangeValue(getDataType(),x1,max_value);
+             }
+            long x2 = Math.max(rhs.min_value.longValue(),min_value.longValue());
+            if (rhs.max_value == null || x2 <= rhs.max_value) {
+               rt = value_factory.rangeValue(rhs.getDataType(),x2,rhs.max_value);
+             }
+	  }
+	 break;
       case GEQ :
-         flip = true;
-	 //$FALL-THROUGH$
+	 flip = true;
+	 // fall through
       case LSS :
-         if (have_range && rhs.have_range) {
-            lt = value_factory.rangeValue(getDataType(),min_value,Math.min(max_value,rhs.max_value-1));
-            lf = value_factory.rangeValue(getDataType(),Math.max(min_value,rhs.min_value),max_value);
-            rt = value_factory.rangeValue(rhs.getDataType(),Math.max(rhs.min_value,min_value+1),rhs.max_value);
-            rf = value_factory.rangeValue(rhs.getDataType(),rhs.min_value,Math.min(rhs.max_value,max_value));
-          }
-         break;
+	 if (rhs == null) return null;
+	 if (max_value != null && rhs.max_value != null) {
+            long x1 = Math.min(max_value.longValue(),rhs.max_value-1);
+            if (min_value == null || x1 >= min_value) {
+               lt= value_factory.rangeValue(getDataType(),min_value,x1);
+             }
+            long x2 = Math.min(rhs.max_value.longValue(),max_value.longValue());
+            if (rhs.min_value == null || rhs.min_value <= x2) {
+               rf = value_factory.rangeValue(rhs.getDataType(),rhs.min_value,x2);
+             }
+	  }
+	 if (min_value != null && rhs.min_value != null) {
+            long x1 = Math.max(min_value.longValue(),rhs.min_value.longValue());
+            if (max_value == null || x1 <= max_value) {
+               lf = value_factory.rangeValue(getDataType(),x1,max_value);
+             }
+            long x2 = Math.max(rhs.min_value.longValue(),min_value+1);
+            if (rhs.max_value == null || x2 <= rhs.max_value) {
+               rt = value_factory.rangeValue(rhs.getDataType(),x2,rhs.max_value);
+             }
+	  }
+	 break;
       case NEQ_ZERO :
-         flip = true;
-	 //$FALL-THROUGH$
+	 flip = true;
+	 // fall through
       case EQL_ZERO :
-         lt = value_factory.rangeValue(getDataType(),0,0);
-         if (have_range && min_value == 0 && max_value > 0) {
-            lf = value_factory.rangeValue(getDataType(),1,max_value);
-          }
-         break;
+	 lt = value_factory.rangeValue(getDataType(),0l,0l);
+	 if (min_value != null && min_value.longValue() == 0) {
+            if (max_value == null || max_value >= 1) {
+               lf = value_factory.rangeValue(getDataType(),1l,max_value);
+             }
+	  }
+	 else if (max_value != null && max_value.longValue() == 0) {
+            if (min_value == null || min_value <= -1) {
+               lf = value_factory.rangeValue(getDataType(),min_value,-1l);
+             }
+	  }
+	 break;
       case GEQ_ZERO :
-         flip = true;
-         //$FALL-THROUGH$
+	 flip = true;
+	 // fall through
       case LSS_ZERO :
-         if (have_range && min_value < 0) {
-            lt = value_factory.rangeValue(getDataType(),min_value,-1);
-            lf = value_factory.rangeValue(getDataType(),0,max_value);
-          }
-         break;
+	 if (max_value != null && max_value >= 0) {
+            if (min_value == null || min_value <= -1) {
+               lt = value_factory.rangeValue(getDataType(),min_value,-1l);
+             }
+	  }
+	 if (min_value != null && min_value < 0) {
+            if (max_value == null || max_value >= 0) {
+               lf = value_factory.rangeValue(getDataType(),0l,max_value);
+             }
+	  }
+	 break;
       case GTR_ZERO :
-         flip = true;
-         //$FALL-THROUGH$
+	 flip = true;
+	 // fall through
       case LEQ_ZERO :
-         if (have_range && min_value <= 0) {
-            lt = value_factory.rangeValue(getDataType(),min_value,0);
-            lf = value_factory.rangeValue(getDataType(),1,max_value); 
-          }
-         break; 
+	 if (max_value != null && max_value > 0) {
+            if (min_value == null || min_value <= 0) {
+               lt = value_factory.rangeValue(getDataType(),min_value,0l);
+             }
+	  }
+	 if (min_value != null && min_value <= 0) {
+            if (max_value == null || max_value >= 1) {
+               lf = value_factory.rangeValue(getDataType(),1l,max_value);
+             }
+	  }
+	 break;
       default :
-         return null;
+	 return null;
     }
-   
+
    if (flip) {
       ValueBase t = lf;
       lf = lt;
@@ -400,7 +541,7 @@ long getMaxValue()			{ return max_value; }
       rf = rt;
       rt = t;
     }
-   
+
    IfaceTypeImplications timp = null;
    if (lf == this) lf = null;
    if (lt == this) lt = null;
@@ -421,24 +562,24 @@ long getMaxValue()			{ return max_value; }
       if (rf != null) rf = (ValueBase) rf.restrictByType(timp.getRhsFalseType());
       imp.setRhsValues(rt,rf);
     }
-   
+
    return imp;
-   
+
 }
 
 
 @Override public IfaceValue toFloating()
 {
    IfaceType dt = value_factory.getFaitControl().findDataType("double");
-   if (have_range) {
-      return value_factory.rangeValue(dt,(double) min_value,(double) max_value);
+   if (min_value != null && max_value != null) {
+      return value_factory.floatRangeValue(dt,(double) min_value,(double) max_value);
     }
    return value_factory.anyValue(dt);
 }
 
 @Override public Integer getIndexValue()
 {
-   if (have_range && min_value == max_value) return (int) min_value;
+   if (min_value != null && min_value.equals(max_value)) return min_value.intValue();
    return null;
 }
 
@@ -458,20 +599,38 @@ long getMaxValue()			{ return max_value; }
    IfaceType fdt = getDataType();
    IfaceType mdt = cvi.getDataType();
 
-   if (!have_range || (cvi.have_range && min_value <= cvi.min_value &&
-	 max_value >= cvi.max_value)) {
-      if (fdt.isBroaderType(mdt)) return this;
+   if (fdt == mdt) {
+      Long mnv = null;
+      Long mxv = null;
+      if (min_value != null && cvi.min_value != null)
+	 mnv = Math.min(min_value,cvi.min_value);
+      if (max_value != null && cvi.max_value != null)
+	 mxv = Math.max(max_value,cvi.max_value);
+      if (mnv != null && mxv != null && mxv - mnv >= VALUE_MAX_RANGE) {
+	 if (Math.abs(min_value-cvi.min_value) <= 1 && mnv == 0) mxv = null;
+	 else if (Math.abs(max_value-cvi.max_value) <= 0) mnv = null;
+	 else mnv = mxv = null;
+       }
+      // FaitLog.logD1("MergeInt " + min_value + " " + cvi.min_value + " " +
+	    // max_value + " " + cvi.max_value + " " + mnv + " " + mxv);
+      return value_factory.rangeValue(getDataType(),mnv,mxv);
     }
 
-   if (!cvi.have_range || (have_range && cvi.min_value < min_value &&
-	 cvi.max_value >= max_value)) {
-      if (mdt.isBroaderType(fdt)) return cvi;
+   if (fdt.isBroaderType(mdt)) {
+      // see if we can return old value directly
+      if (min_value == null && max_value == null) return this;
+      if (min_value == null || (cvi.min_value != null && min_value <= cvi.min_value)) {
+	 if (max_value == null || (cvi.max_value != null && max_value >= cvi.max_value))
+	    return this;
+       }
     }
-
-   if (have_range && cvi.have_range && getDataType() == cvi.getDataType()) {
-      return value_factory.rangeValue(getDataType(),
-	    Math.min(min_value,cvi.min_value),
-	    Math.max(max_value,cvi.max_value));
+   if (mdt.isBroaderType(fdt)) {
+      // see if we can use new value directly
+      if (cvi.min_value == null && cvi.max_value == null) return cvi;
+      if (cvi.min_value == null || (min_value != null && cvi.min_value <= min_value)) {
+	 if (cvi.max_value == null || (max_value != null && cvi.max_value >= max_value))
+	    return cvi;
+       }
     }
 
    if (!fdt.isBroaderType(mdt)) fdt = mdt;
@@ -479,30 +638,16 @@ long getMaxValue()			{ return max_value; }
    return value_factory.anyValue(fdt);
 }
 
-@Override public IfaceValue restrictByType(IfaceType dt) 
+@Override public IfaceValue restrictByType(IfaceType dt)
 {
    IfaceType nt = getDataType().restrictBy(dt);
    if (nt == getDataType()) return this;
-   if (have_range) return value_factory.rangeValue(nt,min_value,max_value);
+   if (hasRange()) return value_factory.rangeValue(nt,min_value,max_value);
    return value_factory.anyValue(nt);
 }
 
 
-@Override protected IfaceValue newEntityValue(IfaceEntitySet cs)
-{
-   cs = cs.addToSet(getEntitySet());
 
-   ValueInt nv = this;
-
-   if (have_range) {
-      nv = new ValueInt(value_factory,getDataType(),min_value,max_value,cs);
-    }
-   else {
-      nv = new ValueInt(value_factory,getDataType(),cs);
-    }
-
-   return nv;
-}
 
 
 
@@ -517,74 +662,153 @@ long getMaxValue()			{ return max_value; }
 {
    if (rhs == null) rhs = this;
 
+   if (!(rhs instanceof ValueInt)) return TestBranch.ANY;
+
    ValueInt rvi = (ValueInt) rhs;
 
    TestBranch rslt = TestBranch.ANY;
 
-   if (have_range && rvi.have_range) {
-      switch (op) {
-	 case EQL :
-	    if (min_value == max_value && min_value == rvi.min_value &&
-		  max_value == rvi.max_value)
-	       rslt = TestBranch.ALWAYS;
-	    else if (min_value > rvi.max_value || max_value < rvi.min_value)
-	       rslt = TestBranch.NEVER;
-	    break;
-	 case NEQ :
-	    if (min_value == max_value && min_value == rvi.min_value &&
-		  max_value == rvi.max_value)
-	       rslt = TestBranch.NEVER;
-	    else if (min_value > rvi.max_value || max_value < rvi.min_value)
-	       rslt = TestBranch.ALWAYS;
-	    break;
-	 case LSS :
-	    if (max_value < rvi.min_value) rslt = TestBranch.ALWAYS;
-	    else if (min_value >= rvi.max_value) rslt = TestBranch.NEVER;
-	    break;
-	 case GEQ :
-	    if (min_value >= rvi.max_value) rslt = TestBranch.ALWAYS;
-	    else if (max_value < rvi.min_value) rslt = TestBranch.NEVER;
-	    break;
-	 case GTR :
-	    if (min_value > rvi.max_value) rslt = TestBranch.ALWAYS;
-	    else if (max_value <= rvi.min_value) rslt = TestBranch.NEVER;
-	    break;
-	 case LEQ :
-	    if (max_value <= rvi.min_value) rslt = TestBranch.ALWAYS;
-	    else if (min_value > rvi.max_value) rslt = TestBranch.NEVER;
-	    break;
-	 case EQL_ZERO :
-	    if (min_value == max_value && min_value == 0) rslt = TestBranch.ALWAYS;
-	    else if (min_value > 0 || max_value < 0) rslt = TestBranch.NEVER;
-	    break;
-	 case NEQ_ZERO :
-	    if (min_value == max_value && min_value == 0) rslt = TestBranch.NEVER;
-	    else if (min_value > 0 || max_value < 0) rslt = TestBranch.ALWAYS;
-	    break;
-	 case LSS_ZERO :
-	    if (max_value < 0) rslt = TestBranch.ALWAYS;
-	    else if (min_value >= 0) rslt = TestBranch.NEVER;
-	    break;
-	 case LEQ_ZERO :
-	    if (max_value < 0) rslt = TestBranch.ALWAYS;
-	    else if (min_value > 0) rslt = TestBranch.NEVER;
-	    break;
-	 case GTR_ZERO :
-	    if (min_value > 0) rslt = TestBranch.ALWAYS;
-	    else if (max_value <= 0) rslt = TestBranch.NEVER;
-	    break;
-	 case GEQ_ZERO :
-	    if (min_value >= 0) rslt = TestBranch.ALWAYS;
-	    else if (max_value < 0) rslt = TestBranch.NEVER;
-	    break;
-	 default :
-	    rslt = TestBranch.ANY;
-	    break;
-       }
+   switch (op) {
+      case EQL :
+	  if (min_value != null && min_value.equals(max_value) &&
+		rvi.min_value != null && rvi.min_value.equals(rvi.max_value) &&
+		min_value.equals(rvi.min_value))
+	     rslt = TestBranch.ALWAYS;
+	  else if (min_value != null && rvi.max_value != null && min_value > rvi.max_value)
+	     rslt = TestBranch.NEVER;
+	  else if (max_value != null && rvi.min_value != null && max_value < rvi.min_value)
+	     rslt = TestBranch.NEVER;
+	  break;
+      case NEQ :
+	 if (min_value != null && min_value.equals(max_value) &&
+	       rvi.min_value != null && rvi.min_value.equals(rvi.max_value) &&
+	       min_value.equals(rvi.min_value))
+	    rslt = TestBranch.NEVER;
+	 else if (min_value != null && rvi.max_value != null && min_value > rvi.max_value)
+	    rslt = TestBranch.ALWAYS;
+	 else if (max_value != null && rvi.min_value != null && max_value < rvi.min_value)
+	    rslt = TestBranch.ALWAYS;
+	 break;
+      case LSS :
+	 if (max_value != null && rvi.min_value != null && max_value < rvi.min_value)
+	    rslt = TestBranch.ALWAYS;
+	 else if (min_value != null && rvi.max_value != null && min_value >= rvi.max_value)
+	    rslt = TestBranch.NEVER;
+	 break;
+      case GEQ :
+	 if (max_value != null && rvi.min_value != null && max_value < rvi.min_value)
+	    rslt = TestBranch.NEVER;
+	 else if (min_value != null && rvi.max_value != null && min_value >= rvi.max_value)
+	    rslt = TestBranch.ALWAYS;
+	 break;
+      case LEQ :
+	 if (max_value != null && rvi.min_value != null && max_value <= rvi.min_value)
+	    rslt = TestBranch.ALWAYS;
+	 else if (min_value != null && rvi.max_value != null && min_value > rvi.max_value)
+	    rslt = TestBranch.NEVER;
+	 break;
+      case GTR :
+	 if (max_value != null && rvi.min_value != null && max_value <= rvi.min_value)
+	    rslt = TestBranch.NEVER;
+	 else if (min_value != null && rvi.max_value != null && min_value > rvi.max_value)
+	    rslt = TestBranch.ALWAYS;
+	 break;
+      case EQL_ZERO :
+	 if (min_value != null && min_value.equals(max_value) && min_value.longValue() == 0)
+	    rslt = TestBranch.ALWAYS;
+	 else if (min_value != null && min_value > 0)
+	    rslt = TestBranch.NEVER;
+	 else if (max_value != null && max_value < 0)
+	    rslt = TestBranch.NEVER;
+	 break;
+      case NEQ_ZERO :
+	 if (min_value != null && min_value.equals(max_value) && min_value.longValue() == 0)
+	    rslt = TestBranch.NEVER;
+	 else if (min_value != null && min_value > 0)
+	    rslt = TestBranch.ALWAYS;
+	 else if (max_value != null && max_value < 0)
+	    rslt = TestBranch.ALWAYS;
+	 break;
+      case LSS_ZERO :
+	 if (max_value != null && max_value < 0) rslt = TestBranch.ALWAYS;
+	 else if (min_value != null && min_value >= 0) rslt = TestBranch.NEVER;
+	 break;
+      case GEQ_ZERO :
+	 if (max_value != null && max_value < 0) rslt = TestBranch.NEVER;
+	 else if (min_value != null && min_value >= 0) rslt = TestBranch.ALWAYS;
+	 break;
+      case LEQ_ZERO :
+	 if (max_value != null && max_value <= 0) rslt = TestBranch.ALWAYS;
+	 else if (min_value != null && min_value > 0) rslt = TestBranch.NEVER;
+	 break;
+      case GTR_ZERO :
+	 if (max_value != null && max_value <= 0) rslt = TestBranch.NEVER;
+	 else if (min_value != null && min_value > 0) rslt = TestBranch.ALWAYS;
+	 break;
+      default :
+	 break;
     }
 
    return rslt;
 }
+
+
+
+
+/********************************************************************************/
+/*										*/
+/*	Helper methods								*/
+/*										*/
+/********************************************************************************/
+
+private boolean hasRange()
+{
+   return min_value != null && max_value != null;
+}
+
+
+
+/********************************************************************************/
+/*										*/
+/*	Comparison methods for ensuring uniqueness				*/
+/*										*/
+/********************************************************************************/
+
+@Override public int hashCode()
+{
+   int hc = getDataType().hashCode();
+   if (min_value != null) hc += min_value.hashCode();
+   if (max_value != null) hc += max_value.hashCode();
+   IfaceEntitySet es = getEntitySet();
+   if (es != null) hc += es.hashCode();
+   return hc;
+}
+
+
+
+@Override public boolean equals(Object o)
+{
+   if (o == this) return true;
+   if (o instanceof ValueInt) {
+      ValueInt vi = (ValueInt) o;
+      if (getDataType() != vi.getDataType()) return false;
+      if (!same(min_value,vi.min_value)) return false;
+      if (!same(max_value,vi.max_value)) return false;
+      if (getEntitySet() != vi.getEntitySet()) return false;
+      return true;
+    }
+   return false;
+}
+
+
+
+private static boolean same(Long l0,Long l1)
+{
+   if (l0 == null && l1 == null) return true;
+   if (l0 == null || l1 == null) return false;
+   return l0.longValue() == l1.longValue();
+}
+
 
 
 
@@ -599,11 +823,13 @@ long getMaxValue()			{ return max_value; }
    StringBuffer rslt = new StringBuffer();
    rslt.append("[");
    rslt.append(getDataType());
-   if (have_range) {
+   if (min_value != null || max_value != null) {
       rslt.append(" :: ");
-      rslt.append(min_value);
+      if (min_value != null) rslt.append(min_value);
+      else rslt.append("ANY");
       rslt.append(" -> ");
-      rslt.append(max_value);
+      if (max_value != null) rslt.append(max_value);
+      else rslt.append("ANY");
     }
    rslt.append("]");
    return rslt.toString();

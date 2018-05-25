@@ -378,6 +378,12 @@ public IfaceSpecial getSpecial(IfaceProgramPoint pt,IfaceCall fc)
 }
 
 
+public void clearSpecial(IfaceMethod im)
+{
+   special_methods.put(im,null);
+}
+
+
 
 public boolean canBeCallback(IfaceProgramPoint pt,IfaceMethod fm)
 {

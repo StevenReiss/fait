@@ -125,7 +125,7 @@ public IfaceValue prototype__constructor(IfaceMethod fm,List<IfaceValue> args,If
 /*										*/
 /********************************************************************************/
 
-public synchronized  IfaceValue prototype_add(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
+public IfaceValue prototype_add(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
 {
    IfaceValue nv = args.get(1);
 
@@ -138,7 +138,7 @@ public synchronized  IfaceValue prototype_add(IfaceMethod fm,List<IfaceValue> ar
    IfaceValue ov = element_value;
    mergeElementValue(nv);
 
-   if (fm.getReturnType().isVoidType()) {
+   if (!fm.getReturnType().isVoidType()) {
       addElementChange(src);
       if (nv == null) return null;
       if (fm.getReturnType().isJavaLangObject()) return nv;
@@ -150,7 +150,7 @@ public synchronized  IfaceValue prototype_add(IfaceMethod fm,List<IfaceValue> ar
 
 
 
-public synchronized IfaceValue prototype_addAll(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
+public IfaceValue prototype_addAll(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
 {
    IfaceValue nv;
 
@@ -282,7 +282,7 @@ public IfaceValue prototype_comparator(IfaceMethod fm,List<IfaceValue> args,Ifac
 
 
 
-public synchronized IfaceValue prototype_contains(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
+public IfaceValue prototype_contains(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
 {
    IfaceValue v = args.get(1);
 
@@ -298,7 +298,7 @@ public synchronized IfaceValue prototype_contains(IfaceMethod fm,List<IfaceValue
 
 
 
-public synchronized IfaceValue prototype_containsAll(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
+public IfaceValue prototype_containsAll(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
 {
    addElementChange(src);
    
@@ -332,7 +332,7 @@ public IfaceValue prototype_isEmpty(IfaceMethod fm,List<IfaceValue> args,IfaceLo
 public synchronized IfaceValue prototype_setSize(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
 {
    IfaceValue cv = args.get(1);
-   IfaceValue zero = fait_control.findRangeValue(fait_control.findDataType("int"),0,0);
+   IfaceValue zero = fait_control.findConstantValue(fait_control.findDataType("int"),0);
    if (cv == zero) {
       // removeall
       return returnAny(fm);
@@ -353,7 +353,7 @@ public synchronized IfaceValue prototype_setSize(IfaceMethod fm,List<IfaceValue>
 /*										*/
 /********************************************************************************/
 
-public synchronized IfaceValue prototype_toArray(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
+public IfaceValue prototype_toArray(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
 {
    IfaceValue cv = null;
 
@@ -366,13 +366,15 @@ public synchronized IfaceValue prototype_toArray(IfaceMethod fm,List<IfaceValue>
        }
     }
    else {
-      if (array_entity == null) {
-	 IfaceType dt = fait_control.findDataType("java.lang.Object");
-	 array_entity = fait_control.findArrayEntity(dt,prototype_size(fm,null,src));
+      synchronized (this) {
+         if (array_entity == null) {
+            IfaceType dt = fait_control.findDataType("java.lang.Object");
+            array_entity = fait_control.findArrayEntity(dt,prototype_size(fm,null,src));
+          }
+         array_entity.addToArrayContents(element_value,null,src);
+         IfaceEntitySet cset = fait_control.createSingletonSet(array_entity);
+         cv = fait_control.findObjectValue(array_entity.getDataType(),cset,FaitAnnotation.NON_NULL);
        }
-      array_entity.addToArrayContents(element_value,null,src);
-      IfaceEntitySet cset = fait_control.createSingletonSet(array_entity);
-      cv = fait_control.findObjectValue(array_entity.getDataType(),cset,FaitAnnotation.NON_NULL);
     }
 
    return cv;
@@ -652,34 +654,43 @@ synchronized public IfaceValue prototype_listIterator(IfaceMethod fm,
 
 synchronized void mergeElementValue(IfaceValue v)
 {
+   if (v != null && v.getDataType().isVoidType()) 
+      FaitLog.logE("SET collection element void");
+   
    if (element_value == null) setElementValue(v);
    else if (v != null) setElementValue(element_value.mergeValue(v));
 }
 
 
-synchronized void setElementValue(IfaceValue v)
+void setElementValue(IfaceValue v)
 {
    if (v == element_value || v == null) return;
 
-   if (element_value == null) {
-      for (IfaceLocation loc : first_element) {
-	 fait_control.queueLocation(loc);
+   synchronized (this) {
+      if (element_value == null) {
+         for (IfaceLocation loc : first_element) {
+            fait_control.queueLocation(loc);
+          }
+         first_element.clear();
        }
-      first_element.clear();
+      
+      element_value = v;
     }
 
-   element_value = v;
-
-   for (IfaceLocation loc : element_change) {
-      fait_control.queueLocation(loc);
+   synchronized (element_change) {
+      for (IfaceLocation loc : element_change) {
+         fait_control.queueLocation(loc);
+       }
     }
 }
 
 
-synchronized void addElementChange(IfaceLocation src)
+void addElementChange(IfaceLocation src)
 {
    if (src != null) {
-      element_change.add(src);
+      synchronized (element_change) {
+         element_change.add(src);
+       }
     }
 }
 
@@ -740,17 +751,15 @@ private class CollectionIter extends ProtoBase {
 
    public IfaceValue prototype_hasNext(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src) {
       synchronized (ProtoCollection.this) {
-	 first_element.add(src);
-	 if (element_value == null) return returnFalse();
-	 return returnAny(fm);
+         first_element.add(src);
+         if (element_value == null) return returnFalse();
+         return returnAny(fm);
        }
     }
 
    public IfaceValue prototype_next(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src) {
-      synchronized (ProtoCollection.this) {
-	 addElementChange(src);
-	 return element_value;
-       }
+      addElementChange(src);
+      return element_value;
     }
 
 }	// end of inner class CollectionIter
@@ -783,10 +792,8 @@ private class CollectionListIter extends ProtoBase {
     }
 
    public IfaceValue prototype_next(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src) {
-      synchronized (ProtoCollection.this) {
-	 addElementChange(src);
-	 return element_value;
-       }
+      addElementChange(src);
+      return element_value;
     }
 
    public IfaceValue prototype_previous(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src) {
@@ -818,10 +825,8 @@ private class CollectionEnum extends ProtoBase {
     }
 
    public IfaceValue prototype_nextElement(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src) {
-      synchronized (ProtoCollection.this) {
-	 addElementChange(src);
-	 return element_value;
-       }
+      addElementChange(src);
+      return element_value;
     }
 
 }	// end of inner class CollectionEnum

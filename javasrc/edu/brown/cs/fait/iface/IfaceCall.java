@@ -61,6 +61,7 @@ QueueLevel getQueueLevel();
 void setQueueLevel(QueueLevel lvl);
 
 boolean getIsAsync();
+void loadClasses();
 
 IfaceControl getControl();
 
@@ -77,7 +78,7 @@ void setUserEntity(IfaceProgramPoint ins,IfaceEntity.UserEntity e);
 IfaceValue getThisValue();
 Iterable<IfaceValue> getParameterValues();
 
-boolean addCall(IfaceProgramPoint pt,List<IfaceValue> args);
+boolean addCall(List<IfaceValue> args);
 boolean addException(IfaceValue exception);
 boolean hasResult();
 boolean addResult(IfaceValue v);
@@ -103,7 +104,14 @@ Collection<IfaceError> getErrors(IfaceProgramPoint pt);
 void removeForUpdate(IfaceUpdater upd);
 void handleUpdates(IfaceUpdater upd);
 
+void backFlowParameter(IfaceValue ref,IfaceType settype);
+void backFlowReturn(IfaceLocation pt,IfaceType settype);
+
 String getLogName();
+
+void noteScan(int fwd,int bwd);
+void outputStatistics();
+
 
 
 }	// end of interface IfaceCall

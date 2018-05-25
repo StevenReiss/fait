@@ -152,6 +152,9 @@ EntityFixed(IfaceType dt,boolean mutable)
 
 
 
+
+
+
 /********************************************************************************/
 /*										*/
 /*	Output and debugging methods						*/

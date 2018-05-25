@@ -152,6 +152,7 @@ TypeBase(TypeFactory fac,IfaceBaseType base,IfaceSubtype.Value [] subs)
 
 @Override public boolean checkCompatibility(IfaceType dt,IfaceLocation loc) 
 {
+   if (dt == null) return false;
    if (!base_type.isCompatibleWith(dt.getJavaType())) return false;
    
    boolean rslt = true;
@@ -228,7 +229,7 @@ TypeBase(TypeFactory fac,IfaceBaseType base,IfaceSubtype.Value [] subs)
 {
    if (this == dt || dt == null) return this;
    
-   IfaceBaseType bt = dt.getJavaType();
+   IfaceBaseType bt = getJavaType();
    IfaceSubtype.Value [] vals = new IfaceSubtype.Value[type_factory.getNumSubtypes()];
    for (int i = 0; i < type_factory.getNumSubtypes(); ++i) {
       TypeSubtype st = type_factory.getSubtype(i);
@@ -346,6 +347,25 @@ public IfaceType getComputedType(IfaceValue rslt,FaitOperator op,IfaceValue lhs,
 
 
 
+public IfaceType getComputedType(FaitOperator op)
+{
+   int ct = type_factory.getNumSubtypes();
+   IfaceSubtype.Value [] vals = new IfaceSubtype.Value[ct];
+   boolean chng = false;
+   for (int i = 0; i < ct; ++i) {
+      TypeSubtype st = type_factory.getSubtype(i);
+      IfaceSubtype.Value oval = getValue(st);
+      IfaceSubtype.Value val = st.getComputedValue(op,oval);
+      if (val == null) val = oval;
+      else if (val != oval) chng = true;
+      vals[i] = val;
+    }
+   if (!chng) return this;
+   return type_factory.createType(getJavaType(),vals);
+}
+
+
+
 
 @Override public IfaceTypeImplications getImpliedTypes(FaitOperator op,IfaceType tr)
 {
@@ -355,6 +375,38 @@ public IfaceType getComputedType(IfaceValue rslt,FaitOperator op,IfaceValue lhs,
    for (int i = 0; i < ct; ++i) {
       TypeSubtype st = type_factory.getSubtype(i);
       st.checkImpliedTypes(rslt,op);
+    }
+   
+   return rslt;
+}
+
+
+
+@Override public List<IfaceType> getBackTypes(FaitOperator op,IfaceValue ... vals)
+{
+   List<IfaceType> rslt = null;
+   int ct = type_factory.getNumSubtypes();
+   for (int j = 0; j < vals.length; ++j) {
+      List<IfaceAnnotation> annots = null;
+      for (int i = 0; i < ct; ++i) {
+         TypeSubtype st = type_factory.getSubtype(i);
+         IfaceAnnotation an = st.getArgumentAnnotation(op,j,vals);
+         if (an != null) {
+            if (annots == null) annots = new ArrayList<>();
+            annots.add(an);
+          }
+       }
+      if (annots != null) {
+         IfaceAnnotation [] ans = new IfaceAnnotation[annots.size()];
+         ans = annots.toArray(ans);
+         IfaceType nt = vals[j].getDataType().getAnnotatedType(ans);
+         if (rslt == null) {
+            rslt = new ArrayList<>();
+            for (int k = 0; k < j; ++k) rslt.add(null);
+          }
+         rslt.add(nt);
+       }
+      else if (rslt != null) rslt.add(null);
     }
    
    return rslt;

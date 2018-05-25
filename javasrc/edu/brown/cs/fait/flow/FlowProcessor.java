@@ -97,6 +97,8 @@ void process()
          if (Thread.currentThread().isInterrupted()) interruptWorkers();
        }
     }
+  
+   flow_queue.printStatistics();
 }
 
 

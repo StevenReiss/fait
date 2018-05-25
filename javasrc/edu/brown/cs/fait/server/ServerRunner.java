@@ -156,13 +156,14 @@ synchronized void pauseAnalysis()
       return_id = next_return;
       synchronized (this) {
          for ( ; ; ) {
-            while (pause_analysis) {
+            while (pause_analysis || !for_project.isErrorFree()) {
                try {
                   wait();
                 }
                catch (InterruptedException e) { }
              }
             interrupted();
+            FaitLog.logD("Check resume analysis");
             long now = System.currentTimeMillis();
             while (now - last_change < MIN_STABLE_TIME) {
                long delta = last_change + MIN_STABLE_TIME - now;

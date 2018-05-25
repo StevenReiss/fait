@@ -96,7 +96,7 @@ ValueString(ValueFactory vf,IfaceType typ,String s,IfaceEntitySet es)
          return value_factory.constantString();
     }
    
-   return super.performOperation(typ,rhs,op,src);
+   return super.localPerformOperation(typ,rhs,op,src);
 }
 
 

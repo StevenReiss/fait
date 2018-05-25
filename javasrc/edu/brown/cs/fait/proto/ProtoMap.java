@@ -142,7 +142,7 @@ public IfaceValue prototype_entrySet(IfaceMethod fm,List<IfaceValue> args,IfaceL
 }
 
 
-public synchronized IfaceValue prototype_get(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
+public IfaceValue prototype_get(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
 {
    value_set.addElementChange(src);
    
@@ -278,7 +278,7 @@ public IfaceValue prototype_clone(IfaceMethod fm,List<IfaceValue> args,IfaceLoca
 }
 
 
-public synchronized IfaceValue prototype_firstKey(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
+public IfaceValue prototype_firstKey(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
 {
    key_set.addElementChange(src);
    IfaceValue cv = key_set.getElementValue();
@@ -308,14 +308,14 @@ public IfaceValue prototype_subMap(IfaceMethod fm,List<IfaceValue> args,IfaceLoc
 
 public IfaceValue prototype_headMap(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
 { 
-   return prototype_headMap(fm,args,src);
+   return prototype_subMap(fm,args,src);
 }
 
 
 
 public IfaceValue prototype_tailMap(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
 { 
-   return prototype_headMap(fm,args,src);
+   return prototype_subMap(fm,args,src);
 }
 
 
@@ -367,27 +367,23 @@ private class MapEntry extends ProtoBase {
     }
    
    public IfaceValue prototype_getKey(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src) {
-      synchronized (ProtoMap.this) {
-         key_set.addElementChange(src);
-         IfaceValue rslt = key_set.getElementValue();
-         if (rslt == null) {
-            IfaceType ot = fait_control.findDataType("java.lang.Object");
-            rslt = fait_control.findMutableValue(ot);
-          }
-         return rslt;
+      key_set.addElementChange(src);
+      IfaceValue rslt = key_set.getElementValue();
+      if (rslt == null) {
+         IfaceType ot = fait_control.findDataType("java.lang.Object");
+         rslt = fait_control.findMutableValue(ot);
        }
+      return rslt;
     }
 
    public IfaceValue prototype_getValue(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src) {
-      synchronized (ProtoMap.this) {
-         value_set.addElementChange(src);
-         IfaceValue rslt = value_set.getElementValue();
-         if (rslt == null) {
-            IfaceType ot = fait_control.findDataType("java.lang.Object");
-            rslt = fait_control.findMutableValue(ot);
-          }
-         return rslt;
+      value_set.addElementChange(src);
+      IfaceValue rslt = value_set.getElementValue();
+      if (rslt == null) {
+         IfaceType ot = fait_control.findDataType("java.lang.Object");
+         rslt = fait_control.findMutableValue(ot);
        }
+      return rslt;
     }
    
    

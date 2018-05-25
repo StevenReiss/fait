@@ -74,8 +74,11 @@ FlowQueueInstanceByteCode(FlowQueue fq,IfaceCall fc,QueueLevel lvl)
 
 @Override void scanCode(IfaceControl ctrl,FlowQueue fq)
 {
-   FlowScannerByteCode scan = new FlowScannerByteCode(ctrl,fq);
-   scan.scanCode(this);
+   FlowScannerByteCode scan = new FlowScannerByteCode(ctrl,fq,this);
+   int ct0 = scan.scanCode();
+   int ct1 = scan.scanBack();
+   
+   getCall().noteScan(ct0,ct1);
 }
 
 

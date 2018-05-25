@@ -88,16 +88,7 @@ ValueFloat(ValueFactory vf,IfaceType dt,IfaceEntitySet es)
 
 
 
-@Override protected IfaceValue newEntityValue(IfaceEntitySet cs)
-{
-   cs = cs.addToSet(getEntitySet());
 
-   IfaceValue nv = this;
-
-   nv = new ValueFloat(value_factory,getDataType(),cs);
-
-   return nv;
-}
 
 
 

@@ -65,6 +65,7 @@ public enum NullState implements IfaceSubtype.Value
 {
    MUST_BE_NULL, 
    NON_NULL,
+   DEREFED,
    CAN_BE_NULL;
    
    @Override public IfaceSubtype getSubtype()   { return our_type; }
@@ -103,19 +104,26 @@ private CheckNullness()
 {
    defineMerge(MUST_BE_NULL,NON_NULL,CAN_BE_NULL);
    defineMerge(MUST_BE_NULL,CAN_BE_NULL,CAN_BE_NULL);
+   defineMerge(MUST_BE_NULL,DEREFED,DEREFED);
    defineMerge(NON_NULL,CAN_BE_NULL,CAN_BE_NULL);
+   defineMerge(NON_NULL,DEREFED,NON_NULL);
+   defineMerge(CAN_BE_NULL,DEREFED,DEREFED);
    
    defineRestrict(MUST_BE_NULL,NON_NULL,NULL_ERROR);
    defineRestrict(MUST_BE_NULL,CAN_BE_NULL,MUST_BE_NULL);
+   defineRestrict(MUST_BE_NULL,DEREFED,NULL_ERROR);
    defineRestrict(NON_NULL,MUST_BE_NULL,NULL_ERROR1);
    defineRestrict(NON_NULL,CAN_BE_NULL,NON_NULL);
+   defineRestrict(NON_NULL,DEREFED,NON_NULL);
    defineRestrict(CAN_BE_NULL,MUST_BE_NULL,MUST_BE_NULL);
    defineRestrict(CAN_BE_NULL,NON_NULL,NON_NULL);
+   defineRestrict(CAN_BE_NULL,DEREFED,NON_NULL);
    
    defineAttribute("Nullable",CAN_BE_NULL);
    defineAttribute("NonNull",NON_NULL);
    defineAttribute("NotNull",NON_NULL);
    defineAttribute("MustBeNull",MUST_BE_NULL);
+   defineAttribute("Derefed",DEREFED);
 }
 
 
@@ -149,8 +157,23 @@ private CheckNullness()
 {
    IfaceType t0 = rslt.getDataType();
    if (t0.isPrimitiveType()) return NON_NULL;
-   
    return null;      
+}
+
+
+
+@Override public IfaceSubtype.Value getComputedValue(FaitOperator op,IfaceSubtype.Value oval)
+{
+   switch (op) {
+      default :
+         break;
+      case DEREFERENCE :
+         if (oval == NON_NULL || oval == DEREFED) return oval;
+         if (oval == MUST_BE_NULL) return oval;
+         return DEREFED;
+    }
+   
+   return super.getComputedValue(op,oval);
 }
 
 

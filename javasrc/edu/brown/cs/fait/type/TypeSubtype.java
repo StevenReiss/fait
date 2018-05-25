@@ -312,6 +312,12 @@ IfaceSubtype.Value getAnnotationValue(IfaceAnnotation [] annots)
 }
 
 
+@Override public IfaceSubtype.Value getComputedValue(FaitOperator op,IfaceSubtype.Value oval)
+{
+   return oval;
+}
+
+
 
 void checkImpliedTypes(TypeImplications rslt,FaitOperator op)
 {
@@ -336,6 +342,10 @@ void checkImpliedTypes(TypeImplications rslt,FaitOperator op)
 }
 
 
+@Override public IfaceAnnotation getArgumentAnnotation(FaitOperator op,int opnd,IfaceValue [] vals)
+{
+   return null;
+}
 
 
 

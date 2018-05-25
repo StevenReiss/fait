@@ -1,8 +1,8 @@
 /********************************************************************************/
 /*                                                                              */
-/*              IfaceProgramPoint.java                                          */
+/*              FaitMain.java                                                   */
 /*                                                                              */
-/*      Represent a point in the program                                        */
+/*      Alternative main entry point                                            */
 /*                                                                              */
 /********************************************************************************/
 /*      Copyright 2011 Brown University -- Steven P. Reiss                    */
@@ -35,44 +35,28 @@
 
 package edu.brown.cs.fait.iface;
 
-import java.util.List;
+import edu.brown.cs.fait.server.ServerMain;
 
-import edu.brown.cs.ivy.jcode.JcodeInstruction;
-import edu.brown.cs.ivy.xml.IvyXmlWriter;
-
-public interface IfaceProgramPoint extends FaitConstants
+public class FaitMain implements FaitConstants
 {
 
-JcodeInstruction getInstruction();
-IfaceAstReference getAstReference();
-boolean isByteCode();
 
-IfaceMethod getReferencedMethod();
-IfaceField getReferencedField();
-IfaceType getReferencedType();
-IfaceProgramPoint getReferencedTarget();
-List<IfaceProgramPoint> getReferencedTargets();
+/********************************************************************************/
+/*                                                                              */
+/*      Main routine                                                            */
+/*                                                                              */
+/********************************************************************************/
 
-boolean isInterfaceCall();
-boolean isVirtualCall();
-boolean isMethodStart();
+public static void main(String [] args)
+{
+   ServerMain.main(args);
+}
 
-IfaceProgramPoint getNext();
-IfaceProgramPoint getPrevious();
 
-IfaceMethod getMethod();
-
-void outputXml(IvyXmlWriter xw);
+}       // end of class FaitMain
 
 
 
 
-
-
-}       // end of interface IfaceProgramPoint
-
-
-
-
-/* end of IfaceProgramPoint.java */
+/* end of FaitMain.java */
 

@@ -51,6 +51,7 @@ abstract class FlowScanner implements FlowConstants, JcodeConstants
 
 protected FlowQueue		flow_queue;
 protected IfaceControl		fait_control;
+protected FlowQueueInstance     work_queue;
 
 protected static IfaceError CALL_NEVER_RETURNS;
 protected static IfaceError BRANCH_NEVER_TAKEN;
@@ -72,10 +73,11 @@ static {
 /*										*/
 /********************************************************************************/
 
-FlowScanner(IfaceControl fc,FlowQueue fq)
+FlowScanner(IfaceControl fc,FlowQueue fq,FlowQueueInstance wq)
 {
    fait_control = fc;
    flow_queue = fq;
+   work_queue = wq;
 }
 
 
@@ -86,16 +88,8 @@ FlowScanner(IfaceControl fc,FlowQueue fq)
 /*										*/
 /********************************************************************************/
 
-void scanCode(FlowQueueInstanceByteCode wq)
-{
-   throw new Error("Attempt to use wrong scanner");
-}
-
-
-void scanCode()
-{
-   throw new Error("Attempt to use wrong scanner");
-}
+abstract int scanCode();
+abstract int scanBack();
 
 
 /********************************************************************************/
@@ -110,6 +104,8 @@ protected IfaceEntity getLocalEntity(IfaceCall call,IfaceProgramPoint inspt)
    
    if (ns == null) {
       IfaceType tyr = inspt.getReferencedType();
+      tyr = tyr.getAnnotatedType(FaitAnnotation.NON_NULL);
+     
       IfacePrototype pt = fait_control.createPrototype(tyr);
       if (pt != null) {
 	 ns = fait_control.findPrototypeEntity(tyr,pt,
@@ -154,6 +150,110 @@ static IfaceValue checkAssignment(IfaceValue val,IfaceType typ,IfaceLocation loc
 }
 
 
+protected IfaceValue getActualValue(IfaceState state,FlowLocation here,IfaceValue ref,boolean nonnull)
+{
+   if (ref == null) return null;
+   if (!ref.isReference()) return ref;
+   
+   IfaceValue base = ref.getRefBase();
+   if (base != null) {
+      IfaceValue idx = ref.getRefIndex();
+      if (base.mustBeNull()) {
+	 return null;
+       }
+      if (idx != null) {
+	 IfaceValue vrslt = flow_queue.handleArrayAccess(here,base,idx);
+         IfaceValue nrslt = getNonNullResult(nonnull,vrslt);
+         if (nrslt != null && nrslt != vrslt) flow_queue.handleArraySet(here,base,nrslt,idx);
+	 return nrslt;
+       }
+      else if (ref.getRefField() != null) {
+	 boolean oref = false;		// set to true if base == this
+	 if (base == state.getLocal(0)) oref = true;
+	 IfaceValue vrslt = flow_queue.handleFieldGet(ref.getRefField(),here,
+	       state,oref,base);
+         if (FaitLog.isTracing())
+            FaitLog.logD1("Field Access " + ref.getRefField() + " = " + vrslt);
+         IfaceValue nrslt = getNonNullResult(nonnull,vrslt);
+         if (nrslt != null && nrslt != vrslt) 
+            flow_queue.handleFieldSet(ref.getRefField(),here,state,oref,nrslt,base);
+	 return nrslt;
+       }
+    }
+   else if (ref.getRefSlot() >= 0) {
+      IfaceValue vrslt = state.getLocal(ref.getRefSlot());
+      IfaceValue nrslt = getNonNullResult(nonnull,vrslt);
+      if (nrslt != null && nrslt != vrslt) state.setLocal(ref.getRefSlot(),nrslt);
+      return nrslt;
+    }
+   else if (ref.getRefField() != null) {
+      // static fields
+      IfaceValue vrslt = flow_queue.handleFieldGet(ref.getRefField(),here,state,false,null);
+      return vrslt;
+    }
+   else if (ref.getRefStack() >= 0) {
+      IfaceValue vrslt = state.getStack(ref.getRefStack());
+      IfaceValue nrslt = getNonNullResult(nonnull,vrslt);
+      if (nrslt != null && nrslt != vrslt) { 
+         state.setStack(ref.getRefStack(),nrslt);
+       }
+      return nrslt;
+    }
+   else {
+      FaitLog.logE("ILLEGAL REF VALUE");
+    }
+   
+   return ref;
+}
+
+
+
+protected IfaceValue getNonNullResult(boolean nonnull,IfaceValue v)
+{
+   if (v == null || !nonnull) return v;
+   if (v.mustBeNull()) return null;
+   if (!v.canBeNull()) return v;
+   IfaceValue v1 = v.forceNonNull();
+   return v1;
+}
+
+
+
+protected IfaceValue assignValue(IfaceState state,FlowLocation here,IfaceValue ref,IfaceValue v)
+{
+   IfaceValue v1 = flow_queue.castValue(ref.getDataType(),v,here);
+   
+   IfaceValue base = ref.getRefBase();
+   IfaceField fld = ref.getRefField();
+   IfaceValue idx = ref.getRefIndex();
+   int slot = ref.getRefSlot();
+   int stk = ref.getRefStack();
+   if (fld != null) {
+      boolean thisref = false;		// need to set
+      if (base != null && !fld.isStatic() &&
+	    base == state.getLocal(0)) thisref = true;
+      flow_queue.handleFieldSet(fld,here,state,thisref,v1,base);
+    }
+   else if (idx != null) {
+      flow_queue.handleArraySet(here,base,v1,idx);
+    }
+   else if (slot >= 0) {
+      setLocal(here,state,slot,v1);
+      if (FaitLog.isTracing()) FaitLog.logD("Assign to local " + slot + " = " + v1);
+    }
+   else if (stk >= 0) {
+      state.setStack(stk,v1);
+    }
+   else {
+      FaitLog.logE("Bad assignment");
+    }
+   
+   return v1;
+}
+
+
+
+
 
 /********************************************************************************/
 /*                                                                              */
@@ -167,6 +267,85 @@ IfaceImplications getImpliedValues(IfaceValue v0,FaitOperator op,IfaceValue v1)
    
 }
 
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Back Propagation methods                                                */
+/*                                                                              */
+/********************************************************************************/
+
+protected IfaceValue adjustRef(IfaceValue ref,int pop,int push)
+{
+   if (ref == null) return null;
+   int idx = ref.getRefStack();
+   if (idx >= 0) {
+      if (idx < push) return null;
+      if (pop == push) return ref;
+      return fait_control.findRefStackValue(ref.getDataType(),idx-push+pop);
+    }
+   return ref;
+}
+
+
+
+protected void checkBackPropagation(FlowLocation loc,IfaceState st0,int sref,
+      IfaceValue val,FaitOperator what)
+{
+   // get state at start of program point
+   if (val == null) val = st0.getStack(sref);
+   IfaceType t1 = val.checkOperation(what);
+   if (t1 == null || t1 == val.getDataType()) return;
+   IfaceValue vref = fait_control.findRefStackValue(val.getDataType(),sref);
+   while (st0 != null && st0.getProgramPoint() == null) {
+      st0 = st0.getPriorState(0);
+    }
+   queueBackRefs(loc,st0,vref,t1);
+}
+
+
+
+
+protected void queueBackRefs(FlowLocation here,IfaceState st,IfaceValue nextref,IfaceType settype)
+{ 
+   boolean doprior = false;
+   
+   if (nextref == null) return;
+   if (nextref.getRefField() != null) {
+      IfaceValue base = nextref.getRefBase();
+      if (base != null && base == st.getLocal(0)) {
+         IfaceValue v0 = st.getFieldValue(nextref.getRefField());
+         if (v0 != null) {
+            IfaceValue n0 = v0.restrictByType(settype);
+            if (n0 != null && n0 != v0) {
+               st.setFieldValue(nextref.getRefField(),n0);
+               doprior = true;
+             }
+          }
+       }
+    }
+   else {
+      IfaceValue vref = getActualValue(st,here,nextref,false);
+      if (vref == null) return;
+      IfaceValue nref = vref.restrictByType(settype);
+      if (nref != null && nref != vref) {
+         assignValue(st,here,nextref,nref);
+         doprior = true;
+       }
+    }
+   
+   if (doprior) {
+      for (int i = 0; i < st.getNumPriorStates(); ++i) {
+         IfaceState stp = st.getPriorState(i);
+         if (stp.getProgramPoint() == null) {
+            queueBackRefs(here,stp,nextref,settype);
+          }
+         else {
+            work_queue.queueBackPropagation(stp.getProgramPoint(),nextref,settype);
+          }
+       }
+    }
+}
 
 }	// end of class FlowScanner
 

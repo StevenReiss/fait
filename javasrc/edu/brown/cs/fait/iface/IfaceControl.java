@@ -64,6 +64,7 @@ public interface IfaceControl extends FaitConstants {
  **/
 
 void analyze(int nthread,boolean update);
+void analyze(IfaceMethod im,int nth);
 
 
 
@@ -141,6 +142,9 @@ IfaceEntitySet createSingletonSet(IfaceEntity fe);
 
 IfaceValue findAnyValue(IfaceType typ);
 IfaceValue findRangeValue(IfaceType typ,long v0,long v1);
+IfaceValue findConstantValue(IfaceType typ,long v);
+IfaceValue findConstantValue(boolean v);
+IfaceValue findConstantValue(IfaceType typ,double v);
 IfaceValue findRangeValue(IfaceType typ,double v0,double v1);
 IfaceValue findObjectValue(IfaceType typ,IfaceEntitySet ss,IfaceAnnotation ...  flags);
 IfaceValue findEmptyValue(IfaceType typ,IfaceAnnotation ... flags);
@@ -157,6 +161,7 @@ IfaceValue findAnyObjectValue();
 IfaceValue findAnyNewObjectValue();
 IfaceValue findRefValue(IfaceType dt,IfaceValue base,IfaceField fld);
 IfaceValue findRefValue(IfaceType dt,int slot);
+IfaceValue findRefStackValue(IfaceType dt,int slot);
 IfaceValue findRefValue(IfaceType dt,IfaceValue base,IfaceValue idx);
 
 IfaceValue findInitialFieldValue(IfaceField fld,boolean nat);
@@ -199,6 +204,7 @@ IfaceCall findPrototypeMethod(IfaceProgramPoint pt,IfaceMethod fm);
 /********************************************************************************/
 
 IfaceSpecial getCallSpecial(IfaceProgramPoint pt,IfaceMethod fm);
+void clearCallSpecial(IfaceMethod fm);
 IfaceMethodData createMethodData(IfaceCall fc);
 IfaceCall findCall(IfaceProgramPoint pt,IfaceMethod fm,List<IfaceValue> args,InlineType inline);
 Collection<IfaceCall> getAllCalls(IfaceMethod fm);
@@ -214,6 +220,7 @@ Collection<IfaceCall> getAllCalls();
 
 void queueLocation(IfaceLocation loc);
 void queueLocation(IfaceCall ic,IfaceProgramPoint pt);
+void initialize(IfaceType typ);
 void handleCallback(IfaceLocation frm,IfaceMethod fm,List<IfaceValue> args,String cbid);
 
 boolean isProjectClass(IfaceType t);
@@ -230,6 +237,8 @@ IfaceType createFunctionRefType(String typ);
 void updateAll();
 void doUpdate(IfaceUpdateSet what);
 void removeCalls(Collection<IfaceCall> call);
+
+void clearAll();
 
 /********************************************************************************/
 /*										*/

@@ -80,12 +80,13 @@ IfaceValue forceNonNull();
 IfaceValue forceInitialized(FaitAnnotation what);
 IfaceValue allowNull();
 
-IfaceValue addEntity(IfaceEntitySet e);
+
 IfaceValue toFloating();
 Integer getIndexValue();
 
 
 IfaceValue performOperation(IfaceType dt,IfaceValue rhs,FaitOperator op,IfaceLocation src);
+IfaceType checkOperation(FaitOperator op);
 TestBranch branchTest(IfaceValue rhs,FaitOperator op);
 IfaceImplications getImpliedValues(IfaceValue rhs,FaitOperator op);
  
@@ -100,6 +101,7 @@ boolean isAllNative();
 
 boolean isReference();
 int getRefSlot();
+int getRefStack();
 IfaceValue getRefBase();
 IfaceField getRefField();
 IfaceValue getRefIndex();

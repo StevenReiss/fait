@@ -65,6 +65,10 @@ private int		num_adds;
 private int		num_result;
 private QueueLevel	queue_level;
 
+private int             num_forward;
+private int             num_backward;
+private int             num_scan;
+
 private Map<IfaceProgramPoint,IfaceEntity> array_map;
 private Map<IfaceProgramPoint,IfaceEntity> entity_map;
 private Map<IfaceProgramPoint,IfaceEntity.UserEntity> userentity_map;
@@ -143,6 +147,12 @@ CallBase(IfaceControl fc,IfaceMethod fm,IfaceProgramPoint pt)
 	 result_set = fc.findMutableValue(fm.getReturnType());
       ++num_result;
     }
+   
+   loadClasses();
+   
+   num_scan = 0;
+   num_forward = 0;
+   num_backward = 0;
 }
 
 
@@ -213,6 +223,17 @@ private CallBase(IfaceControl fc)
 {
    if (special_data != null) return special_data.getIsAsync();
    return false;
+}
+
+
+@Override public void loadClasses()  
+{
+   if (special_data != null && special_data.getClassesToLoad() != null) {
+      for (String s : special_data.getClassesToLoad()) {
+         IfaceType typ = fait_control.findDataType(s);
+         if (typ != null) fait_control.initialize(typ);
+       }
+    }
 }
 
 
@@ -359,7 +380,7 @@ private CallBase(IfaceControl fc)
 /*										*/
 /********************************************************************************/
 
-@Override public boolean addCall(IfaceProgramPoint pt,List<IfaceValue> args)
+@Override public boolean addCall(List<IfaceValue> args)
 {
    boolean chng = false;
 
@@ -555,7 +576,7 @@ private void fixArgs(IfaceMethod fm,List<IfaceValue> args)
    Iterable<String> it = special_data.getCallbacks();
    if (it == null) return;
 
-   if (FaitLog.isTracing()) FaitLog.logD("Check callbacks " + args);
+   if (FaitLog.isTracing()) FaitLog.logD1("Check callbacks " + args);
 
    List<IfaceValue> nargs = special_data.getCallbackArgs(args,null);
    IfaceValue cv0 = nargs.get(0);
@@ -791,6 +812,79 @@ private boolean removeCaller(IfaceCall src)
 {
    if (lvl.ordinal() < queue_level.ordinal()) queue_level = lvl;
 }
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Handle backwards flow data                                              */
+/*                                                                              */
+/********************************************************************************/
+
+@Override public void backFlowParameter(IfaceValue ref,IfaceType settype)
+{
+   if (ref == null || ref.getRefSlot() < 0) return;
+   int argno = -1;
+   int slot = ref.getRefSlot();
+   
+   if (!for_method.isStatic() && slot == 0) {
+      argno = 0;
+    }
+   else {
+      int idx = 0;
+      if (!for_method.isStatic()) idx = 1;
+      for (int i = 0; i < for_method.getNumArgs(); ++i) {
+         if (slot == idx) {
+            argno = i;
+            break;
+          }
+         IfaceType atyp = for_method.getArgType(i);
+         if (atyp == null) return;
+         if (atyp.isCategory2()) ++idx;
+         ++idx;
+       }
+    }
+   if (argno < 0) return;
+   
+   FaitLog.logD("Call Backwards " + argno + " " + settype);
+}
+
+
+
+@Override public void backFlowReturn(IfaceLocation loc,IfaceType settype)
+{
+   for (IfaceCall ic : getAllMethodsCalled(loc.getProgramPoint())) {
+      FaitLog.logD("Return Backwards " + ic + " " + settype);
+    }
+}
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Statistics methods                                                      */
+/*                                                                              */
+/********************************************************************************/
+
+@Override public void noteScan(int fwd,int bwd)
+{
+   ++num_scan;
+   num_forward += fwd;
+   num_backward += bwd;
+}
+
+
+@Override public void outputStatistics()
+{
+   FaitLog.logS(getLogName() + ", " + num_scan + ", " + num_forward + ", " +
+         num_backward + ", " + num_adds + ", " + num_result);
+   
+   num_scan = 0;
+   num_forward = 0;
+   num_backward = 0;
+}
+
+
 
 }	// end of class CallBase
 

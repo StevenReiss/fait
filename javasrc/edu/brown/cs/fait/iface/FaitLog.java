@@ -39,6 +39,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.StringWriter;
 
 public class FaitLog implements FaitConstants
 {
@@ -52,7 +53,7 @@ public class FaitLog implements FaitConstants
 /********************************************************************************/
 
 public enum LogLevel {
-   ERROR, WARNING, INFO, DEBUG
+   ERROR, STATISTICS, WARNING, INFO, DEBUG
 }
 
 
@@ -141,6 +142,10 @@ public static void logD1(String msg)
 }
 
 
+public static void logS(String msg)
+{
+   log(LogLevel.STATISTICS,0,msg,null);
+}
 
 /********************************************************************************/
 /*										*/
@@ -218,15 +223,21 @@ private static void log(LogLevel lvl,int indent,String msg,Throwable t)
    String pfx = "FAIT:" + sth + ":" + s + ": ";
    
    for (int i = 0; i < indent; ++i) pfx += "   ";
+   String tail = "";
+   if (t != null) {
+      StringWriter sw = new StringWriter();
+      PrintWriter pw = new PrintWriter(sw);
+      pw.println();
+      t.printStackTrace(pw);
+      tail = sw.toString();
+    }
    
    if (log_writer != null) {
-      log_writer.println(pfx + msg);
-      if (t != null) t.printStackTrace(log_writer);
+      log_writer.println(pfx + msg + tail);
       log_writer.flush();
     }
    if (use_stderr || log_writer == null) {
-      System.err.println(pfx + msg);
-      if (t != null) t.printStackTrace();
+      System.err.println(pfx + msg + tail);
       System.err.flush();
     }
 }

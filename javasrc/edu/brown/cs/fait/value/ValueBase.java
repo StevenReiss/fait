@@ -182,15 +182,9 @@ IfaceControl getFaitControl()
 
 
 
-@Override public IfaceValue addEntity(IfaceEntitySet es)
-{
-   if (entity_set != null && entity_set.contains(es)) return this;
-   if (es == null || es.isEmpty()) return this;
 
-   return newEntityValue(es);
-}
 
-abstract protected IfaceValue newEntityValue(IfaceEntitySet es);
+
 
 
 
@@ -204,6 +198,16 @@ abstract protected IfaceValue newEntityValue(IfaceEntitySet es);
 {
    IfaceValue iv = localPerformOperation(dt,rhs,op,loc);
    return iv;
+}
+
+
+@Override public IfaceType checkOperation(FaitOperator op)
+{
+   IfaceType dt = getDataType();
+   IfaceType nt = dt.getComputedType(op);
+   if (nt == null || nt == dt) return null;
+   
+   return nt;
 }
 
 
@@ -254,7 +258,8 @@ boolean markArrayCanBeNull()				{ return false; }
 /********************************************************************************/
 
 @Override public boolean isReference()                  { return false; }
-@Override public int getRefSlot()                       { return -1; }
+@Override public int getRefSlot()                       { return NO_REF; }
+@Override public int getRefStack()                      { return NO_REF; }
 @Override public IfaceValue getRefBase()                { return null; }
 @Override public IfaceField getRefField()               { return null; }
 @Override public IfaceValue getRefIndex()               { return null; }

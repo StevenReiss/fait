@@ -95,6 +95,12 @@ ValueObject(ValueFactory vf,IfaceType typ,IfaceEntitySet es,IfaceAnnotation ... 
 	    if (ns.isEmpty() && mustBeNull() && !getDataType().isCompatibleWith(dt)) {
 	       nv = value_factory.nullValue(dt);
 	     }
+            else if (dt != getDataType()) {
+               IfaceType ndt = getDataType().restrictBy(dt);
+               if (ndt != getDataType()) {
+                  nv = value_factory.objectValue(ndt,ns);
+                }
+             }
 	  }
 	 else if (ns.isEmpty()) {
 	    if (canBeNull()) nv = value_factory.nullValue(dt);
@@ -199,12 +205,7 @@ ValueObject(ValueFactory vf,IfaceType typ,IfaceEntitySet es,IfaceAnnotation ... 
 
 
 
-@Override public ValueBase newEntityValue(IfaceEntitySet es)
-{
-   IfaceEntitySet nes = getEntitySet().addToSet(es);
 
-   return new ValueObject(value_factory,getDataType(),nes);
-}
 
 
 
@@ -222,25 +223,25 @@ ValueObject(ValueFactory vf,IfaceType typ,IfaceEntitySet es,IfaceAnnotation ... 
 	 if (canBeNull()) break;
 	 ValueBase ncv = restrictByType(rhs.getDataType());
 	 if (ncv.isEmptyEntitySet())
-	    return value_factory.rangeValue(typ,0,0);
+	    return value_factory.rangeValue(typ,0l,0l);
 	 if (ncv == this)
-	    return value_factory.rangeValue(typ,1,1);
+	    return value_factory.rangeValue(typ,1l,1l);
 	 break;
       case EQL :
-         if (rhs == this) return value_factory.rangeValue(typ,1,1);
-         if (rhs.mustBeNull() && mustBeNull()) return value_factory.rangeValue(typ,1,1);
-         if (rhs.mustBeNull() && !canBeNull()) return value_factory.rangeValue(typ,0,0);
-         if (!rhs.canBeNull() && mustBeNull()) return value_factory.rangeValue(typ,0,0);
+         if (rhs == this) return value_factory.rangeValue(typ,1l,1l);
+         if (rhs.mustBeNull() && mustBeNull()) return value_factory.rangeValue(typ,1l,1l);
+         if (rhs.mustBeNull() && !canBeNull()) return value_factory.rangeValue(typ,0l,0l);
+         if (!rhs.canBeNull() && mustBeNull()) return value_factory.rangeValue(typ,0l,0l);
          break;
       case NEQ :
-         if (rhs == this) return value_factory.rangeValue(typ,0,0);
-         if (rhs.mustBeNull() && mustBeNull()) return value_factory.rangeValue(typ,0,0);
-         if (rhs.mustBeNull() && !canBeNull()) return value_factory.rangeValue(typ,1,1);
-         if (!rhs.canBeNull() && mustBeNull()) return value_factory.rangeValue(typ,1,1);
+         if (rhs == this) return value_factory.rangeValue(typ,0l,0l);
+         if (rhs.mustBeNull() && mustBeNull()) return value_factory.rangeValue(typ,0l,0l);
+         if (rhs.mustBeNull() && !canBeNull()) return value_factory.rangeValue(typ,1l,1l);
+         if (!rhs.canBeNull() && mustBeNull()) return value_factory.rangeValue(typ,1l,1l);
          break;
     }
 
-   return super.performOperation(typ,rhs,op,src);
+   return super.localPerformOperation(typ,rhs,op,src);
 }
 
 
@@ -268,11 +269,11 @@ ValueObject(ValueFactory vf,IfaceType typ,IfaceEntitySet es,IfaceAnnotation ... 
       case EQL :
          if (rhs.mustBeNull()) {
             lt = value_factory.nullValue(timp.getLhsTrueType());
-            lf = forceNonNull();
+            if (!mustBeNull()) lf = forceNonNull();
           }
          else if (mustBeNull()) {
             rt = value_factory.nullValue(timp.getRhsTrueType());
-            rf = forceNonNull();
+            if (!rhs.mustBeNull()) rf = forceNonNull();
           }
          else {
             // IfaceEntitySet ls = getEntitySet();
@@ -418,7 +419,7 @@ private IfaceType getSetType(IfaceEntitySet es)
 
    for (IfaceEntity ent : getEntities()) {
       IfaceValue cv = ent.getArrayValue(null,getFaitControl());
-      if (cv != null) {
+      if (cv != null && !cv.isEmptyEntitySet()) {
 	 if (cnts == null) cnts = cv;
 	 else cnts = cnts.mergeValue(cv);
        }

@@ -1,13 +1,13 @@
 /********************************************************************************/
 /*                                                                              */
-/*              IfaceProgramPoint.java                                          */
+/*              IfaceBackElement.java                                           */
 /*                                                                              */
-/*      Represent a point in the program                                        */
+/*      Information for back propagation of type information                    */
 /*                                                                              */
 /********************************************************************************/
-/*      Copyright 2011 Brown University -- Steven P. Reiss                    */
+/*      Copyright 2013 Brown University -- Steven P. Reiss                    */
 /*********************************************************************************
- *  Copyright 2011, Brown University, Providence, RI.                            *
+ *  Copyright 2013, Brown University, Providence, RI.                            *
  *                                                                               *
  *                        All Rights Reserved                                    *
  *                                                                               *
@@ -35,44 +35,20 @@
 
 package edu.brown.cs.fait.iface;
 
-import java.util.List;
 
-import edu.brown.cs.ivy.jcode.JcodeInstruction;
-import edu.brown.cs.ivy.xml.IvyXmlWriter;
 
-public interface IfaceProgramPoint extends FaitConstants
+public interface IfaceBackElement
 {
 
-JcodeInstruction getInstruction();
-IfaceAstReference getAstReference();
-boolean isByteCode();
+IfaceProgramPoint getProgramPoint();
+IfaceValue getReference();
+IfaceType getSetType();
 
-IfaceMethod getReferencedMethod();
-IfaceField getReferencedField();
-IfaceType getReferencedType();
-IfaceProgramPoint getReferencedTarget();
-List<IfaceProgramPoint> getReferencedTargets();
 
-boolean isInterfaceCall();
-boolean isVirtualCall();
-boolean isMethodStart();
-
-IfaceProgramPoint getNext();
-IfaceProgramPoint getPrevious();
-
-IfaceMethod getMethod();
-
-void outputXml(IvyXmlWriter xw);
+}       // end of interface IfaceBackElement
 
 
 
 
-
-
-}       // end of interface IfaceProgramPoint
-
-
-
-
-/* end of IfaceProgramPoint.java */
+/* end of IfaceBackElement.java */
 

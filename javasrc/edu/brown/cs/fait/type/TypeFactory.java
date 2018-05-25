@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import edu.brown.cs.fait.iface.FaitConstants;
 import edu.brown.cs.fait.iface.IfaceAnnotation;
@@ -258,11 +259,11 @@ private class TypeMap {
    private Map<IfaceBaseType,Object> base_map;
    
    TypeMap() {
-      base_map = new HashMap<>();
+      base_map = new ConcurrentHashMap<>();
     }
    
    @SuppressWarnings("unchecked") 
-   synchronized IfaceType defineType(IfaceType t) {
+   IfaceType defineType(IfaceType t) {
       int ct = all_subtypes.size();
       if (ct == 0) {
          IfaceType t0 = (IfaceType) base_map.putIfAbsent(t.getJavaType(),t);
@@ -273,24 +274,29 @@ private class TypeMap {
       Map<Object,Object> map = (Map<Object,Object>) base_map.get(t.getJavaType());
       if (map == null) {
          map = new HashMap<>();
-         base_map.put(t.getJavaType(),map);
+         Map<Object,Object> m1 = (Map<Object,Object>) base_map.putIfAbsent(t.getJavaType(),map);
+         if (m1 != null) map = m1;
        }
-      for (int i = 0; i < ct-1; ++i) {
-         IfaceSubtype.Value val = t.getValue(all_subtypes.get(i));
-         Map<Object,Object> nmap = (Map<Object,Object>) map.get(val);
-         if (nmap == null) {
-            nmap = new HashMap<>();
-            map.put(val,nmap);
+      
+      synchronized (map) {
+         for (int i = 0; i < ct-1; ++i) {
+            IfaceSubtype.Value val = t.getValue(all_subtypes.get(i));
+            Map<Object,Object> nmap = (Map<Object,Object>) map.get(val);
+            if (nmap == null) {
+               nmap = new HashMap<>();
+               map.put(val,nmap);
+             }
+            map = nmap;
           }
-         map = nmap;
+         IfaceSubtype.Value val = t.getValue(all_subtypes.get(ct-1));
+         IfaceType t0 = (IfaceType) map.putIfAbsent(val,t);
+         if (t0 != null) return t0;
        }
-      IfaceSubtype.Value val = t.getValue(all_subtypes.get(ct-1));
-      IfaceType t0 = (IfaceType) map.putIfAbsent(val,t);
-      if (t0 != null) return t0;
+      
       return t;
     }
    
-   synchronized IfaceType findType(IfaceBaseType bt,IfaceSubtype.Value [] vals) {
+   IfaceType findType(IfaceBaseType bt,IfaceSubtype.Value [] vals) {
       int ct = all_subtypes.size(); 
       if (ct == 0) {
          return (IfaceType) base_map.get(bt);
@@ -305,7 +311,7 @@ private class TypeMap {
       return (IfaceType) map.get(vals[ct-1]);
     }
    
-   synchronized IfaceType findType(IfaceBaseType bt,Map<IfaceSubtype,IfaceSubtype.Value> valmap) {
+   IfaceType findType(IfaceBaseType bt,Map<IfaceSubtype,IfaceSubtype.Value> valmap) {
       int ct = all_subtypes.size(); 
       if (ct == 0) {
          return (IfaceType) base_map.get(bt);

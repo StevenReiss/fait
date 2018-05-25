@@ -75,7 +75,10 @@ FlowQueueInstanceAst(FlowQueue fq,IfaceCall fc,QueueLevel lvl)
 @Override void scanCode(IfaceControl ctrl,FlowQueue fq)
 {
    FlowScannerAst scan = new FlowScannerAst(ctrl,fq,this);
-   scan.scanCode();
+   int ct0 = scan.scanCode();
+   int ct1 = scan.scanBack();
+   
+   getCall().noteScan(ct0,ct1);
 }
 
 

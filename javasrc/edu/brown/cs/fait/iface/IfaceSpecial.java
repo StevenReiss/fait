@@ -53,6 +53,7 @@ List<IfaceValue> getCallbackArgs(List<IfaceValue> args,IfaceValue newval);
 boolean getIsAsync();
 boolean getExits();
 boolean getDontScan();
+List<String> getClassesToLoad();
 
 
 }	// end of interface IfaceSpecial

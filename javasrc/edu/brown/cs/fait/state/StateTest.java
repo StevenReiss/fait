@@ -81,8 +81,8 @@ public StateTest()
    IfaceState s1 = fait_control.createState(4);
    IfaceType t1 = fait_control.findDataType("int");
    
-   IfaceValue v1 = fait_control.findRangeValue(t1,1,1);
-   IfaceValue v2 = fait_control.findRangeValue(t1,2,2);
+   IfaceValue v1 = fait_control.findConstantValue(t1,1);
+   IfaceValue v2 = fait_control.findConstantValue(t1,2);
    s1.pushStack(v1);
    s1.pushStack(v2);
    s1.pushStack(v1);

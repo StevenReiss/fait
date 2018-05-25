@@ -387,6 +387,9 @@ private class EclipseHandler implements MintHandler {
 
    switch (cmd) {
       case "PING" :
+      case "PING1" :
+      case "PING2" :
+      case "PING3" :
 	 msg.replyTo("<PONG/>");
 	 break;
       case "EDITERROR" :
@@ -517,39 +520,39 @@ private class CommandHandler implements MintHandler {
       Element e = msg.getXml();
       String rslt = null;
       try {
-	 rslt = processCommand(cmd,sid,e);
-	 FaitLog.logD("COMMAND RESULT: " + rslt);
+         rslt = processCommand(cmd,sid,e);
+         FaitLog.logD("COMMAND RESULT: " + rslt);
        }
       catch (ServerException t) {
-	 String xmsg = "BEDROCK: error in command " + cmd + ": " + t;
-	 FaitLog.logE(xmsg,t);
-	 IvyXmlWriter xw = new IvyXmlWriter();
-	 xw.cdataElement("ERROR",xmsg);
-	 rslt = xw.toString();
-	 xw.close();
+         String xmsg = "BEDROCK: error in command " + cmd + ": " + t;
+         FaitLog.logE(xmsg,t);
+         IvyXmlWriter xw = new IvyXmlWriter();
+         xw.cdataElement("ERROR",xmsg);
+         rslt = xw.toString();
+         xw.close();
        }
       catch (Throwable t) {
-	 String xmsg = "Problem processing command " + cmd + ": " + t;
-	 FaitLog.logE(xmsg,t);
-	 StringWriter sw = new StringWriter();
-	 PrintWriter pw = new PrintWriter(sw);
-	 t.printStackTrace(pw);
-	 Throwable xt = t;
-	 for ( ; xt.getCause() != null; xt = xt.getCause());
-	 if (xt != null && xt != t) {
-	    pw.println();
-	    xt.printStackTrace(pw);
-	  }
-	 FaitLog.logE("TRACE: " + sw.toString());
-	 IvyXmlWriter xw = new IvyXmlWriter();
-	 xw.begin("ERROR");
-	 xw.textElement("MESSAGE",xmsg);
-	 xw.cdataElement("EXCEPTION",t.toString());
-	 xw.cdataElement("STACK",sw.toString());
-	 xw.end("ERROR");
-	 rslt = xw.toString();
-	 xw.close();
-	 pw.close();
+         String xmsg = "Problem processing command " + cmd + ": " + t;
+         FaitLog.logE(xmsg,t);
+         StringWriter sw = new StringWriter();
+         PrintWriter pw = new PrintWriter(sw);
+         t.printStackTrace(pw);
+         Throwable xt = t;
+         for ( ; xt.getCause() != null; xt = xt.getCause());
+         if (xt != null && xt != t) {
+            pw.println();
+            xt.printStackTrace(pw);
+          }
+         FaitLog.logE("TRACE: " + sw.toString());
+         IvyXmlWriter xw = new IvyXmlWriter();
+         xw.begin("ERROR");
+         xw.textElement("MESSAGE",xmsg);
+         xw.cdataElement("EXCEPTION",t.toString());
+         xw.cdataElement("STACK",sw.toString());
+         xw.end("ERROR");
+         rslt = xw.toString();
+         xw.close();
+         pw.close();
        }
       msg.replyTo(rslt);
     }

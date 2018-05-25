@@ -80,7 +80,7 @@ EntityArray(IfaceControl ctrl,IfaceType cls,IfaceValue size)
    size_value = size;
 
    if (base_class.isPrimitiveType()) {
-      array_values = ctrl.findRangeValue(base_class,0,0);
+      array_values = ctrl.findConstantValue(base_class,0);
     }
    else {
       array_values = ctrl.findNullValue(base_class);

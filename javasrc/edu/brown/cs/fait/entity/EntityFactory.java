@@ -431,6 +431,16 @@ boolean compatibleTypes(IfaceType t1,IfaceType t2)
 // }
 
 
+/********************************************************************************/
+/*                                                                              */
+/*      Clean up methods                                                        */
+/*                                                                              */
+/********************************************************************************/
+
+public void clearAll()
+{
+   EntityBase.clearAll();
+}
 
 
 }	// end of class EntityFactory

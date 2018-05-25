@@ -183,6 +183,12 @@ Collection<ServerFile> getActiveFiles()
 }
 
 
+boolean isErrorFree()
+{
+   return server_main.isErrorFree();
+}
+
+
 
 /********************************************************************************/
 /*										*/

@@ -35,7 +35,6 @@
 
 package edu.brown.cs.fait.value;
 
-import edu.brown.cs.fait.iface.IfaceEntitySet;
 import edu.brown.cs.fait.iface.IfaceMarker;
 import edu.brown.cs.fait.iface.IfaceProgramPoint;
 import edu.brown.cs.fait.iface.IfaceType;
@@ -88,10 +87,7 @@ ValueMarker(ValueFactory vf,IfaceType voidtype,IfaceProgramPoint pt,Object v)
 
 
 
-@Override protected IfaceValue newEntityValue(IfaceEntitySet es)
-{
-   return this;
-}
+
 
 
 /********************************************************************************/

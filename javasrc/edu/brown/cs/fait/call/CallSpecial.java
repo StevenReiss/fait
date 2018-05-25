@@ -66,6 +66,7 @@ private List<String>	callback_names;
 private String		callback_id;
 private List<ArgValue>	callback_args;
 private boolean 	does_exit;
+private List<String>    load_types;
 private List<When>      when_conditions;
 
 
@@ -130,6 +131,14 @@ CallSpecial(IfaceControl fc,Element xml,boolean formthd)
       if (when_conditions == null) when_conditions = new ArrayList<>();
       When wh = new When(welt);
       when_conditions.add(wh);
+    }
+   
+   load_types = null;
+   for (Element lelt : IvyXml.children(xml,"LOAD")) {
+      if (load_types == null) load_types = new ArrayList<>();
+      String nm = IvyXml.getAttrString(lelt,"NAME");
+      if (nm == null) nm = IvyXml.getText(lelt);
+      if (nm != null) load_types.add(nm);
     }
 }
 
@@ -199,16 +208,13 @@ CallSpecial(IfaceControl fc,Element xml,boolean formthd)
 }
 
 
-@Override public boolean getIsAsync()		
-{ return async_call; }
+@Override public boolean getIsAsync()		        { return async_call; }
 
-@Override public boolean getExits()	
-{ return does_exit; }
+@Override public boolean getExits()	                { return does_exit; }
 
-@Override public boolean getDontScan()	
-{ return dont_scan; }
+@Override public boolean getDontScan()	                { return dont_scan; }
 
-
+@Override public List<String> getClassesToLoad()        { return load_types; }
 
 
 /********************************************************************************/
@@ -301,12 +307,10 @@ private List<ArgValue> scanArgs(String coding)
          av = new ConstArgValue(fait_control.findNullValue());
        }
       else if (nvl.equalsIgnoreCase("FALSE")) {
-         IfaceType bt = fait_control.findDataType("boolean");
-         av = new ConstArgValue(fait_control.findRangeValue(bt,0,0));
+         av = new ConstArgValue(fait_control.findConstantValue(false));
        }
       else if (nvl.equalsIgnoreCase("TRUE")) {
-         IfaceType bt = fait_control.findDataType("boolean");
-         av = new ConstArgValue(fait_control.findRangeValue(bt,1,1));
+         av = new ConstArgValue(fait_control.findConstantValue(true));
        }
       else if (nvl.equalsIgnoreCase("THIS") || nvl.equalsIgnoreCase("*")) {
          av = new NewArgValue();
@@ -396,7 +400,7 @@ private class VarArgsValue extends ArgValue {
       if (narg == null) return;
       for (int i = 0; i < narg; ++i) {
          IfaceType ityp = fait_control.findDataType("int");
-         IfaceValue idx = fait_control.findRangeValue(ityp,i,i);
+         IfaceValue idx = fait_control.findConstantValue(ityp,i);
          IfaceValue av = v0.getArrayContents(idx);
          rslt.add(av);
        }

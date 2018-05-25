@@ -44,6 +44,8 @@ public interface ValueConstants extends FaitConstants
 
 int VALUE_MAX_RANGE = 3;
 
+int NO_REF = -1;
+
 
 }       // end of interface ValueConstants
 

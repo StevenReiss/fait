@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.Map;
 
 import edu.brown.cs.fait.iface.FaitAnnotation;
+import edu.brown.cs.fait.iface.FaitLog;
 import edu.brown.cs.fait.iface.IfaceAnnotation;
 import edu.brown.cs.fait.iface.IfaceAstReference;
 import edu.brown.cs.fait.iface.IfaceBaseType;
@@ -275,8 +276,8 @@ private class InsField implements IfaceField {
        }
       else if (typ.isBooleanType() && o instanceof Boolean) {
          typ = typ.getAnnotatedType(FaitAnnotation.INITIALIZED);
-         long v = ((Boolean) o).booleanValue() ? 1 : 0;
-         return fait_control.findRangeValue(typ,v,v);
+         boolean b = (Boolean) o;
+         return fait_control.findConstantValue(b);
        }
       return null;
     }
@@ -617,13 +618,20 @@ private class InsPoint implements IfaceProgramPoint {
    @Override public IfaceMethod getReferencedMethod() {
       JcodeMethod m = for_instruction.getMethodReference();
       if (m == null) return null;
+      IfaceMethod fm = fait_control.findMethod(m.getDeclaringClass().getName(),
+            m.getName(),m.getDescription());
+      if (fm != null) return fm;
       return ControlByteCodeFactory.this.getMethod(m);
     }
 
    @Override public IfaceField getReferencedField() {
       JcodeField f = for_instruction.getFieldReference();
       if (f == null) return null;
-      return getField(f);
+      IfaceField fld = getField(f);
+      if (fld == null) {
+         FaitLog.logE("Unknown field " + f);
+       }
+      return fld;
     }
 
    @Override public IfaceType getReferencedType() {

@@ -66,6 +66,7 @@
    <CLASS NAME="javax.swing.ArrayTable" />
    <CLASS NAME="java.lang.UNIXProcess" />
    <CLASS NAME='java.util.concurrent.ThreadPoolExecutor' />
+<!--  <CLASS NAME='sun.security.util.DerIndefLenConverter' />    -->
 
    <CLASS NAME="com.sun.org.apache.internal.impl.XMLErrorReporter" />
    <CLASS NAME="com.sun.org.apache.internal.impl.msg.XMLMessageFormatter" />
@@ -99,6 +100,8 @@
    <METHOD NAME="java.lang.Enum.valueOf" />
    <METHOD NAME="java.lang.Exception.getMessage" />
    <METHOD NAME="java.lang.Runtime.execInternal" RETURN="java.lang.UNIXProcess" />
+   <METHOD NAME="java.lang.Throwable.printEnclosedStackTrace" />
+   <METHOD NAME="java.lang.Throwable.printStackTrace" />
 
    <METHOD NAME="java.lang.reflect.Array.newInstance" RETURN="java.lang.Object[]" MUTABLE="true" />
    <METHOD NAME="java.lang.reflect.Constructor.newInstance" RETURN="java.lang.Object" MUTABLE="true" />
@@ -188,10 +191,14 @@
 	RETURN="com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl"
 	ARETURN="org.apache.crimson.jaxp.SAXParserFactoryImpl" />
    <METHOD NAME="javax.xml.parsers.DocumentBuilderFactory.newInstance"
-	RETURN="com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl"
-	ARETURN="org.apache.crimson.jaxp.DocumentBuilderFactoryImpl" />
+	   RETURN="com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl"
+	   ARETURN="org.apache.crimson.jaxp.DocumentBuilderFactoryImpl">
+	<LOAD>com.sun.org.apache.xerces.internal.dom.DeferredElementImpl</LOAD>
+     </METHOD>
    <METHOD NAME="javax.xml.parsers.DocumentBuilderFactory.newDocumentBuilder"
-	RETURN="com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderImpl" />
+	   RETURN="com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderImpl">
+	<LOAD>com.sun.org.apache.xerces.internal.dom.DeferredElementImpl</LOAD>
+     </METHOD>
 
    <METHOD NAME="javax.crypto.Cipher.getInstance" RETURN="javax.crypto.NullCipher" />
    <METHOD NAME="javax.crypto.KeyGenerator.getInstance" RETURN="javax.crypto.KeyGenerator" />
@@ -261,7 +268,7 @@
    <METHOD NAME="javax.swing.JTree$AccessibleJTree$AccessibleJTreeNode.addPropertyChangeListener" NARG="1" CBID="awt" CALLBACK="propertyChange" CBARGS="1" />
    <METHOD NAME="javax.swing.JTable$AccessibleJTable$AccessibleJTableCell.addPropertyChangeListener" NARG="1" CBID="awt" CALLBACK="propertyChange" CBARGS="1" />
    <METHOD NAME="javax.swing.UIDefaults.addPropertyChangeListener" NARG="1" CBID="awt" CALLBACK="propertyChange" CBARGS="1" />
-   <METHOD NAME="javax.swing.UIManager.addPropertyChangeListener" NARG="1" CBID="awt" CALLBACK="propertyChange" CBARGS="1" />
+   <METHOD NAME="javax.swing.UIManager.addPropertyChangeListener" NARG="1" CBID="awt" CALLBACK="propertyChange" CBARGS="0" />
    <METHOD NAME="javax.swing.AbstractAction.addPropertyChangeListener" NARG="1" CBID="awt" CALLBACK="propertyChange" CBARGS="1" />
    <METHOD NAME="javax.swing.JComponent.addPropertyChangeListener" NARG="1" CBID="awt" CALLBACK="propertyChange" CBARGS="1" />
    <METHOD NAME="javax.swing.JComponent$AccessibleJComponent.addPropertyChangeListener" NARG="1" CBID="awt" CALLBACK="propertyChange" CBARGS="1" />
@@ -280,6 +287,7 @@
    <METHOD NAME="javax.swing.undo.UndoableEditSupport.addUndoableEditListener" CBID="awt" CALLBACK="undoableEditHappened" CBARGS="1" />
    <METHOD NAME="javax.swing.JComponent.addVetoableChangeListener" CBID="awt" CALLBACK="vetoableChange" CBARGS="1" NARG="1" />
    <METHOD NAME='javax.swing.JEditorPane.getEditorKit' SCAN='true' />
+   <METHOD NAME='javax.swing.text.StyleContext$NamedStyle.getName' />
    <CLASS NAME='javax.swing.UIManager' />
    <CLASS NAME='javax.swing.UIDefaults' />
 
@@ -310,6 +318,6 @@
 
    <PACKAGE NAME="org.eclipse.jdt.core.compiler." />
 
-
+   <PACKAGE NAME='org.jsoup.parser.' />
 
 </FAIT>
