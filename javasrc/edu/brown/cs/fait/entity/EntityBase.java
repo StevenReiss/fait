@@ -92,6 +92,7 @@ protected EntityBase()
 
 @Override public boolean isNative()		{ return false; }
 @Override public boolean isUserEntity()         { return false; }
+@Override public boolean isMutable()            { return false; }
 
 
 
@@ -166,6 +167,18 @@ public Collection<IfaceEntity> mutateTo(IfaceType dt,EntityFactory factory)
 }
 
 
+@Override public boolean setArraySize(IfaceValue sz)               { return false; }
+
+
+
+
+
+@Override public boolean replaceArrayContents(IfaceValue fv,IfaceLocation loc)
+{
+   return false;
+}
+
+
 
 
 
@@ -201,6 +214,11 @@ static void clearAll()
    entity_counter = 0;
    all_entities = new Vector<EntityBase>();
 }
+
+
+
+
+
 
 
 }	// end of class EntityBase

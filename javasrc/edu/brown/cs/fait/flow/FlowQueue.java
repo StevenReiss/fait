@@ -66,6 +66,7 @@ private Set<IfaceBaseType>	                staticinit_set;
 private Set<IfaceBaseType>			staticinit_ran;
 private Set<IfaceBaseType>			staticinit_started;
 private Map<IfaceBaseType,Set<IfaceCall>>	staticinit_queue;
+private Map<IfaceBaseType,Set<FlowLocation>>    staticinit_redos;
 private List<IfaceCall> 			static_inits;
 
 
@@ -133,6 +134,7 @@ FlowQueue(IfaceControl fc)
    staticinit_started = new ConcurrentHashSet<>(staticinit_set);
    static_inits = new ArrayList<>();
    staticinit_queue = new ConcurrentHashMap<>();
+   staticinit_redos = new ConcurrentHashMap<>();
 
    field_control = new FlowField(fait_control,this);
    array_control = new FlowArray(fait_control,this);
@@ -240,6 +242,9 @@ void queueBackPropagation(IfaceCall c,IfaceProgramPoint ins,IfaceValue ref,Iface
 {
    
 }
+
+
+
 
 /********************************************************************************/
 /*										*/
@@ -407,6 +412,19 @@ boolean checkInitialized(IfaceCall cm,IfaceProgramPoint ins)
 }
 
 
+void requeueIfInitialized(FlowLocation loc,IfaceType dt)
+{
+   IfaceBaseType bt = dt.getJavaType();
+   Set<FlowLocation> s0 = new HashSet<>();
+   synchronized (staticinit_set) {
+      Set<FlowLocation> s = staticinit_redos.putIfAbsent(bt,s0);
+      if (s == null) s = s0;
+      s.add(loc);
+    }
+}
+
+
+
 void handleReturnSetup(IfaceMethod fm)
 {
    if (fm.isStaticInitializer()) {
@@ -430,7 +448,16 @@ private void finishedInitialization(IfaceBaseType bt)
          queueMethodStart(nc,null);
        }
     }
+   Set<FlowLocation> fs = staticinit_redos.remove(bt);
+   if (fs != null) {
+      for (FlowLocation loc : fs) {
+         if (FaitLog.isTracing()) 
+            FaitLog.logD("Requeue for virtual initialization: " + loc);
+         queueMethodChange(loc);
+       } 
+    }
 }
+
 
 
 private void requeueForInit(Collection<IfaceCall> s)
@@ -488,6 +515,12 @@ IfaceValue handleArrayAccess(FlowLocation loc,IfaceValue arr,IfaceValue idx)
 }
 
 
+IfaceValue handleArrayLength(FlowLocation loc,IfaceValue arr)
+{
+   return array_control.handleArrayLength(loc,arr);
+}
+
+
 
 void handleArraySet(FlowLocation loc,IfaceValue arr,IfaceValue val,IfaceValue idx)
 {
@@ -499,6 +532,17 @@ void handleArraySet(FlowLocation loc,IfaceValue arr,IfaceValue val,IfaceValue id
 void handleArrayCopy(List<IfaceValue> args,FlowLocation loc)
 {
    array_control.handleArrayCopy(args,loc);
+}
+
+void handleArrayChange(IfaceValue arr)
+{
+   for (IfaceEntity ce : arr.getEntities()) {
+      if (FaitLog.isTracing()) {
+         FaitLog.logD1("Handle array change for " + ce + " (" + ce.hashCode() + ")" + " " +
+           ce.getFieldValue("length"));
+       }
+      array_control.noteArrayChange(ce);
+    }
 }
 
 
@@ -556,7 +600,7 @@ IfaceValue handleFieldGet(IfaceField jf,FlowLocation loc,IfaceState st,
 /*										*/
 /********************************************************************************/
 
-boolean handleCall(FlowLocation loc,IfaceState st0,FlowQueueInstance wq)
+CallReturn handleCall(FlowLocation loc,IfaceState st0,FlowQueueInstance wq)
 {
    return call_control.handleCall(loc,st0,wq);
 }
@@ -570,9 +614,17 @@ void handleCallback(IfaceMethod fm,List<IfaceValue> args,String cbid)
 
 
 
-void handleReturn(IfaceCall c0,IfaceValue v0)
+void handleReturn(IfaceCall c0,IfaceValue v0,IfaceState st,IfaceLocation loc)
 {
-   call_control.handleReturn(c0,v0);
+   IfaceMethod bm = c0.getMethod();
+   if (bm.isConstructor()) {
+      IfaceType cnsttyp = bm.getDeclaringClass();
+      for (Map.Entry<String,IfaceType> ent : cnsttyp.getJavaType().getFieldData().entrySet()) {
+         field_control.initializeField(ent.getKey(),ent.getValue());
+       }
+    }
+   
+   call_control.handleReturn(c0,v0,loc);
 }
 
 
@@ -623,10 +675,12 @@ IfaceValue castValue(IfaceType rtyp,IfaceValue v0,IfaceLocation loc)
 	  }
        }
       else {
-	 if (t0.getAssociatedType() != null || v0.mustBeNull()) {
+	 if (t0.getAssociatedType() != null || v0.mustBeNull() || t0.isJavaLangObject()) {
 	    // unbox v0 to get rtyp
 	    v1 = fait_control.findAnyValue(rtyp);
 	  }
+         else {
+          }
        }
       return v1;
     }
@@ -641,7 +695,7 @@ IfaceValue castValue(IfaceType rtyp,IfaceValue v0,IfaceLocation loc)
    if (t0.isCompatibleWith(rtyp)) return v0;
 
    v1 = v0.restrictByType(rtyp);
-   FlowScanner.checkAssignment(v0,rtyp,loc);
+   // FlowScanner.checkAssignment(v0,rtyp,loc);
 
    return v1;
 }

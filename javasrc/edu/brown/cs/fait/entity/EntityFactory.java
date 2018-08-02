@@ -108,10 +108,11 @@ public IfaceEntity createFixedEntity(IfaceType dt)
 	 if (dt.isAbstract() || dt.isInterfaceType()) fe = (EntityBase) createMutableEntity(dt);
 	 else {
             IfacePrototype ifp = fait_control.createPrototype(dt);
-            if (ifp != null) 
-               fe = new EntityProto(dt,ifp,null);
-            else
-               fe = new EntityFixed(dt,false);
+            fe = new EntityFixed(dt,false,ifp);
+            // if (ifp != null) 
+               // fe = new EntityProto(dt,ifp,null);
+            // else
+               // fe = new EntityFixed(dt,false,ifp);
           }
 	 fixed_map.put(dt,fe);
        }
@@ -122,17 +123,20 @@ public IfaceEntity createFixedEntity(IfaceType dt)
 
 public IfaceEntity createMutableEntity(IfaceType dt)
 {
+   if (dt.isPrimitiveType() || dt.isStringType()) return createFixedEntity(dt);
+   
    synchronized (mutable_map) {
       EntityBase fe = mutable_map.get(dt);
       if (fe == null) {
          IfacePrototype ifp = fait_control.createPrototype(dt);
-         if (ifp != null) { 
-            fe = new EntityProto(dt,ifp,null);
-          }
-	 else {
-            fe = new EntityFixed(dt,true);
-          }
-	 mutable_map.put(dt,fe);
+         fe = new EntityFixed(dt,true,ifp);
+         // if (ifp != null) { 
+            // fe = new EntityProto(dt,ifp,null);
+          // }
+	 // else {
+            // fe = new EntityFixed(dt,true,ifp);
+          // }
+         mutable_map.put(dt,fe);
        }
       return fe;
     }
@@ -140,11 +144,11 @@ public IfaceEntity createMutableEntity(IfaceType dt)
 
 
 
-public IfaceEntity createLocalEntity(IfaceLocation loc,IfaceType dt)
+public IfaceEntity createLocalEntity(IfaceLocation loc,IfaceType dt,IfacePrototype ptyp)
 {
-   EntityLocal el = new EntityLocal(loc,dt);
+   EntityLocal el = new EntityLocal(loc,dt,ptyp);
 
-   if (fait_control.isProjectClass(dt)) {
+   if (fait_control.isProjectClass(dt) && loc != null) {
       List<EntityLocal> lcls = null;
       synchronized (local_map) {
 	 lcls = local_map.get(dt);
@@ -183,7 +187,8 @@ public IfaceEntity createStringEntity(IfaceControl ctrl,String s)
    synchronized (string_map) {
       EntityBase eb = string_map.get(s);
       if (eb == null) {
-	 IfaceType t = ctrl.findDataType("java.lang.String",FaitAnnotation.NON_NULL);
+	 IfaceType t = ctrl.findDataType("java.lang.String",
+               FaitAnnotation.NON_NULL,FaitAnnotation.UNTAINTED);
 	 eb = new EntityString(t,s);
 	 string_map.put(s,eb);
        }
@@ -201,10 +206,16 @@ public IfaceEntity createArrayEntity(IfaceControl ctrl,IfaceType base,IfaceValue
 
 
 
-public IfaceEntity createPrototypeEntity(IfaceControl ctrl,IfaceType base,IfacePrototype from,
-      IfaceLocation src)
+public IfaceEntity createPrototypeEntity(IfaceType base,IfacePrototype from,
+      IfaceLocation loc,boolean mutable)
 { 
-   return new EntityProto(base,from,src);
+   if (loc != null) {
+      return new EntityLocal(loc,base,from);
+    }
+   else {
+      return new EntityFixed(base,mutable,from);
+    }
+  //  return new EntityProto(base,from,src);
 }
 
 

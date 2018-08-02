@@ -53,11 +53,6 @@ public class CheckInitialization extends TypeSubtype
 /*                                                                              */
 /********************************************************************************/
 
-private static CheckInitialization our_type = new CheckInitialization();
-
-// THIS SHOULD BE MERGE WITH NullNess and Raw into a single complex type state
-
-
 public enum InitializationState implements IfaceSubtype.Value
 {
    INITIALIZED,
@@ -66,6 +61,9 @@ public enum InitializationState implements IfaceSubtype.Value
    
    @Override public IfaceSubtype getSubtype()   { return our_type; }
 }
+
+private static CheckInitialization our_type = new CheckInitialization();
+
 
 
 
@@ -141,6 +139,21 @@ private CheckInitialization()
       FaitOperator op,IfaceValue v0,IfaceValue v1)
 {
    return INITIALIZED;
+}
+
+
+@Override public IfaceSubtype.Value getComputedValue(FaitOperator op,IfaceSubtype.Value oval)
+{
+   switch (op) {
+      case DONEINIT :
+         return INITIALIZED;
+      case STARTINIT :
+         return UNDER_INITIALIZATION;
+      default :
+         break;
+    }
+   
+   return super.getComputedValue(op,oval);
 }
 
 }       // end of class CheckInitialization

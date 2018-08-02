@@ -1,13 +1,13 @@
 /********************************************************************************/
 /*                                                                              */
-/*              FaitMethodData.java                                             */
+/*              IfaceSafetyCheck.java                                           */
 /*                                                                              */
-/*      User class to hold results                                              */
+/*      Represent a particulaar automata-based safety condition                 */
 /*                                                                              */
 /********************************************************************************/
-/*      Copyright 2011 Brown University -- Steven P. Reiss                    */
+/*      Copyright 2013 Brown University -- Steven P. Reiss                    */
 /*********************************************************************************
- *  Copyright 2011, Brown University, Providence, RI.                            *
+ *  Copyright 2013, Brown University, Providence, RI.                            *
  *                                                                               *
  *                        All Rights Reserved                                    *
  *                                                                               *
@@ -36,22 +36,28 @@
 package edu.brown.cs.fait.iface;
 
 
-public interface IfaceMethodData extends FaitConstants
+
+public interface IfaceSafetyCheck extends FaitConstants
 {
 
+String getName();
+
+Value getInitialState();
+int update(String event,int from);
+
+Value getValueForOrdinal(int i);
+
+interface Value {
+   IfaceSafetyCheck getSafetyCheck();
+   int ordinal();
+}
 
 
 
-void clear();
-
-void updateValues(IfaceUpdater upd);
-
-
-
-}       // end of interface FaitMethodData
+}       // end of interface IfaceSafetyCheck
 
 
 
 
-/* end of FaitMethodData.java */
+/* end of IfaceSafetyCheck.java */
 

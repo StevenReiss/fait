@@ -52,9 +52,8 @@ abstract class EntityObject extends EntityBase
 
 private IfaceType	data_type;
 private Map<String,IfaceValue> field_map;
+private IfacePrototype  proto_handler;
 
-private boolean 	array_nonnull;
-private boolean 	array_canbenull;
 private IfaceValue	array_value;
 
 
@@ -64,13 +63,12 @@ private IfaceValue	array_value;
 /*										*/
 /********************************************************************************/
 
-protected EntityObject(IfaceType dt)
+protected EntityObject(IfaceType dt,IfacePrototype ptyp)
 {
    data_type = dt;
    field_map = new HashMap<>(4);
    array_value = null;
-   array_nonnull = false;
-   array_canbenull = false;
+   proto_handler = ptyp;
 }
 
 
@@ -82,6 +80,9 @@ protected EntityObject(IfaceType dt)
 /********************************************************************************/
 
 @Override public IfaceType getDataType()		{ return data_type; }
+
+@Override public IfacePrototype getPrototype()          { return proto_handler; }
+
 
 
 
@@ -156,12 +157,15 @@ protected void copyFields(EntityObject toobj)
 }
 
 
+@Override public boolean replaceArrayContents(IfaceValue arr,IfaceLocation loc)
+{
+   return addToArrayContents(arr,null,loc);
+}
+
+
 
 @Override public IfaceValue getArrayValue(IfaceValue idx,IfaceControl ctl)
 {
-   if (array_nonnull && !array_canbenull && array_value != null)
-      return array_value.forceNonNull();
-
    return array_value;
 }
 

@@ -35,11 +35,15 @@
 
 package edu.brown.cs.fait.type;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import org.w3c.dom.Element;
 
 import edu.brown.cs.fait.iface.FaitConstants;
 import edu.brown.cs.fait.iface.IfaceAnnotation;
@@ -47,6 +51,7 @@ import edu.brown.cs.fait.iface.IfaceBaseType;
 import edu.brown.cs.fait.iface.IfaceControl;
 import edu.brown.cs.fait.iface.IfaceSubtype;
 import edu.brown.cs.fait.iface.IfaceType;
+import edu.brown.cs.ivy.xml.IvyXml;
 
 public class TypeFactory implements TypeConstants, FaitConstants
 {
@@ -75,6 +80,7 @@ public TypeFactory(IfaceControl ic)
    all_subtypes = new ArrayList<>();
    all_subtypes.add(CheckNullness.getType());
    all_subtypes.add(CheckInitialization.getType());
+   all_subtypes.add(CheckTaint.getType());
    
    for (int i = 0; i < all_subtypes.size(); ++i) {
       TypeSubtype tst = all_subtypes.get(i);
@@ -104,7 +110,7 @@ public IfaceType createType(IfaceBaseType base)
 }
 
 
-public IfaceType createType(IfaceBaseType base,List<IfaceAnnotation> annots)
+public IfaceType createType(IfaceBaseType base,Collection<IfaceAnnotation> annots)
 {
    if (base == null) return null;
    
@@ -128,6 +134,7 @@ public IfaceType createType(IfaceBaseType base,IfaceAnnotation ... annots)
     }
    return createActualType(base,vals);
 }
+
 
 
 IfaceType createType(IfaceBaseType base,IfaceSubtype.Value [] vals)
@@ -157,6 +164,21 @@ public IfaceType createType(IfaceType base,Map<IfaceSubtype,IfaceSubtype.Value> 
 
 
 public IfaceType createType(IfaceType base,IfaceAnnotation ... annots)
+{
+   if (base == null) return null;
+   
+   IfaceSubtype.Value [] vals = new IfaceSubtype.Value[getNumSubtypes()];  
+   for (int i = 0; i < getNumSubtypes(); ++i) {
+      TypeSubtype st = getSubtype(i);
+      vals[i] = st.getDefaultValue(annots,base.getValue(st));
+    }
+   
+   return createActualType(base.getJavaType(),vals);
+}
+
+
+
+public IfaceType createType(IfaceType base,Collection<IfaceAnnotation> annots)
 {
    if (base == null) return null;
    
@@ -232,7 +254,27 @@ private IfaceType createActualType(IfaceBaseType base,IfaceSubtype.Value [] subs
 
 
 
+/********************************************************************************/
+/*                                                                              */
+/*      Handle user defined subtypes                                            */
+/*                                                                              */
+/********************************************************************************/
 
+public void addSpecialFile(File f)
+{
+   addSpecialFile(IvyXml.loadXmlFromFile(f));
+}
+
+
+public void addSpecialFile(Element xml)
+{
+   for (Element selt : IvyXml.children(xml,"SUBTYPE")) {
+      TypeSubtypeUser tsu = new TypeSubtypeUser(selt);
+      int ct = all_subtypes.size();
+      all_subtypes.add(tsu);
+      tsu.setIndex(ct);
+    }
+}
 
 
 

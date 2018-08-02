@@ -55,6 +55,9 @@ class CallSpecial implements IfaceSpecial, CallConstants
 private IfaceControl	fait_control;
 private String		result_type;
 private String		alt_result;
+private List<String>    throw_types;
+private IfaceAnnotation [] type_annots;
+private Map<Integer,IfaceAnnotation []> arg_annots;
 private boolean 	canbe_null;
 private boolean 	is_mutable;
 private boolean         is_constructor;
@@ -66,6 +69,7 @@ private List<String>	callback_names;
 private String		callback_id;
 private List<ArgValue>	callback_args;
 private boolean 	does_exit;
+private boolean         no_return;
 private List<String>    load_types;
 private List<When>      when_conditions;
 
@@ -94,12 +98,69 @@ CallSpecial(IfaceControl fc,Element xml,boolean formthd)
       result_type = rtn;
     }
    alt_result = IvyXml.getAttrString(xml,"ARETURN");
+   throw_types = null;
+   String thr = IvyXml.getAttrString(xml,"THROWS");
+   if (thr != null) {
+      StringTokenizer tok = new StringTokenizer(thr);
+      while (tok.hasMoreTokens()) {
+         String th = tok.nextToken();
+         if (throw_types == null) throw_types = new ArrayList<>();
+         throw_types.add(th);
+       }
+    }
 
    canbe_null = IvyXml.getAttrBool(xml,"NULL",!formthd);
+   String annots = IvyXml.getAttrString(xml,"ANNOTATIONS");
+   List<String> annotset = new ArrayList<>();
+   if (annots != null) {
+      StringTokenizer tok = new StringTokenizer(annots," ,");
+      while (tok.hasMoreTokens()) {
+         annotset.add(tok.nextToken());
+       }
+      if (!canbe_null && !annotset.contains("NonNull")) annotset.add("NonNull");
+    }
+   else {
+      if (canbe_null) annotset.add("Nullable");
+      else annotset.add("NonNull");
+    }
+   type_annots = new IfaceAnnotation[annotset.size()];
+   for (int i = 0; i < annotset.size(); ++i) {
+      type_annots[i] = new FaitAnnotation(annotset.get(i));
+    }
+   
+   arg_annots = new HashMap<>();
+   String argannot = IvyXml.getAttrString(xml,"ARGANNOTATIONS");
+   if (argannot != null) {
+      StringTokenizer tok = new StringTokenizer(argannot,";+ ");
+      while (tok.hasMoreTokens()) {
+         String aan = tok.nextToken();
+         List<String> aaset = new ArrayList<>();
+         int idx = aan.indexOf(":");
+         if (idx < 0) continue;
+         String id = aan.substring(0,idx);
+         aan = aan.substring(idx+1);
+         int ano = -1;
+         try {
+            ano = Integer.parseInt(id);
+          }
+         catch (NumberFormatException e) { continue; }
+         StringTokenizer tok1 = new StringTokenizer(aan,",@");
+         while (tok1.hasMoreTokens()) {
+            aaset.add(tok1.nextToken());
+          }
+         IfaceAnnotation [] aav = new IfaceAnnotation[aaset.size()];
+         for (int i = 0; i < annotset.size(); ++i) {
+            aav[i] = new FaitAnnotation(aaset.get(i));
+          }
+         arg_annots.put(ano,aav);
+       }
+    }
+   
    is_mutable = IvyXml.getAttrBool(xml,"MUTABLE",!formthd);
    does_exit = IvyXml.getAttrBool(xml,"EXIT");
    async_call = IvyXml.getAttrBool(xml,"ASYNC");
    is_constructor = IvyXml.getAttrBool(xml,"CONSTRUCTOR");
+   no_return = IvyXml.getAttrBool(xml,"NORETURN");
 
    dont_scan = !IvyXml.getAttrBool(xml,"SCAN");
 
@@ -158,8 +219,30 @@ CallSpecial(IfaceControl fc,Element xml,boolean formthd)
    else if (result_type != null) dt = getClassType(result_type);
    if (dt == null && alt_result != null) dt = getClassType(alt_result);
    if (dt == null) {
-      if (fm.isConstructor()) dt = fm.getDeclaringClass();
-      else dt = fm.getReturnType();
+      dt = fm.getReturnType();
+      // if (fm.isConstructor()) dt = fm.getDeclaringClass();
+      // else dt = fm.getReturnType();
+    }
+  
+   if (type_annots != null) {
+      if (dt.isPrimitiveType()) {
+         List<IfaceAnnotation> ans = null;
+         for (int i = 0; i < type_annots.length; ++i) {
+            IfaceAnnotation ian = type_annots[i];
+            if (ian.getAnnotationName().contains("Null")) continue;
+            if (ian.getAnnotationName().contains("Initial")) continue;
+            if (ans == null) ans = new ArrayList<>();
+            ans.add(ian);
+          }
+         if (ans != null) {
+            IfaceAnnotation [] anarr = new IfaceAnnotation[ans.size()];
+            anarr = ans.toArray(anarr);
+            dt = dt.getAnnotatedType(anarr);
+          }
+       }
+      else {
+         dt = dt.getAnnotatedType(type_annots);
+       }
     }
 
    IfaceValue rv = null;
@@ -170,10 +253,37 @@ CallSpecial(IfaceControl fc,Element xml,boolean formthd)
    else
       rv = fait_control.findNativeValue(dt);
 
-   if (!canbe_null || fm.isConstructor()) rv = rv.forceNonNull();
+   if (!canbe_null || fm.isConstructor() || dt.isPrimitiveType()) rv = rv.forceNonNull();
 
    return rv;
 }
+
+@Override public List<IfaceValue> getExceptions(IfaceProgramPoint pt,IfaceMethod fm)
+{
+   List<IfaceType> typs = null;
+   
+   if (throw_types == null) {
+      typs = fm.getExceptionTypes();
+    }
+   else {
+      typs = new ArrayList<>();
+      for (String th : throw_types) {
+         IfaceType dt = getClassType(th);
+         if (dt != null) typs.add(dt);
+       }
+    }
+   if (typs == null || typs.size() == 0) return null;
+   
+   List<IfaceValue> vals = new ArrayList<IfaceValue>();
+   for (IfaceType t : typs) {
+      IfaceValue v0 = fait_control.findAnyValue(t);
+      v0 = v0.forceNonNull();
+      vals.add(v0);
+    }
+   
+   return vals;
+}
+
 
 
 @Override public boolean returnsArg0()	
@@ -212,7 +322,10 @@ CallSpecial(IfaceControl fc,Element xml,boolean formthd)
 
 @Override public boolean getExits()	                { return does_exit; }
 
+@Override public boolean getNeverReturns()              { return no_return; }
+
 @Override public boolean getDontScan()	                { return dont_scan; }
+@Override public boolean getForceScan()                 { return !dont_scan; }
 
 @Override public List<String> getClassesToLoad()        { return load_types; }
 

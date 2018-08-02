@@ -37,7 +37,6 @@ package edu.brown.cs.fait.type;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import edu.brown.cs.fait.iface.IfaceAnnotation;
@@ -108,7 +107,7 @@ protected void defineRestrict(Value v1,Value v2,Value vr)
 
 protected void defineRestrict(Value v1,Value v2,IfaceError er)
 {
-   restrict_map.addMapping(v1,v2,v2);
+   restrict_map.addMapping(v1,v2,v1);
    checker_map.addMapping(v1,v2,er);
    
    restrict_map.addMapping(v1,v1,v1);
@@ -174,7 +173,7 @@ int getIndex()                                  { return subtype_index; }
 
 
 
-IfaceSubtype.Value getDefaultValue(IfaceBaseType typ,List<IfaceAnnotation> annots)
+IfaceSubtype.Value getDefaultValue(IfaceBaseType typ,Collection<IfaceAnnotation> annots)
 {
    if (annots != null) {
       for (IfaceAnnotation an : annots) {
@@ -204,6 +203,24 @@ public IfaceSubtype.Value getDefaultValue(IfaceAnnotation [] annots,IfaceSubtype
    
    return getDefaultValue((IfaceBaseType) null);
 }
+
+
+public IfaceSubtype.Value getDefaultValue(Collection<IfaceAnnotation> annots,IfaceSubtype.Value dflt)
+{
+   if (annots != null) {
+      for (IfaceAnnotation an : annots) {
+         String nm = an.getAnnotationName();
+         Attr at = name_map.get(nm);
+         if (at != null) {
+            return attribute_map.get(at);
+          }
+       }
+    }
+   if (dflt != null) return dflt;
+   
+   return getDefaultValue((IfaceBaseType) null);
+}
+
 
 
 IfaceSubtype.Value getDefaultValue(IfaceBaseType typ,IfaceAnnotation [] annots)

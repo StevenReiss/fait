@@ -122,8 +122,13 @@ public ValueBase anyValue(IfaceType typ)
 	 else if (typ.isStringType()) {
 	    cv = constantString();
 	  }
-	 else cv = new ValueObject(this,typ,fait_control.createEmptyEntitySet(),FaitAnnotation.NULLABLE);
-	 any_map.put(typ,cv);
+	 else {
+            IfaceEntity ent = fait_control.findFixedEntity(typ);
+            IfaceEntitySet eset = fait_control.createSingletonSet(ent);
+            cv = objectValue(typ,eset,FaitAnnotation.NULLABLE);
+            // cv = new ValueObject(this,typ,fait_control.createEmptyEntitySet(),FaitAnnotation.NULLABLE);
+          }	
+         any_map.put(typ,cv);
        }
       return cv;
     }
@@ -236,7 +241,7 @@ public ValueBase emptyValue(IfaceType typ,IfaceAnnotation ... flags)
       cvo = empty_map.get(typ1);
       if (cvo == null) {
 	  cvo = new ValueObject(this,typ1,fait_control.createEmptyEntitySet());
-	  empty_map.put(typ,cvo);
+	  empty_map.put(typ1,cvo);
        }
       return cvo;
     }
@@ -260,6 +265,13 @@ public ValueBase constantString()
     }
 
    return string_value;
+}
+
+
+public IfaceValue constantStringNonNull()
+{
+   IfaceValue v0 = constantString();
+   return v0.forceNonNull();
 }
 
 
@@ -333,7 +345,7 @@ public ValueBase badValue()
 	 bad_value = new ValueBad(this,fait_control.findDataType("void"));
        }
     }
-   // FaitLog.logE("Generate Bad Value");
+   // FaitLog.logD("Generate Bad Value");
    return bad_value;
 }
 
@@ -404,7 +416,6 @@ public ValueBase anyNewObject()
 
 public IfaceValue initialFieldValue(IfaceField fld,boolean nat)
 {
-   // TOOD:  Look for static constant fields and use the constant value
    IfaceType ftyp = fld.getType();
    if (ftyp == null) return nullValue();
    IfaceType ctyp = fld.getDeclaringClass();
@@ -444,7 +455,8 @@ public IfaceValue initialFieldValue(IfaceField fld,boolean nat)
 	 s0 = anyValue(ftyp);
        }
       else {
-	 s0 = emptyValue(ftyp,FaitAnnotation.NULLABLE);
+	 // s0 = emptyValue(ftyp,FaitAnnotation.NULLABLE);
+         s0 = nullValue(ftyp);
        }
     }
 
@@ -462,6 +474,9 @@ public ValueBase refValue(IfaceType dt,IfaceValue base,IfaceField fld)
 {
    if (base == null && fld != null && !fld.isStatic()) {
       FaitLog.logE("Illegal field reference");
+    }
+   if (base != null && base.isBad()) {
+      FaitLog.logE("Bad base value");
     }
    return new ValueRef(this,dt,NO_REF,base,fld,null);
 }

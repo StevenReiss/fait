@@ -42,7 +42,10 @@ public interface IfaceCall extends FaitConstants
 {
 
 IfaceMethod getMethod();
-IfaceType getMethodClass();
+default IfaceType getMethodClass()
+{
+   return getMethod().getDeclaringClass();
+}
 
 IfaceState getStartState();
 IfaceValue getResultValue();
@@ -66,7 +69,10 @@ void loadClasses();
 IfaceControl getControl();
 
 
-IfaceProgramPoint getStartPoint();
+default IfaceProgramPoint getStartPoint()
+{
+   return getMethod().getStart();
+}
 
 IfaceEntity getArrayEntity(IfaceProgramPoint ins);
 void setArrayEntity(IfaceProgramPoint ins,IfaceEntity e);

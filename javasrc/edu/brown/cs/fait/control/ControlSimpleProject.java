@@ -41,8 +41,6 @@ import java.util.Collection;
 import java.util.List;
 
 import edu.brown.cs.fait.iface.FaitConstants;
-import edu.brown.cs.fait.iface.IfaceCall;
-import edu.brown.cs.fait.iface.IfaceMethodData;
 import edu.brown.cs.fait.iface.IfaceProject;
 import edu.brown.cs.ivy.jcode.JcodeFactory;
 import edu.brown.cs.ivy.jcomp.JcompControl;
@@ -78,7 +76,7 @@ public ControlSimpleProject(String cp,String pfx)
    if (cp != null) {
       jcode_factory.addToClassPath(cp);
     }
-   JcompControl ctrl = new JcompControl();
+   JcompControl ctrl = new JcompControl(jcode_factory);
    List<JcompSource> srcs = new ArrayList<>();
    jcomp_project = ctrl.getProject(jcode_factory,srcs);
    jcomp_project.resolve();
@@ -111,7 +109,7 @@ public ControlSimpleProject(String cp,String pfx)
 
 @Override public boolean isEditableClass(String cls)    { return false; }
 
-@Override public IfaceMethodData createMethodData(IfaceCall c)  { return null; }
+
 
 }       // end of class ControlSimpleProject
 

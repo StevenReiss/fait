@@ -55,7 +55,7 @@ Collection<File> getDescriptionFiles();
 boolean isProjectClass(String cls);
 boolean isEditableClass(String cls);
 
-IfaceMethodData createMethodData(IfaceCall fc);
+
 
 
 }	// end of interface FaitProject

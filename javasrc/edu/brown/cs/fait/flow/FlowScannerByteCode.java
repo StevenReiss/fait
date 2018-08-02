@@ -35,6 +35,7 @@
 
 package edu.brown.cs.fait.flow;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -248,16 +249,16 @@ private void processInstruction(IfaceProgramPoint inspt)
 
    IfaceProgramPoint nins = call.getMethod().getNext(inspt);
    IfaceProgramPoint pins = nins;
+   boolean notenext = true;
    FlowLocation here = new FlowLocation(flow_queue,call,inspt);
 
    switch (ins.getOpcode()) {
 /* OBJECT PROCESSING INSTRUTIONS */
       case NEW :
+         IfaceType newt1 = jdtyp.getComputedType(FaitOperator.STARTINIT);
 	 flow_queue.initialize(jdtyp);
-	 ent = getLocalEntity(call,inspt);
-	 v0 = fait_control.findObjectValue(jdtyp,
-	       fait_control.createSingletonSet(ent),
-	       FaitAnnotation.NON_NULL,FaitAnnotation.UNDER_INITIALIZATION);
+	 ent = getLocalEntity(call,here,newt1);
+	 v0 = fait_control.findObjectValue(newt1,fait_control.createSingletonSet(ent));
 	 st1.pushStack(v0);
 	 break;
       case ACONST_NULL :
@@ -287,7 +288,12 @@ private void processInstruction(IfaceProgramPoint inspt)
 	 if (previns.getOpcode() == NEW) {
 	    IfaceValue sv0 = st1.popStack();
 	    IfaceValue sv1 = st1.popStack();
-	    sv1 = sv1.forceInitialized(FaitAnnotation.INITIALIZED);
+	    // sv1 = sv1.forceInitialized(FaitAnnotation.INITIALIZED);
+            IfaceType dupt0 = sv1.getDataType();
+            IfaceType dupt1 = dupt0.getComputedType(FaitOperator.DONEINIT);
+            if (dupt0 != dupt1) {
+               sv1 = sv1.changeType(dupt1);
+             }
 	    st1.pushStack(sv1);
 	    st1.pushStack(sv0);
 	  }
@@ -372,7 +378,7 @@ private void processInstruction(IfaceProgramPoint inspt)
 	 v0 = st1.popStack();
 	 v1 = st1.popStack();
 	 rtyp = fait_control.findDataType("int");
-	 v2 = fait_control.findRangeValue(rtyp,-1,1);
+	 v2 = fait_control.findRangeValue(rtyp,(Long)(-1L),(Long) 1L);
 	 st1.pushStack(v2);
 	 break;
       case LADD : case LDIV : case LMUL : case LREM : case LSUB :
@@ -599,7 +605,14 @@ private void processInstruction(IfaceProgramPoint inspt)
 	 nins = inspt.getReferencedTarget();
 	 break;
       case RET :
-	 nins = st1.popReturn();
+	 Collection<IfaceProgramPoint> rets = st1.popReturn();
+         nins = null;
+         for (IfaceProgramPoint pt : rets) {
+            if (nins == null) nins = pt;
+            else {
+               work_queue.mergeState(st1,pt);
+             }
+          }
 	 break;
 	
 /* CALL INSTRUCTIONS */
@@ -607,14 +620,14 @@ private void processInstruction(IfaceProgramPoint inspt)
       case ARETURN :
       case DRETURN : case FRETURN : case IRETURN : case LRETURN :
 	 v0 = st1.popStack();
-	 flow_queue.handleReturn(call,v0);
+	 flow_queue.handleReturn(call,v0,st1,here);
 	 nins = null;
 	 pins = null;
 	 break;
       case RETURN :
 	 rtyp = fait_control.findDataType("void");
 	 v0 = fait_control.findAnyValue(rtyp);
-	 flow_queue.handleReturn(call,v0);
+	 flow_queue.handleReturn(call,v0,st1,here);
 	 nins = null;
 	 pins = null;
 	 break;
@@ -625,12 +638,22 @@ private void processInstruction(IfaceProgramPoint inspt)
 	 IfaceMethod fm = inspt.getReferencedMethod();
 	 st1 = handleAccess(here,st1);
 	 if (st1 == null) break;
-	 if (!flow_queue.handleCall(here,st1,work_queue)) {
-	    if (FaitLog.isTracing()) FaitLog.logD1("Unknown RETURN value for " + fm);
-	    IfaceCall ncall = call.getMethodCalled(inspt,fm);
-	    if (ncall != null && ncall.getCanExit()) pins = null;
-	    nins = null;
-	  }
+         switch (flow_queue.handleCall(here,st1,work_queue)) {
+            case NOT_DONE :
+               if (FaitLog.isTracing()) FaitLog.logD1("Unknown RETURN value for " + fm);
+               IfaceCall ncall = call.getMethodCalled(inspt,fm);
+               if (ncall != null && ncall.getCanExit()) pins = null;
+               nins = null;
+               break;
+            case NO_RETURN :
+               ncall = call.getMethodCalled(inspt,fm);
+               if (ncall != null && ncall.getCanExit()) pins = null;
+               nins = null;
+               notenext = false;
+               break;
+            case CONTINUE :
+               break;
+          }
 	 break;
       case INVOKEDYNAMIC :
 	 handleDynamicCall(here,st1);
@@ -687,7 +710,7 @@ private void processInstruction(IfaceProgramPoint inspt)
 	 st1 = handleAccess(here,st1);
 	 if (st1 == null) break;
 	 v0 = st1.popStack();
-	 v1 = v0.getArrayLength();
+         v1 = flow_queue.handleArrayLength(here,v0);
 	 if (!v1.getDataType().isNumericType()) {
 	    System.err.println("BAD LENGTH");
 	    v1 = v0.getArrayLength();
@@ -755,7 +778,7 @@ private void processInstruction(IfaceProgramPoint inspt)
     }
 
    if (nins != null && st1 != null) work_queue.mergeState(st1,nins);
-   else if (pins != null) call.addError(inspt,UNREACHABLE_CODE);
+   else if (pins != null && notenext) call.addError(inspt,UNREACHABLE_CODE);
 }
 
 
@@ -770,11 +793,14 @@ private void processBackInstruction(IfaceProgramPoint inspt,IfaceValue ref,Iface
 {
    JcodeInstruction ins = inspt.getInstruction();
    IfaceState st1 = work_queue.getState(inspt);
-
    if (FaitLog.isTracing()) {
-      FaitLog.logD("Work BACK on " + ins + " " + ref + " " + settype);
+      FaitLog.logD("Work BACK on " + ins + " " + ref + " " + settype + " " + ref.getRefSlot() + " " + ref.getRefStack() + " " + ref.getRefField());
     }
-
+   
+   if (st1.getPriorState(0) == work_queue.getCall().getStartState()) {
+      return;
+    }
+   
    IfaceValue nextref = null;
    IfaceValue v0,v1;
 
@@ -837,7 +863,7 @@ private void processBackInstruction(IfaceProgramPoint inspt,IfaceValue ref,Iface
 	    else nextref = adjustRef(ref,1,2);
 	  }
 	 else {
-	    if (stk == 0 || stk == 1) {
+	    if (stk == 0 || stk == 2) {
 	       nextref = fait_control.findRefStackValue(settype,0);
 	     }
 	    else if (stk == 1 || stk == 3) {
@@ -1316,7 +1342,13 @@ private void handleDynamicCall(IfaceLocation here,IfaceState st)
    IfaceProgramPoint inspt = here.getProgramPoint();
    JcodeInstruction ins = inspt.getInstruction();
    String [] args = ins.getDynamicReference();
-   IfaceType t1 = fait_control.createFunctionRefType(args[5]);
+   IfaceType t1 = fait_control.createFunctionRefType(args[5],args[1]);
+   if (!args[1].startsWith("()")) {
+      IfaceValue v0 = st.popStack();
+      if (FaitLog.isTracing()) {
+         FaitLog.logD1("Pop non-static value off stack: " + v0);
+       }
+    }
    IfaceEntity ent = fait_control.findFunctionRefEntity(here,t1,args[4]);
    IfaceEntitySet eset = fait_control.createSingletonSet(ent);
    IfaceValue val = fait_control.findObjectValue(t1,eset,FaitAnnotation.NON_NULL);

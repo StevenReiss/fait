@@ -60,7 +60,7 @@ private String	constant_value;
 
 EntityString(IfaceType styp,String s)
 {
-   super(styp);
+   super(styp,null);
 
    constant_value = s;
 }

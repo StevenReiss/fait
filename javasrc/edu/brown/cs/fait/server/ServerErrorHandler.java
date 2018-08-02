@@ -89,7 +89,7 @@ boolean isErrorFree()
 
 boolean handleErrors(String proj,String forfile,Element ep)
 {
-   boolean haderrs = current_errors.isEmpty();
+   boolean haderrs = !current_errors.isEmpty();
    
    ProblemState ps = new ProblemState(ep);
    if (ps.getNumErrors() == 0) current_errors.remove(forfile);

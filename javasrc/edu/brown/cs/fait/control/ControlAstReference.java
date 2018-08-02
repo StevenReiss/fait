@@ -332,7 +332,12 @@ void update()
    int idx = typ.lastIndexOf(".");
    if (idx > 0) typ = typ.substring(idx+1);
 
-   return "@" + typ + ":" + eval_node.getStartPosition();
+   if (run_status == null) {
+      return "@" + typ + ":" + eval_node.getStartPosition();
+    }
+   else {
+      return "@" + typ + ":" + eval_node.getStartPosition() + "^" + run_status.getReason();
+    }
 }
 
 }	// end of class ControlAstReference

@@ -56,6 +56,7 @@ boolean isEmptyEntitySet();
 boolean isBad();
 boolean isCategory2();
 boolean isNative();
+boolean isMutable();
 
 IfaceType getDataType();
 
@@ -74,6 +75,7 @@ boolean containsEntity(IfaceEntity src);
 
 IfaceValue mergeValue(IfaceValue v);
 IfaceValue restrictByType(IfaceType dt);
+IfaceValue changeType(IfaceType dt);
 
 IfaceValue makeSubtype(IfaceType dt);
 IfaceValue forceNonNull();
@@ -83,6 +85,9 @@ IfaceValue allowNull();
 
 IfaceValue toFloating();
 Integer getIndexValue();
+String getStringValue();
+Long getMinValue();
+Long getMaxValue();
 
 
 IfaceValue performOperation(IfaceType dt,IfaceValue rhs,FaitOperator op,IfaceLocation src);

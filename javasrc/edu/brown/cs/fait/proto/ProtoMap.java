@@ -77,19 +77,33 @@ public ProtoMap(IfaceControl fc,IfaceType dt)
    key_set = new ProtoCollection(fc,fc.findDataType("java.util.Set",FaitAnnotation.NON_NULL));
    value_set = new ProtoCollection(fc,fc.findDataType("java.util.Set",FaitAnnotation.NON_NULL));
    entry_set = new ProtoCollection(fc,fc.findDataType("java.util.Set",FaitAnnotation.NON_NULL));
-   key_entity = fc.findPrototypeEntity(key_set.getDataType(),key_set,null);
-   value_entity = fc.findPrototypeEntity(value_set.getDataType(),value_set,null);
-   entry_entity = fc.findPrototypeEntity(entry_set.getDataType(),entry_set,null);
+   key_entity = fc.findPrototypeEntity(key_set.getDataType(),key_set,null,false);
+   value_entity = fc.findPrototypeEntity(value_set.getDataType(),value_set,null,false);
+   entry_entity = fc.findPrototypeEntity(entry_set.getDataType(),entry_set,null,false);
    
    MapEntry ent = new MapEntry(fc);
    IfaceType etyp = fc.findDataType("java.util.Map$Entry",FaitAnnotation.NON_NULL);
-   map_source = fc.findPrototypeEntity(etyp,ent,null);
+   map_source = fc.findPrototypeEntity(etyp,ent,null,false);
    IfaceEntitySet cset = fc.createSingletonSet(map_source);
    map_value = fc.findObjectValue(map_source.getDataType(),cset,FaitAnnotation.NON_NULL);
 }
 
 
    
+/********************************************************************************/
+/*                                                                              */
+/*      Access methods                                                          */
+/*                                                                              */
+/********************************************************************************/
+
+@Override public void setAnyValue()
+{
+   key_set.setAnyValue();
+   value_set.setAnyValue();
+   entry_set.setAnyValue();
+}
+
+
 
 /********************************************************************************/
 /*                                                                              */
@@ -271,7 +285,7 @@ public IfaceValue prototype_clone(IfaceMethod fm,List<IfaceValue> args,IfaceLoca
    IfaceValue av = fait_control.findAnyValue(getDataType());
    if (av != null) return av;
    
-   IfaceEntity subs = fait_control.findPrototypeEntity(getDataType(),this,src);
+   IfaceEntity subs = fait_control.findPrototypeEntity(getDataType(),this,src,false);
    IfaceEntitySet cset = fait_control.createSingletonSet(subs);
    IfaceValue cv = fait_control.findObjectValue(getDataType(),cset,FaitAnnotation.NON_NULL);
    return cv;
@@ -297,8 +311,8 @@ public IfaceValue prototype_lastKey(IfaceMethod fm,List<IfaceValue> args,IfaceLo
 
 public IfaceValue prototype_subMap(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
 {
-   IfaceType dt = fait_control.findDataType("java.util.Map",FaitAnnotation.NON_NULL);
-   IfaceEntity subs = fait_control.findPrototypeEntity(dt,this,src);
+   IfaceType dt = fait_control.findDataType("java.util.SortedMap",FaitAnnotation.NON_NULL);
+   IfaceEntity subs = fait_control.findPrototypeEntity(dt,this,src,false);
    IfaceEntitySet cset = fait_control.createSingletonSet(subs);
    IfaceValue cv = fait_control.findObjectValue(dt,cset,FaitAnnotation.NON_NULL);
    

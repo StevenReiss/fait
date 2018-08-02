@@ -36,10 +36,13 @@
 package edu.brown.cs.fait.server;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -47,11 +50,16 @@ import java.util.jar.JarFile;
 import edu.brown.cs.fait.iface.FaitLog;
 import edu.brown.cs.fait.iface.IfaceCall;
 import edu.brown.cs.fait.iface.IfaceControl;
+import edu.brown.cs.fait.iface.IfaceEntity;
 import edu.brown.cs.fait.iface.IfaceMethod;
 import edu.brown.cs.fait.iface.IfaceProject;
+import edu.brown.cs.fait.iface.IfacePrototype;
+import edu.brown.cs.fait.iface.IfaceType;
+import edu.brown.cs.fait.iface.IfaceValue;
 import edu.brown.cs.ivy.jcode.JcodeClass;
 import edu.brown.cs.ivy.jcode.JcodeFactory;
 import edu.brown.cs.ivy.jcode.JcodeMethod;
+import edu.brown.cs.ivy.xml.IvyXmlWriter;
 
 public class ServerLibraryBuilder implements ServerConstants
 {
@@ -84,6 +92,7 @@ private IfaceProject    fait_project;
 private JcodeFactory    jcode_factory;
 private String          class_path;
 private int             num_threads;
+private IvyXmlWriter    output_stream;
 
 
 
@@ -129,6 +138,7 @@ private void scanArgs(String [] args)
    
    fait_project = IfaceControl.Factory.createSimpleProject(class_path,"$$$");
    jcode_factory = fait_project.getJcodeFactory();
+   output_stream = null;
    
    for (int i = 0; i < args.length; ++i) {
       if (args[i].startsWith("-")) {
@@ -157,14 +167,42 @@ private void scanArgs(String [] args)
          else if (args[i].startsWith("-m") && i+1 < args.length) {
             addMethod(args[++i]);
           }
+         else if (args[i].startsWith("-o") && i+1 < args.length) {
+            try {
+               FileWriter ots = new FileWriter(args[++i]); 
+               output_stream = new IvyXmlWriter(ots);
+             }
+            catch (IOException e) {
+               badArgs();
+             }
+          }
+         else badArgs();
        }
       else {
          addAny(args[i]);
        }
     }
    
+   if (output_stream == null) {
+      try {
+         FileWriter ots = new FileWriter("library.fait");
+         output_stream = new IvyXmlWriter(ots);
+       }
+      catch (IOException e) {
+         badArgs();
+       }
+    }
+   
    fait_project = null;
    jcode_factory = null;
+}
+
+
+
+private void badArgs()
+{
+   System.err.println("faitlibrarybuilder [-cp classpath] [-c class] [-p package] [-m method] [-o output]");
+   System.exit(1);
 }
 
 
@@ -298,25 +336,14 @@ private void addAny(String nm)
 
 
 
-
-
-
-
-
-
-/*                                                                              */
+/********************************************************************************//*                                                                              */
 /*      Processing methods                                                      */
 /*                                                                              */
 /********************************************************************************/
 
 private void process()
 {
-   // IfaceControl control = IfaceControl.Factory.createControl(fait_project);
-   // for (JcodeClass cls : jcode_factory.getAllPossibleClasses(null)) {
-      // IfaceType ityp = control.findDataType(cls.getName());
-      // if (ityp.getName().contains("apache.xerces.internal.dom"))
-         // System.err.println("LOADED " + ityp);
-    // }
+   output_stream.begin("FAIT");
    
    while (!work_queue.isEmpty()) {
       String jm = work_queue.remove(0);
@@ -326,20 +353,110 @@ private void process()
       jcode_factory = fait_project.getJcodeFactory();
       IfaceControl control = IfaceControl.Factory.createControl(fait_project);
       IfaceMethod im = control.findMethod(cnts[0],cnts[1],cnts[2]);
-      control.analyze(im,num_threads);
-      for (IfaceCall cc : control.getAllCalls(im)) {
-         System.err.println("RESULT: " + cc);
-         System.err.println("EXCEPTIONS: " + cc.getExceptionValue());
-         // need to check for exceptions from cc
-         // build output based on cc
-         // need to check that everything is defined (no errors)
+      if (!shouldIgnore(control,im)) {
+         control.analyze(im,num_threads);
+         for (IfaceCall cc : control.getAllCalls(im)) {
+            outputCall(cc);
+            System.err.println("RESULT: " + cc);
+            System.err.println("EXCEPTIONS: " + cc.getExceptionValue());
+          }
        }
+     
       control.clearAll();
       jcode_factory.shutDown();
       jcode_factory = null;
       fait_project = null;
     }
+   
+   output_stream.end("FAIT");
+   output_stream.close();
 }
+
+
+
+private boolean shouldIgnore(IfaceControl ctrl,IfaceMethod im)
+{
+   IfaceType ctyp = im.getDeclaringClass();
+   IfacePrototype ptyp = ctrl.createPrototype(ctyp);
+   if (ptyp != null) 
+      return true;
+   
+   // check if there is a method-specific special for this method already, and ignore if so.
+   
+   return false;
+}
+
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Output methods                                                          */
+/*                                                                              */
+/********************************************************************************/
+
+private void outputCall(IfaceCall cc)
+{
+   output_stream.begin("METHOD");
+   output_stream.field("NAME",cc.getMethod().getFullName());
+   output_stream.field("SIGNATURE",cc.getMethod().getDescription());
+   IfaceValue cv = cc.getResultValue();
+   if (cv != null && !cv.getDataType().isVoidType()) {
+      if (cv.isMutable()) output_stream.field("MUTABLE",true);
+      if (cv.mustBeNull()) output_stream.field("MUSTBENULL",true);
+      if (cv.canBeNull()) output_stream.field("CANBENULL",true);
+      IfaceType dt = cv.getDataType();
+      String retname = dt.getName();
+      List<String> annots = dt.getAnnotations();
+      if (annots != null) {
+         StringBuffer buf = new StringBuffer();
+         for (String s : annots) {
+            if (buf.length() > 0) buf.append(",");
+            buf.append(s);
+          }
+         output_stream.field("ANNOTATIONS",buf.toString());
+       }
+      if (cv.getIndexValue() != null) {
+         output_stream.field("VALUE",cv.getIndexValue().intValue());
+       }
+      else if (cv.getMinValue() != null || cv.getMaxValue() != null) {
+         if (cv.getMinValue() != null) output_stream.field("MINVALUE",cv.getMinValue());
+         if (cv.getMaxValue() != null) output_stream.field("MAXVALUE",cv.getMaxValue());
+       }
+      if (!cc.getMethod().isStatic() && !cc.getMethod().isConstructor()) {
+         IfaceValue varg = null;
+         for (IfaceValue cv0 : cc.getParameterValues()) {
+            varg = cv0;
+            break;
+          }
+         if (varg != null && varg == cv)
+            retname = "0";
+       }
+      output_stream.field("RETURN",retname);
+    }
+   else if (cv == null) {
+      output_stream.field("NORETURN",true);
+    }
+   IfaceValue ev = cc.getExceptionValue();
+   if (ev != null) {
+      Set<String> typs = new HashSet<>();
+      for (IfaceEntity ie : ev.getEntities()) {
+         IfaceType dt = ie.getDataType();
+         typs.add(dt.getName());
+       }
+      if (typs.size() > 0) {
+         StringBuffer buf = new StringBuffer();
+         for (String s : typs) {
+            if (buf.length() > 0) buf.append(" ");
+            buf.append(s);
+          }
+         output_stream.field("THROWS",buf.toString());
+       }
+    }
+   output_stream.end("METHOD");
+}
+
+
 
 
 

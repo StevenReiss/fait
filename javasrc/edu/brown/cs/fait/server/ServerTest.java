@@ -95,7 +95,7 @@ public ServerTest()
 @Test 
 public synchronized void serverTestNim()
 {
-   runServerTest("nim","nim",2,null);
+   runServerTest("nim","nim",0,null);
 }
 
 
@@ -109,7 +109,7 @@ public synchronized void serverTestNim()
 @Test
 public synchronized void serverTestNimUpdate()
 {
-   runServerTest("nim","nim",2,"NimComputerPlayer");
+   runServerTest("nim","nim",0,"NimComputerPlayer");
 }
 
 
@@ -143,6 +143,20 @@ public synchronized void serverTestSeede()
 
 
 
+/********************************************************************************/
+/*                                                                              */
+/*      JavaSecurity test                                                       */
+/*                                                                              */
+/********************************************************************************/
+
+@Test
+public synchronized void serverTestJavaSecurity()
+{
+   runServerTest("javasecurity","WebServer",7,null);
+}
+
+
+
 
 /********************************************************************************/
 /*                                                                              */
@@ -150,7 +164,7 @@ public synchronized void serverTestSeede()
 /*                                                                              */
 /********************************************************************************/
 
-private void runServerTest(String pid,String dir,int ctr,String updfile)
+private void runServerTest(String dir,String pid,int ctr,String updfile)
 {
    if (dir == null) dir = pid;
    String mid = "FAIT_TEST_" + pid.toUpperCase();
@@ -160,7 +174,7 @@ private void runServerTest(String pid,String dir,int ctr,String updfile)
    
    try {  
       String [] args = new String[] { "-m", mid, "-DEBUG", "-TRACE",
-            "-LOG", "/vol/spr/servertest" + pid + ".log" };
+            "-LOG", "/vol/spr/servertest" + dir + ".log" };
       
       ServerMain.main(args);
       
@@ -199,7 +213,11 @@ private void runServerTest(String pid,String dir,int ctr,String updfile)
       Assert.assertTrue(IvyXml.isElement(xml,"RESULT"));
       Element rslt = waitForAnalysis(rid);
       Assert.assertNotNull(rslt);
-      Assert.assertEquals(ctr,countStops(rslt));
+      
+      int stops = countStops(rslt);
+      if (ctr == 0) Assert.assertEquals(stops,0);
+      else Assert.assertNotEquals(stops,0);
+      if (ctr > 0) Assert.assertTrue(stops <= ctr);
       
       if (updfile != null) {
          cargs = new CommandArgs("FILE",editfile.getPath(),"LENGTH",0,"OFFSET",0);
@@ -380,10 +398,10 @@ private static void setupBedrock(String dir,String mint,String proj)
    
    System.err.println("SETTING UP BEDROCK");
    File ec1 = new File("/u/spr/eclipse-oxygenx/eclipse/eclipse");
-   File ec2 = new File("/u/spr/Eclipse/" + proj);
+   File ec2 = new File("/u/spr/Eclipse/" + dir);
    if (!ec1.exists()) {
       ec1 = new File("/Developer/eclipse42/eclipse");
-      ec2 = new File("/Users/spr/Documents/" + proj);
+      ec2 = new File("/Users/spr/Documents/" + dir);
     }
    if (!ec1.exists()) {
       System.err.println("Can't find bubbles version of eclipse to run");
@@ -481,7 +499,7 @@ private int countStops(Element xml)
 {
    int ctr = 0;
    for (Element call : IvyXml.elementsByTag(xml,"CALL")) {
-      for (Element dead : IvyXml.children(call,"DEAD")) {
+      for (Element dead : IvyXml.children(call,"ERROR")) {
          for (Element pt : IvyXml.children(dead,"POINT")) {
             if (IvyXml.getAttrString(pt,"KIND").equals("EDIT")) {
                ++ctr;

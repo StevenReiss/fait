@@ -1,8 +1,8 @@
 /********************************************************************************/
 /*                                                                              */
-/*              IfaceFullType.java                                              */
+/*              IfaceMarker.java                                                */
 /*                                                                              */
-/*      Type along with subtypes                                                */
+/*      Stack marker value                                                      */
 /*                                                                              */
 /********************************************************************************/
 /*      Copyright 2011 Brown University -- Steven P. Reiss                    */
@@ -32,76 +32,23 @@
  ********************************************************************************/
 
 
+
 package edu.brown.cs.fait.iface;
 
-import java.util.List;
+import java.util.Set;
 
-import edu.brown.cs.fait.iface.FaitConstants.FaitOperator;
-
-public interface IfaceFullType 
+public interface IfaceStackMarker extends FaitConstants
 {
 
-String getName();
-String getSignature();
-String getJavaTypeName();
+public IfaceProgramPoint getProgramPoint();
+public Set<Object> getMarkerValues();
 
-boolean isCategory2();
-boolean isPrimitiveType();
-boolean isFloatingType();
-boolean isVoidType();
-boolean isInterfaceType();
-boolean isArrayType();
-boolean isIntType();
-boolean isJavaLangObject();
-boolean isNumericType();
-boolean isStringType();
-boolean isBooleanType();
-boolean isFunctionRef();
 
-boolean isAbstract();
 
-boolean isBroaderType(IfaceType t);
-boolean isDerivedFrom(IfaceType t);
-boolean isCompatibleWith(IfaceType t);
-boolean checkCompatibility(IfaceType t,IfaceLocation loc);
-
-IfaceType getArrayType();
-List<IfaceType> getInterfaces();
-IfaceType findChildForInterface(IfaceType dt);
-IfaceType getCommonParent(IfaceType t2);
-IfaceType restrictBy(IfaceType tr);
-List<IfaceType> getChildTypes();
-IfaceType getAssociatedType();
-IfaceType getRunTimeType();
-IfaceType getBaseType();
-IfaceType getSuperType();
-
-boolean isEditable();
-boolean isInProject();
-
-IfaceSubtype.Value getValue(IfaceSubtype styp);
-boolean checkValue(IfaceSubtype.Value v);
-boolean checkValue(IfaceAnnotation ... annots);
-IfaceBaseType getJavaType();
-IfaceType getAnnotatedType(IfaceAnnotation ... an);
-IfaceType getAnnotatedType(IfaceType tannot);
-
-IfaceType getComputedType(IfaceValue r,FaitOperator op,IfaceValue lv,IfaceValue rv);
-IfaceType getComputedType(FaitOperator op);
-
-IfaceTypeImplications getImpliedTypes(FaitOperator op,IfaceType tr);
-List<IfaceType> getBackTypes(FaitOperator op,IfaceValue ... v);
+}       // end of interface IfaceMarker
 
 
 
 
-
-
-
-}       // end of interface IfaceFullType
-
-
-
-
-/* end of IfaceFullType.java */
+/* end of IfaceMarker.java */
 

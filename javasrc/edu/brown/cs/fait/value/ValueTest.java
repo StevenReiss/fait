@@ -82,7 +82,7 @@ public ValueTest()
    IfaceType t3 = fait_control.findDataType("spr.onsets.OnsetExprSet$Expr");
    value_set[0] = fait_control.findAnyValue(t2);
    value_set[1] = fait_control.findAnyValue(t1);
-   value_set[2] = fait_control.findRangeValue(t2,1,2);
+   value_set[2] = fait_control.findRangeValue(t2,Long.valueOf(1),Long.valueOf(2));
 
    IfaceEntity e1 = fait_control.findFixedEntity(t1);
    IfaceEntitySet s1 = fait_control.createSingletonSet(e1);
@@ -102,7 +102,7 @@ public ValueTest()
    value_set[13] = fait_control.findAnyObjectValue();
    value_set[14] = fait_control.findAnyNewObjectValue();
 
-   value_set[15] = fait_control.findRangeValue(fait_control.findDataType("double"),1,2);
+   value_set[15] = fait_control.findRangeValue(fait_control.findDataType("double"),1.0,2.0);
    value_set[16] = fait_control.findAnyValue(fait_control.findDataType("double"));
    Assert.assertSame("Float ignores range",value_set[15],value_set[16]);
 
@@ -122,7 +122,7 @@ public ValueTest()
    value_set[22] = fait_control.findConstantValue(fait_control.findDataType("int"),2);
    value_set[23] = value_set[22].performOperation(t2,value_set[2],FaitOperator.SUB,null);    // 2 - {1,2}
    value_set[24] = value_set[23].performOperation(t2,value_set[22],FaitOperator.MUL,null);    // 2*(2-{1,2})
-   value_set[25] = fait_control.findRangeValue(t2,0,2);
+   value_set[25] = fait_control.findRangeValue(t2,Long.valueOf(0),Long.valueOf(2));
    Assert.assertSame("Integer arithmetic",value_set[24],value_set[25]);
    value_set[26] = fait_control.findAnyValue(fait_control.findDataType("byte"));
    value_set[27] = value_set[26].mergeValue(value_set[25]);

@@ -140,6 +140,13 @@ EntityProto(IfaceType typ,IfacePrototype from,boolean mutable)
 }
 
 
+
+@Override public boolean replaceArrayContents(IfaceValue v,IfaceLocation src)
+{
+   return proto_handler.setArrayContents(null,v);
+}
+
+
 @Override public IfaceValue getArrayValue(IfaceValue idx,IfaceControl ctl)
 {
    return proto_handler.getArrayContents(idx);

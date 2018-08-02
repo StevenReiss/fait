@@ -62,6 +62,8 @@ UserEntity getUserEntity();
 
 boolean isNative();
 
+boolean isMutable();
+
 boolean isUserEntity();
 
 
@@ -83,8 +85,10 @@ IfaceValue getFieldValue(IfaceField fld);
 
 
 void setArrayContents(IfaceValue fv);
+boolean replaceArrayContents(IfaceValue fv,IfaceLocation loc);
 boolean addToArrayContents(IfaceValue fv,IfaceValue idx,IfaceLocation loc);
 IfaceValue getArrayValue(IfaceValue idx,IfaceControl ctl);
+boolean setArraySize(IfaceValue sz);
 
 void handleUpdates(IfaceUpdater upd);
 

@@ -6,6 +6,7 @@
    <CLASS NAME="edu.brown.cs.ivy.mint.MintConstants$HostPort" />
    <CLASS NAME='edu.brown.cs.ivy.xml.IvyXml' />
    <CLASS NAME='edu.brown.cs.ivy.xml.IvyXmlWriter' />
+
 </FAIT>
 
 

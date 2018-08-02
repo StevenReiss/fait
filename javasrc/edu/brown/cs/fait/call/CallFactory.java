@@ -282,6 +282,8 @@ public void removeCalls(Collection<IfaceCall> calls)
 
 public void addSpecialFile(File f)
 {
+   FaitLog.logI("Adding special file " + f);
+   
    addSpecialFile(IvyXml.loadXmlFromFile(f));
 }
 
@@ -339,7 +341,7 @@ public IfaceSpecial getSpecial(IfaceProgramPoint pt,IfaceMethod fm)
             cs = findSpecial(lcs,pt);
             if (lcs != null && (cs == null || lcs.size() > 1)) usematch = true;
           }        
-         if (cs == null) {
+         if (cs == null && !fm.getName().equals("<clinit>")) {
             String s = fnm;
             int ln = s.length();
             for ( ; ; ) {

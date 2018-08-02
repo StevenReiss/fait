@@ -104,6 +104,8 @@ IfaceType getDataType()			{ return proto_type; }
 
 @Override public IfaceValue getArrayContents(IfaceValue f)		{ return null; }
 
+@Override public void setAnyValue()                                     { }
+
 
 
 
@@ -118,11 +120,7 @@ IfaceType getDataType()			{ return proto_type; }
 {
    if (proto_type == null) return true;
    //TODO: needs to handle methods that come from extends to a prototyped class
-
-   IfaceType dt = fm.getDeclaringClass();
-   if (proto_type == dt || proto_type.isDerivedFrom(dt)) return true;
-
-   return false;
+   return ProtoFactory.isMethodRelevant(fm,proto_type);
 }
 
 
@@ -214,7 +212,9 @@ protected IfaceValue returnInt(int v)
 
 protected IfaceValue returnInt(int v0,int v1)
 {
-   return fait_control.findRangeValue(fait_control.findDataType("int"),v0,v1);
+   Long lv0 = (long) v0;
+   Long lv1 = (long) v1;
+   return fait_control.findRangeValue(fait_control.findDataType("int"),lv0,lv1);
 }
 
 

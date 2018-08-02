@@ -76,6 +76,15 @@ public FaitError(ErrorLevel lvl,String msg)
 
 @Override public String getErrorMessage()            { return error_message; }
 
+@Override public String toString() 
+{
+   StringBuffer buf = new StringBuffer();
+   buf.append("ERR:");
+   buf.append(error_level.toString().charAt(0));
+   buf.append(":");
+   buf.append(error_message);
+   return buf.toString();
+}
 
 
 }       // end of class FaitError

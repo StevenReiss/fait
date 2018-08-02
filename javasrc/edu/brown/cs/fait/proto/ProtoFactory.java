@@ -38,7 +38,6 @@ package edu.brown.cs.fait.proto;
 import edu.brown.cs.fait.iface.*;
 
 import java.util.*;
-import java.lang.reflect.*;
 
 
 public class ProtoFactory implements ProtoConstants
@@ -52,12 +51,15 @@ public class ProtoFactory implements ProtoConstants
 /*										*/
 /********************************************************************************/
 
-private IfaceControl	fait_control;
-private Map<IfaceType,Class<?>> class_map;
+private enum ProtoWhich {
+   NONE, COLLECTION, MAP
+}
 
-private static final Class<?> [] cnst_params = new Class<?> [] {
-   IfaceControl.class, IfaceType.class
-};
+
+
+private IfaceControl	fait_control;
+private Map<IfaceType,ProtoWhich> class_map;
+
 
 
 /********************************************************************************/
@@ -82,44 +84,64 @@ public ProtoFactory(IfaceControl fc)
 
 public IfacePrototype createPrototype(IfaceType dt)
 {
-   Class<?> c = null;
+   ProtoWhich which = null;
    
    synchronized (class_map) {
-      if (!class_map.containsKey(dt)) {
-         if (!fait_control.isProjectClass(dt)) {
+      which = class_map.get(dt);
+      if (which == null) {
+         // if (!dt.isInProject()) {
             if (dt.isDerivedFrom(fait_control.findDataType("java.util.Collection"))) {
-               c = ProtoCollection.class;
+               which = ProtoWhich.COLLECTION;
              }
             else if (dt.isDerivedFrom(fait_control.findDataType("java.util.Map"))) {
-               c = ProtoMap.class;
+               which = ProtoWhich.MAP;
              }
-          }
-         class_map.put(dt,c);
+            else which = ProtoWhich.NONE;
+          // }
+         class_map.put(dt,which);
        }
-      else c = class_map.get(dt);
     }
    
-   if (c == null) {
-      return null;
-    }
    
-   ProtoBase pb = null;
-   try {
-      Constructor<?> cnst = c.getConstructor(cnst_params);
-      pb = (ProtoBase) cnst.newInstance(fait_control,dt);
+   switch (which) {
+      default :
+         return null;
+      case COLLECTION :
+         return new ProtoCollection(fait_control,dt);
+      case MAP :
+         return new ProtoMap(fait_control,dt);
     }
-   catch (NoSuchMethodException e) { }
-   catch (Exception e) {
-      FaitLog.logE("Problem creating class prototype for " + dt + ": " + e,e);
-    }
-   if (pb == null) {
-      FaitLog.logE("Missed prototype");
-    }
-   
-   return pb;
 }
       
 
+
+/********************************************************************************/
+/*                                                                              */
+/*      Check if method is handled by prototype code                            */
+/*                                                                              */
+/********************************************************************************/
+
+static boolean isMethodRelevant(IfaceMethod fm,IfaceType basetype)
+{
+   IfaceType dt = fm.getDeclaringClass();
+   String dnm = dt.getName();
+   if (dnm.startsWith("java.util.") || dnm.equals("java.lang.Iterable") ||
+         dnm.startsWith("sun.security.")) {
+      return true;
+    }
+   for (IfaceMethod im : fm.getParentMethods()) {
+      IfaceType pt = im.getDeclaringClass();
+      if (pt.getName().startsWith("java.util.")) {
+         return true;
+       }
+    }
+   
+   if (FaitLog.isTracing()) {
+      FaitLog.logD1("Non-prototype method on prototype: " + fm);
+    }
+   
+   return false;
+}
 
 
 }	// end of class ProtoFactory

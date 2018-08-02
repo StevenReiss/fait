@@ -166,6 +166,20 @@ void lookAt(IfaceProgramPoint ins)
 void queueBackPropagation(IfaceProgramPoint pt,IfaceValue ref,IfaceType typ)
 {
    FlowBackElement fbe = new FlowBackElement(pt,ref,typ);
+   for (FlowBackElement xfbe : back_list) {
+      if (xfbe.getProgramPoint() == pt && xfbe.getReference() == ref &&
+            xfbe.getSetType() == typ) {
+         // FaitLog.logD1("Already back queued " + pt + " " + ref.getRefSlot() + " " +
+               // ref.getRefStack() + " " + ref.getRefField() + " " + typ); 
+         return;
+       }
+    }
+   
+   if (FaitLog.isTracing()) {
+      FaitLog.logD1("Back queue " + pt + " " + ref.getRefSlot() + " " + 
+            ref.getRefStack() + " " + ref.getRefField() + " " + typ); 
+    }
+   
    back_list.addFirst(fbe);
 }
 

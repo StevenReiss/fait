@@ -124,6 +124,16 @@ IfaceValue handleFieldGet(FlowLocation loc,IfaceField fld,IfaceState st,boolean 
 	    field_map.put(key,v0);
 	  }
        }
+      
+      if (base != null) {
+         IfaceType ft = v0.getDataType();
+         IfaceType rt = ft.getComputedType(v0,FaitOperator.FIELDACCESS,base,base);
+         if (rt != ft) {
+            ft.checkCompatibility(rt,loc);
+            v0 = v0.changeType(rt);
+          }
+       }
+      
       return v0;
     }
 }
@@ -189,6 +199,30 @@ void handleFieldSet(FlowLocation loc,IfaceField fld,IfaceState st,boolean thisre
 
 
 
+void initializeField(String name,IfaceType typ)
+{
+   String key = name;
+   
+   IfaceValue v1 = field_map.get(key);
+   if (v1 == null || v1.getDataType().isVoidType()) {
+      int idx = name.lastIndexOf(".");
+      String fnm = name.substring(idx+1);
+      String cnm = name.substring(0,idx);
+      IfaceType ift = fait_control.findDataType(cnm);
+      IfaceField ifld = fait_control.findField(ift,fnm);
+      if (ifld != null && ifld.isStatic()) return;
+      if (typ.isPrimitiveType()) {
+         v1 = fait_control.findAnyValue(typ);
+       }
+      else {
+         v1 = fait_control.findNullValue(typ);
+       }
+      if (FaitLog.isTracing()) {
+         FaitLog.logD("Initialize field " + ifld + " = " + v1);
+       }
+      field_map.put(key,v1);
+    }
+}
 
 
 void handleFieldChanged(IfaceField fld)

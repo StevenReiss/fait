@@ -70,7 +70,10 @@ ValueFloat(ValueFactory vf,IfaceType dt,IfaceEntitySet es)
 @Override public IfaceValue mergeValue(IfaceValue fv)
 {
    if (fv == this || fv == null) return this;
-   if (!(fv instanceof ValueFloat)) return value_factory.badValue();
+   if (!(fv instanceof ValueFloat)) {
+      FaitLog.logD1("Bad float value merge: " + this + " " + fv);
+      return value_factory.badValue();
+    }
 
    if (getDataType().isBroaderType(fv.getDataType())) return this;
    if (fv.getDataType().isBroaderType(getDataType())) return fv;
@@ -84,6 +87,13 @@ ValueFloat(ValueFactory vf,IfaceType dt,IfaceEntitySet es)
    IfaceType nt = getDataType().restrictBy(dt);
    if (nt == getDataType()) return this;
    return value_factory.anyValue(nt);
+}
+
+
+@Override public IfaceValue changeType(IfaceType dt)
+{
+   if (dt == getDataType()) return this;
+   return value_factory.anyValue(dt);
 }
 
 

@@ -57,15 +57,19 @@ boolean addToLocal(int idx,IfaceValue v);
 IfaceValue getFieldValue(IfaceField fld);
 void setFieldValue(IfaceField fnm,IfaceValue v);
 
+
 Collection<IfaceField> getKnownFields();
 boolean hasKnownFields();
 void discardFields();
 
 void pushReturn(IfaceProgramPoint pt);
-IfaceProgramPoint popReturn();
+Collection<IfaceProgramPoint> popReturn();
+
+IfaceSafetyStatus getSafetyStatus();
+void updateSafetyStatus(String event);
 
 IfaceState mergeWith(IfaceState st);
-boolean compatibleWith(IfaceState st);
+
 
 void startInitialization(IfaceType typ);
 

@@ -41,7 +41,17 @@ import edu.brown.cs.fait.iface.*;
 interface FlowConstants extends FaitConstants
 {
 
+/********************************************************************************/
+/*                                                                              */
+/*      Call possibilities                                                      */
+/*                                                                              */
+/********************************************************************************/
 
+enum CallReturn {
+   NOT_DONE,                    // wait for call to be completed
+   CONTINUE,                    // call complete, can continue processing
+   NO_RETURN,                   // call complete, no further processing
+}
 
 }       // end of interface FlowConstants
 

@@ -64,6 +64,8 @@ private boolean 	can_exit;
 private int		num_adds;
 private int		num_result;
 private QueueLevel	queue_level;
+private List<IfaceType> implied_arg_types;
+private IfaceType       implied_return_type;
 
 private int             num_forward;
 private int             num_backward;
@@ -89,13 +91,33 @@ private Map<IfaceProgramPoint,Collection<IfaceError>> error_set;
 
 CallBase(IfaceControl fc,IfaceMethod fm,IfaceProgramPoint pt)
 {
-   this(fc);
-
+   fait_control = fc;
+   
+   result_set = null;
+   exception_set = null;
+   
+   num_adds = 0;
+   num_result = 0;
+   
+   is_clone = false;
+   is_arg0 = false;
+   is_proto = false;
+   can_exit = false;
+   
+   queue_level = QueueLevel.NORMAL;
+   
+   array_map = Collections.synchronizedMap(new IdentityHashMap<>(4));
+   entity_map = Collections.synchronizedMap(new IdentityHashMap<>(4));
+   userentity_map = Collections.synchronizedMap(new IdentityHashMap<>(4));
+   method_map = new IdentityHashMap<>();
+   call_set = new HashSet<>();
+   error_set = new IdentityHashMap<>();
+   
    for_method = fm;
    special_data = fc.getCallSpecial(pt,fm);
-
+   
    if (fm.getReturnType() != null && !fm.getReturnType().isVoidType()) {
-      result_set = fc.findAnyValue(fm.getReturnType());
+      result_set = fc.findMutableValue(fm.getReturnType());
     }
 
    start_state = fc.createState(fm.getLocalSize());
@@ -124,16 +146,26 @@ CallBase(IfaceControl fc,IfaceMethod fm,IfaceProgramPoint pt)
       is_arg0 = special_data.returnsArg0();
       can_exit = special_data.getExits();
       // this null needs to be a FaitLocaiton with fm as the method
-      IfaceValue rv = special_data.getReturnValue(null,for_method);
-      addResult(rv);
-      if (rv != null) {
-	 IfaceValue ev = null;
-	 for (IfaceType edt : fm.getExceptionTypes()) {
-	    IfaceValue ecv = fc.findNativeValue(edt);
-	    ecv = ecv.forceNonNull();
-	    ev = ecv.mergeValue(ev);
-	  }
-	 exception_set = ev;
+      if (special_data.getDontScan()) {
+         IfaceValue rv = special_data.getReturnValue(null,for_method);
+         addResult(rv);
+         if (rv != null) {
+            List<IfaceValue> excs = special_data.getExceptions(null,for_method);
+            IfaceValue ev = null;
+            if (excs != null) {
+               for (IfaceValue v0 : excs) {
+                  ev = v0.mergeValue(ev);
+                }
+             }
+            else {
+               for (IfaceType edt : fm.getExceptionTypes()) {
+                  IfaceValue ecv = fc.findNativeValue(edt);
+                  ecv = ecv.forceNonNull();
+                  ev = ecv.mergeValue(ev);
+                }
+             }
+            exception_set = ev;
+          }
        }
     }
 
@@ -148,6 +180,13 @@ CallBase(IfaceControl fc,IfaceMethod fm,IfaceProgramPoint pt)
       ++num_result;
     }
    
+   int act = fm.getNumArgs();
+   implied_arg_types = new ArrayList<>();
+   for (int i = 0; i < act; ++i) {
+      implied_arg_types.add(fm.getArgType(i));
+    }
+   implied_return_type = fm.getReturnType();
+   
    loadClasses();
    
    num_scan = 0;
@@ -155,35 +194,6 @@ CallBase(IfaceControl fc,IfaceMethod fm,IfaceProgramPoint pt)
    num_backward = 0;
 }
 
-
-private CallBase(IfaceControl fc)
-{
-   fait_control = fc;
-   for_method = null;
-   special_data = null;
-
-   result_set = null;
-   exception_set = null;
-
-   start_state = null;
-
-   num_adds = 0;
-   num_result = 0;
-
-   is_clone = false;
-   is_arg0 = false;
-   is_proto = false;
-   can_exit = false;
-
-   queue_level = QueueLevel.NORMAL;
-
-   array_map = Collections.synchronizedMap(new IdentityHashMap<>(4));
-   entity_map = Collections.synchronizedMap(new IdentityHashMap<>(4));
-   userentity_map = Collections.synchronizedMap(new IdentityHashMap<>(4));
-   method_map = new IdentityHashMap<>();
-   call_set = new HashSet<>();
-   error_set = new IdentityHashMap<>();
-}
 
 
 
@@ -196,13 +206,6 @@ private CallBase(IfaceControl fc)
 
 @Override public IfaceMethod getMethod()	{ return for_method; }
 @Override public IfaceControl getControl()	{ return fait_control; }
-
-@Override public IfaceType getMethodClass()
-{
-   return for_method.getDeclaringClass();
-}
-
-
 
 @Override public IfaceState getStartState()	{ return start_state; }
 
@@ -235,13 +238,6 @@ private CallBase(IfaceControl fc)
        }
     }
 }
-
-
-
-
-
-
-
 
 
 
@@ -296,12 +292,6 @@ private CallBase(IfaceControl fc)
 
 
 
-
-
-
-
-
-
 @Override public void removeErrors(IfaceProgramPoint ins)
 {
    synchronized (error_set) {
@@ -326,12 +316,6 @@ private CallBase(IfaceControl fc)
       return error_set.get(pt);
     }
 }
-
-@Override public IfaceProgramPoint getStartPoint()
-{
-   return for_method.getStart();
-}
-
 
 /********************************************************************************/
 /*										*/
@@ -380,6 +364,7 @@ private CallBase(IfaceControl fc)
 /*										*/
 /********************************************************************************/
 
+// TOOD: add safety status as argument here
 @Override public boolean addCall(List<IfaceValue> args)
 {
    boolean chng = false;
@@ -846,15 +831,27 @@ private boolean removeCaller(IfaceCall src)
     }
    if (argno < 0) return;
    
-   FaitLog.logD("Call Backwards " + argno + " " + settype);
+   IfaceType typ0 = implied_arg_types.get(argno);
+   IfaceType typ1 = typ0.getAnnotatedType(settype);
+   if (typ0 == typ1) return;
+   
+   FaitLog.logD("Call Backwards " + argno + " " + typ1);
+   implied_arg_types.set(argno,typ1);
 }
 
 
 
 @Override public void backFlowReturn(IfaceLocation loc,IfaceType settype)
 {
+   if (implied_return_type == null) return;     // handle constructors
+   IfaceType typ0 = implied_return_type.getAnnotatedType(settype);
+   if (typ0 == implied_return_type) return;
+   implied_return_type = typ0;
+   FaitLog.logD("Return Backwards type change: " + typ0);
+   
    for (IfaceCall ic : getAllMethodsCalled(loc.getProgramPoint())) {
-      FaitLog.logD("Return Backwards " + ic + " " + settype);
+      FaitLog.logD("Return Backwards " + ic + " " + typ0);
+      // TODO: might want to requeue the call here knowing the type changed
     }
 }
 

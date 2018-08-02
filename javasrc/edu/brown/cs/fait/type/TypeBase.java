@@ -36,10 +36,12 @@
 package edu.brown.cs.fait.type;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 import edu.brown.cs.fait.iface.FaitConstants;
+import edu.brown.cs.fait.iface.FaitLog;
 import edu.brown.cs.fait.iface.IfaceAnnotation;
 import edu.brown.cs.fait.iface.IfaceBaseType;
 import edu.brown.cs.fait.iface.IfaceError;
@@ -160,7 +162,12 @@ TypeBase(TypeFactory fac,IfaceBaseType base,IfaceSubtype.Value [] subs)
       TypeSubtype st = type_factory.getSubtype(i);
       IfaceError er = st.checkCompatabilityWith(getValue(st),dt.getValue(st));
       if (er != null) {
-         if (loc != null) loc.noteError(er);
+         if (loc != null) {
+            if (FaitLog.isTracing()) {
+               FaitLog.logD("Note Error: " + er);
+             }
+            loc.noteError(er);
+          }
          rslt = false;
        }
     }
@@ -315,11 +322,37 @@ TypeBase(TypeFactory fac,IfaceBaseType base,IfaceSubtype.Value [] subs)
 }
 
 
+@Override public IfaceType getAnnotatedType(Collection<IfaceAnnotation> ans)
+{
+   if (ans == null || ans.isEmpty()) return this;
+   
+   return type_factory.createType(this,ans);
+}
+
+
 @Override public IfaceType getAnnotatedType(IfaceType anotyp)
 {
    return type_factory.createType(base_type,anotyp);
 }
 
+
+@Override public List<String> getAnnotations()
+{
+   List<String> rslt = new ArrayList<>();
+   
+   for (int i = 0; i < type_factory.getNumSubtypes(); ++i) {
+      TypeSubtype st = type_factory.getSubtype(i);
+      IfaceSubtype.Value oval = getValue(st);
+      for (IfaceSubtype.Attr attr : st.getAttributes()) {
+         if (st.getValueFor(attr) == oval) {
+            rslt.add(attr.getName());
+            break;
+          }
+       }
+    }
+   
+   return rslt;
+}
 
 
 

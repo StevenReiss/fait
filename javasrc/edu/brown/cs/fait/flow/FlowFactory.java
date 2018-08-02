@@ -98,7 +98,6 @@ public void analyze(IfaceMethod im,int nth)
 {
    Set<IfaceType> done = new HashSet<>();
    
-   
    List<IfaceValue> args = new ArrayList<>();
    IfaceValue thisv = null;
    IfaceType ctyp = im.getDeclaringClass();
@@ -109,7 +108,12 @@ public void analyze(IfaceMethod im,int nth)
    
    if (!im.isStatic()) {
       thisv = fait_control.findMutableValue(ctyp);
-      thisv.forceNonNull();
+      IfaceEntity e0 = fait_control.findLocalEntity(null,ctyp,null);
+      IfaceValue v0 = fait_control.findObjectValue(ctyp,
+            fait_control.createSingletonSet(e0),FaitAnnotation.NON_NULL);
+      // ensure thisv is unique so we can check it versus result
+      thisv = thisv.mergeValue(v0);
+      thisv = thisv.forceNonNull();
       args.add(thisv);
     }
    
@@ -141,7 +145,6 @@ public void analyze(IfaceMethod im,int nth)
    if (thisv != null && thisv == retv) arg0 = true;
    
    FaitLog.logI("RETURNS " + ic + " " + retv + " " + arg0);
-   System.err.println("RETURNS " + ic + " " + retv + " " + arg0);
 }
 
 

@@ -1,13 +1,13 @@
 /********************************************************************************/
 /*                                                                              */
-/*              IfaceMarker.java                                                */
+/*              IfaceSafetyStatus.java                                          */
 /*                                                                              */
-/*      Stack marker value                                                      */
+/*      Hold the status of the various automata based safety checks             */
 /*                                                                              */
 /********************************************************************************/
-/*      Copyright 2011 Brown University -- Steven P. Reiss                    */
+/*      Copyright 2013 Brown University -- Steven P. Reiss                    */
 /*********************************************************************************
- *  Copyright 2011, Brown University, Providence, RI.                            *
+ *  Copyright 2013, Brown University, Providence, RI.                            *
  *                                                                               *
  *                        All Rights Reserved                                    *
  *                                                                               *
@@ -37,18 +37,18 @@ package edu.brown.cs.fait.iface;
 
 
 
-public interface IfaceMarker extends FaitConstants
+public interface IfaceSafetyStatus extends FaitConstants
 {
 
-public IfaceProgramPoint getProgramPoint();
-public Object getMarkerValue();
+IfaceSafetyStatus merge(IfaceSafetyStatus sts);
+
+IfaceSafetyStatus update(String event);
+
+
+}       // end of interface IfaceSafetyStatus
 
 
 
-}       // end of interface IfaceMarker
 
-
-
-
-/* end of IfaceMarker.java */
+/* end of IfaceSafetyStatus.java */
 

@@ -1,34 +1,34 @@
 /********************************************************************************/
-/*                                                                              */
-/*              FaitLog.java                                                    */
-/*                                                                              */
-/*      Logging methods                                                         */
-/*                                                                              */
+/*										*/
+/*		FaitLog.java							*/
+/*										*/
+/*	Logging methods 							*/
+/*										*/
 /********************************************************************************/
-/*      Copyright 2011 Brown University -- Steven P. Reiss                    */
+/*	Copyright 2011 Brown University -- Steven P. Reiss		      */
 /*********************************************************************************
- *  Copyright 2011, Brown University, Providence, RI.                            *
- *                                                                               *
- *                        All Rights Reserved                                    *
- *                                                                               *
- *  Permission to use, copy, modify, and distribute this software and its        *
- *  documentation for any purpose other than its incorporation into a            *
- *  commercial product is hereby granted without fee, provided that the          *
- *  above copyright notice appear in all copies and that both that               *
- *  copyright notice and this permission notice appear in supporting             *
- *  documentation, and that the name of Brown University not be used in          *
- *  advertising or publicity pertaining to distribution of the software          *
- *  without specific, written prior permission.                                  *
- *                                                                               *
- *  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS                *
- *  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND            *
- *  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY      *
- *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY          *
- *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,              *
- *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS               *
- *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE          *
- *  OF THIS SOFTWARE.                                                            *
- *                                                                               *
+ *  Copyright 2011, Brown University, Providence, RI.				 *
+ *										 *
+ *			  All Rights Reserved					 *
+ *										 *
+ *  Permission to use, copy, modify, and distribute this software and its	 *
+ *  documentation for any purpose other than its incorporation into a		 *
+ *  commercial product is hereby granted without fee, provided that the 	 *
+ *  above copyright notice appear in all copies and that both that		 *
+ *  copyright notice and this permission notice appear in supporting		 *
+ *  documentation, and that the name of Brown University not be used in 	 *
+ *  advertising or publicity pertaining to distribution of the software 	 *
+ *  without specific, written prior permission. 				 *
+ *										 *
+ *  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS		 *
+ *  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND		 *
+ *  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY	 *
+ *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY 	 *
+ *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,		 *
+ *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS		 *
+ *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE 	 *
+ *  OF THIS SOFTWARE.								 *
+ *										 *
  ********************************************************************************/
 
 
@@ -47,9 +47,9 @@ public class FaitLog implements FaitConstants
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Internal types                                                          */
-/*                                                                              */
+/*										*/
+/*	Internal types								*/
+/*										*/
 /********************************************************************************/
 
 public enum LogLevel {
@@ -59,15 +59,15 @@ public enum LogLevel {
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Private Storage                                                         */
-/*                                                                              */
+/*										*/
+/*	Private Storage 							*/
+/*										*/
 /********************************************************************************/
 
 private static LogLevel log_level;
 private static boolean	use_stderr;
 private static PrintWriter log_writer;
-private static boolean  trace_execution;
+private static boolean	trace_execution;
 
 static {
    use_stderr = false;
@@ -95,7 +95,7 @@ public static void logE(String msg)
 }
 
 
-public static void logX(String msg) 
+public static void logX(String msg)
 {
    Throwable t = new Throwable(msg);
    log(LogLevel.ERROR,0,msg,t);
@@ -147,6 +147,9 @@ public static void logS(String msg)
    log(LogLevel.STATISTICS,0,msg,null);
 }
 
+
+
+
 /********************************************************************************/
 /*										*/
 /*	Control methods 							*/
@@ -172,7 +175,7 @@ public static void setLogFile(File f)
       log_writer.close();
       log_writer = null;
     }
-   
+
    f = f.getAbsoluteFile();
    try {
       log_writer = new PrintWriter(new FileWriter(f));
@@ -191,14 +194,14 @@ public static void useStdErr(boolean fg)
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Execution trace entries                                                 */
-/*                                                                              */
+/*										*/
+/*	Execution trace entries 						*/
+/*										*/
 /********************************************************************************/
 
-public static boolean isTracing()               { return trace_execution; }
+public static boolean isTracing()		{ return trace_execution; }
 
-public static void setTracing(boolean fg)       { trace_execution = fg; }
+public static void setTracing(boolean fg)	{ trace_execution = fg; }
 
 
 
@@ -212,7 +215,7 @@ public static void setTracing(boolean fg)       { trace_execution = fg; }
 private static void log(LogLevel lvl,int indent,String msg,Throwable t)
 {
    if (lvl.ordinal() > log_level.ordinal()) return;
-   
+
    String s = lvl.toString().substring(0,1);
    String sth = "*";
    Thread th = Thread.currentThread();
@@ -221,7 +224,7 @@ private static void log(LogLevel lvl,int indent,String msg,Throwable t)
       sth = Integer.toString(wt.getWorkerId());
     }
    String pfx = "FAIT:" + sth + ":" + s + ": ";
-   
+
    for (int i = 0; i < indent; ++i) pfx += "   ";
    String tail = "";
    if (t != null) {
@@ -231,7 +234,7 @@ private static void log(LogLevel lvl,int indent,String msg,Throwable t)
       t.printStackTrace(pw);
       tail = sw.toString();
     }
-   
+
    if (log_writer != null) {
       log_writer.println(pfx + msg + tail);
       log_writer.flush();
@@ -249,7 +252,7 @@ private static void log(LogLevel lvl,int indent,String msg,Throwable t)
 
 
 
-}       // end of class FaitLog
+}	// end of class FaitLog
 
 
 

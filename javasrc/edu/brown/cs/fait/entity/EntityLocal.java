@@ -60,9 +60,9 @@ private IfaceLocation    base_location;
 /*                                                                              */
 /********************************************************************************/
 
-EntityLocal(IfaceLocation where,IfaceType cls)
+EntityLocal(IfaceLocation where,IfaceType cls,IfacePrototype ptyp)
 {
-   super(cls);
+   super(cls,ptyp);
    base_location = where;
 }
 
@@ -121,8 +121,10 @@ EntityLocal(IfaceLocation where,IfaceType cls)
 {
    String loc = "NONE";
    if (base_location != null) loc = base_location.toString();
+   String typ = "";
+   if (getPrototype() != null) typ = "PROTO ";
    
-   return "Local New " + getDataType().getName() + " @ " + loc + " " + hashCode();
+   return "Local " + typ + getDataType().getName() + " @ " + loc + " " + hashCode();
 }
 
 

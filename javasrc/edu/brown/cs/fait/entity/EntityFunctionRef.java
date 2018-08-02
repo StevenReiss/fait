@@ -65,7 +65,7 @@ private String                  method_name;
 
 EntityFunctionRef(IfaceLocation loc,IfaceType typ,Map<Object,IfaceValue> bind)
 {
-   super(loc,typ);
+   super(loc,typ,null);
    initial_bindings = bind;
    method_name = null;
 }
@@ -73,7 +73,7 @@ EntityFunctionRef(IfaceLocation loc,IfaceType typ,Map<Object,IfaceValue> bind)
 
 EntityFunctionRef(IfaceLocation loc,IfaceType typ,String method)
 {
-   super(loc,typ);
+   super(loc,typ,null);
    initial_bindings = null;
    method_name = method;
 }

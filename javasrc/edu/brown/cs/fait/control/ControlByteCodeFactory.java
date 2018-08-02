@@ -268,7 +268,7 @@ private class InsField implements IfaceField {
        }
       else if (typ.isNumericType() && o instanceof Number) {
          typ = typ.getAnnotatedType(FaitAnnotation.INITIALIZED);
-         long v = ((Number) o).longValue();
+         Long v = ((Number) o).longValue();
          return fait_control.findRangeValue(typ,v,v);
        }
       else if (typ.isStringType() && o instanceof String) {
@@ -427,8 +427,8 @@ private class InsMethod implements IfaceMethod {
    @Override public List<IfaceMethod> getChildMethods() {
       List<IfaceMethod> rslt = new ArrayList<>();
       for (JcodeMethod fm : for_method.getChildMethods()) {
-	 if (fm == for_method) continue;
-	 rslt.add(getMethod(fm));
+         if (fm == for_method) continue;
+         rslt.add(getMethod(fm));
        }
       return rslt;
     }
@@ -524,11 +524,18 @@ private class InsAnnotation implements IfaceAnnotation {
       String nm = for_annotation.getDescription();
       int idx = nm.lastIndexOf(".");
       if (idx > 0) nm = nm.substring(idx+1);
+      if (nm.equals("Secure")) {
+         Object v = getAnnotationValue("value");
+         if (v != null) nm = v.toString();
+       }
       return nm;
     }
    
    @Override public Object getAnnotationValue(String key) {
-      return null;
+      if (key == null) key = "value";
+      Map<String,Object> map = for_annotation.getValues();
+      if (map == null) return null;
+      return map.get(key);
     }
    
 }       // end of inner class InsAnnotation

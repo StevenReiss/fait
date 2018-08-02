@@ -53,6 +53,7 @@ class ValueObject extends ValueBase implements JcodeConstants
 /********************************************************************************/
 
 private Map<IfaceType,ValueBase> restrict_map;
+private Map<IfaceType,ValueBase> change_map;
 private ValueBase	nonnull_value;
 
 
@@ -69,6 +70,7 @@ ValueObject(ValueFactory vf,IfaceType typ,IfaceEntitySet es,IfaceAnnotation ... 
    super(vf,typ,es);
 
    restrict_map = null;
+   change_map = null;
    nonnull_value = null;
 }
 
@@ -103,7 +105,10 @@ ValueObject(ValueFactory vf,IfaceType typ,IfaceEntitySet es,IfaceAnnotation ... 
              }
 	  }
 	 else if (ns.isEmpty()) {
-	    if (canBeNull()) nv = value_factory.nullValue(dt);
+            if (dt.isPrimitiveType()) nv = value_factory.anyValue(dt);
+	    else if (canBeNull() && dt.isDerivedFrom(getDataType())) {
+               nv = value_factory.nullValue(dt);
+             }
 	    else nv = value_factory.emptyValue(dt);
 	  }
 	 else {
@@ -119,6 +124,25 @@ ValueObject(ValueFactory vf,IfaceType typ,IfaceEntitySet es,IfaceAnnotation ... 
     }
 }
 
+
+
+@Override public IfaceValue changeType(IfaceType dt)
+{
+   if (dt == getDataType()) return this;
+   
+   synchronized (this) {
+      if (change_map == null) change_map = new HashMap<>(4);
+    }
+   
+   synchronized (change_map) {
+      ValueBase nv = change_map.get(dt);
+      if (nv == null) {
+         nv = value_factory.objectValue(dt,getEntitySet());
+         change_map.put(dt,nv);
+       }
+      return  nv;
+    }
+}
 
 
 
@@ -181,22 +205,21 @@ ValueObject(ValueFactory vf,IfaceType typ,IfaceEntitySet es,IfaceAnnotation ... 
    if (cv == this || cv == null) return this;
 
    if (!(cv instanceof ValueObject)) {
+      FaitLog.logD1("Bad value merge: " + this + " " + cv);
       return value_factory.badValue();
     }
 
    ValueObject cvo = (ValueObject) cv;
    IfaceEntitySet es = getEntitySet().addToSet(cvo.getEntitySet());
-
-   if (es == getEntitySet() &&
-	 (getDataType() == cvo.getDataType() || !es.isEmpty()))
+   IfaceType t1 = findCommonParent(getDataType(),cvo.getDataType());
+   
+   if (es == getEntitySet() && getDataType() == t1)
       return this;
 
-   if (es == cvo.getEntitySet() &&
-	 (getDataType() == cvo.getDataType() || !es.isEmpty()))
+   if (es == cvo.getEntitySet() && t1 == cvo.getDataType())
       return cvo;
 
    IfaceType typ = getSetType(es);
-   IfaceType t1 = findCommonParent(getDataType(),cvo.getDataType());
    if (typ == null) typ = t1;
    else typ = typ.getAnnotatedType(t1);
 
@@ -220,7 +243,7 @@ ValueObject(ValueFactory vf,IfaceType typ,IfaceEntitySet es,IfaceAnnotation ... 
 {
    switch (op) {
       case INSTANCEOF :
-	 if (canBeNull()) break;
+	 // if (canBeNull()) break;
 	 ValueBase ncv = restrictByType(rhs.getDataType());
 	 if (ncv.isEmptyEntitySet())
 	    return value_factory.rangeValue(typ,0l,0l);
@@ -460,9 +483,13 @@ private IfaceType getSetType(IfaceEntitySet es)
 {
    IfaceValue cv = null;
    for (IfaceEntity xe : getEntities()) {
+      if (FaitLog.isTracing()) {
+         FaitLog.logD1("Array length entity: " + xe + "(" + xe.hashCode() + ") = " + xe.getFieldValue("length"));
+       }
       if (xe.getDataType().isArrayType()) {
          IfaceValue cv1 = xe.getFieldValue("length");
-         if (cv1 == null) return super.getArrayLength();
+         if (cv1 == null) 
+            return super.getArrayLength();
          if (cv == null) cv = cv1;
          else cv = cv.mergeValue(cv1);
        }

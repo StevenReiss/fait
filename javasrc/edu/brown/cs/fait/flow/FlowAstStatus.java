@@ -97,6 +97,31 @@ FlowAstStatus(Reason r,IfaceValue v)
    return status_value;
 }
 
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Debugging methods                                                       */
+/*                                                                              */
+/********************************************************************************/
+
+@Override public String toString()
+{
+   StringBuffer buf = new StringBuffer();
+   buf.append(status_reason.toString());
+   buf.append("[");
+   if (status_message != null) buf.append(status_message);
+   if (status_value != null) {
+      if (status_message != null) buf.append(":");
+      buf.append(status_value.toString());
+    }
+   buf.append("]");
+   return buf.toString();
+}
+
+
+
+
 }       // end of class FlowAstStatus
 
 

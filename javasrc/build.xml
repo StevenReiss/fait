@@ -7,6 +7,7 @@
    <target name='all'>
       <ant antfile="build.xml" dir="edu/brown/cs/fait/iface" />
       <ant antfile="build.xml" dir="edu/brown/cs/fait/type" />
+      <ant antfile="build.xml" dir="edu/brown/cs/fait/safety" />
       <ant antfile="build.xml" dir="edu/brown/cs/fait/entity" />
       <ant antfile="build.xml" dir="edu/brown/cs/fait/value" />
       <ant antfile="build.xml" dir="edu/brown/cs/fait/state" />
@@ -33,6 +34,7 @@
 	 <package name='edu.brown.cs.fait.iface' />
 	 <package name='edu.brown.cs.fait.flow' />
 	 <package name='edu.brown.cs.fait.proto' />
+	 <package name='edu.brown.cs.fait.safety' />
 	 <package name='edu.brown.cs.fait.server' />
 	 <package name='edu.brown.cs.fait.state' />
 	 <package name='edu.brown.cs.fait.type' />

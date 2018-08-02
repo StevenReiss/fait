@@ -80,33 +80,33 @@ FlowCall(IfaceControl fc,FlowQueue fq)
 /*										*/
 /********************************************************************************/
 
-boolean handleCall(FlowLocation loc,IfaceState st0,FlowQueueInstance wq)
+CallReturn handleCall(FlowLocation loc,IfaceState st0,FlowQueueInstance wq)
 {
    IfaceProgramPoint inspt = loc.getProgramPoint();
    boolean virt = inspt.isVirtualCall();
    IfaceCall method = loc.getCall();
-
    IfaceMethod dbgmthd = inspt.getReferencedMethod();
-   if (dbgmthd == null)
-      FaitLog.logE("NO METHOD FOUND: " + inspt);
+   if (dbgmthd == null) {
+      FaitLog.logW("NO METHOD FOUND: " + inspt);
+      return CallReturn.NOT_DONE;
+    }
    
    LinkedList<IfaceValue> args = getCallArguments(loc,st0);
-   if (args == null) return false;
+   if (args == null) return CallReturn.NOT_DONE;
    
    if (FaitLog.isTracing()) {
       for (IfaceValue av : args) FaitLog.logD1("Arg = " + av);
     }
    
    IfaceMethod tgt = findProperMethod(loc,args);
-
+   
    flow_queue.initialize(tgt.getDeclaringClass());
 
    IfaceValue rslt = processCall(tgt,args,virt,loc,st0,null);
-
+   
    if (tgt.getExceptionTypes().size() > 0) {
       for (IfaceCall c0 : method.getAllMethodsCalled(inspt)) {
          wq.handleThrow(loc,c0.getExceptionValue(),st0);
-	 // handleThrow(wq,loc,c0.getExceptionValue(),st0);
        }
     }
    else {
@@ -119,16 +119,23 @@ boolean handleCall(FlowLocation loc,IfaceState st0,FlowQueueInstance wq)
     }
 
    IfaceType rtyp = tgt.getReturnType();
+   IfaceSpecial spl = fait_control.getCallSpecial(inspt,tgt);
+   if (rtyp == null && rslt != null) 
+      rtyp = rslt.getDataType();
    if (rtyp != null && !rtyp.isVoidType()) {
-      IfaceSpecial spl = fait_control.getCallSpecial(inspt,tgt);
       if (spl != null && spl.isConstructor() && rslt != null) {
 	 IfaceValue fv = spl.getReturnValue(loc.getProgramPoint(),tgt);
 	 rslt = fv;
        }
-      if (rslt == null || !rslt.isGoodEntitySet()) return false;
+      if (rslt == null || !rslt.isGoodEntitySet()) return CallReturn.NOT_DONE;
       st0.pushStack(rslt);
     }
-   else if (rslt == null) return false;
+   else if (rslt == null) {
+      if (spl != null && spl.getNeverReturns()) {
+         return CallReturn.NO_RETURN;
+       }
+      return CallReturn.NOT_DONE;
+    }
 
    if (!method.getMethod().isStatic()) {
       if (method.getMethod().getDeclaringClass() == tgt.getDeclaringClass() && !tgt.isStatic()) {
@@ -139,7 +146,7 @@ boolean handleCall(FlowLocation loc,IfaceState st0,FlowQueueInstance wq)
    if (FaitLog.isTracing())
       FaitLog.logD1("Return = " + rslt);
 
-   return true;
+   return CallReturn.CONTINUE;
 }
 
 
@@ -164,12 +171,22 @@ void handleCallback(IfaceMethod bm,List<IfaceValue> args,String cbid)
 /*										*/
 /********************************************************************************/
 
-void handleReturn(IfaceCall cm,IfaceValue v0)
+void handleReturn(IfaceCall cm,IfaceValue v0,IfaceLocation loc)
 {
    IfaceMethod bm = cm.getMethod();
-
+   
    if (v0 != null && v0.mustBeNull()) {
       v0 = fait_control.findNullValue(bm.getReturnType());
+    }
+   
+   List<IfaceAnnotation> annots = bm.getReturnAnnotations();
+   if (annots != null && v0 != null) {
+      IfaceType dt = v0.getDataType();
+      IfaceType rt = dt.getAnnotatedType(annots);
+      if (rt != dt) {
+         dt.checkCompatibility(rt,loc);
+         v0 = v0.changeType(rt);
+       }
     }
    
    if (FaitLog.isTracing())
@@ -178,11 +195,11 @@ void handleReturn(IfaceCall cm,IfaceValue v0)
    boolean fg = cm.addResult(v0);
    if (fg) flow_queue.handleReturnSetup(bm);
    if (fg) {
-      queueReturn(v0,cm);
+      queueReturn(v0,cm,loc);
       Set<IfaceCall> s = rename_map.get(cm);
       if (s != null) {
 	 for (IfaceCall c0 : s) {
-	    queueReturn(v0,c0);
+	    queueReturn(v0,c0,loc);
 	  }
        }
     }
@@ -194,18 +211,18 @@ void handleReturn(IfaceCall cm,IfaceValue v0)
 
 
 
-private void queueReturn(IfaceValue v,IfaceCall cm)
+private void queueReturn(IfaceValue v,IfaceCall cm,IfaceLocation loc)
 {
    if (FaitLog.isTracing()) FaitLog.logD1("Return change " + cm + " = " + v);
 
-   for (IfaceLocation loc : cm.getCallSites()) {
-      if (FaitLog.isTracing()) FaitLog.logD1("Queue for return " + loc);
-      flow_queue.queueMethodChange(loc.getCall(),loc.getProgramPoint());
+   for (IfaceLocation cloc : cm.getCallSites()) {
+      if (FaitLog.isTracing()) FaitLog.logD1("Queue for return " + cloc);
+      flow_queue.queueMethodChange(cloc.getCall(),cloc.getProgramPoint());
     }
 
    for (IfaceMethod fm : cm.getMethod().getParentMethods()) {
       for (IfaceCall xcm : fait_control.getAllCalls(fm)) {
-	 handleReturn(xcm,v);
+	 handleReturn(xcm,v,loc);
        }
     }
 }
@@ -245,13 +262,18 @@ private LinkedList<IfaceValue> getCallArguments(FlowLocation loc,IfaceState st0)
    for (int i = 0; i < tgt.getNumArgs(); ++i) {
       IfaceType rtype = tgt.getArgType(i);
       if (rtype == null) {
-         FaitLog.logE("NULL ARGUMENT TYPE for " + tgt + " " + i);
-         continue;
+         FaitLog.logW("NULL argument type for " + tgt + " " + i);
+         return null;
        }
       IfaceValue v0 = args.get(i+delta);
       if (v0 == null) continue;
       IfaceValue v1 = flow_queue.castValue(rtype,v0,loc);
-      if (v1 != v0) args.set(i+delta,v1);
+      if (v1 != v0) {
+         args.set(i+delta,v1);
+         if (!v1.getDataType().isPrimitiveType()) {
+            v0.getDataType().checkCompatibility(rtype,loc);
+          }
+       }   
     }
 
    return args;
@@ -265,6 +287,20 @@ private IfaceMethod findProperMethod(IfaceLocation loc,List<IfaceValue> args)
    IfaceMethod tgt = ins.getReferencedMethod();
    boolean ifc = ins.isInterfaceCall();
 
+   if (!tgt.isStatic()) {
+      IfaceType ttyp = tgt.getDeclaringClass();
+      ttyp = ttyp.getAnnotatedType(FaitAnnotation.DEREFED);
+      IfaceValue arg0 = args.get(0);
+      IfaceValue arg0x = arg0.restrictByType(ttyp);
+      if (arg0x != null && arg0x != arg0) {
+         IfaceBaseType t0 = arg0x.getDataType().getJavaType();
+         IfaceBaseType t1 = arg0.getDataType().getJavaType();
+         if (t0 != t1) {
+            args.set(0,arg0x);
+          }
+       }
+    }
+   
    if (!tgt.hasCode() && tgt.isStatic()) {
       // handle inherited static methods
       IfaceMethod ntgt = fait_control.findInheritedMethod(tgt.getDeclaringClass(),
@@ -313,7 +349,7 @@ private IfaceValue processCall(IfaceMethod bm,List<IfaceValue> args,boolean virt
    
    LinkedList<IfaceValue> nargs = checkCall(loc,bm,args);
    if (nargs != null) {
-      rslt = handleSpecialCases(bm,args,loc);
+      rslt = handleSpecialCases(bm,args,loc,st0);
       if (rslt != null) return rslt;
     }
 
@@ -362,19 +398,26 @@ private LinkedList<IfaceValue> checkCall(FlowLocation loc,IfaceMethod fm,List<If
       if (xid < 0) {
 	 dt = fm.getDeclaringClass();
 	 if (!flow_queue.canBeUsed(dt)) {
-            if (loc != null) flow_queue.checkInitialized(loc.getCall(),loc.getProgramPoint());
+            if (loc != null) {
+               flow_queue.checkInitialized(loc.getCall(),loc.getProgramPoint());
+               if (dt.isInProject()) flow_queue.requeueIfInitialized(loc,dt);
+             }
             return null;
           }
        }
       else dt = fm.getArgType(xid);
       if (dt == null) {
-         FaitLog.logE("Call with NULL argument type " + fm + " " + xid);
+         FaitLog.logE("Call with NULL or BAD argument type " + fm + " " + xid);
          return null;
        }
       dt = dt.getRunTimeType();
       IfaceValue ncv = cv.restrictByType(dt);
       if (ncv.mustBeNull() && !ncv.getDataType().isCompatibleWith(dt))
          ncv = fait_control.findNullValue(dt);
+      else if (ncv.isBad()) {
+         FaitLog.logE("Call with BAD argument " + fm + " " + xid);
+         return null;
+       }
       if (xid < 0) {
 	 if (ncv.mustBeNull()) return null;
 	 ncv = ncv.forceNonNull();
@@ -384,6 +427,7 @@ private LinkedList<IfaceValue> checkCall(FlowLocation loc,IfaceMethod fm,List<If
           }
        }
       if (!ncv.isGoodEntitySet() && !dt.isPrimitiveType() && !ncv.canBeNull()) return null;
+      ncv.getDataType().checkCompatibility(dt,loc);
       nargs.add(ncv);
       ++xid;
     }
@@ -394,7 +438,7 @@ private LinkedList<IfaceValue> checkCall(FlowLocation loc,IfaceMethod fm,List<If
 
 
 
-private IfaceValue handleSpecialCases(IfaceMethod fm,List<IfaceValue> args,FlowLocation loc)
+private IfaceValue handleSpecialCases(IfaceMethod fm,List<IfaceValue> args,FlowLocation loc,IfaceState state)
 {
    if (fm.getName().equals("arraycopy") &&
          fm.getDeclaringClass().getName().equals("java.lang.System")) {
@@ -409,7 +453,16 @@ private IfaceValue handleSpecialCases(IfaceMethod fm,List<IfaceValue> args,FlowL
    if (fm.getName().equals("hashCode") && !fait_control.isInProject(fm)) {
       return fait_control.findAnyValue(fait_control.findDataType("int"));
     }
-        
+   
+   if (fm.getDeclaringClass().getName().equals("edu.brown.cs.karma.KarmaUtils")) {
+      if (fm.getName().equals("event")) {
+         IfaceValue v0 = args.get(0);
+         String sv = v0.getStringValue();
+         if (sv != null) state.updateSafetyStatus(sv);
+       }
+      return fait_control.findAnyValue(fm.getReturnType());
+    }
+
    
    return null;
 }
@@ -423,21 +476,32 @@ private ProtoInfo handlePrototypes(IfaceProgramPoint ppt,IfaceMethod fm,LinkedLi
    int nsrc = 0;
 
    if (fm.isStatic()) return null;
+   
+   boolean iscopy = fm.getName().equals("toArray") || fm.getName().equals("copyInto");
+   iscopy &= args.size() == 2;
 
    IfaceValue cv = args.get(0);
    for (IfaceEntity ce : cv.getEntities()) {
       IfacePrototype pt = ce.getPrototype();
       // TODO: if ce is fixed and pt is null, convert FIXED to PROTO
-      if (pt != null) {
-	 if (pt.isMethodRelevant(fm)) {
-	    IfaceValue nv = pt.handleCall(fm,args,loc);
-	    IfaceCall fc = fait_control.findPrototypeMethod(ppt,fm);
-	    fc.noteCallSite(loc);
-	    if (nv != null) {
-	       if (rslt == null) rslt = nv;
-	       else rslt = rslt.mergeValue(nv);
-	     }
-	  }
+      if (pt != null && pt.isMethodRelevant(fm)) {
+         IfaceValue arrval = null;
+         if (iscopy) {
+            arrval = args.get(1).getArrayContents();
+          }
+         IfaceValue nv = pt.handleCall(fm,args,loc);
+         IfaceCall fc = fait_control.findPrototypeMethod(ppt,fm);
+         fc.noteCallSite(loc);
+         if (nv != null) {
+            if (rslt == null) rslt = nv;
+            else rslt = rslt.mergeValue(nv);
+          }
+         if (iscopy) {
+            IfaceValue narrval = args.get(1).getArrayContents();
+            if (narrval != arrval && narrval != null) {
+               flow_queue.handleArrayChange(args.get(1));
+             }
+          }
        }
       else if (!ce.isUserEntity()) ++nsrc;
     }
@@ -460,10 +524,7 @@ private IfaceValue checkVirtual(IfaceMethod bm,List<IfaceValue> args,
       if (isnative && fait_control.isProjectClass(km.getDeclaringClass()) &&
 	    !fait_control.isProjectClass(cv.getDataType()))
 	 continue;
-      boolean virt = true;
-      if (km.isStatic() || km.isConstructor() || km.isStaticInitializer()) virt = false;
-      virt = false;
-      IfaceValue srslt = processCall(km,args,virt,loc,st,cbid);
+      IfaceValue srslt = processCall(km,args,false,loc,st,cbid);
       if (srslt != null) {
 	 if (rslt == null) rslt = srslt;
 	 else rslt = rslt.mergeValue(srslt);
@@ -549,7 +610,7 @@ private IfaceValue processActualCall(IfaceMethod fm,List<IfaceValue> args,boolea
 
    if (loc != null && mi.getCanExit() && !loc.getCall().getCanExit()) {
       loc.getCall().setCanExit();
-      queueReturn(null,loc.getCall());
+      queueReturn(null,loc.getCall(),loc);
     }
 
    if (virt) rslt = checkVirtual(fm,nargs,loc,st,orig,rslt,cbid);

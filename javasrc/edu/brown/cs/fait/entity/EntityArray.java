@@ -72,9 +72,13 @@ EntityArray(IfaceControl ctrl,IfaceType cls,IfaceValue size)
    base_class = cls;
    array_class = ctrl.findDataType(cls.getName() + "[]",FaitAnnotation.NON_NULL);
 
-   if (size == null) size = ctrl.findAnyValue(ctrl.findDataType("int"));
+   if (size == null) {
+     // size = ctrl.findAnyValue(ctrl.findDataType("int"));
+      size = ctrl.findRangeValue(ctrl.findDataType("int"),0L,null);
+    }
    else if (!size.getDataType().isNumericType()) {
-      size = ctrl.findAnyValue(ctrl.findDataType("int"));
+      // size = ctrl.findAnyValue(ctrl.findDataType("int"));
+      size = ctrl.findRangeValue(ctrl.findDataType("int"),0L,null);
     }
     
    size_value = size;
@@ -132,16 +136,44 @@ EntityArray(IfaceControl ctrl,IfaceType cls,IfaceValue size)
             if (iv0 != null) v1 = v1.mergeValue(iv0);
             known_values.put(idxv,v1);
           }
-         else known_values = null;
+         else {
+            known_values = null;
+          }
        }
     }
    
-   v = array_values.mergeValue(v);
-   if (v == array_values) return false;
+   IfaceValue v1 = array_values.mergeValue(v);
+   if (v1 == array_values) return false;
+   if (v1.isBad()) {
+      FaitLog.logE("Bad data on array merge");
+      v1 = array_values.mergeValue(v);
+      // create any value of result type
+    }
 
-   array_values = v;
+   array_values = v1;
 
    return true;
+}
+
+
+@Override public synchronized boolean replaceArrayContents(IfaceValue v,IfaceLocation loc)
+{
+   size_value = null;
+   return addToArrayContents(v,null,loc);
+}
+
+@Override public boolean setArraySize(IfaceValue sz)
+{
+   if (sz == null) size_value = null;
+   else if (size_value != null) {
+      IfaceValue nv = size_value.mergeValue(sz);
+      if (nv != size_value) {
+         size_value = nv;
+         return true;
+       }
+    }
+   
+   return false;
 }
 
 

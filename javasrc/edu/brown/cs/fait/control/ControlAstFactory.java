@@ -48,15 +48,20 @@ import java.util.concurrent.ConcurrentSkipListMap;
 
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTVisitor;
+import org.eclipse.jdt.core.dom.AnnotatableType;
+import org.eclipse.jdt.core.dom.ArrayType;
 import org.eclipse.jdt.core.dom.BooleanLiteral;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
+import org.eclipse.jdt.core.dom.IntersectionType;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.NumberLiteral;
+import org.eclipse.jdt.core.dom.ParameterizedType;
 import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 import org.eclipse.jdt.core.dom.StringLiteral;
 import org.eclipse.jdt.core.dom.StructuralPropertyDescriptor;
 import org.eclipse.jdt.core.dom.Type;
+import org.eclipse.jdt.core.dom.UnionType;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 
 import edu.brown.cs.fait.iface.FaitAnnotation;
@@ -303,9 +308,11 @@ IfaceBaseType getMethodType(IfaceType rtn,List<IfaceType> args)
 }
 
 
-IfaceBaseType getFunctionRefType(IfaceBaseType bt)
+IfaceBaseType getFunctionRefType(IfaceBaseType bt,IfaceBaseType nstype)
 {
-   JcompType jt = JcompType.createFunctionRefType(getInternalType(bt),null,null);
+   JcompType jns = null;
+   if (nstype != null) jns = getInternalType(nstype);
+   JcompType jt = JcompType.createFunctionRefType(getInternalType(bt),jns,null);
    return getType(jt);
 }
 
@@ -400,16 +407,25 @@ private class AstType implements IfaceBaseType {
    @Override public IfaceBaseType getBaseType() {
       return getType(jcomp_type.getBaseType());
     }
+   
    @Override public IfaceBaseType getSuperType() {
       return getType(jcomp_type.getSuperType());
     }
+   
    @Override public IfaceBaseType getArrayType() {
       return getType(jcomp_typer.findArrayType(jcomp_type));
     }
+   
    @Override public IfaceBaseType getAssociatedType() {
       return getType(jcomp_type.getAssociatedType());
     }
 
+   @Override public IfaceBaseType getComponentType(int i) {
+      List<JcompType> comps = jcomp_type.getComponents();
+      if (i < 0 || i >= comps.size()) return null;
+      return getType(comps.get(i));
+    }
+   
    @Override public IfaceBaseType getRunTimeType() {
       if (jcomp_type.isParameterizedType()) {
 	 return getType(jcomp_type.getBaseType());
@@ -432,6 +448,16 @@ private class AstType implements IfaceBaseType {
       return rslt;
     }
 
+   @Override public Map<String,IfaceType> getFieldData() {
+      Map<String,JcompType> flds = jcomp_type.getFields(jcomp_typer);
+      Map<String,IfaceType> rslt = new HashMap<>();
+      for (Map.Entry<String,JcompType> ent : flds.entrySet()) {
+         IfaceType t0 = getFullType(ent.getValue());
+         rslt.put(ent.getKey(),t0);
+       }
+      return rslt;
+    }
+   
    @Override public IfaceBaseType findChildForInterface(IfaceBaseType dt) {
       JcompType jt = jcomp_type.findChildForInterface(jcomp_typer,getInternalType(dt));
       return getType(jt);
@@ -466,6 +492,7 @@ private class AstType implements IfaceBaseType {
       if (jcomp_type == null) return "???";
       return jcomp_type.toString();
     }
+   
 }	// end of inner class AstType
 
 
@@ -602,7 +629,7 @@ private class AstMethod implements IfaceMethod {
 
    @Override public IfaceType getReturnType() {
       return fait_control.findDataType(getType(method_symbol.getType().getBaseType()),
-	    createAnnotations(method_symbol.getAnnotations()));
+            createAnnotations(method_symbol.getAnnotations()));
     }
    @Override public int getNumArgs() {
       return method_symbol.getType().getComponents().size();
@@ -610,7 +637,7 @@ private class AstMethod implements IfaceMethod {
    @Override public IfaceType getArgType(int i) {
       List<JcompType> comps = method_symbol.getType().getComponents();
       if (i < 0 || i >= comps.size()) return null;
-      return fait_control.findDataType(getType(comps.get(i)),createAnnotations(null));
+      return fait_control.findDataType(getType(comps.get(i)),getArgAnnotations(i));
     }
    @Override public IfaceType getDeclaringClass() {
       return fait_control.findDataType(getType(method_symbol.getClassType()),null);
@@ -700,6 +727,12 @@ private class AstMethod implements IfaceMethod {
    @Override public List<IfaceAnnotation> getArgAnnotations(int i) {
       MethodDeclaration md = (MethodDeclaration) method_symbol.getDefinitionNode();
       if (md == null) return null;
+      if (method_symbol.isConstructorSymbol()) {
+         if (method_symbol.getClassType().needsOuterClass()) {
+            if (i == 0) return null;
+            i = i-1;
+          }
+       }
       SingleVariableDeclaration arg = (SingleVariableDeclaration) md.parameters().get(i);
       JcompSymbol argsym = JcompAst.getDefinition(arg);
       return getAnnotations(argsym);
@@ -710,7 +743,7 @@ private class AstMethod implements IfaceMethod {
       if (jans == null) return null;
       List<IfaceAnnotation> rslt = new ArrayList<>();
       for (JcompAnnotation ja : jans) {
-	 rslt.add(createAnnotation(ja));
+         rslt.add(createAnnotation(ja));
        }
       return rslt;
     }
@@ -751,15 +784,15 @@ private static class LocalVisitor extends ASTVisitor {
 
    @Override public boolean visit(MethodDeclaration md) {
       if (!Modifier.isStatic(md.getModifiers())) {
-	 local_map.put("this",local_count++);
-	 JcompSymbol js = JcompAst.getDefinition(md);
-	 if (js.isConstructorSymbol()) {
-	    JcompType jt = js.getClassType();
-	    if (jt.needsOuterClass()) {
-	       String nm = "this$0";
-	       local_map.put(nm,local_count++);
-	     }
-	  }
+         local_map.put("this",local_count++);
+         JcompSymbol js = JcompAst.getDefinition(md);
+         if (js.isConstructorSymbol()) {
+            JcompType jt = js.getClassType();
+            if (jt.needsOuterClass()) {
+               String nm = "this$0";
+               local_map.put(nm,local_count++);
+             }
+          }
        }
       return true;
     }
@@ -884,8 +917,8 @@ private class AstField implements IfaceField {
        }
       else if (initv instanceof BooleanLiteral) {
          if (typ.isBooleanType()) {
-             long v = ((BooleanLiteral) initv).booleanValue() ? 1 : 0;
-             return fait_control.findRangeValue(typ,v,v);
+            long v = ((BooleanLiteral) initv).booleanValue() ? 1 : 0;
+            return fait_control.findConstantValue(typ,v);
           }
        }
       else if (initv instanceof StringLiteral) {
@@ -966,6 +999,73 @@ List<IfaceAnnotation> createAnnotations(List<JcompAnnotation> jans)
    return rslt;
 }
 
+IfaceAnnotation [] getAnnotations(ASTNode n)
+{
+   if (n instanceof AnnotatableType) {
+      AnnotatableType at = (AnnotatableType) n;
+      List<JcompAnnotation> annots = JcompAnnotation.getAnnotations(at.annotations());
+      if (annots == null || annots.size() == 0) return null;
+      IfaceAnnotation [] rslt = new IfaceAnnotation[annots.size()];
+      for (int i = 0; i < annots.size(); ++i) {
+         rslt[i] = createAnnotation(annots.get(i));
+       }
+      return rslt;
+    }
+   else if (n instanceof ParameterizedType) {
+      ParameterizedType pt = (ParameterizedType) n;
+      return getAnnotations(pt.getType());
+    }
+   else if (n instanceof ArrayType) {
+      ArrayType at = (ArrayType) n;
+      return getAnnotations(at.getElementType());
+    }
+   else if (n instanceof UnionType) {
+      UnionType ut = (UnionType) n;
+      IfaceAnnotation [] rslt = null;
+      for (Object o : ut.types()) {
+         IfaceAnnotation [] nrslt = getAnnotations((ASTNode) o);
+         rslt = mergeAnnotations(rslt,nrslt);
+       }
+      return rslt;
+    }
+   else if (n instanceof IntersectionType) {
+      IntersectionType ut = (IntersectionType) n;
+      IfaceAnnotation [] rslt = null;
+      for (Object o : ut.types()) {
+         IfaceAnnotation [] nrslt = getAnnotations((ASTNode) o);
+         rslt = mergeAnnotations(rslt,nrslt);
+       }
+      return rslt;
+    }   
+   return null;
+}
+
+
+
+private IfaceAnnotation [] mergeAnnotations(IfaceAnnotation [] r1,IfaceAnnotation [] r2)
+{
+   if (r2 == null) return r1;
+   if (r1 == null) return r2;
+   List<IfaceAnnotation> add = new ArrayList<>();
+   for (IfaceAnnotation a2 : r2) {
+      boolean fnd = false;
+      for (IfaceAnnotation a1 : r1) {
+         if (a1.equals(a2)) {
+            fnd = true;
+            break;
+          }
+       }
+      if (!fnd) add.add(a2);
+    }
+   if (add.isEmpty()) return r1;
+   IfaceAnnotation [] rslt = new IfaceAnnotation[r1.length + add.size()];
+   for (int i = 0; i < r1.length; ++i) rslt[i] = r1[i];
+   int pos = r1.length;
+   for (IfaceAnnotation a3 : add) {
+      rslt[pos++] = a3;
+    }
+   return rslt;
+}
 
 
 private class AstAnnotation implements IfaceAnnotation {
@@ -982,13 +1082,22 @@ private class AstAnnotation implements IfaceAnnotation {
       String nm = jt.getName();
       int idx = nm.lastIndexOf(".");
       if (idx > 0) nm = nm.substring(idx+1);
+      if (nm.equals("Secure")) {
+         Object v = getAnnotationValue("value");
+         if (v != null) nm = v.toString();
+       }
       return nm;
     }
 
    @Override public Object getAnnotationValue(String key) {
+      if (key == null) key = "value";
       Map<String,Object> map = for_annot.getValues();
       if (map == null) return null;
       return map.get(key);
+    }
+   
+   @Override public String toString() {
+      return for_annot.toString();
     }
 
 }	// end of inner class AstAnnotation
@@ -1044,7 +1153,7 @@ private static class RefComparator implements Comparator<ControlAstReference> {
       if (s1 == null && s2 == null) return 0;
       if (s1 == null && s2 != null) return -1;
       if (s1 != null && s2 == null) return 1;
-      int s = s2.getReason().ordinal() - s2.getReason().ordinal();
+      int s = s1.getReason().ordinal() - s2.getReason().ordinal();
       if (s < 0) return -1;
       if (s > 0) return 1;
       if (s1.getValue() == s2.getValue()) return 0;

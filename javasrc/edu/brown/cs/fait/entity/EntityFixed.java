@@ -61,11 +61,12 @@ private IfaceValue	base_value;
 /*										*/
 /********************************************************************************/
 
-EntityFixed(IfaceType dt,boolean mutable)
+EntityFixed(IfaceType dt,boolean mutable,IfacePrototype ptyp)
 {
-   super(dt);
+   super(dt,ptyp);
    base_value = null;
    is_mutable = mutable;
+   if (ptyp != null) ptyp.setAnyValue();
 }
 
 
@@ -76,8 +77,20 @@ EntityFixed(IfaceType dt,boolean mutable)
 /*										*/
 /********************************************************************************/
 
-@Override public boolean isNative()		{ return true; }
+@Override public boolean isNative()	
+{ 
+   IfaceType typ = getDataType();
+   if (typ != null) {
+      if (typ.isInProject()) return false;
+    }
+   return true; 
+}
 
+
+@Override public boolean isMutable()
+{
+   return is_mutable;
+}
 
 
 /********************************************************************************/
@@ -141,8 +154,10 @@ EntityFixed(IfaceType dt,boolean mutable)
        }
     }
    else if (is_mutable && getDataType().isDerivedFrom(dt)) {
-      System.err.println("SPECIAL CASE:");
+      if (FaitLog.isTracing()) 
+         FaitLog.logD1("Mutable change " + getDataType() + " => " + dt);
     }
+   // else if same Java type then treat as mutable
    
    if (eb == null) return null;
    Collection<IfaceEntity> rslt = new ArrayList<IfaceEntity>();
@@ -166,6 +181,7 @@ EntityFixed(IfaceType dt,boolean mutable)
    StringBuilder buf = new StringBuilder();
    buf.append("Fixed");
    if (is_mutable) buf.append("*");
+   if (getPrototype() != null) buf.append("PROTO");
    buf.append(" ");
    buf.append(getDataType().getName());
 

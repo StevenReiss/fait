@@ -95,8 +95,8 @@ ValueInt(ValueFactory vf,IfaceType dt,Long minv,Long maxv,IfaceEntitySet es)
 /*										*/
 /********************************************************************************/
 
-Long getMinValue()			{ return min_value; }
-Long getMaxValue()			{ return max_value; }
+@Override public Long getMinValue()		{ return min_value; }
+@Override public Long getMaxValue()     	{ return max_value; }
 
 
 
@@ -155,6 +155,7 @@ Long getMaxValue()			{ return max_value; }
 	  }
 	 if (max_value != null && rhs.max_value != null) {
 	    mxv = max_value * rhs.max_value;
+            if (mxv < mnv) mxv = null;
 	  }
 	 break;
       case MOD :
@@ -355,6 +356,10 @@ Long getMaxValue()			{ return max_value; }
       rslt = value_factory.anyValue(typ);
     }
    else {
+      if (mnv != null && mxv != null && mnv > mxv) {
+         if (mxv > 0) mnv = null;
+         else mxv = null;
+       }
       rslt = value_factory.rangeValue(typ,mnv,mxv);
     }
 
@@ -410,7 +415,7 @@ Long getMaxValue()			{ return max_value; }
 	 rt = value_factory.rangeValue(rhs.getDataType(),
 	       (mnv == null ? rhs.min_value : mnv),
 	       (mxv == null ? rhs.max_value : mxv));
-	 if (v1 != null) {
+	 if (v1 != null && max_value != null) {
 	    if (v1.equals(min_value) && min_value+1 <= max_value) {
 	       lf = value_factory.rangeValue(getDataType(),min_value+1,max_value);
 	     }
@@ -503,12 +508,12 @@ Long getMaxValue()			{ return max_value; }
 	 flip = true;
 	 // fall through
       case LSS_ZERO :
-	 if (max_value != null && max_value >= 0) {
+	 if (max_value == null || max_value >= 0) {
             if (min_value == null || min_value <= -1) {
                lt = value_factory.rangeValue(getDataType(),min_value,-1l);
              }
 	  }
-	 if (min_value != null && min_value < 0) {
+	 if (min_value == null || min_value < 0) {
             if (max_value == null || max_value >= 0) {
                lf = value_factory.rangeValue(getDataType(),0l,max_value);
              }
@@ -518,12 +523,12 @@ Long getMaxValue()			{ return max_value; }
 	 flip = true;
 	 // fall through
       case LEQ_ZERO :
-	 if (max_value != null && max_value > 0) {
+	 if (max_value == null || max_value > 0) {
             if (min_value == null || min_value <= 0) {
                lt = value_factory.rangeValue(getDataType(),min_value,0l);
              }
 	  }
-	 if (min_value != null && min_value <= 0) {
+	 if (min_value == null || min_value <= 0) {
             if (max_value == null || max_value >= 1) {
                lf = value_factory.rangeValue(getDataType(),1l,max_value);
              }
@@ -593,7 +598,10 @@ Long getMaxValue()			{ return max_value; }
 {
    if (vb == this || vb == null) return this;
 
-   if (!(vb instanceof ValueInt)) return value_factory.badValue();
+   if (!(vb instanceof ValueInt)) {
+      FaitLog.logD1("Bad int value merge: " + this + " " + vb);
+      return value_factory.badValue();
+    }
 
    ValueInt cvi = (ValueInt) vb;
    IfaceType fdt = getDataType();
@@ -611,6 +619,9 @@ Long getMaxValue()			{ return max_value; }
 	 else if (Math.abs(max_value-cvi.max_value) <= 0) mnv = null;
 	 else mnv = mxv = null;
        }
+      if (mnv != null && min_value != cvi.min_value && mxv == null && 
+            mnv < -VALUE_MAX_RANGE) 
+         mnv = null;
       // FaitLog.logD1("MergeInt " + min_value + " " + cvi.min_value + " " +
 	    // max_value + " " + cvi.max_value + " " + mnv + " " + mxv);
       return value_factory.rangeValue(getDataType(),mnv,mxv);
@@ -644,6 +655,14 @@ Long getMaxValue()			{ return max_value; }
    if (nt == getDataType()) return this;
    if (hasRange()) return value_factory.rangeValue(nt,min_value,max_value);
    return value_factory.anyValue(nt);
+}
+
+
+@Override public IfaceValue changeType(IfaceType dt)
+{
+   if (dt == getDataType()) return this;
+   if (hasRange()) return value_factory.rangeValue(dt,min_value,max_value);
+   return value_factory.anyValue(dt);
 }
 
 

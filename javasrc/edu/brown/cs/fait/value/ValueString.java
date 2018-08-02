@@ -93,11 +93,18 @@ ValueString(ValueFactory vf,IfaceType typ,String s,IfaceEntitySet es)
                return value_factory.constantString(known_value + rval.known_value);
              }
           }
-         return value_factory.constantString();
+         return value_factory.constantStringNonNull();
     }
    
    return super.localPerformOperation(typ,rhs,op,src);
 }
+
+
+@Override public String getStringValue()
+{
+   return known_value;
+}
+
 
 
 }       // end of class ValueString

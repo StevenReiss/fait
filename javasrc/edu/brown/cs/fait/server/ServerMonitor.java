@@ -351,6 +351,7 @@ private void handleAnalyze(String sid,Element xml,IvyXmlWriter xw)
    ServerProject sp = ss.getProject();
    int nth = IvyXml.getAttrInt(xml,"THREADS",ss.getNumThread());
    if (nth != 0) ss.setNumThread(nth);
+   ReportOption opt = IvyXml.getAttrEnum(xml,"REPORT",ReportOption.FULL);
    String retid = IvyXml.getAttrString(xml,"ID");
    if (retid == null) {
       retid = sid;
@@ -361,7 +362,7 @@ private void handleAnalyze(String sid,Element xml,IvyXmlWriter xw)
    xw.field("ID",retid);
    xw.end();
 
-   sp.beginAnalysis(nth,retid);
+   sp.beginAnalysis(nth,retid,opt);
 }
 
 

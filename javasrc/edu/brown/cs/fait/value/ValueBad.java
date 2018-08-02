@@ -64,6 +64,7 @@ ValueBad(ValueFactory vf,IfaceType voidtype)
 @Override public IfaceValue mergeValue(IfaceValue cv)			{ return this; }
 
 @Override public IfaceValue restrictByType(IfaceType dt)                { return this; }
+@Override public IfaceValue changeType(IfaceType dt)                    { return this; }
 
 
 

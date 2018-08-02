@@ -101,6 +101,7 @@ FlowQueueInstanceByteCode(FlowQueue fq,IfaceCall fc,QueueLevel lvl)
       if (tcb.getException() != null) {
          IfaceType etyp = getControl().findDataType(tcb.getException().getName(),FaitAnnotation.NON_NULL);
          v1 = v0.restrictByType(etyp);
+         if (v1.isEmptyEntitySet()) continue;
        }
       else v0 = null;
       JcodeInstruction ins0 = tcb.getStart();

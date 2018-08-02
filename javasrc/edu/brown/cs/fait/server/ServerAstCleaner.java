@@ -313,7 +313,7 @@ private void fixType(AbstractTypeDeclaration td,boolean inner)
       FaitLog.logD("CREATED constructor: " + md);
     }
    
-   if (supertype != null) {
+   if (supertype != null || havecinits) {
       for (Object o : td.bodyDeclarations()) {
          if (o instanceof MethodDeclaration) {
             MethodDeclaration md = (MethodDeclaration) o;
@@ -321,16 +321,18 @@ private void fixType(AbstractTypeDeclaration td,boolean inner)
             Block blk = md.getBody();
             List<Object> stmts = blk.statements();
             boolean fnd = false;
+            int idx = 0;
             for (Object stmtn : stmts) {
                if (stmtn instanceof SuperConstructorInvocation ||
                      stmtn instanceof ConstructorInvocation) fnd = true;
              }
-            if (!fnd) {
+            if (fnd) idx = 1;
+            if (!fnd && supertype != null) {
                SuperConstructorInvocation sci = the_ast.newSuperConstructorInvocation();
                stmts.add(0,sci);
+               idx = 1;
              }
             if (havecinits) {
-               int idx = 1;
                for (Object o1 : td.bodyDeclarations()) {
                   if (o1 instanceof FieldDeclaration) {
                      FieldDeclaration fd = (FieldDeclaration) o1;

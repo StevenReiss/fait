@@ -93,6 +93,12 @@ public ProtoCollection(IfaceControl fc,IfaceType dt)
 /*										*/
 /********************************************************************************/
 
+@Override public void setAnyValue()
+{
+   IfaceType t0 = fait_control.findDataType("java.lang.Object");
+   IfaceValue v0 = fait_control.findMutableValue(t0);
+   element_value = v0.mergeValue(element_value);
+}
 
 
 /********************************************************************************/
@@ -265,7 +271,7 @@ public IfaceValue prototype_clone(IfaceMethod fm,List<IfaceValue> args,IfaceLoca
    IfaceValue av = fait_control.findAnyValue(dt);
    if (av != null) return av;
    
-   IfaceEntity subs = fait_control.findPrototypeEntity(dt,this,src);
+   IfaceEntity subs = fait_control.findPrototypeEntity(dt,this,src,false);
    IfaceEntitySet cset = fait_control.createSingletonSet(subs);
    IfaceValue cv = fait_control.findObjectValue(dt,cset,FaitAnnotation.NON_NULL);
 
@@ -358,11 +364,15 @@ public IfaceValue prototype_toArray(IfaceMethod fm,List<IfaceValue> args,IfaceLo
    IfaceValue cv = null;
 
    if (!fm.getReturnType().isVoidType()) addElementChange(src);
-
+   // addElementChange(src);
+   
    if (args.size() == 2) {
       cv = args.get(1);
       for (IfaceEntity ie : cv.getEntities()) {
-	 ie.addToArrayContents(element_value,null,src);
+	 if (ie.replaceArrayContents(element_value,src)) {
+            if (FaitLog.isTracing()) 
+               FaitLog.logD1("Prototype: note entity changed " + ie + " (" + ie.hashCode() + ")");
+          }
        }
     }
    else {
@@ -371,7 +381,7 @@ public IfaceValue prototype_toArray(IfaceMethod fm,List<IfaceValue> args,IfaceLo
             IfaceType dt = fait_control.findDataType("java.lang.Object");
             array_entity = fait_control.findArrayEntity(dt,prototype_size(fm,null,src));
           }
-         array_entity.addToArrayContents(element_value,null,src);
+         array_entity.replaceArrayContents(element_value,src);
          IfaceEntitySet cset = fait_control.createSingletonSet(array_entity);
          cv = fait_control.findObjectValue(array_entity.getDataType(),cset,FaitAnnotation.NON_NULL);
        }
@@ -403,6 +413,10 @@ public IfaceValue prototype_get(IfaceMethod fm,List<IfaceValue> args,IfaceLocati
 {
    if (!fm.getReturnType().isVoidType()) addElementChange(src);
 
+   if (element_value == null) {
+      element_value = fait_control.findNullValue();
+    }
+   
    return element_value;
 }
 
@@ -550,8 +564,9 @@ public IfaceValue prototype_removeRange(IfaceMethod fm,List<IfaceValue> args,Ifa
 
 public IfaceValue prototype_subList(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
 {
-   IfaceType dt = fait_control.findDataType("java.util.List",FaitAnnotation.NON_NULL);
-   IfaceEntity ie = fait_control.findPrototypeEntity(dt,this,src);
+  // IfaceType dt = fait_control.findDataType("java.util.List",FaitAnnotation.NON_NULL);
+   IfaceType dt = args.get(0).getDataType();
+   IfaceEntity ie = fait_control.findPrototypeEntity(dt,this,src,false);
    IfaceEntitySet eset = fait_control.createSingletonSet(ie);
    IfaceValue v = fait_control.findObjectValue(dt,eset,FaitAnnotation.NON_NULL);
 
@@ -587,7 +602,7 @@ public synchronized IfaceValue prototype_elements(IfaceMethod fm,List<IfaceValue
 
    if (enum_entity == null) {
       ProtoBase cp = new CollectionEnum(fait_control);
-      enum_entity = fait_control.findPrototypeEntity(dt,cp,null);
+      enum_entity = fait_control.findPrototypeEntity(dt,cp,null,false);
     }
 
    IfaceEntitySet cset = fait_control.createSingletonSet(enum_entity);
@@ -619,7 +634,7 @@ synchronized public IfaceValue prototype_iterator(IfaceMethod fm,
 
    if (iter_entity == null) {
       ProtoBase cp = new CollectionIter(fait_control);
-      iter_entity = fait_control.findPrototypeEntity(dt,cp,null);
+      iter_entity = fait_control.findPrototypeEntity(dt,cp,null,false);
     }
 
    IfaceEntitySet cset = fait_control.createSingletonSet(iter_entity);
@@ -636,7 +651,7 @@ synchronized public IfaceValue prototype_listIterator(IfaceMethod fm,
 
    if (listiter_entity == null) {
       ProtoBase cp = new CollectionListIter(fait_control);
-      listiter_entity = fait_control.findPrototypeEntity(dt,cp,null);
+      listiter_entity = fait_control.findPrototypeEntity(dt,cp,null,false);
     }
 
    IfaceEntitySet cset = fait_control.createSingletonSet(listiter_entity);

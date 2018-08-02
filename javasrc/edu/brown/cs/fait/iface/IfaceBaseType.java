@@ -36,6 +36,7 @@
 package edu.brown.cs.fait.iface;
 
 import java.util.List;
+import java.util.Map;
 
 public interface IfaceBaseType extends FaitConstants
 {
@@ -74,6 +75,8 @@ IfaceBaseType findChildForInterface(IfaceBaseType dt);
 IfaceBaseType getCommonParent(IfaceBaseType t2);
 List<IfaceBaseType> getChildTypes();
 IfaceBaseType getAssociatedType();
+Map<String,IfaceType> getFieldData();
+IfaceBaseType getComponentType(int i);
 
 boolean isEditable();
 boolean isInProject();

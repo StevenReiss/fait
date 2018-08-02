@@ -54,11 +54,11 @@ class StateBase implements StateConstants, IfaceState
 
 private IfaceValue []		local_values;
 private Stack<IfaceValue>	stack_values;
+private IfaceSafetyStatus       safety_values;
 
 private Map<IfaceField,IfaceValue> field_map;
 
-private Stack<IfaceProgramPoint> return_stack;
-private List<StateBase>         state_set;
+private Stack<Collection<IfaceProgramPoint>> return_stack;
 private Object                  prior_state;
 private IfaceProgramPoint       program_point;
 
@@ -75,11 +75,11 @@ StateBase(int numlocal)
    local_values = new IfaceValue[numlocal];
    stack_values = new Stack<>();
    field_map = new HashMap<>(4);
-   state_set = null;
    return_stack = null;
    program_point = null;
    prior_state = null;
-
+   safety_values = null;
+   
    Arrays.fill(local_values,null);
 }
 
@@ -105,12 +105,13 @@ StateBase(int numlocal)
    if (return_stack == null) ns.return_stack = null;
    else {
       ns.return_stack = new Stack<>();
-      ns.return_stack.addAll(return_stack);
+      for (Collection<IfaceProgramPoint> set : return_stack) {
+         ns.return_stack.add(new HashSet<>(set));
+       }
     }
 
-   ns.state_set = null;
-
    ns.field_map = new HashMap<>(field_map);
+   ns.safety_values = safety_values;
 
    return ns;
 }
@@ -125,7 +126,14 @@ StateBase(int numlocal)
 
 @Override public void pushStack(IfaceValue v)		{ stack_values.push(v); }
 
-@Override public IfaceValue popStack()			{ return stack_values.pop(); }
+@Override public IfaceValue popStack()			
+{ 
+   if (stack_values.size() == 0) {
+      FaitLog.logE("Attempt to pop empty stack");
+      return null;
+    }
+   return stack_values.pop(); 
+}
 
 @Override public void resetStack(IfaceState s)
 {
@@ -240,6 +248,11 @@ StateBase(int numlocal)
    IfaceValue ov = local_values[idx];
    if (ov == null) local_values[idx] = v;
    else local_values[idx] = ov.mergeValue(v);
+   
+   // if (local_values[idx] != ov) {
+       // IfaceValue nv = ov.mergeValue(v);
+       // System.err.println("MERGE -> " + nv + " " + ov + " " + v);
+    // }
 
    return local_values[idx] != ov;
 }
@@ -264,10 +277,6 @@ StateBase(int numlocal)
    
    field_map.put(fld,v);
 }
-
-
-
-
 
 
 
@@ -299,16 +308,18 @@ StateBase(int numlocal)
 @Override public void pushReturn(IfaceProgramPoint ins)
 {
    if (return_stack == null) return_stack = new Stack<>();
-   return_stack.push(ins);
+   Set<IfaceProgramPoint> ptset = new HashSet<>();
+   ptset.add(ins);
+   return_stack.push(ptset);
 }
 
 
 
-@Override public IfaceProgramPoint popReturn()
+@Override public Collection<IfaceProgramPoint> popReturn()
 {
    if (return_stack == null) return null;
 
-   IfaceProgramPoint v = return_stack.pop();
+   Collection<IfaceProgramPoint> v = return_stack.pop();
    if (return_stack.empty()) return_stack = null;
 
    return v;
@@ -324,76 +335,12 @@ StateBase(int numlocal)
 
 @Override public IfaceState mergeWith(IfaceState ifs)
 {
-   StateBase ucs = null;
    StateBase cs = (StateBase) ifs;
+   
+   if (!checkMergeWithState(cs)) return null;
 
-   if (cs.return_stack == null && return_stack == null) {
-      ucs = this;
-    }
-   else if (cs.return_stack == null || return_stack == null) {
-      ucs = this;
-      return_stack = null;
-    }
-   else if (return_stack.equals(cs.return_stack)) {
-      ucs = this;
-    }
-   else {
-      if (state_set == null) {
-	 state_set = new ArrayList<StateBase>();
-	 state_set.add(this);
-       }
-      for (StateBase scs : state_set) {
-	 if (scs.return_stack.equals(cs.return_stack)) {
-	    ucs = scs;
-	    break;
-	  }
-       }
-      if (ucs == null) {
-	 ucs = (StateBase) cs.cloneState();
-	 ucs.state_set = state_set;
-	 state_set.add(ucs);
-	 return ucs;
-       }
-    }
-
-   if (!ucs.checkMergeWithState(cs)) return null;
-
-   return ucs;
+   return this;
 }
-
-
-
-@Override public boolean compatibleWith(IfaceState ifs)
-{
-   StateBase cs = (StateBase) ifs;
-
-   if (return_stack == null) {
-      if (cs.return_stack != null) return false;
-    }
-   else if (!return_stack.equals(cs.return_stack)) return false;
-
-   for (int i = 0; i < local_values.length; ++i) {
-      IfaceValue ov = local_values[i];
-      IfaceValue nv = cs.local_values[i];
-      if (ov == null) ov = nv;
-      if (ov != nv) return false;
-    }
-
-   int j0 = stack_values.size();
-   int j1 = cs.stack_values.size();
-   if (j0 > j1) j0 = j1;
-   for (int i = 0; i < j0; ++i) {
-      IfaceValue oo = stack_values.elementAt(i);
-      IfaceValue no = cs.stack_values.elementAt(i);
-
-      if (oo == null) oo = no;
-      if (no == null) no = oo;
-      if (no != oo) return false;
-    }
-
-   return true;
-}
-
 
 
 
@@ -448,8 +395,36 @@ private boolean checkMergeWithState(StateBase cs)
        }
     }
    
+   if (return_stack != null) {
+      if (cs.return_stack == null) FaitLog.logE("Merge return with non-return");
+      else if (return_stack.size() != cs.return_stack.size()) FaitLog.logE("Return stacks have different sizes");
+      else {
+         for (int i = 0; i < return_stack.size(); ++i) {
+            Collection<IfaceProgramPoint> c0 = return_stack.get(i);
+            for (IfaceProgramPoint pt0 : cs.return_stack.get(i)) {
+               if (!c0.contains(pt0)) c0.add(pt0);
+             }
+          }
+       }
+    }
+   else if (cs.return_stack != null) FaitLog.logE("Merge non-return with return");
+   
+   if (safety_values != cs.safety_values && cs.safety_values != null) {
+      if (safety_values == null) {
+         safety_values = cs.safety_values;
+         change = true;
+       }
+      else {
+         IfaceSafetyStatus nsts = safety_values.merge(cs.safety_values);
+         if (nsts != safety_values) {
+            safety_values = nsts;
+            change = true;
+          }
+       }
+    }
+   
    addPriorState(cs);
-
+   
    return change;
 }
 
@@ -489,11 +464,6 @@ private boolean checkMergeWithState(StateBase cs)
       IfaceValue ovl = ent.getValue();
       IfaceValue nvl = upd.getNewValue(ovl);
       if (nvl != null && nvl != ovl) ent.setValue(nvl);
-    }
-   if (state_set != null) {
-      for (StateBase sb : state_set) {
-         sb.handleUpdate(upd);
-       }
     }
 }
 
@@ -552,6 +522,24 @@ void addPriorState(StateBase st)
    Object o = priors.get(idx);   
    return (IfaceState) o;
 }
+
+
+@Override public IfaceSafetyStatus getSafetyStatus()
+{
+   return safety_values;
+}
+
+
+@Override public void updateSafetyStatus(String event)
+{
+   if (safety_values == null) {
+      // set up default values  -- don't return if we have values
+      return;
+    }
+   safety_values = safety_values.update(event);
+}
+
+
 
 }	// end of class StateBase
 

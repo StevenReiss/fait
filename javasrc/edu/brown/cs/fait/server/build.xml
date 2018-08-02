@@ -11,14 +11,14 @@
 	 <pathelement location='${FAIT}/java' />
 	 <pathelement location='${IVYBIN}' />
 	 <pathelement location='${PRO}/bubbles/lib/junit.jar' />
-	 <fileset dir='${FAIT}/lib/' includes='asm5.jar' />
+	 <fileset dir='${FAIT}/lib/' includes='asm*.jar' />
 	 <fileset dir='${PRO}/ivy/lib/eclipsejar' includes='*.jar' />
       </path>
       <path id='test.classpath'>
 	 <pathelement location='${FAIT}/java' />
 	 <pathelement location='${IVYBIN}' />
 	 <pathelement location='${PRO}/bubbles/lib/junit.jar' />
-	 <fileset dir='${FAIT}/lib/' includes='asm5.jar' />
+	 <fileset dir='${FAIT}/lib/' includes='asm*.jar' />
 	 <fileset dir='${PRO}/ivy/lib/eclipsejar' includes='*.jar' />
       </path>
    </target>
@@ -42,6 +42,60 @@
 	 <formatter type='plain' />
 	 <test name='edu.brown.cs.fait.server.ServerTest' />
       </junit>
+   </target>
+
+   <target name='buildjavalib' depends='compile'>
+      <java classname='edu.brown.cs.fait.server.ServerLibraryBuilder' fork='true'
+		output='/ws/volfred/spr/sysbuilder_java.out' input='/dev/null' >
+	 <classpath refid='fait.classpath' />
+	 <arg value='-p' />
+	 <arg value='java.' />
+	 <arg value='-L' />
+	 <arg value='/ws/volfred/spr/sysbuilder_java.log' />
+	 <arg value='-o' />
+	 <arg value='/u/spr/home/java.fait' />
+      </java>
+   </target>
+
+   <target name='buildjavaxlib' depends='compile'>
+      <java classname='edu.brown.cs.fait.server.ServerLibraryBuilder' fork='true'
+		output='/ws/volfred/spr/sysbuilder_javax.out' input='/dev/null' >
+	 <classpath refid='fait.classpath' />
+	 <arg value='-p' />
+	 <arg value='javax.' />
+	 <arg value='-L' />
+	 <arg value='/ws/volfred/spr/sysbuilder_javax.log' />
+	 <arg value='-o' />
+	 <arg value='/u/spr/home/javax.fait' />
+      </java>
+   </target>
+
+   <target name='buildomglib' depends='compile'>
+      <java classname='edu.brown.cs.fait.server.ServerLibraryBuilder' fork='true'
+		output='/ws/volfred/spr/sysbuilder_omg.out' input='/dev/null' >
+	 <classpath refid='fait.classpath' />
+	 <arg value='-p' />
+	 <arg value='org.omg.' />
+	 <arg value='-L' />
+	 <arg value='/ws/volfred/spr/sysbuilder_omg.log' />
+	 <arg value='-o' />
+	 <arg value='/u/spr/home/omg.fait' />
+      </java>
+   </target>
+
+   <target name='buildw3clib' depends='compile'>
+      <java classname='edu.brown.cs.fait.server.ServerLibraryBuilder' fork='true'
+		output='/ws/volfred/spr/sysbuilder_w3c.out' input='/dev/null' >
+	 <classpath refid='fait.classpath' />
+	 <arg value='-p' />
+	 <arg value='org.w3c.' />
+	 <arg value='-p' />
+	 <arg value='org.xml.' />
+	 <arg value='-L' />
+	 <arg value='/ws/volfred/spr/sysbuilder_w3c.log' />
+	 <arg value='-o' />
+	 <arg value='/u/spr/home/w3c.fait' />
+      </java>
    </target>
 
 

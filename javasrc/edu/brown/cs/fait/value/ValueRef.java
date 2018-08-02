@@ -143,6 +143,14 @@ ValueRef(ValueFactory vf,IfaceType dt,int var,IfaceValue base,IfaceField fld,Ifa
 }
 
 
+
+@Override public IfaceValue changeType(IfaceType dt)
+{
+   if (dt == getDataType()) return this;
+   return new ValueRef(value_factory,dt,variable_slot,base_value,field_name,index_value);
+}
+
+
 /********************************************************************************/
 /*                                                                              */
 /*      Output methods                                                          */

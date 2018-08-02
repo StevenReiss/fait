@@ -138,6 +138,15 @@ protected IfaceEntitySet getEntitySet() 		{ return entity_set; }
 @Override public boolean isCategory2()			{ return false; }
 @Override public boolean isNative()			{ return false; }
 @Override public boolean isAllNative()			{ return false; }
+@Override public boolean isMutable()                   
+{
+   if (entity_set != null) {
+      for (IfaceEntity ie : entity_set.getEntities()) {
+         if (ie.isMutable()) return true;
+       }
+    }
+   return false;
+}
 
 @Override public boolean isGoodEntitySet()		{ return true; }
 
@@ -197,6 +206,11 @@ IfaceControl getFaitControl()
 @Override public final IfaceValue performOperation(IfaceType dt,IfaceValue rhs,FaitOperator op,IfaceLocation loc)
 {
    IfaceValue iv = localPerformOperation(dt,rhs,op,loc);
+   IfaceType ntyp = dt.getComputedType(iv,op,this,rhs);
+   IfaceType xtyp = iv.getDataType();
+   if (xtyp != ntyp) {
+      iv = iv.changeType(ntyp);
+    }
    return iv;
 }
 
@@ -266,6 +280,9 @@ boolean markArrayCanBeNull()				{ return false; }
 
 @Override public IfaceValue toFloating()                { return this; }
 @Override public Integer getIndexValue()                { return null; }
+@Override public String getStringValue()                { return null; }
+@Override public Long getMinValue()                     { return null; }
+@Override public Long getMaxValue()                     { return null; }
 
 
 

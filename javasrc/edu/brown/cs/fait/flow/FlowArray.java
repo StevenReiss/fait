@@ -99,8 +99,14 @@ IfaceValue handleNewArraySet(FlowLocation loc,IfaceType acls,int ndim,IfaceValue
        }
       loc.getCall().setArrayEntity(loc.getProgramPoint(),as);
     }
+   else {
+      if (as.setArraySize(sz)) {
+         noteArrayChange(as);
+       }
+    }
 
-   acls = acls.getArrayType();
+   acls = as.getDataType();
+ //  acls = acls.getArrayType();
 
    if (FaitLog.isTracing()) FaitLog.logD1("Array set = " + as + " " + acls.getName());
 
@@ -126,10 +132,37 @@ IfaceValue handleArrayAccess(FlowLocation loc,IfaceValue arr,IfaceValue idx)
     }
    
    cv = arr.getArrayContents(idx);
+   
+   if (cv == null || cv.getDataType().isVoidType()) 
+      FaitLog.logE("Void type from array access");
+   
+   IfaceType ft = cv.getDataType();
+   IfaceType rt = ft.getComputedType(cv,FaitOperator.ELEMENTACCESS,arr,idx);
+   if (rt != ft) {
+      ft.checkCompatibility(rt,loc);
+      cv = cv.changeType(rt);
+    }
 
    if (FaitLog.isTracing()) FaitLog.logD1("Array access " + arr + "[" + idx + "] = " + cv);
    
    return cv;
+}
+
+
+IfaceValue handleArrayLength(FlowLocation loc,IfaceValue arr)
+{
+   IfaceValue v1 = arr.getArrayLength();
+   
+   if (FaitLog.isTracing()) 
+      FaitLog.logD1("Array Length " + arr + " = " + v1);
+   
+   for (IfaceEntity xe : arr.getEntities()) {
+      if (xe.getDataType().isArrayType()) {
+         addReference(xe,loc);
+       }
+    }
+   
+   return v1;
 }
 
 

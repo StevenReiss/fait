@@ -121,12 +121,10 @@ IfaceEntity findFixedEntity(IfaceType typ);
 IfaceEntity findMutableEntity(IfaceType typ);
 IfaceEntity findStringEntity(String s);
 IfaceEntity findArrayEntity(IfaceType base,IfaceValue size);
-IfaceEntity findPrototypeEntity(IfaceType base,IfacePrototype from,IfaceLocation src);
+IfaceEntity findPrototypeEntity(IfaceType base,IfacePrototype from,IfaceLocation src,boolean mutable);
 IfaceEntity findFunctionRefEntity(IfaceLocation loc,IfaceType typ,String method);
 IfaceEntity findFunctionRefEntity(IfaceLocation loc,IfaceType typ,Map<Object,IfaceValue> bindings);
-IfaceEntity findLocalEntity(IfaceLocation loc,IfaceType dt);
-
-
+IfaceEntity findLocalEntity(IfaceLocation loc,IfaceType dt,IfacePrototype ptyp);
 
 
 IfaceEntitySet createEmptyEntitySet();
@@ -141,7 +139,13 @@ IfaceEntitySet createSingletonSet(IfaceEntity fe);
 /********************************************************************************/
 
 IfaceValue findAnyValue(IfaceType typ);
-IfaceValue findRangeValue(IfaceType typ,long v0,long v1);
+IfaceValue findRangeValue(IfaceType typ,Long v0,Long v1);
+
+default IfaceValue findRangeValue(IfaceType typ,long v0,long v1)
+{
+   return findRangeValue(typ,Long.valueOf(v0),Long.valueOf(v1));
+}
+
 IfaceValue findConstantValue(IfaceType typ,long v);
 IfaceValue findConstantValue(boolean v);
 IfaceValue findConstantValue(IfaceType typ,double v);
@@ -170,6 +174,7 @@ IfaceAstReference getAstReference(ASTNode n);
 IfaceAstReference getAstReference(ASTNode n,ASTNode c);
 IfaceAstReference getAstReference(ASTNode n,IfaceAstStatus sts);
 IfaceProgramPoint getProgramPoint(JcodeInstruction ins);
+IfaceAnnotation [] getAnnotations(ASTNode n);
 
 
 
@@ -205,7 +210,7 @@ IfaceCall findPrototypeMethod(IfaceProgramPoint pt,IfaceMethod fm);
 
 IfaceSpecial getCallSpecial(IfaceProgramPoint pt,IfaceMethod fm);
 void clearCallSpecial(IfaceMethod fm);
-IfaceMethodData createMethodData(IfaceCall fc);
+
 IfaceCall findCall(IfaceProgramPoint pt,IfaceMethod fm,List<IfaceValue> args,InlineType inline);
 Collection<IfaceCall> getAllCalls(IfaceMethod fm);
 Collection<IfaceCall> getAllCalls();
@@ -228,17 +233,33 @@ boolean isInProject(IfaceMethod m);
 boolean isEditableClass(IfaceType t);
 
 
+
+
 IfaceType findCommonParent(IfaceType t1,IfaceType t2);
 
 List<IfaceMethod> findAllMethods(IfaceType cls,String name);
 
-IfaceType createFunctionRefType(String typ);
+IfaceType createFunctionRefType(String typ,String nstype);
 
 void updateAll();
 void doUpdate(IfaceUpdateSet what);
 void removeCalls(Collection<IfaceCall> call);
 
 void clearAll();
+
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Safety methods                                                          */
+/*                                                                              */
+/********************************************************************************/
+
+IfaceSafetyStatus getInitialStatus();
+
+
+
 
 /********************************************************************************/
 /*										*/

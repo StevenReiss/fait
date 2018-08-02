@@ -47,6 +47,7 @@ import edu.brown.cs.ivy.jcomp.JcompTyper;
 import edu.brown.cs.fait.state.*;
 import edu.brown.cs.fait.type.TypeFactory;
 import edu.brown.cs.fait.proto.*;
+import edu.brown.cs.fait.safety.SafetyFactory;
 import edu.brown.cs.fait.call.*;
 import edu.brown.cs.fait.flow.*;
 
@@ -78,6 +79,7 @@ private CallFactory	call_factory;
 private FlowFactory	flow_factory;
 private IfaceProject	user_project;
 private TypeFactory     type_factory;
+private SafetyFactory   safety_factory;
 private Map<String,IfaceType> basic_types;
 
 
@@ -102,13 +104,18 @@ public ControlMain(IfaceProject ip)
    proto_factory = new ProtoFactory(this);
    call_factory = new CallFactory(this);
    flow_factory = new FlowFactory(this);
+   safety_factory = new SafetyFactory(this);
    
    user_project = ip;
    
    call_factory.addSpecialFile(getDescriptionFile());
+   safety_factory.addSpecialFile(getDescriptionFile());
+   type_factory.addSpecialFile(getDescriptionFile());
    if (ip.getDescriptionFiles() != null) {
       for (File ff : ip.getDescriptionFiles()) {
          call_factory.addSpecialFile(ff);
+         safety_factory.addSpecialFile(ff);
+         type_factory.addSpecialFile(ff);
        }
     }
 }
@@ -180,11 +187,6 @@ IfaceBaseType findJavaType(String cls)
 {
    return type_factory.createConstantType(t.getJavaType(),cnst);
 }
-
-
-
-
-
 
 
 
@@ -335,16 +337,18 @@ private void checkStartMethod(IfaceMethod im,Collection<IfaceMethod> rslt)
 
 
 @Override public IfaceEntity findPrototypeEntity(IfaceType base,
-      IfacePrototype from,IfaceLocation src)
+      IfacePrototype from,IfaceLocation src,boolean mutable)
 {
-   return entity_factory.createPrototypeEntity(this,base,from,src);
+   return entity_factory.createPrototypeEntity(base,from,src,mutable);
 }
 
 
-@Override public IfaceEntity findLocalEntity(IfaceLocation loc,IfaceType dt)
+@Override public IfaceEntity findLocalEntity(IfaceLocation loc,IfaceType dt,IfacePrototype ptyp)
 {
-   return entity_factory.createLocalEntity(loc,dt);
+   return entity_factory.createLocalEntity(loc,dt,ptyp);
 }
+
+
 
 
 @Override public IfaceEntity findFunctionRefEntity(IfaceLocation loc,IfaceType dt,String method) 
@@ -436,8 +440,6 @@ void updateEntitySets(IfaceUpdater upd)
 
 
 
-
-
 /********************************************************************************/
 /*										*/
 /*	Value methods								*/
@@ -453,7 +455,7 @@ void updateEntitySets(IfaceUpdater upd)
 
 @Override public IfaceValue findConstantValue(IfaceType typ,long v)
 {
-   return findRangeValue(typ,v,v);
+   return findRangeValue(typ,(Long) v,(Long) v);
 }
 
 
@@ -466,11 +468,11 @@ void updateEntitySets(IfaceUpdater upd)
 @Override public IfaceValue findConstantValue(boolean v)
 {
    IfaceType bt = findDataType("boolean");
-   if (v) return findRangeValue(bt,1,1);
-   else return findRangeValue(bt,0,0);
+   if (v) return findConstantValue(bt,1);
+   else return findConstantValue(bt,0);
 }
 
-@Override public IfaceValue findRangeValue(IfaceType typ,long v0,long v1)
+@Override public IfaceValue findRangeValue(IfaceType typ,Long v0,Long v1)
 {
    return value_factory.rangeValue(typ,v0,v1);
 }
@@ -618,12 +620,7 @@ void updateValues(IfaceUpdater upd)
    call_factory.clearSpecial(fm);
 }
 
-@Override public IfaceMethodData createMethodData(IfaceCall fc)
-{
-   if (user_project == null) return null;
 
-   return user_project.createMethodData(fc);
-}
 
 @Override public IfaceCall findCall(IfaceProgramPoint pt,IfaceMethod fm,List<IfaceValue> args,InlineType inline)
 {
@@ -668,6 +665,11 @@ void updateValues(IfaceUpdater upd)
 @Override public IfaceProgramPoint getProgramPoint(JcodeInstruction ins) 
 {
    return bytecode_factory.getPoint(ins);
+}
+
+@Override public IfaceAnnotation [] getAnnotations(ASTNode n)
+{
+   return ast_factory.getAnnotations(n);
 }
 
 
@@ -774,6 +776,21 @@ public IfaceType findCommonParent(IfaceType t1,IfaceType t2)
 }
 
 
+
+/********************************************************************************/
+/*                                                                              */
+/*      Safety methods                                                          */
+/*                                                                              */
+/********************************************************************************/
+
+@Override public IfaceSafetyStatus getInitialStatus()
+{
+   return safety_factory.getInitialStatus();
+}
+
+
+
+
 /********************************************************************************/
 /*                                                                              */
 /*      Helper methods                                                          */
@@ -836,10 +853,14 @@ Collection<IfaceMethod> findChildMethods(IfaceType cls,String nm,String desc,
 /*                                                                              */
 /********************************************************************************/
 
-@Override public IfaceType createFunctionRefType(String typ)
+@Override public IfaceType createFunctionRefType(String typ,String nstype)
 {
    IfaceBaseType t1 = bytecode_factory.buildMethodType(typ);
-   IfaceBaseType t2 = ast_factory.getFunctionRefType(t1);
+   IfaceBaseType tns = null;
+   if (nstype != null) {
+      tns = bytecode_factory.buildMethodType(nstype);
+    }
+   IfaceBaseType t2 = ast_factory.getFunctionRefType(t1,tns);
    return findDataType(t2,null);
 }
 

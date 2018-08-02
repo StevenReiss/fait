@@ -52,6 +52,7 @@ class ServerRunner extends Thread implements ServerConstants
 private ServerProject for_project;
 private int num_threads;
 private String return_id;
+private ReportOption report_option;
 private String next_return;
 private boolean restart_analysis;
 private boolean pause_analysis;
@@ -67,7 +68,7 @@ private static final long MIN_STABLE_TIME = 1000;
 /*                                                                              */
 /********************************************************************************/
 
-ServerRunner(ServerProject sp,int nth,String retid)
+ServerRunner(ServerProject sp,int nth,String retid,ReportOption opt)
 {
    super("FAIT_RUNNER_" + retid);
    if (nth <= 0) {
@@ -76,6 +77,7 @@ ServerRunner(ServerProject sp,int nth,String retid)
     }
    for_project = sp;
    num_threads = nth;
+   report_option = opt;
    return_id = retid;
    next_return = retid;
    restart_analysis = false;
@@ -91,10 +93,11 @@ ServerRunner(ServerProject sp,int nth,String retid)
 /*                                                                              */
 /********************************************************************************/
 
-synchronized void resumeAnalysis(int nth,String retid)
+synchronized void resumeAnalysis(int nth,String retid,ReportOption opt)
 {
    if (nth > 0) num_threads = nth;
    if (retid != null) next_return = retid;
+   if (opt != null) report_option = opt;
    
    interrupt();
    restart_analysis = true;
@@ -127,6 +130,9 @@ synchronized void pauseAnalysis()
    IfaceControl ifc = null;
    
    for ( ; ; ) {
+      long start = System.currentTimeMillis();
+      long comp = start;
+      long anal = start;
       try {
          IfaceUpdateSet upd = for_project.compileProject();
          boolean update = false;
@@ -135,15 +141,17 @@ synchronized void pauseAnalysis()
             if (upd != null) ifc.doUpdate(upd);
             update = true;
           }
-         
+         comp = System.currentTimeMillis();
+         anal = comp;
          ifc.analyze(num_threads,update);
+         anal = System.currentTimeMillis();
          if (interrupted()) {
             FaitLog.logI("Aborted analysis " + return_id);
-            for_project.sendAborted(return_id);
+            for_project.sendAborted(return_id,anal-comp,comp-start);
           }
          else {
             FaitLog.logI("Finished analysis " + return_id);
-            for_project.sendAnalysis(return_id,ifc);
+            for_project.sendAnalysis(return_id,ifc,report_option,anal-comp,comp-start,num_threads,update);
             synchronized (this) {
                if (!restart_analysis) pause_analysis = true;
              }
@@ -151,14 +159,14 @@ synchronized void pauseAnalysis()
        }
       catch (Throwable t) {
          FaitLog.logE("Problem doing analysis",t);
-         for_project.sendAborted(return_id);
+         for_project.sendAborted(return_id,anal-comp,comp-start);
        }
       return_id = next_return;
       synchronized (this) {
          for ( ; ; ) {
             while (pause_analysis || !for_project.isErrorFree()) {
                try {
-                  wait();
+                  wait(1000);
                 }
                catch (InterruptedException e) { }
              }

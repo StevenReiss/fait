@@ -43,6 +43,7 @@ public interface IfaceSpecial extends FaitConstants
 {
 
 IfaceValue getReturnValue(IfaceProgramPoint pt,IfaceMethod mthd);
+List<IfaceValue> getExceptions(IfaceProgramPoint pt,IfaceMethod mthd);
 boolean returnsArg0();
 boolean isConstructor();
 String getReplaceName();
@@ -52,7 +53,9 @@ String getCallbackId();
 List<IfaceValue> getCallbackArgs(List<IfaceValue> args,IfaceValue newval);
 boolean getIsAsync();
 boolean getExits();
+boolean getNeverReturns();
 boolean getDontScan();
+boolean getForceScan();
 List<String> getClassesToLoad();
 
 

@@ -54,12 +54,12 @@ import org.eclipse.jdt.core.dom.EnumDeclaration;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.w3c.dom.Element;
 
-import edu.brown.cs.fait.iface.IfaceMethodData;
 import edu.brown.cs.fait.iface.IfaceProgramPoint;
 import edu.brown.cs.fait.iface.IfaceProject;
 import edu.brown.cs.fait.iface.IfaceUpdateSet;
 import edu.brown.cs.fait.iface.IfaceCall;
 import edu.brown.cs.fait.iface.IfaceControl;
+import edu.brown.cs.fait.iface.IfaceError;
 import edu.brown.cs.ivy.jcode.JcodeFactory;
 import edu.brown.cs.ivy.jcomp.JcompAst;
 import edu.brown.cs.ivy.jcomp.JcompControl;
@@ -95,7 +95,7 @@ private ReadWriteLock	project_lock;
 private Set<File>	description_files;
 private Map<String,Boolean> project_packages;
 private ServerRunner	current_runner;
-private Set<String>     editable_classes;
+private Set<String>	editable_classes;
 
 private static final String DEFAULT_PACKAGE = "*DEFAULT*";
 
@@ -135,9 +135,9 @@ ServerProject(ServerMain sm,String name)
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Setup methods                                                           */
-/*                                                                              */
+/*										*/
+/*	Setup methods								*/
+/*										*/
 /********************************************************************************/
 
 void addProject(String pnm)
@@ -159,7 +159,7 @@ void addProject(String pnm)
 void addFile(ServerFile sf)
 {
    if (sf == null) return;
-   
+
    if (active_files.add(sf)) {
       noteFileChanged(sf,false);
     }
@@ -169,7 +169,7 @@ void addFile(ServerFile sf)
 void removeFile(ServerFile sf)
 {
    if (sf == null) return;
-   
+
    if (active_files.remove(sf)) {
       noteFileChanged(sf,true);
     }
@@ -228,6 +228,11 @@ private void setupFromXml(Element xml)
 	 int idx = bn.lastIndexOf("rt.jar");
 	 ignore = bn.substring(0,idx);
        }
+      if (bn.endsWith("/lib/jrt-fs.jar")) {
+	 int idx = bn.lastIndexOf("/lib/jrt-fs.jar");
+	 ignore = bn.substring(0,idx);
+       }
+      if (IvyXml.getAttrBool(rpe,"SYSTEM")) continue;
       if (!class_paths.contains(bn)) class_paths.add(bn);
     }
    if (ignore != null) {
@@ -238,10 +243,14 @@ private void setupFromXml(Element xml)
     }
 
    Element clss = IvyXml.getChild(xml,"CLASSES");
-   for (Element pkg : IvyXml.children(clss,"PACKAGE")) {
-      String pnm = IvyXml.getText(pkg);
+   for (Element typ : IvyXml.children(clss,"TYPE")) {
+      String cnm = IvyXml.getAttrString(typ,"NAME");
+      int idx = cnm.lastIndexOf(".");
+      String pnm = null;
+      if (idx > 0) {
+         pnm = cnm.substring(0,idx).trim();
+       }
       if (pnm == null) continue;
-      pnm = pnm.trim();
       project_packages.put(pnm,true);
     }
    if (project_packages.isEmpty()) project_packages.put(DEFAULT_PACKAGE,true);
@@ -294,10 +303,10 @@ boolean noteFileChanged(ServerFile sf,boolean force)
       if (force || active_files.contains(sf)) {
 	 synchronized (changed_files) {
 	    if (sf != null) {
-               if (changed_files.add(sf)) {
-                  resumeAnalysis();
-                }
-             }
+	       if (changed_files.add(sf)) {
+		  resumeAnalysis();
+		}
+	     }
 	  }
 	 return true;
        }
@@ -327,7 +336,7 @@ boolean anyChangedFiles()
 IfaceUpdateSet compileProject()
 {
    IfaceUpdateSet rslt = null;
-   
+
    List<ServerFile> newfiles = null;
    synchronized (changed_files) {
       newfiles = new ArrayList<>(changed_files);
@@ -344,7 +353,7 @@ IfaceUpdateSet compileProject()
 	 clearProject();
 	 getJcompProject();
 	 getEditableClasses();		// this resolves the project
-         rslt = new ServerUpdateData(newfiles);
+	 rslt = new ServerUpdateData(newfiles);
        }
       finally {
 	 ServerFile.setCurrentProject(null);
@@ -355,7 +364,7 @@ IfaceUpdateSet compileProject()
       // force resolution if necessary
       if (!getJcompProject().isResolved()) getTyper();
     }
-   
+
    return rslt;
 }
 
@@ -431,15 +440,15 @@ public JcompTyper getTyper()
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Methods to find all editable classes                                    */
-/*                                                                              */
+/*										*/
+/*	Methods to find all editable classes					*/
+/*										*/
 /********************************************************************************/
 
 private void getEditableClasses()
 {
-   getTyper();                          // resolve the project
-   
+   getTyper();				// resolve the project
+
    editable_classes.clear();
    Collection<JcompSemantics> srcs = base_project.getSources();
    ClassFinder cf = new ClassFinder();
@@ -451,26 +460,26 @@ private void getEditableClasses()
 
 
 private class ClassFinder extends ASTVisitor {
-   
+
    ClassFinder() { }
-   
+
    @Override public void endVisit(TypeDeclaration td) {
       JcompType jt = JcompAst.getJavaType(td);
       if (jt != null) editable_classes.add(jt.getName());
     }
-   
+
    @Override public void endVisit(EnumDeclaration td) {
       JcompType jt = JcompAst.getJavaType(td);
       if (jt != null) editable_classes.add(jt.getName());
     }
-   
+
    @Override public void endVisit(AnnotationTypeDeclaration td) {
       JcompType jt = JcompAst.getJavaType(td);
       if (jt != null) editable_classes.add(jt.getName());
     }
-   
-   
-}       // end of inner class ClassFinder
+
+
+}	// end of inner class ClassFinder
 
 
 
@@ -507,6 +516,7 @@ public boolean isProjectClass(String cls)
       idx1 = xpkg.lastIndexOf(".");
     }
    project_packages.put(pkg,false);
+   
    return false;
 }
 
@@ -517,10 +527,7 @@ public boolean isEditableClass(String cls)
 }
 
 
-public IfaceMethodData createMethodData(IfaceCall fc)
-{
-   return null;
-}
+
 
 
 public Collection<String> getClasspath()
@@ -536,21 +543,21 @@ public Collection<String> getClasspath()
 /*										*/
 /********************************************************************************/
 
-synchronized void beginAnalysis(int nth,String retid)
+synchronized void beginAnalysis(int nth,String retid,ReportOption opt)
 {
    if (current_runner == null) {
-      current_runner = new ServerRunner(this,nth,retid);
+      current_runner = new ServerRunner(this,nth,retid,opt);
       current_runner.start();
     }
    else {
-      current_runner.resumeAnalysis(nth,retid);
+      current_runner.resumeAnalysis(nth,retid,opt);
     }
 }
 
 
 synchronized void resumeAnalysis()
 {
-   if (current_runner != null) beginAnalysis(0,null);
+   if (current_runner != null) beginAnalysis(0,null,null);
 }
 
 synchronized void pauseAnalysis()
@@ -563,63 +570,68 @@ synchronized void pauseAnalysis()
 
 
 
-void sendAborted(String rid)
+void sendAborted(String rid,long analt,long compt)
 {
-   CommandArgs args = new CommandArgs("ID",rid,"ABORTED",true);
+   CommandArgs args = new CommandArgs("ID",rid,"ABORTED",true,"COMPILETIME",compt,"ANALYSISTIME",analt);
    server_main.response("ANALYSIS",args,null,null);
 }
 
 
-void sendAnalysis(String rid,IfaceControl ifc)
+void sendAnalysis(String rid,IfaceControl ifc,ReportOption opt,long analt,long compt,
+      int nthread,boolean upd)
 {
    IvyXmlWriter xw = new IvyXmlWriter();
    xw.begin("DATA");
-   outputErrors(ifc,xw,true,true);
-   outputErrors(ifc,xw,true,false);
-   outputErrors(ifc,xw,false,true);
-   outputErrors(ifc,xw,false,false);
+   
+   switch (opt) {
+      case NONE :
+         break;
+      case SOURCE :
+         outputErrors(ifc,xw,true);
+         break;
+      case FULL :
+         outputErrors(ifc,xw,true);
+         outputErrors(ifc,xw,false);
+         break;
+    }
+   
    xw.end("DATA");
-   
-   CommandArgs args = new CommandArgs("ID",rid,"ABORTED",false);
+
+   CommandArgs args = new CommandArgs("ID",rid,"ABORTED",false,
+         "COMPILETIME",compt,"ANALYSISTIME",analt,"NTHREAD",nthread,"UPDATE",upd);
    server_main.response("ANALYSIS",args,xw.toString(),null);
-   
+
    xw.close();
 }
 
 
 
-private void outputErrors(IfaceControl ifc,IvyXmlWriter xw,boolean editable,boolean call)
+private void outputErrors(IfaceControl ifc,IvyXmlWriter xw,boolean editable)
 {
    // TODO: update to output errors in general rather than dead locations
-   
+
    for (IfaceCall ic : ifc.getAllCalls()) {
       List<IfaceProgramPoint> ppts = ic.getErrorLocations();
       if (ppts == null || ppts.isEmpty()) continue;
       IfaceProgramPoint ppt0 = ppts.get(0);
       if (editable && ppt0.getAstReference() == null) continue;
       else if (!editable && ppt0.getAstReference() != null) continue;
-      int callct = 0;
-      int ncallct = 0;
-      for (IfaceProgramPoint ppt : ppts) {
-         if (ppt.getReferencedMethod() != null) ++callct;
-         else ++ncallct;
-       }
-      if (call && callct == 0) continue;
-      else if (!call && ncallct == 0) continue;
-      
+
       xw.begin("CALL");
       xw.field("METHOD",ic.getMethod().getName());
       xw.field("CLASS",ic.getMethod().getDeclaringClass().getName());
       xw.field("SIGNATURE",ic.getMethod().getDescription());
       xw.field("HASHCODE",ic.hashCode());
       if (ppts != null && !ppts.isEmpty()) {
-         xw.begin("DEAD");
-         for (IfaceProgramPoint ppt : ppts) {
-            if (call && ppt.getReferencedMethod() == null) continue;
-            else if (!call && ppt.getReferencedMethod() != null) continue;
-            ppt.outputXml(xw);
-          }
-         xw.end("DEAD");
+	 for (IfaceProgramPoint ppt : ppts) {
+            for (IfaceError ie : ic.getErrors(ppt)) {
+               xw.begin("ERROR");
+               xw.field("MESSAGE",ie.getErrorMessage());
+               xw.field("LEVEL",ie.getErrorLevel());
+               ppt.outputXml(xw);
+               xw.end("ERROR");
+             }
+	  }
        }
       xw.end("CALL");
     }
