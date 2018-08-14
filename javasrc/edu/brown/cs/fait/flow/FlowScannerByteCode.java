@@ -40,8 +40,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.objectweb.asm.Type;
+
 import edu.brown.cs.fait.iface.FaitAnnotation;
 import edu.brown.cs.fait.iface.FaitLog;
+import edu.brown.cs.fait.iface.IfaceAnnotation;
 import edu.brown.cs.fait.iface.IfaceBackElement;
 import edu.brown.cs.fait.iface.IfaceCall;
 import edu.brown.cs.fait.iface.IfaceControl;
@@ -255,8 +258,11 @@ private void processInstruction(IfaceProgramPoint inspt)
    switch (ins.getOpcode()) {
 /* OBJECT PROCESSING INSTRUTIONS */
       case NEW :
-         IfaceType newt1 = jdtyp.getComputedType(FaitOperator.STARTINIT);
-	 flow_queue.initialize(jdtyp);
+         IfaceType newt0 = jdtyp;
+         IfaceAnnotation [] nannots = fait_control.getAnnotations(inspt);
+         if (nannots != null) newt0 = newt0.getAnnotatedType(nannots);
+         IfaceType newt1 = newt0.getComputedType(FaitTypeOperator.STARTINIT);
+	 flow_queue.initialize(newt0);
 	 ent = getLocalEntity(call,here,newt1);
 	 v0 = fait_control.findObjectValue(newt1,fait_control.createSingletonSet(ent));
 	 st1.pushStack(v0);
@@ -276,8 +282,11 @@ private void processInstruction(IfaceProgramPoint inspt)
 	 break;
       case CHECKCAST :
 	 v0 = st1.popStack();
-	 v0 = v0.restrictByType(jdtyp);
-	 if (v0.mustBeNull()) v0 = fait_control.findNullValue(jdtyp);
+         IfaceAnnotation [] annots = fait_control.getAnnotations(inspt);
+         IfaceType casttype = jdtyp;
+         if (annots != null) casttype = casttype.getAnnotatedType(annots);
+	 v0 = v0.restrictByType(casttype);
+	 if (v0.mustBeNull()) v0 = fait_control.findNullValue(casttype);
 	 if (!v0.mustBeNull() && v0.isEmptyEntitySet()) nins = null;
 	 if (FaitLog.isTracing()) FaitLog.logD1("Cast result = " + v0);
 	 st1.pushStack(v0);
@@ -290,7 +299,7 @@ private void processInstruction(IfaceProgramPoint inspt)
 	    IfaceValue sv1 = st1.popStack();
 	    // sv1 = sv1.forceInitialized(FaitAnnotation.INITIALIZED);
             IfaceType dupt0 = sv1.getDataType();
-            IfaceType dupt1 = dupt0.getComputedType(FaitOperator.DONEINIT);
+            IfaceType dupt1 = dupt0.getComputedType(FaitTypeOperator.DONEINIT);
             if (dupt0 != dupt1) {
                sv1 = sv1.changeType(dupt1);
              }
@@ -564,7 +573,8 @@ private void processInstruction(IfaceProgramPoint inspt)
 	 Pair<IfaceState,IfaceState> imps = handleImplications(st1,inspt,v0,v1);
 	 brslt = v1.branchTest(v0,op_map.get(ins.getOpcode()));
 	 if (brslt != TestBranch.NEVER) {
-	    work_queue.mergeState(imps.getElement0(),inspt.getReferencedTarget());
+            FlowLocation nloc = newLocation(inspt.getReferencedTarget());
+	    work_queue.mergeState(imps.getElement0(),nloc);
 	  }	
 	 else call.addError(inspt,BRANCH_NEVER_TAKEN);
 	 if (brslt == TestBranch.ALWAYS) nins = null;
@@ -581,7 +591,8 @@ private void processInstruction(IfaceProgramPoint inspt)
 	 brslt = v0.branchTest(v0,op_map.get(ins.getOpcode()));
 	 imps = handleImplications(st1,inspt,v0,null);
 	 if (brslt != TestBranch.NEVER) {
-	    work_queue.mergeState(imps.getElement0(),inspt.getReferencedTarget());
+            FlowLocation nloc = newLocation(inspt.getReferencedTarget());
+	    work_queue.mergeState(imps.getElement0(),nloc);
 	  }
 	 else call.addError(inspt,BRANCH_NEVER_TAKEN);
 	 if (brslt == TestBranch.ALWAYS) nins = null;
@@ -591,7 +602,8 @@ private void processInstruction(IfaceProgramPoint inspt)
       case TABLESWITCH :
 	 v0 = st1.popStack();
 	 for (IfaceProgramPoint xin : inspt.getReferencedTargets()) {
-	    work_queue.mergeState(st1,xin);
+            FlowLocation nloc = newLocation(xin);
+	    work_queue.mergeState(st1,nloc);
 	  }
 	 nins = null;
 	 pins = null;
@@ -610,7 +622,8 @@ private void processInstruction(IfaceProgramPoint inspt)
          for (IfaceProgramPoint pt : rets) {
             if (nins == null) nins = pt;
             else {
-               work_queue.mergeState(st1,pt);
+               FlowLocation nloc = newLocation(pt);
+               work_queue.mergeState(st1,nloc);
              }
           }
 	 break;
@@ -694,11 +707,16 @@ private void processInstruction(IfaceProgramPoint inspt)
       case MULTIANEWARRAY :
 	 i0 = ins.getIntValue();
 	 flow_queue.initialize(jdtyp);
-	 dtyp = jdtyp.getArrayType();
+	 dtyp = jdtyp;
 	 for (int i = 0; i < i0; ++i) {
 	    v0 = st1.popStack();
 	  }
-	 v1 = flow_queue.handleNewArraySet(here,dtyp,i0,null);
+         int ndim = 0;
+         while (dtyp.isArrayType()) {
+            dtyp = dtyp.getBaseType();
+            ++ndim;
+          }
+	 v1 = flow_queue.handleNewArraySet(here,dtyp,ndim,null);
 	 st1.pushStack(v1);
 	 break;
       case NEWARRAY :
@@ -777,7 +795,10 @@ private void processInstruction(IfaceProgramPoint inspt)
 	 break;
     }
 
-   if (nins != null && st1 != null) work_queue.mergeState(st1,nins);
+   if (nins != null && st1 != null) {
+      FlowLocation nloc = newLocation(nins);
+      work_queue.mergeState(st1,nloc);
+    }
    else if (pins != null && notenext) call.addError(inspt,UNREACHABLE_CODE);
 }
 
@@ -1184,6 +1205,8 @@ private IfaceState handleAccess(FlowLocation loc,IfaceState st)
 
    // First determine which argument
    int act = 0;
+   int vct = -1;
+   
    switch (ins.getInstruction().getOpcode()) {
       case GETFIELD :
       case ARRAYLENGTH :
@@ -1192,12 +1215,16 @@ private IfaceState handleAccess(FlowLocation loc,IfaceState st)
       case ATHROW :
 	 break;
       case PUTFIELD :
+         act = 1;
+         vct = 0;
+         break;
       case AALOAD : case BALOAD : case CALOAD : case DALOAD : case FALOAD :
       case IALOAD : case LALOAD : case SALOAD :
 	 act = 1;
 	 break;
       case AASTORE : case BASTORE : case CASTORE : case DASTORE : case FASTORE :
       case IASTORE : case LASTORE : case SASTORE :
+         vct = 1;
 	 act = 2;
 	 break;
       case INVOKEINTERFACE :
@@ -1217,8 +1244,12 @@ private IfaceState handleAccess(FlowLocation loc,IfaceState st)
       FaitLog.logD1("Access of NULL: can't proceed");
       return null;
     }
-
-   checkBackPropagation(loc,st,act,v0,FaitOperator.DEREFERENCE);
+   IfaceValue v1 = null;
+   if (vct >= 0) {
+      v1 = st.getStack(vct);
+    }
+   
+   checkBackPropagation(loc,st,act,v0,FaitOperator.DEREFERENCE,v1);
 
    // set the value in the state after the dereference
    v0 = v0.forceNonNull();
@@ -1271,7 +1302,8 @@ IfaceState handleImplications(FlowQueueInstance wq,IfaceProgramPoint ins,
 	  }
        }
       IfaceProgramPoint tins = ins.getReferencedTarget();
-      wq.mergeState(st1,tins);
+      FlowLocation nloc = new FlowLocation(flow_queue,wq.getCall(),tins);
+      wq.mergeState(st1,nloc);
     }
 
    if (brslt == TestBranch.ALWAYS) return null;
@@ -1342,17 +1374,44 @@ private void handleDynamicCall(IfaceLocation here,IfaceState st)
    IfaceProgramPoint inspt = here.getProgramPoint();
    JcodeInstruction ins = inspt.getInstruction();
    String [] args = ins.getDynamicReference();
-   IfaceType t1 = fait_control.createFunctionRefType(args[5],args[1]);
-   if (!args[1].startsWith("()")) {
-      IfaceValue v0 = st.popStack();
-      if (FaitLog.isTracing()) {
-         FaitLog.logD1("Pop non-static value off stack: " + v0);
+   
+   if (args[2].startsWith("java/lang/invoke/LambdaMetafactory.metafactory")) {
+      IfaceType t1 = fait_control.createFunctionRefType(args[5],args[1]);
+      if (!args[1].startsWith("()")) {
+         Type [] ar = Type.getArgumentTypes(args[1]);
+         for (int i = 0; i < ar.length; ++i) {
+            IfaceValue v0 = st.popStack();
+            if (FaitLog.isTracing()) {
+               FaitLog.logD1("Pop non-static value off stack: " + v0);
+             }
+          }
        }
+      IfaceEntity ent = fait_control.findFunctionRefEntity(here,t1,args[4]);
+      IfaceEntitySet eset = fait_control.createSingletonSet(ent);
+      IfaceValue val = fait_control.findObjectValue(t1,eset,FaitAnnotation.NON_NULL);
+      st.pushStack(val);
     }
-   IfaceEntity ent = fait_control.findFunctionRefEntity(here,t1,args[4]);
-   IfaceEntitySet eset = fait_control.createSingletonSet(ent);
-   IfaceValue val = fait_control.findObjectValue(t1,eset,FaitAnnotation.NON_NULL);
-   st.pushStack(val);
+   else if (args[2].startsWith("java/lang/invoke/StringConcatFactory.makeConcat")) {
+      IfaceType rslttyp = fait_control.findDataType("java.lang.String");
+      Type [] ar = Type.getArgumentTypes(args[1]);
+      for (int i = 0; i < ar.length; ++i) {
+         IfaceValue v0 = st.popStack();
+         if (FaitLog.isTracing()) {
+            FaitLog.logD1("Pop non-static value off stack: " + v0);
+          }
+       }
+      IfaceValue val = fait_control.findAnyValue(rslttyp);
+      st.pushStack(val);
+    }
+   else {
+      String mtyp = args[1];
+      int idx = mtyp.lastIndexOf(")");
+      String rtypnm = mtyp.substring(idx+1);
+      IfaceType rtyp = fait_control.findDataType(rtypnm);
+      IfaceValue val = fait_control.findAnyValue(rtyp);
+      st.pushStack(val);
+      FaitLog.logE("HANDLE dynamic call" + args[2]); 
+    }
 }
 
 
@@ -1612,6 +1671,19 @@ private class WhereItem {
 
 }	// end of inner class WhereItem
 
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Getting location data                                                   */
+/*                                                                              */
+/********************************************************************************/
+
+private FlowLocation newLocation(IfaceProgramPoint pt)
+{
+   return new FlowLocation(flow_queue,work_queue.getCall(),pt);
+}
 
 }	// end of class FlowScannerByteCode
 

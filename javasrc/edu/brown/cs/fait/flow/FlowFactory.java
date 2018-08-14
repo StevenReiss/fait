@@ -81,10 +81,11 @@ public void analyze(int nthread,boolean update)
    if (!update) {
       Collection<IfaceMethod> start = fait_control.getStartMethods();
       List<IfaceValue> sargl = new LinkedList<IfaceValue>();
+      IfaceSafetyStatus ists = fait_control.getInitialSafetyStatus();
       sargl.add(fait_control.findMainArgsValue());
       for (IfaceMethod fm : start) {
-         IfaceCall ic = fait_control.findCall(null,fm,sargl,InlineType.NONE);
-         ic.addCall(sargl);
+         IfaceCall ic = fait_control.findCall(null,fm,sargl,ists,InlineType.NONE);
+         ic.addCall(sargl,ists);
          flow_queue.queueMethodStart(ic,null);
        }
     }
@@ -135,8 +136,8 @@ public void analyze(IfaceMethod im,int nth)
     }
    preloadClasses(rtyp,done);
    
-   IfaceCall ic = fait_control.findCall(null,im,args,InlineType.NONE);
-   ic.addCall(args);
+   IfaceCall ic = fait_control.findCall(null,im,args,null,InlineType.NONE);
+   ic.addCall(args,null);
    flow_queue.queueMethodStart(ic,null);
    FlowProcessor fp = new FlowProcessor(nth,fait_control,flow_queue);
    fp.process();

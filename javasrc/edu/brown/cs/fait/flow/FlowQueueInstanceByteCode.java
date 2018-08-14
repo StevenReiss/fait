@@ -122,7 +122,8 @@ FlowQueueInstanceByteCode(FlowQueue fq,IfaceCall fc,QueueLevel lvl)
       st1.resetStack(st2);
       st1.pushStack(v1);
       IfaceProgramPoint hdlr = getControl().getProgramPoint(tcb.getHandler());
-      mergeState(st1,hdlr);
+      FlowLocation nloc = new FlowLocation(getWorkQueue(),cm,hdlr);
+      mergeState(st1,nloc);
       if (FaitLog.isTracing()) FaitLog.logD1("Handle throw to " + tcb.getHandler());
       
       if (v0 == null) break;

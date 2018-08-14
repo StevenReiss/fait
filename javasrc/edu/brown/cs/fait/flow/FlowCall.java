@@ -96,12 +96,13 @@ CallReturn handleCall(FlowLocation loc,IfaceState st0,FlowQueueInstance wq)
    
    if (FaitLog.isTracing()) {
       for (IfaceValue av : args) FaitLog.logD1("Arg = " + av);
+      FaitLog.logD1("Saftey state = " + st0.getSafetyStatus());
     }
    
    IfaceMethod tgt = findProperMethod(loc,args);
    
    flow_queue.initialize(tgt.getDeclaringClass());
-
+   
    IfaceValue rslt = processCall(tgt,args,virt,loc,st0,null);
    
    if (tgt.getExceptionTypes().size() > 0) {
@@ -143,8 +144,10 @@ CallReturn handleCall(FlowLocation loc,IfaceState st0,FlowQueueInstance wq)
        }
     }
 
-   if (FaitLog.isTracing())
+   if (FaitLog.isTracing()) {
       FaitLog.logD1("Return = " + rslt);
+      FaitLog.logD1("Return Safety State = " + st0.getSafetyStatus());
+    }
 
    return CallReturn.CONTINUE;
 }
@@ -171,7 +174,7 @@ void handleCallback(IfaceMethod bm,List<IfaceValue> args,String cbid)
 /*										*/
 /********************************************************************************/
 
-void handleReturn(IfaceCall cm,IfaceValue v0,IfaceLocation loc)
+void handleReturn(IfaceCall cm,IfaceValue v0,IfaceSafetyStatus sts,IfaceLocation loc)
 {
    IfaceMethod bm = cm.getMethod();
    
@@ -189,17 +192,19 @@ void handleReturn(IfaceCall cm,IfaceValue v0,IfaceLocation loc)
        }
     }
    
-   if (FaitLog.isTracing())
+   if (FaitLog.isTracing()) {
       FaitLog.logD1("Return value = " + v0);
+      FaitLog.logD1("Safety Return = " + sts);
+    }
 
-   boolean fg = cm.addResult(v0);
+   boolean fg = cm.addResult(v0,sts);
    if (fg) flow_queue.handleReturnSetup(bm);
    if (fg) {
-      queueReturn(v0,cm,loc);
+      queueReturn(v0,cm,sts,loc);
       Set<IfaceCall> s = rename_map.get(cm);
       if (s != null) {
 	 for (IfaceCall c0 : s) {
-	    queueReturn(v0,c0,loc);
+	    queueReturn(v0,c0,sts,loc);
 	  }
        }
     }
@@ -211,9 +216,9 @@ void handleReturn(IfaceCall cm,IfaceValue v0,IfaceLocation loc)
 
 
 
-private void queueReturn(IfaceValue v,IfaceCall cm,IfaceLocation loc)
+private void queueReturn(IfaceValue v,IfaceCall cm,IfaceSafetyStatus sts,IfaceLocation loc)
 {
-   if (FaitLog.isTracing()) FaitLog.logD1("Return change " + cm + " = " + v);
+   if (FaitLog.isTracing()) FaitLog.logD1("Return change " + cm + " = " + v + " [" + sts + "]");
 
    for (IfaceLocation cloc : cm.getCallSites()) {
       if (FaitLog.isTracing()) FaitLog.logD1("Queue for return " + cloc);
@@ -222,7 +227,7 @@ private void queueReturn(IfaceValue v,IfaceCall cm,IfaceLocation loc)
 
    for (IfaceMethod fm : cm.getMethod().getParentMethods()) {
       for (IfaceCall xcm : fait_control.getAllCalls(fm)) {
-	 handleReturn(xcm,v,loc);
+	 handleReturn(xcm,v,sts,loc);
        }
     }
 }
@@ -245,7 +250,7 @@ private LinkedList<IfaceValue> getCallArguments(FlowLocation loc,IfaceState st0)
       FaitLog.logE("FAIT: Bad target " + ins);
       return null;
     }
-
+   
    int ct = tgt.getNumArgs();
    for (int i = 0; i < ct; ++i) {
       IfaceValue v0 = st0.popStack();
@@ -365,7 +370,7 @@ private IfaceValue processCall(IfaceMethod bm,List<IfaceValue> args,boolean virt
     }
 
    if (nargs != null) {
-      IfaceCall mi = findCall(loc,bm,nargs);
+      IfaceCall mi = findCall(loc,bm,nargs,st0.getSafetyStatus());
       mi.addCallbacks(loc,nargs);
       Collection<IfaceMethod> c = mi.replaceWith(ppt,nargs);
       if (c == null) return rslt;
@@ -458,7 +463,7 @@ private IfaceValue handleSpecialCases(IfaceMethod fm,List<IfaceValue> args,FlowL
       if (fm.getName().equals("event")) {
          IfaceValue v0 = args.get(0);
          String sv = v0.getStringValue();
-         if (sv != null) state.updateSafetyStatus(sv);
+         if (sv != null) state.updateSafetyStatus(sv,fait_control);
        }
       return fait_control.findAnyValue(fm.getReturnType());
     }
@@ -539,7 +544,7 @@ private IfaceValue checkVirtual(IfaceMethod bm,List<IfaceValue> args,
 	    IfaceMethod cem = fait_control.findInheritedMethod(dt,bm.getName(),bm.getDescription());
 	    if (cem != null && !cem.isAbstract()) {
 	       IfaceValue srslt = processCall(cem,args,true,loc,st,cbid);
-	       IfaceCall kmi = findCall(loc,cem,null);
+	       IfaceCall kmi = findCall(loc,cem,null,st.getSafetyStatus());
 	       if (kmi != null && kmi.hasResult()) {
 		  if (rslt == null) rslt = srslt;
 		  else rslt = rslt.mergeValue(srslt);
@@ -561,7 +566,7 @@ private IfaceValue processActualCall(IfaceMethod fm,List<IfaceValue> args,boolea
    IfaceMethod orig = fm;
    
    if (fm0 != fm) {
-      IfaceCall mi0 = findCall(loc,fm0,nargs);
+      IfaceCall mi0 = findCall(loc,fm0,nargs,st.getSafetyStatus());
       synchronized (rename_map) {
 	 Set<IfaceCall> s = rename_map.get(mi0);
 	 if (s == null) {
@@ -575,8 +580,8 @@ private IfaceValue processActualCall(IfaceMethod fm,List<IfaceValue> args,boolea
        }
       mi = mi0;
     }
-
-   if (mi.addCall(nargs)) {
+   
+   if (mi.addCall(nargs,st.getSafetyStatus())) {
       if (FaitLog.isTracing()) FaitLog.logD1("Call " + mi);
       if (mi.getMethod().hasCode()) {
          IfaceCall from = null;
@@ -588,29 +593,42 @@ private IfaceValue processActualCall(IfaceMethod fm,List<IfaceValue> args,boolea
    if (loc != null) mi.noteCallSite(loc);
    // else FaitLog.logD1("No call site given");        // callbacks have no call site
 
-
    if (mi.hasResult()) {
+      IfaceValue prslt = null;
       if (mi.isClone()) {
 	 IfaceValue cv = nargs.get(0);
-	 IfaceValue prslt = fait_control.findNativeValue(cv.getDataType());
-	 if (prslt != null) rslt = prslt.mergeValue(rslt);
+	 prslt = fait_control.findNativeValue(cv.getDataType());
        }
       else if (mi.isReturnArg0()) {
-	 IfaceValue prslt = nargs.get(0);
-	 if (prslt != null) rslt = prslt.mergeValue(rslt);
+	 prslt = nargs.get(0);
        }
       else {
-	 IfaceValue prslt = mi.getResultValue();
+	 prslt = mi.getResultValue();
 	 if (prslt != null) {
 	    if (prslt.isNative()) flow_queue.initialize(prslt.getDataType());
-	    rslt = prslt.mergeValue(rslt);
 	  }
        }
+      if (prslt != null) {
+         IfaceType ptyp = prslt.getDataType();
+         if (!ptyp.isVoidType()) {
+            IfaceType ntyp = ptyp.getCallType(mi,prslt,args);
+            if (ntyp != null && ntyp != ptyp) {
+               prslt = prslt.changeType(ntyp);
+             }
+          }
+         rslt = prslt.mergeValue(rslt);
+       }
+      
+      IfaceSafetyStatus sts = mi.getResultSafetyStatus();
+      if (sts != null) {
+         st.setSafetyStatus(mi.getResultSafetyStatus());
+       }
     }
+    
 
    if (loc != null && mi.getCanExit() && !loc.getCall().getCanExit()) {
       loc.getCall().setCanExit();
-      queueReturn(null,loc.getCall(),loc);
+      queueReturn(null,loc.getCall(),st.getSafetyStatus(),loc);
     }
 
    if (virt) rslt = checkVirtual(fm,nargs,loc,st,orig,rslt,cbid);
@@ -620,16 +638,23 @@ private IfaceValue processActualCall(IfaceMethod fm,List<IfaceValue> args,boolea
 
 
 
-private IfaceCall findCall(FlowLocation loc,IfaceMethod tgt,List<IfaceValue> args)
+private IfaceCall findCall(FlowLocation loc,IfaceMethod tgt,List<IfaceValue> args,IfaceSafetyStatus sts)
 {
    if (loc == null)
-      return fait_control.findCall(null,tgt,null,InlineType.NONE);
-
-   IfaceCall cm = loc.getCall().getMethodCalled(loc.getProgramPoint(),tgt);
-   if (cm != null) return cm;
+      return fait_control.findCall(null,tgt,null,sts,InlineType.NONE);
 
    InlineType il = canBeInlined(loc.getProgramPoint(),tgt);
-   cm = fait_control.findCall(loc.getProgramPoint(),tgt,args,il);
+   
+   IfaceCall cm = loc.getCall().getMethodCalled(loc.getProgramPoint(),tgt);
+   if (cm != null) {
+      IfaceCall ncm = cm.getAlternateCall(sts,loc.getProgramPoint());
+      if (ncm == cm) return cm;
+      if (FaitLog.isTracing()) 
+         FaitLog.logD1("Use alternative call for " + sts);
+      return ncm;
+    }
+
+   cm = fait_control.findCall(loc.getProgramPoint(),tgt,args,sts,il);
 
    loc.getCall().noteMethodCalled(loc.getProgramPoint(),tgt,cm);
 

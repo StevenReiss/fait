@@ -53,11 +53,11 @@ public static FaitAnnotation NULLABLE = new FaitAnnotation("Nullable");
 public static FaitAnnotation NON_NULL = new FaitAnnotation("NonNull");
 public static FaitAnnotation DEREFED = new FaitAnnotation("Derefed");
 
-public static FaitAnnotation INITIALIZED = new FaitAnnotation("Initialized");
-public static FaitAnnotation UNDER_INITIALIZATION = new FaitAnnotation("UnderInitialization");
+// public static FaitAnnotation INITIALIZED = new FaitAnnotation("Initialized");
+// public static FaitAnnotation UNDER_INITIALIZATION = new FaitAnnotation("UnderInitialization");
 
-public static FaitAnnotation TAINTED = new FaitAnnotation("Tainted");
-public static FaitAnnotation UNTAINTED = new FaitAnnotation("Untainted");
+// public static FaitAnnotation TAINTED = new FaitAnnotation("Tainted");
+// public static FaitAnnotation UNTAINTED = new FaitAnnotation("Untainted");
 
 
 

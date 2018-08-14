@@ -78,7 +78,7 @@ public StateTest()
 
 @Test public void stackCheck()
 {
-   IfaceState s1 = fait_control.createState(4);
+   IfaceState s1 = fait_control.createState(4,null);
    IfaceType t1 = fait_control.findDataType("int");
    
    IfaceValue v1 = fait_control.findConstantValue(t1,1);

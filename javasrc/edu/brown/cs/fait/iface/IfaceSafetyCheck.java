@@ -35,7 +35,7 @@
 
 package edu.brown.cs.fait.iface;
 
-
+import java.util.List;
 
 public interface IfaceSafetyCheck extends FaitConstants
 {
@@ -43,7 +43,7 @@ public interface IfaceSafetyCheck extends FaitConstants
 String getName();
 
 Value getInitialState();
-int update(String event,int from);
+int update(String event,int from,List<IfaceError> errs);
 
 Value getValueForOrdinal(int i);
 

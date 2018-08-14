@@ -37,6 +37,8 @@ package edu.brown.cs.fait.safety;
 
 import org.w3c.dom.Element;
 
+import edu.brown.cs.fait.iface.FaitError;
+import edu.brown.cs.fait.iface.IfaceError;
 import edu.brown.cs.ivy.xml.IvyXml;
 
 class SafetyCheckUser extends SafetyCheck
@@ -76,8 +78,8 @@ private void loadCheck(Element xml)
    String first = null;
    boolean haveinit = false;;
    for (Element selt : IvyXml.children(xml,"STATE")) {
-      boolean init = IvyXml.getAttrBool(selt,"INITIAL");
       String name = IvyXml.getAttrString(selt,"NAME");
+      boolean init = IvyXml.getAttrBool(selt,"INITIAL");
       defineState(name,init);
       if (first == null) first = name;
       haveinit |= init;
@@ -90,8 +92,15 @@ private void loadCheck(Element xml)
       for (Element telt : IvyXml.children(selt,"ON")) {
          String evtnm = IvyXml.getAttrString(telt,"EVENT");
          String tonm = IvyXml.getAttrString(telt,"GOTO");
+         IfaceError ierr = null;
+         String err = IvyXml.getTextElement(telt,"ERROR");
+         String warn = IvyXml.getTextElement(telt,"WARNING");
+         String note = IvyXml.getTextElement(telt,"NOTE");
+         if (err != null) ierr = new FaitError(ErrorLevel.ERROR,err);
+         else if (warn != null) ierr = new FaitError(ErrorLevel.WARNING,warn);
+         else if (note != null) ierr = new FaitError(ErrorLevel.NOTE,note);
          Value tv = defineState(tonm,false);
-         defineTransition(v,evtnm,tv);
+         defineTransition(v,evtnm,tv,ierr);
        }
       Element delt = IvyXml.getChild(selt,"ELSE");
       if (delt == null) defineDefault(v,v);

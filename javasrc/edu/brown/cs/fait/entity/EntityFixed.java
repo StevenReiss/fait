@@ -157,6 +157,9 @@ EntityFixed(IfaceType dt,boolean mutable,IfacePrototype ptyp)
       if (FaitLog.isTracing()) 
          FaitLog.logD1("Mutable change " + getDataType() + " => " + dt);
     }
+   else if (getDataType().getJavaType() == dt.getJavaType()) {
+      eb = (EntityBase) factory.createFixedEntity(dt);
+    }
    // else if same Java type then treat as mutable
    
    if (eb == null) return null;

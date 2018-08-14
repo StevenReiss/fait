@@ -64,7 +64,6 @@ import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.UnionType;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 
-import edu.brown.cs.fait.iface.FaitAnnotation;
 import edu.brown.cs.fait.iface.FaitConstants;
 import edu.brown.cs.fait.iface.IfaceAnnotation;
 import edu.brown.cs.fait.iface.IfaceAstReference;
@@ -896,7 +895,6 @@ private class AstField implements IfaceField {
        }
       if (initv == null) return null;
       IfaceType typ = getType();
-      typ = typ.getAnnotatedType(FaitAnnotation.INITIALIZED);
       if (initv instanceof NumberLiteral) {
          if (typ.isFloatingType()) {
             try {

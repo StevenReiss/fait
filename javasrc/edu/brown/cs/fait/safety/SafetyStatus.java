@@ -35,8 +35,14 @@
 
 package edu.brown.cs.fait.safety;
 
-import edu.brown.cs.fait.iface.IfaceSafetyCheck;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import edu.brown.cs.fait.iface.IfaceError;
+import edu.brown.cs.fait.iface.IfaceLocation;
 import edu.brown.cs.fait.iface.IfaceSafetyStatus;
+import edu.brown.cs.fait.iface.IfaceSafetyCheck.Value;
 
 class SafetyStatus implements IfaceSafetyStatus
 {
@@ -52,34 +58,14 @@ private int []          cur_status;
 private SafetyFactory   for_factory;
 
 
+
 /********************************************************************************/
 /*                                                                              */
 /*      Constructors                                                            */
 /*                                                                              */
 /********************************************************************************/
 
-SafetyStatus(SafetyFactory sf)
-{
-   for_factory = sf;
-   cur_status = new int [sf.getNumChecks()];
-   for (int i = 0; i < cur_status.length; ++i) {
-      IfaceSafetyCheck.Value v = sf.getCheck(i).getInitialState();
-      cur_status[i] = 1 << v.ordinal();
-    }
-}
-
-
-SafetyStatus(SafetyStatus sts)
-{
-   for_factory = sts.for_factory; 
-   cur_status = new int[sts.cur_status.length];
-   for (int i = 0; i < cur_status.length; ++i) {
-      cur_status[i] = sts.cur_status[i];;
-    }
-}
-
-
-private SafetyStatus(SafetyFactory sf,int [] sts)
+SafetyStatus(SafetyFactory sf,int [] sts)
 {
    for_factory = sf;
    cur_status = sts;
@@ -94,7 +80,7 @@ private SafetyStatus(SafetyFactory sf,int [] sts)
 /*                                                                              */
 /********************************************************************************/
 
-@Override public IfaceSafetyStatus update(String event)
+@Override public IfaceSafetyStatus update(String event,IfaceLocation loc)
 {
    int [] newstatus = null;
    
@@ -106,10 +92,12 @@ private SafetyStatus(SafetyFactory sf,int [] sts)
       evt = event.substring(idx+1);
     }
    
+   List<IfaceError> nerrs = new ArrayList<>(); 
+   
    for (int i = 0; i < cur_status.length; ++i) {
       SafetyCheck sc = for_factory.getCheck(i);
       if (check != null && !sc.getName().equals(check)) continue;
-      int nv = sc.update(evt,cur_status[i]);
+      int nv = sc.update(evt,cur_status[i],nerrs);
       if (nv != cur_status[i]) {
          if (newstatus == null) {
             newstatus = new int[cur_status.length];
@@ -119,8 +107,15 @@ private SafetyStatus(SafetyFactory sf,int [] sts)
        }
     }
    
+   if (loc != null) {
+      for (IfaceError err : nerrs) {
+         loc.noteError(err);
+       }
+    }
+   
    if (newstatus == null) return this;
-   return new SafetyStatus(for_factory,newstatus);
+   
+   return for_factory.getSafetyStatus(newstatus);
 }
 
 
@@ -145,12 +140,62 @@ private SafetyStatus(SafetyFactory sf,int [] sts)
     }
    
    if (newstatus == null) return this;
-   return new SafetyStatus(for_factory,newstatus);
+   
+   return for_factory.getSafetyStatus(newstatus);
+}
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Output methods                                                          */
+/*                                                                              */
+/********************************************************************************/
+
+@Override public String toString()
+{
+   StringBuffer buf = new StringBuffer();
+   buf.append("<!");
+   int idx = 0;
+   for (SafetyCheck sc : for_factory.getAllChecks()) {
+      if (idx > 0) buf.append("!!");
+      int val = cur_status[idx++];
+      while (val != 0) {
+         int i = Integer.numberOfTrailingZeros(val);
+         Value v = sc.getValueForOrdinal(i);
+         buf.append(v.toString());
+         val ^= (1 << i);
+         if (val != 0) buf.append(",");
+       }
+    }
+   buf.append("!>");
+   return buf.toString();
 }
 
 
 
 
+/********************************************************************************/
+/*                                                                              */
+/*      Equality checking                                                       */
+/*                                                                              */
+/********************************************************************************/
+
+@Override public boolean equals(Object o)
+{
+   if (o instanceof SafetyStatus) {
+      SafetyStatus st = (SafetyStatus) o;
+      if (Arrays.equals(cur_status,st.cur_status)) return true;
+    }
+   return false;
+}
+
+
+@Override public int hashCode()
+{
+   int hc = Arrays.hashCode(cur_status);
+   return hc;
+}
 
 
 

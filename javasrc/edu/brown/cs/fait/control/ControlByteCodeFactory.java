@@ -43,7 +43,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import edu.brown.cs.fait.iface.FaitAnnotation;
 import edu.brown.cs.fait.iface.FaitLog;
 import edu.brown.cs.fait.iface.IfaceAnnotation;
 import edu.brown.cs.fait.iface.IfaceAstReference;
@@ -183,7 +182,16 @@ private IfaceType getFaitType(JcodeDataType jdt)
 }
 
 
-
+IfaceAnnotation [] getAnnotations(JcodeInstruction ins)
+{
+   List<JcodeAnnotation> ans = ins.getAnnotations();
+   if (ans == null) return null;
+   IfaceAnnotation [] rslt = new IfaceAnnotation[ans.size()];
+   for (int i = 0; i < ans.size(); ++i) {
+      rslt[i] = new InsAnnotation(ans.get(i));
+    }
+   return rslt;
+}
 
 /********************************************************************************/
 /*                                                                              */
@@ -261,13 +269,11 @@ private class InsField implements IfaceField {
       Object o = for_field.getConstantValue();
       if (o == null) return null;
       IfaceType typ = getType();
-      typ = typ.getAnnotatedType(FaitAnnotation.INITIALIZED);
       if (typ.isFloatingType() && o instanceof Number) {
          double v = ((Number) o).doubleValue();
          return fait_control.findRangeValue(typ,v,v);
        }
       else if (typ.isNumericType() && o instanceof Number) {
-         typ = typ.getAnnotatedType(FaitAnnotation.INITIALIZED);
          Long v = ((Number) o).longValue();
          return fait_control.findRangeValue(typ,v,v);
        }
@@ -275,7 +281,6 @@ private class InsField implements IfaceField {
          return fait_control.findConstantStringValue((String) o);
        }
       else if (typ.isBooleanType() && o instanceof Boolean) {
-         typ = typ.getAnnotatedType(FaitAnnotation.INITIALIZED);
          boolean b = (Boolean) o;
          return fait_control.findConstantValue(b);
        }
@@ -419,7 +424,9 @@ private class InsMethod implements IfaceMethod {
       List<IfaceMethod> rslt = new ArrayList<>();
       for (JcodeMethod fm : for_method.getParentMethods()) {
          if (fm == for_method) continue;
-         rslt.add(getMethod(fm));
+         IfaceMethod f = fait_control.findMethod(fm.getDeclaringClass().getName(),
+               fm.getName(),fm.getDescription());
+         rslt.add(f);
        }
       return rslt;
     }
@@ -428,7 +435,9 @@ private class InsMethod implements IfaceMethod {
       List<IfaceMethod> rslt = new ArrayList<>();
       for (JcodeMethod fm : for_method.getChildMethods()) {
          if (fm == for_method) continue;
-         rslt.add(getMethod(fm));
+         IfaceMethod f = fait_control.findMethod(fm.getDeclaringClass().getName(),
+               fm.getName(),fm.getDescription());
+         rslt.add(f);
        }
       return rslt;
     }
@@ -536,6 +545,10 @@ private class InsAnnotation implements IfaceAnnotation {
       Map<String,Object> map = for_annotation.getValues();
       if (map == null) return null;
       return map.get(key);
+    }
+   
+   @Override public String toString() {
+      return for_annotation.toString();
     }
    
 }       // end of inner class InsAnnotation

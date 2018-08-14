@@ -127,7 +127,7 @@ IfaceValue handleFieldGet(FlowLocation loc,IfaceField fld,IfaceState st,boolean 
       
       if (base != null) {
          IfaceType ft = v0.getDataType();
-         IfaceType rt = ft.getComputedType(v0,FaitOperator.FIELDACCESS,base,base);
+         IfaceType rt = ft.getComputedType(v0,FaitOperator.FIELDACCESS,base);
          if (rt != ft) {
             ft.checkCompatibility(rt,loc);
             v0 = v0.changeType(rt);

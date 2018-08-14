@@ -152,7 +152,7 @@ public synchronized void serverTestSeede()
 @Test
 public synchronized void serverTestJavaSecurity()
 {
-   runServerTest("javasecurity","WebServer",7,null);
+   runServerTest("javasecurity","WebServer",11,null);
 }
 
 

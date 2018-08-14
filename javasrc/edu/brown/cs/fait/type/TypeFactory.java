@@ -36,6 +36,7 @@
 package edu.brown.cs.fait.type;
 
 import java.io.File;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -46,6 +47,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.w3c.dom.Element;
 
 import edu.brown.cs.fait.iface.FaitConstants;
+import edu.brown.cs.fait.iface.FaitLog;
 import edu.brown.cs.fait.iface.IfaceAnnotation;
 import edu.brown.cs.fait.iface.IfaceBaseType;
 import edu.brown.cs.fait.iface.IfaceControl;
@@ -79,8 +81,8 @@ public TypeFactory(IfaceControl ic)
    type_map = new TypeMap();
    all_subtypes = new ArrayList<>();
    all_subtypes.add(CheckNullness.getType());
-   all_subtypes.add(CheckInitialization.getType());
-   all_subtypes.add(CheckTaint.getType());
+   // all_subtypes.add(CheckInitialization.getType());
+   // all_subtypes.add(CheckTaint.getType());
    
    for (int i = 0; i < all_subtypes.size(); ++i) {
       TypeSubtype tst = all_subtypes.get(i);
@@ -266,9 +268,29 @@ public void addSpecialFile(File f)
 }
 
 
-public void addSpecialFile(Element xml)
+public synchronized void addSpecialFile(Element xml)
 {
    for (Element selt : IvyXml.children(xml,"SUBTYPE")) {
+      String cnm = IvyXml.getAttrString(selt,"CLASS");
+      if (cnm != null) {
+         if (cnm.startsWith("Check")) cnm = "edu.brown.cs.fait.type." + cnm;
+         try {
+            Class<?> c = Class.forName(cnm);
+            Method m = c.getMethod("getType");
+            TypeSubtype tst = (TypeSubtype) m.invoke(null);
+            if (!all_subtypes.contains(tst)) {
+               int ct = all_subtypes.size();
+               all_subtypes.add(tst);
+               tst.setIndex(ct);
+             }
+            continue;
+          }
+         catch (Throwable e) { 
+            FaitLog.logE("Problem getting subtype by class",e);
+          }
+         FaitLog.logE("Subtype class " + cnm + " not found or invalid");
+         continue;
+       }
       TypeSubtypeUser tsu = new TypeSubtypeUser(selt);
       int ct = all_subtypes.size();
       all_subtypes.add(tsu);

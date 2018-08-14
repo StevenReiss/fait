@@ -63,9 +63,12 @@ private boolean 	is_proto;
 private boolean 	can_exit;
 private int		num_adds;
 private int		num_result;
+private boolean         is_scanned;
 private QueueLevel	queue_level;
 private List<IfaceType> implied_arg_types;
 private IfaceType       implied_return_type;
+private IfaceSafetyStatus safety_result;
+private CallBase        alternate_call;
 
 private int             num_forward;
 private int             num_backward;
@@ -89,7 +92,7 @@ private Map<IfaceProgramPoint,Collection<IfaceError>> error_set;
 /*										*/
 /********************************************************************************/
 
-CallBase(IfaceControl fc,IfaceMethod fm,IfaceProgramPoint pt)
+CallBase(IfaceControl fc,IfaceMethod fm,IfaceProgramPoint pt,IfaceSafetyStatus sts)
 {
    fait_control = fc;
    
@@ -103,8 +106,11 @@ CallBase(IfaceControl fc,IfaceMethod fm,IfaceProgramPoint pt)
    is_arg0 = false;
    is_proto = false;
    can_exit = false;
+   is_scanned = false;
    
    queue_level = QueueLevel.NORMAL;
+   
+   alternate_call = null;
    
    array_map = Collections.synchronizedMap(new IdentityHashMap<>(4));
    entity_map = Collections.synchronizedMap(new IdentityHashMap<>(4));
@@ -120,7 +126,7 @@ CallBase(IfaceControl fc,IfaceMethod fm,IfaceProgramPoint pt)
       result_set = fc.findMutableValue(fm.getReturnType());
     }
 
-   start_state = fc.createState(fm.getLocalSize());
+   start_state = fc.createState(fm.getLocalSize(),sts);
 
    int idx = 0;
    if (!fm.isStatic()) {
@@ -148,7 +154,7 @@ CallBase(IfaceControl fc,IfaceMethod fm,IfaceProgramPoint pt)
       // this null needs to be a FaitLocaiton with fm as the method
       if (special_data.getDontScan()) {
          IfaceValue rv = special_data.getReturnValue(null,for_method);
-         addResult(rv);
+         addResult(rv,null);
          if (rv != null) {
             List<IfaceValue> excs = special_data.getExceptions(null,for_method);
             IfaceValue ev = null;
@@ -192,6 +198,11 @@ CallBase(IfaceControl fc,IfaceMethod fm,IfaceProgramPoint pt)
    num_scan = 0;
    num_forward = 0;
    num_backward = 0;
+   
+   if (num_result > 0) is_scanned = false;
+   else is_scanned = true;
+   
+   safety_result = null;
 }
 
 
@@ -210,6 +221,11 @@ CallBase(IfaceControl fc,IfaceMethod fm,IfaceProgramPoint pt)
 @Override public IfaceState getStartState()	{ return start_state; }
 
 @Override public IfaceValue getResultValue()	{ return result_set; }
+
+@Override public IfaceSafetyStatus getResultSafetyStatus()
+{
+   return safety_result;
+}
 @Override public IfaceValue getExceptionValue() { return exception_set; }
 
 @Override public boolean isClone()		{ return is_clone; }
@@ -220,6 +236,8 @@ CallBase(IfaceControl fc,IfaceMethod fm,IfaceProgramPoint pt)
 
 @Override public boolean isPrototype()		{ return is_proto; }
 @Override public void setPrototype()		{ is_proto = true; }
+
+@Override public boolean isScanned()            { return is_scanned; }
 
 
 @Override public boolean getIsAsync()
@@ -305,6 +323,9 @@ CallBase(IfaceControl fc,IfaceMethod fm,IfaceProgramPoint pt)
 {
    synchronized (error_set) {
       List<IfaceProgramPoint> rslt = new ArrayList<>(error_set.keySet());
+      for (CallBase cb = alternate_call; cb != null; cb = cb.alternate_call) {
+         rslt.addAll(cb.error_set.keySet());
+       }
       return rslt;
     }
 }
@@ -313,7 +334,14 @@ CallBase(IfaceControl fc,IfaceMethod fm,IfaceProgramPoint pt)
 @Override public Collection<IfaceError> getErrors(IfaceProgramPoint pt)
 {
    synchronized (error_set) {
-      return error_set.get(pt);
+      if (alternate_call == null) return error_set.get(pt);
+      Set<IfaceError> errs = new HashSet<>();
+      for (CallBase cb = this; cb != null; cb = cb.alternate_call) {
+         Collection<IfaceError> cerr = cb.error_set.get(pt);
+         if (cerr != null) errs.addAll(cerr);
+       }
+      if (errs.size() == 0) return null;
+      return errs;
     }
 }
 
@@ -364,8 +392,7 @@ CallBase(IfaceControl fc,IfaceMethod fm,IfaceProgramPoint pt)
 /*										*/
 /********************************************************************************/
 
-// TOOD: add safety status as argument here
-@Override public boolean addCall(List<IfaceValue> args)
+@Override public boolean addCall(List<IfaceValue> args,IfaceSafetyStatus sts)
 {
    boolean chng = false;
 
@@ -385,7 +412,9 @@ CallBase(IfaceControl fc,IfaceMethod fm,IfaceProgramPoint pt)
        }
       if (num_adds++ == 0) chng = true;
     }
-
+   
+   if (start_state.mergeSafetyStatus(sts)) chng = true;
+   
    if (chng && special_data != null && special_data.getDontScan()) chng = false;
 
    return chng;
@@ -415,28 +444,46 @@ CallBase(IfaceControl fc,IfaceMethod fm,IfaceProgramPoint pt)
 }
 
 
-@Override synchronized public boolean addResult(IfaceValue v)
+@Override synchronized public boolean addResult(IfaceValue v,IfaceSafetyStatus sts)
 {
+   boolean chng = false;
+   
    if (v == null) {				// handle void routines
-      if (num_result++ == 0) return true;
-      return false;
+      if (num_result++ == 0) chng = true;
     }
-
-   if (result_set == null || num_result == 0) {
+   else if (result_set == null || num_result == 0) {
       ++num_result;
       result_set = v;
+      chng = true;
     }
    else {
       ++num_result;
-      if (result_set == v) return false;
-      IfaceValue nv = result_set.mergeValue(v);
-      if (nv == result_set) return false;
-      result_set = nv;
+      if (result_set != v) {
+         IfaceValue nv = result_set.mergeValue(v);
+         if (nv != result_set) {
+            result_set = nv;
+            chng = true;
+          }
+       }
     }
-
-   if (is_arg0) return false;
-
-   return true;
+   
+   if (is_arg0) chng = false;
+   
+   if (sts != null) {
+      if (safety_result == null) {
+         safety_result = sts;
+         if (!is_arg0) chng = true;
+       }
+      else {
+         IfaceSafetyStatus nsts = safety_result.merge(sts);
+         if (nsts != safety_result) {
+            safety_result = nsts;
+            chng = true;
+          }
+       }
+    }
+   
+   return chng;
 }
 
 
@@ -856,6 +903,32 @@ private boolean removeCaller(IfaceCall src)
 }
 
 
+/********************************************************************************/
+/*                                                                              */
+/*      Handle finding alternate calls based on safety status                   */
+/*                                                                              */
+/********************************************************************************/
+
+@Override public CallBase getAlternateCall(IfaceSafetyStatus sts,IfaceProgramPoint pt)
+{
+   if (sts == null) return this;
+   
+   IfaceSafetyStatus osts = start_state.getSafetyStatus();
+   
+   if (sts == osts) return this;
+   if (osts != null) {
+      // IfaceSafetyStatus xsts = osts.merge(sts);
+      // if (xsts == osts) return this;
+    }
+   if (osts == null && sts == fait_control.getInitialSafetyStatus()) return this;
+   
+   if (alternate_call != null) return alternate_call.getAlternateCall(sts,pt); 
+   
+   CallBase cb = new CallBase(fait_control,for_method,pt,sts);
+   alternate_call = cb;
+   
+   return cb;
+}
 
 /********************************************************************************/
 /*                                                                              */
@@ -879,6 +952,10 @@ private boolean removeCaller(IfaceCall src)
    num_scan = 0;
    num_forward = 0;
    num_backward = 0;
+   
+   if (alternate_call != null) {
+      alternate_call.outputStatistics();
+    }
 }
 
 

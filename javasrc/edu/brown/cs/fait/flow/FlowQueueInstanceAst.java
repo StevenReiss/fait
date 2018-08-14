@@ -97,7 +97,8 @@ FlowQueueInstanceAst(FlowQueue fq,IfaceCall fc,QueueLevel lvl)
    ASTNode where = pt0.getAstReference().getAstNode();
    IfaceProgramPoint pt = getControl().getAstReference(where,sts);
    IfaceState st1 = st0.cloneState();
-   mergeState(st1,pt);
+   FlowLocation nloc = new FlowLocation(getWorkQueue(),getCall(),pt);
+   mergeState(st1,nloc);
 }
 
 

@@ -36,6 +36,7 @@
 package edu.brown.cs.fait.iface;
 
 import java.util.Collection;
+import java.util.List;
 
 public interface IfaceSubtype extends FaitConstants
 {
@@ -56,7 +57,8 @@ IfaceSubtype.Value getDefaultTypeValue(IfaceType type);                 // x.cla
 IfaceSubtype.Value getDefaultValue(IfaceValue v);
 
 IfaceSubtype.Value getComputedValue(IfaceValue rslt,FaitOperator op,IfaceValue lv,IfaceValue rv);
-IfaceSubtype.Value getComputedValue(FaitOperator op,IfaceSubtype.Value oval);
+IfaceSubtype.Value getComputedValue(FaitTypeOperator op,IfaceSubtype.Value oval);
+IfaceSubtype.Value getCallValue(IfaceCall cm,IfaceValue rslt,List<IfaceValue> args);
 IfaceSubtype.Value getImpliedValue(FaitOperator op,IfaceValue v0,IfaceValue v1,boolean branch);
 IfaceAnnotation getArgumentAnnotation(FaitOperator op,int opnd,IfaceValue [] vals);
 

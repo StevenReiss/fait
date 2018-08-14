@@ -82,7 +82,7 @@ private static CheckNullness  our_type = new CheckNullness();
 /*										*/
 /********************************************************************************/
 
-static synchronized CheckNullness getType()
+public static synchronized CheckNullness getType()
 {
    if (our_type == null) {
       our_type = new CheckNullness();
@@ -158,6 +158,19 @@ private CheckNullness()
 
 @Override public IfaceSubtype.Value getComputedValue(IfaceValue rslt,FaitOperator op,IfaceValue v0,IfaceValue v1)
 {
+   switch (op) {
+      case DEREFERENCE :
+         IfaceSubtype.Value oval = rslt.getDataType().getValue(this);
+	 if (oval == NON_NULL || oval == DEREFED) return oval;
+	 if (oval == MUST_BE_NULL) return oval;
+	 return DEREFED;
+      case FIELDACCESS :
+      case ELEMENTACCESS :
+         break;
+      default :
+         break;
+    }
+   
    IfaceType t0 = rslt.getDataType();
    if (t0.isPrimitiveType()) return NON_NULL;
    return null; 
@@ -165,7 +178,7 @@ private CheckNullness()
 
 
 
-@Override public IfaceSubtype.Value getComputedValue(FaitOperator op,IfaceSubtype.Value oval)
+@Override public IfaceSubtype.Value getComputedValue(FaitTypeOperator op,IfaceSubtype.Value oval)
 {
    switch (op) {
       default :
@@ -173,10 +186,6 @@ private CheckNullness()
       case STARTINIT :
       case DONEINIT :
          return NON_NULL;
-      case DEREFERENCE :
-	 if (oval == NON_NULL || oval == DEREFED) return oval;
-	 if (oval == MUST_BE_NULL) return oval;
-	 return DEREFED;
     }
 
    return super.getComputedValue(op,oval);

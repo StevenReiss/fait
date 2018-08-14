@@ -50,9 +50,11 @@ default IfaceType getMethodClass()
 IfaceState getStartState();
 IfaceValue getResultValue();
 IfaceValue getExceptionValue();
+IfaceSafetyStatus getResultSafetyStatus();
 
 boolean isClone();
 boolean isReturnArg0();
+boolean isScanned();
 
 boolean getCanExit();
 void setCanExit();
@@ -84,10 +86,10 @@ void setUserEntity(IfaceProgramPoint ins,IfaceEntity.UserEntity e);
 IfaceValue getThisValue();
 Iterable<IfaceValue> getParameterValues();
 
-boolean addCall(List<IfaceValue> args);
+boolean addCall(List<IfaceValue> args,IfaceSafetyStatus sts);
 boolean addException(IfaceValue exception);
 boolean hasResult();
-boolean addResult(IfaceValue v);
+boolean addResult(IfaceValue v,IfaceSafetyStatus sts);
 
 Collection<IfaceMethod> replaceWith(IfaceProgramPoint where,List<IfaceValue> args);
 IfaceValue fixReplaceArgs(IfaceMethod fm,LinkedList<IfaceValue> args);
@@ -106,6 +108,8 @@ void addError(IfaceProgramPoint ins,IfaceError err);
 void removeErrors(IfaceProgramPoint ins);
 List<IfaceProgramPoint> getErrorLocations();
 Collection<IfaceError> getErrors(IfaceProgramPoint pt);
+
+IfaceCall getAlternateCall(IfaceSafetyStatus sts,IfaceProgramPoint pt);
 
 void removeForUpdate(IfaceUpdater upd);
 void handleUpdates(IfaceUpdater upd);

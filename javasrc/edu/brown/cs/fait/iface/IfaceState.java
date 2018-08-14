@@ -66,7 +66,9 @@ void pushReturn(IfaceProgramPoint pt);
 Collection<IfaceProgramPoint> popReturn();
 
 IfaceSafetyStatus getSafetyStatus();
-void updateSafetyStatus(String event);
+boolean mergeSafetyStatus(IfaceSafetyStatus sts);
+void setSafetyStatus(IfaceSafetyStatus sts);
+void updateSafetyStatus(String event,IfaceControl ctrl);
 
 IfaceState mergeWith(IfaceState st);
 
@@ -78,8 +80,8 @@ boolean testDoingInitialization(IfaceType typ);
 
 void handleUpdate(IfaceUpdater upd);
 
-void setProgramPoint(IfaceProgramPoint pt);
-IfaceProgramPoint getProgramPoint();
+void setLocation(IfaceLocation pt);
+IfaceLocation getLocation();
 
 int getNumPriorStates();
 IfaceState getPriorState(int idx);

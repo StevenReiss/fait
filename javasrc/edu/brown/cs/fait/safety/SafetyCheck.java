@@ -40,6 +40,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import edu.brown.cs.fait.iface.IfaceError;
 import edu.brown.cs.fait.iface.IfaceSafetyCheck;
 
 abstract class SafetyCheck implements IfaceSafetyCheck
@@ -110,10 +111,10 @@ protected void defineEvent(String name)
 }
 
 
-protected void defineTransition(Value fromstate,String event,Value tostate)
+protected void defineTransition(Value fromstate,String event,Value tostate,IfaceError err)
 {
    defineEvent(event);
-   transition_set.add(fromstate,event,tostate);
+   transition_set.add(fromstate,event,tostate,err);
 }
 
 
@@ -143,7 +144,7 @@ protected void defineDefault(Value fromstate,Value tostate)
 /*                                                                              */
 /********************************************************************************/
 
-@Override public int update(String event,int value)
+@Override public int update(String event,int value,List<IfaceError> errs)
 {
    if (value == 0) return value;
    
@@ -155,6 +156,10 @@ protected void defineDefault(Value fromstate,Value tostate)
    for (int i = 0; i < event_set.size(); ++i) {
       if ((value & sv) != 0) {
          nval |= transition_set.getNextSet(i,evtno);
+         IfaceError err = transition_set.getError(i,evtno);
+         if (err != null) {
+            if (errs != null) errs.add(err);
+          }
        }
       sv <<= 1;
     }
@@ -220,23 +225,30 @@ private class Transitions {
    
    private List<Transition> all_transitions;
    private int [][] event_map;
+   private IfaceError [][] error_map;
    
    Transitions() {
       all_transitions = new ArrayList<>();
       event_map = null;
+      error_map = null;
     }
    
-   void add(Value from,String evt,Value to) {
-      all_transitions.add(new Transition(from,evt,to));
+   void add(Value from,String evt,Value to,IfaceError err) {
+      all_transitions.add(new Transition(from,evt,to,err));
     }
    
    void addDefault(Value from,Value to) {
-      all_transitions.add(new Transition(from,null,to));
+      all_transitions.add(new Transition(from,null,to,null));
     }
    
    int getNextSet(int from,int evtno) {
       if (event_map == null) buildEventMap();
       return event_map[from][evtno];
+    }
+   
+   IfaceError getError(int from,int evtno) {
+      if (error_map == null) buildErrorMap();
+      return error_map[from][evtno];
     }
    
    private synchronized void buildEventMap() {
@@ -269,6 +281,24 @@ private class Transitions {
        }
     }
    
+   private synchronized void buildErrorMap() {
+      if (error_map != null) return;
+      int nst = value_set.size();
+      int nevt = event_set.size();
+      error_map = new IfaceError[nst][nevt];
+      for (int i = 0; i < nst; ++i) {
+         for (int j = 0; j < nevt; ++j) {
+            error_map[i][j] = null;
+          }
+       }
+      for (Transition t : all_transitions) {
+         if (t.getEvent() == null) continue;
+         int fvl = t.getFrom().ordinal();
+         int eno = event_set.get(t.getEvent());
+         error_map[fvl][eno] = t.getError();
+       }
+    }
+   
 }       // end of inner class Transitions
 
 
@@ -278,16 +308,19 @@ private static class Transition {
    private Value from_state;
    private String for_event;
    private Value to_state;
+   private IfaceError error_message;
    
-   Transition(Value from,String evt,Value to) {
+   Transition(Value from,String evt,Value to,IfaceError err) {
       from_state = from;
       for_event = evt;
       to_state = to;
+      error_message = err;
     }
    
    Value getFrom()              { return from_state; }
    String getEvent()            { return for_event; }
    Value gotTo()                { return to_state; }
+   IfaceError getError()        { return error_message; }
    
 }
 

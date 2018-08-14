@@ -599,7 +599,7 @@ ValueInt(ValueFactory vf,IfaceType dt,Long minv,Long maxv,IfaceEntitySet es)
    if (vb == this || vb == null) return this;
 
    if (!(vb instanceof ValueInt)) {
-      FaitLog.logD1("Bad int value merge: " + this + " " + vb);
+      FaitLog.logD1("Invalidate variable: Bad int value merge: " + this + " " + vb);
       return value_factory.badValue();
     }
 

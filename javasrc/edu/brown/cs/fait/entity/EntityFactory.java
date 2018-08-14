@@ -187,8 +187,7 @@ public IfaceEntity createStringEntity(IfaceControl ctrl,String s)
    synchronized (string_map) {
       EntityBase eb = string_map.get(s);
       if (eb == null) {
-	 IfaceType t = ctrl.findDataType("java.lang.String",
-               FaitAnnotation.NON_NULL,FaitAnnotation.UNTAINTED);
+         IfaceType t = ctrl.findConstantType("java.lang.String",s);
 	 eb = new EntityString(t,s);
 	 string_map.put(s,eb);
        }

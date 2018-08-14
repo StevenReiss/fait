@@ -73,9 +73,9 @@ public StateFactory(IfaceControl fc)
 /*										*/
 /********************************************************************************/
 
-public IfaceState createState(int numlocal)
+public IfaceState createState(int numlocal,IfaceSafetyStatus sts)
 {
-   return new StateBase(numlocal);
+   return new StateBase(numlocal,sts);
 }
 
 

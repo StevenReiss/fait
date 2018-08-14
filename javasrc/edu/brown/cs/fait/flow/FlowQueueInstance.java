@@ -127,24 +127,30 @@ IfaceProgramPoint getNext()
 
 void mergeState(IfaceState st)
 {
-   mergeState(st,getCall().getMethod().getStart());
+   FlowLocation loc = new FlowLocation(work_queue,getCall(),getCall().getMethod().getStart());
+   mergeState(st,loc);
 }
 
 
 
-void mergeState(IfaceState st,IfaceProgramPoint ins)          
+IfaceState mergeState(IfaceState st,IfaceLocation here)          
 {
-   if (st == null || ins == null) return;
+   if (st == null || here == null) return null;
+   IfaceProgramPoint ins = here.getProgramPoint();
+   if (ins == null) return null;
    
    IfaceState ost = state_map.get(ins);
    if (ost == null) ost = st.cloneState();
    else {
       ost = ost.mergeWith(st);
-      if (ost == null) return;          // no change
+      if (ost == null) return null;          // no change
     }
-   ost.setProgramPoint(ins);
+   
+   ost.setLocation(here);
    state_map.put(ins,ost);
    work_list.addFirst(ins);
+   
+   return ost;
 }
 
 

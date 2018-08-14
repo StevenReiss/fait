@@ -249,6 +249,7 @@ protected IfaceValue assignValue(IfaceState state,FlowLocation here,IfaceValue r
       boolean thisref = false;		// need to set
       if (base != null && !fld.isStatic() &&
 	    base == state.getLocal(0)) thisref = true;
+      
       flow_queue.handleFieldSet(fld,here,state,thisref,v1,base);
     }
    else if (idx != null) {
@@ -307,14 +308,14 @@ protected IfaceValue adjustRef(IfaceValue ref,int pop,int push)
 
 
 protected void checkBackPropagation(FlowLocation loc,IfaceState st0,int sref,
-      IfaceValue val,FaitOperator what)
+      IfaceValue val,FaitOperator what,IfaceValue arg)
 {
    // get state at start of program point
    if (val == null) val = st0.getStack(sref);
-   IfaceType t1 = val.checkOperation(what);
+   IfaceType t1 = val.checkOperation(what,arg);
    if (t1 == null || t1 == val.getDataType()) return;
    IfaceValue vref = fait_control.findRefStackValue(val.getDataType(),sref);
-   while (st0 != null && st0.getProgramPoint() == null) {
+   while (st0 != null && st0.getLocation() == null) {
       st0 = st0.getPriorState(0);
     }
    queueBackRefs(loc,st0,vref,t1);
@@ -381,11 +382,11 @@ private void queueIntermediateBack(FlowLocation here,IfaceState st,IfaceValue ne
 {
    for (int i = 0; i < st.getNumPriorStates(); ++i) {
       IfaceState stp = st.getPriorState(i);
-      if (stp.getProgramPoint() == null) {
+      if (stp.getLocation() == null) {
          queueIntermediateBack(here,stp,nextref,settype);
        }
       else { 
-         work_queue.queueBackPropagation(stp.getProgramPoint(),nextref,settype);
+         work_queue.queueBackPropagation(stp.getLocation().getProgramPoint(),nextref,settype);
        }
     }
 }

@@ -183,7 +183,7 @@ TypeSubtypeUser(Element xml)
 
 
 
-@Override public IfaceSubtype.Value getComputedValue(FaitOperator op,IfaceSubtype.Value oval)
+@Override public IfaceSubtype.Value getComputedValue(FaitTypeOperator op,IfaceSubtype.Value oval)
 {
    return super.getComputedValue(op,oval);
 }

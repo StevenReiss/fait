@@ -215,10 +215,10 @@ IfaceControl getFaitControl()
 }
 
 
-@Override public IfaceType checkOperation(FaitOperator op)
+@Override public IfaceType checkOperation(FaitOperator op,IfaceValue set)
 {
    IfaceType dt = getDataType();
-   IfaceType nt = dt.getComputedType(op);
+   IfaceType nt = dt.getComputedType(this,op,set);
    if (nt == null || nt == dt) return null;
    
    return nt;

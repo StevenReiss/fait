@@ -205,7 +205,7 @@ ValueObject(ValueFactory vf,IfaceType typ,IfaceEntitySet es,IfaceAnnotation ... 
    if (cv == this || cv == null) return this;
 
    if (!(cv instanceof ValueObject)) {
-      FaitLog.logD1("Bad value merge: " + this + " " + cv);
+      FaitLog.logD1("Invalidate variable: Bad value merge: " + this + " " + cv);
       return value_factory.badValue();
     }
 

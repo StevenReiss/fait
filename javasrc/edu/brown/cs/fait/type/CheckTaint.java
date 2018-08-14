@@ -37,12 +37,15 @@ package edu.brown.cs.fait.type;
 
 import edu.brown.cs.fait.iface.FaitError;
 import edu.brown.cs.fait.iface.IfaceBaseType;
+import edu.brown.cs.fait.iface.IfaceCall;
 import edu.brown.cs.fait.iface.IfaceError;
 import edu.brown.cs.fait.iface.IfaceSubtype;
 import edu.brown.cs.fait.iface.IfaceType;
 import edu.brown.cs.fait.iface.IfaceValue;
 
 import static edu.brown.cs.fait.type.CheckTaint.TaintState.*;
+
+import java.util.List;
 
 public class CheckTaint extends TypeSubtype
 {
@@ -74,7 +77,7 @@ public enum TaintState implements IfaceSubtype.Value
 /*                                                                              */
 /********************************************************************************/
 
-static synchronized CheckTaint getType()
+public static synchronized CheckTaint getType()
 {
    if (our_type == null) {
       our_type = new CheckTaint();
@@ -152,6 +155,7 @@ private CheckTaint()
    IfaceSubtype.Value s2 = t2.getValue(this);
    
    switch (op) {
+      case DEREFERENCE :
       case ELEMENTACCESS :
       case FIELDACCESS :
          t1 = t2;
@@ -167,7 +171,27 @@ private CheckTaint()
 }
 
 
-@Override public IfaceSubtype.Value getComputedValue(FaitOperator op,IfaceSubtype.Value oval)
+
+@Override public IfaceSubtype.Value getCallValue(IfaceCall cm,IfaceValue rslt,
+      List<IfaceValue> args)
+{
+   if (cm.isScanned()) return null;
+   
+   IfaceSubtype.Value r = rslt.getDataType().getValue(this);
+   if (r == TAINTED) return r;
+   boolean allok = true;
+   for (IfaceValue v : args) {
+      IfaceSubtype.Value s1 = v.getDataType().getValue(this);
+      if (s1 == TAINTED) return TAINTED;
+      else if (s1 != UNTAINTED) allok = false;
+    }
+   if (allok) return UNTAINTED;
+   
+   return r;
+}
+
+
+@Override public IfaceSubtype.Value getComputedValue(FaitTypeOperator op,IfaceSubtype.Value oval)
 {
    switch (op) {
       case STARTINIT :

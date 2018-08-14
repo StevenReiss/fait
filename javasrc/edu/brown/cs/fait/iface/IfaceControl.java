@@ -174,7 +174,7 @@ IfaceAstReference getAstReference(ASTNode n);
 IfaceAstReference getAstReference(ASTNode n,ASTNode c);
 IfaceAstReference getAstReference(ASTNode n,IfaceAstStatus sts);
 IfaceProgramPoint getProgramPoint(JcodeInstruction ins);
-IfaceAnnotation [] getAnnotations(ASTNode n);
+IfaceAnnotation [] getAnnotations(IfaceProgramPoint pt);
 
 
 
@@ -185,7 +185,7 @@ IfaceAnnotation [] getAnnotations(ASTNode n);
 /*										*/
 /********************************************************************************/
 
-IfaceState createState(int nlocal);
+IfaceState createState(int nlocal,IfaceSafetyStatus sts);
 IfaceValue getFieldValue(IfaceState st,IfaceField fld,IfaceValue base,boolean thisref,IfaceLocation src);
 boolean setFieldValue(IfaceState st,IfaceField fld,IfaceValue v,IfaceValue base,boolean thisref,IfaceLocation src);
 
@@ -211,7 +211,8 @@ IfaceCall findPrototypeMethod(IfaceProgramPoint pt,IfaceMethod fm);
 IfaceSpecial getCallSpecial(IfaceProgramPoint pt,IfaceMethod fm);
 void clearCallSpecial(IfaceMethod fm);
 
-IfaceCall findCall(IfaceProgramPoint pt,IfaceMethod fm,List<IfaceValue> args,InlineType inline);
+IfaceCall findCall(IfaceProgramPoint pt,IfaceMethod fm,List<IfaceValue> args,
+      IfaceSafetyStatus sts,InlineType inline);
 Collection<IfaceCall> getAllCalls(IfaceMethod fm);
 Collection<IfaceCall> getAllCalls();
 
@@ -241,22 +242,13 @@ List<IfaceMethod> findAllMethods(IfaceType cls,String name);
 
 IfaceType createFunctionRefType(String typ,String nstype);
 
+IfaceSafetyStatus getInitialSafetyStatus();
+
 void updateAll();
 void doUpdate(IfaceUpdateSet what);
 void removeCalls(Collection<IfaceCall> call);
 
 void clearAll();
-
-
-
-
-/********************************************************************************/
-/*                                                                              */
-/*      Safety methods                                                          */
-/*                                                                              */
-/********************************************************************************/
-
-IfaceSafetyStatus getInitialStatus();
 
 
 

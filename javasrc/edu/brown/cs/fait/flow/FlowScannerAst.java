@@ -283,8 +283,6 @@ private void processAstNode()
 
    work_queue.getCall().removeErrors(ast_where);
    
-   // pre-update safety state here
-
    if (FaitLog.isTracing()) {
       String cls = node.getClass().getName();
       int idx = cls.lastIndexOf(".");
@@ -610,8 +608,8 @@ private void processAstNode()
 		}
 	     }
 	  }
-	
-	 work_queue.mergeState(cur_state,nar);
+	 FlowLocation nloc = new FlowLocation(work_queue.getWorkQueue(),work_queue.getCall(),nar);
+	 work_queue.mergeState(cur_state,nloc);
        }
     }
 }
@@ -935,7 +933,8 @@ private Object visit(CastExpression v)
       IfaceValue v0 = popActual();
       if (v0 == null) return NO_NEXT_REPORT;
       IfaceType ctyp = convertType(JcompAst.getJavaType(v.getType()));
-      IfaceAnnotation [] annots = fait_control.getAnnotations(v.getType());
+      IfaceProgramPoint typpt = fait_control.getAstReference(v.getType());
+      IfaceAnnotation [] annots = fait_control.getAnnotations(typpt);
       IfaceType rtyp = null;
       if (annots != null)
          rtyp = ctyp.getAnnotatedType(annots);
@@ -1463,13 +1462,14 @@ private Object visit(ClassInstanceCreation v)
    // TODO: handle expression.new ...
    if (after_node == null) {
       IfaceType irty = convertType(rty);
-      IfaceAnnotation [] ans = fait_control.getAnnotations(v.getType());
+      IfaceProgramPoint pt = fait_control.getAstReference(v.getType());
+      IfaceAnnotation [] ans = fait_control.getAnnotations(pt);
       if (ans != null) irty = irty.getAnnotatedType(ans);
        
       flow_queue.initialize(irty);
       
-      IfaceType t1 = irty.getComputedType(FaitOperator.DONEINIT);
-      IfaceType t2 = irty.getComputedType(FaitOperator.STARTINIT);
+      IfaceType t1 = irty.getComputedType(FaitTypeOperator.DONEINIT);
+      IfaceType t2 = irty.getComputedType(FaitTypeOperator.STARTINIT);
       
       IfaceEntity ent = getLocalEntity(work_queue.getCall(),getHere(),t1);
       IfaceValue v0 = fait_control.findObjectValue(t1,fait_control.createSingletonSet(ent));
@@ -2139,7 +2139,8 @@ private Object visit(TryStatement s)
 	    if (nextsts == null) nextsts = sts;
 	    else {
 	       IfaceAstReference nar = fait_control.getAstReference(s,sts);
-	       work_queue.mergeState(cur_state,nar);
+               FlowLocation nloc = new FlowLocation(flow_queue,work_queue.getCall(),nar);
+	       work_queue.mergeState(cur_state,nloc);
 	     }
 	  }
        }
@@ -3053,6 +3054,14 @@ protected IfaceValue getActualValue(IfaceValue ref,boolean nonnull)
 
 private IfaceValue assignValue(IfaceValue ref,IfaceValue v)
 {
+   IfaceValue lhsv = ref.getRefBase();
+   if (lhsv != null) {
+      IfaceType t2 = lhsv.checkOperation(FaitOperator.DEREFERENCE,v);
+      if (t2 != null && t2 != lhsv.getDataType()) {
+         queueBackRefs(getHere(),cur_state,ref,t2);
+       }
+    }
+   
    return assignValue(cur_state,getHere(),ref,v);
 }
 
@@ -3089,7 +3098,7 @@ private IfaceValue popActualNonNull(int delta)
 {
    IfaceValue v0 = getActualValue(cur_state.getStack(0),false);
    checkBackPropagation(getHere(),cur_state,0+delta,
-	 v0,FaitOperator.DEREFERENCE);
+	 v0,FaitOperator.DEREFERENCE,null);
 
    return getActualValue(popValue(),true);
 }
@@ -3126,13 +3135,17 @@ private FlowLocation getHere()
 
 private void workOn(ASTNode n)
 {
-   work_queue.mergeState(cur_state,fait_control.getAstReference(n));
+   FlowLocation nloc = new FlowLocation(flow_queue,work_queue.getCall(),fait_control.getAstReference(n));
+   
+   work_queue.mergeState(cur_state,nloc);
 }
 
 
 private void workOn(IfaceState st,ASTNode n)
 {
-   work_queue.mergeState(st,fait_control.getAstReference(n));
+   FlowLocation nloc = new FlowLocation(flow_queue,work_queue.getCall(),fait_control.getAstReference(n));
+   
+   work_queue.mergeState(st,nloc);
 }
 
 
@@ -3194,7 +3207,7 @@ private CallReturn processCall(ASTNode v,int act)
       IfaceValue v1 = getActualValue(v0,false);
       if (i == checkarg) {
 	 if (v1 != null && v1.canBeNull()) {
-	    checkBackPropagation(getHere(),cur_state,i,v1,FaitOperator.DEREFERENCE);
+	    checkBackPropagation(getHere(),cur_state,i,v1,FaitOperator.DEREFERENCE,null);
 	    v1 = getActualValue(v0,true);
 	  }
        }

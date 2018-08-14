@@ -36,13 +36,14 @@
 package edu.brown.cs.fait.iface;
 
 
-
 public interface IfaceSafetyStatus extends FaitConstants
 {
 
 IfaceSafetyStatus merge(IfaceSafetyStatus sts);
 
-IfaceSafetyStatus update(String event);
+IfaceSafetyStatus update(String event,IfaceLocation loc);
+
+
 
 
 }       // end of interface IfaceSafetyStatus

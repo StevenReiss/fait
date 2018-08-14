@@ -37,11 +37,15 @@ package edu.brown.cs.fait.safety;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.w3c.dom.Element;
 
+import edu.brown.cs.fait.iface.FaitLog;
 import edu.brown.cs.fait.iface.IfaceControl;
+import edu.brown.cs.fait.iface.IfaceSafetyCheck;
 import edu.brown.cs.fait.iface.IfaceSafetyStatus;
 import edu.brown.cs.ivy.xml.IvyXml;
 
@@ -57,6 +61,7 @@ public class SafetyFactory implements SafetyConstants
 
 private List<SafetyCheck> all_checks;
 private IfaceSafetyStatus initial_status;
+private Map<IfaceSafetyStatus,IfaceSafetyStatus> all_status;
 
 
 /********************************************************************************/
@@ -68,10 +73,11 @@ private IfaceSafetyStatus initial_status;
 public SafetyFactory(IfaceControl ic)
 {
    all_checks = new ArrayList<>();
+   all_status = new HashMap<>();
    
    // add static safety checks here
    
-   initial_status = new SafetyStatus(this);
+   initial_status = getSafetyStatus(null);
 }
 
 
@@ -103,7 +109,7 @@ public void addSpecialFile(Element xml)
       all_checks.add(scu);
     }
    
-   initial_status = new SafetyStatus(this);
+   initial_status = getSafetyStatus(null);
 }
 
 
@@ -128,6 +134,30 @@ SafetyCheck getCheck(int i)
 {
    if (i < 0 || i >= all_checks.size()) return null;
    return all_checks.get(i);
+}
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Unique safety status methods                                            */
+/*                                                                              */
+/********************************************************************************/
+
+IfaceSafetyStatus getSafetyStatus(int [] sts)
+{
+   if (sts == null) {
+      sts = new int [ all_checks.size() ];
+      for (int i = 0; i < sts.length; ++i) {
+         IfaceSafetyCheck.Value v = all_checks.get(i).getInitialState();
+         sts[i] = 1 << v.ordinal();
+       }
+    }
+   
+   SafetyStatus st = new SafetyStatus(this,sts);
+   IfaceSafetyStatus ost = all_status.putIfAbsent(st,st);
+   if (ost != null) return ost;
+   FaitLog.logD("Create new safety status " + st);
+   return st;
 }
 
 

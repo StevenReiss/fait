@@ -38,7 +38,7 @@ package edu.brown.cs.fait.call;
 import edu.brown.cs.fait.iface.*;
 import edu.brown.cs.ivy.xml.*;
 
-import org.w3c.dom.*;
+import org.w3c.dom.Element;
 import java.util.*;
 
 

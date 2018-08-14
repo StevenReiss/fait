@@ -91,7 +91,7 @@ Long getMaxValue();
 
 
 IfaceValue performOperation(IfaceType dt,IfaceValue rhs,FaitOperator op,IfaceLocation src);
-IfaceType checkOperation(FaitOperator op);
+IfaceType checkOperation(FaitOperator op,IfaceValue set);
 TestBranch branchTest(IfaceValue rhs,FaitOperator op);
 IfaceImplications getImpliedValues(IfaceValue rhs,FaitOperator op);
  

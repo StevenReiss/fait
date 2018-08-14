@@ -73,7 +73,7 @@ private static CheckInitialization our_type = new CheckInitialization();
 /*                                                                              */
 /********************************************************************************/
 
-static synchronized CheckInitialization getType()
+public static synchronized CheckInitialization getType()
 {
    if (our_type == null) {
       our_type = new CheckInitialization();
@@ -138,11 +138,18 @@ private CheckInitialization()
 @Override public IfaceSubtype.Value getComputedValue(IfaceValue rslt,
       FaitOperator op,IfaceValue v0,IfaceValue v1)
 {
-   return INITIALIZED;
+   switch (op) {
+      case FIELDACCESS :
+      case ELEMENTACCESS :
+      case DEREFERENCE :
+         return null;
+      default :
+         return INITIALIZED;
+    }
 }
 
 
-@Override public IfaceSubtype.Value getComputedValue(FaitOperator op,IfaceSubtype.Value oval)
+@Override public IfaceSubtype.Value getComputedValue(FaitTypeOperator op,IfaceSubtype.Value oval)
 {
    switch (op) {
       case DONEINIT :

@@ -431,15 +431,17 @@ public IfaceValue initialFieldValue(IfaceField fld,boolean nat)
 
    if (nat) {
       boolean nonnull = false;			// specialize as needed
-      ftyp = ftyp.getAnnotatedType(FaitAnnotation.INITIALIZED);
+      ftyp = ftyp.getComputedType(FaitTypeOperator.DONEINIT);
       if (ctyp.getName().equals("java.lang.System")) {
 	 nonnull = true;
-	 if (fnm.equals("in"))
-	    ftyp = fait_control.findDataType("java.io.FileInputStream",
-		  FaitAnnotation.NON_NULL,FaitAnnotation.INITIALIZED);
-	 else if (fnm.equals("out") || fnm.equals("err"))
-	    ftyp = fait_control.findDataType("java.io.PrintStream",
-		  FaitAnnotation.NON_NULL,FaitAnnotation.INITIALIZED);
+	 if (fnm.equals("in")) {
+	    ftyp = fait_control.findDataType("java.io.FileInputStream");
+            ftyp = ftyp.getComputedType(FaitTypeOperator.DONEINIT);
+          }
+	 else if (fnm.equals("out") || fnm.equals("err")) {
+	    ftyp = fait_control.findDataType("java.io.PrintStream");
+            ftyp = ftyp.getComputedType(FaitTypeOperator.DONEINIT);
+          }
        }
       else if (ctyp.getName().equals("java.lang.String")) nonnull = true;
       else if (ctyp.getName().equals("java.lang.ThreadGroup")) nonnull = false;

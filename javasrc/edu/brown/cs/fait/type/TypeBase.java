@@ -44,6 +44,7 @@ import edu.brown.cs.fait.iface.FaitConstants;
 import edu.brown.cs.fait.iface.FaitLog;
 import edu.brown.cs.fait.iface.IfaceAnnotation;
 import edu.brown.cs.fait.iface.IfaceBaseType;
+import edu.brown.cs.fait.iface.IfaceCall;
 import edu.brown.cs.fait.iface.IfaceError;
 import edu.brown.cs.fait.iface.IfaceLocation;
 import edu.brown.cs.fait.iface.IfaceSubtype;
@@ -316,7 +317,8 @@ TypeBase(TypeFactory fac,IfaceBaseType base,IfaceSubtype.Value [] subs)
 
 @Override public IfaceType getAnnotatedType(IfaceAnnotation ... an)
 {
-   if (an == null || an.length == 0) return this;
+   if (an == null || an.length == 0 || (an.length == 1 && an[0] == null)) 
+      return this;
    
    return type_factory.createType(this,an);
 }
@@ -362,8 +364,15 @@ TypeBase(TypeFactory fac,IfaceBaseType base,IfaceSubtype.Value [] subs)
 /*                                                                              */
 /********************************************************************************/
 
-public IfaceType getComputedType(IfaceValue rslt,FaitOperator op,IfaceValue lhs,IfaceValue rhs)
+public IfaceType getComputedType(IfaceValue rslt,FaitOperator op,IfaceValue ... args)
 {
+   IfaceValue lhs,rhs;
+   
+   if (args.length == 0 || args[0] == null) lhs = rslt;
+   else lhs = args[0];
+   if (args.length < 2 || args[1] == null) rhs = lhs;
+   else rhs = args[1];
+   
    int ct = type_factory.getNumSubtypes();
    IfaceSubtype.Value [] vals = new IfaceSubtype.Value[ct];
    boolean chng = false;
@@ -379,8 +388,24 @@ public IfaceType getComputedType(IfaceValue rslt,FaitOperator op,IfaceValue lhs,
 }
 
 
+public IfaceType getCallType(IfaceCall c,IfaceValue rslt,List<IfaceValue> args)
+{
+   int ct = type_factory.getNumSubtypes();
+   IfaceSubtype.Value [] vals = new IfaceSubtype.Value[ct];
+   boolean chng = false;
+   for (int i = 0; i < ct; ++i) {
+      TypeSubtype st = type_factory.getSubtype(i);
+      IfaceSubtype.Value val = st.getCallValue(c,rslt,args);
+      if (val == null) val = getValue(st);
+      else if (val != getValue(st)) chng = true;
+      vals[i] = val;
+    }
+   if (!chng) return this;
+   return type_factory.createType(getJavaType(),vals);
+}
 
-public IfaceType getComputedType(FaitOperator op)
+
+@Override public IfaceType getComputedType(FaitTypeOperator op)
 {
    int ct = type_factory.getNumSubtypes();
    IfaceSubtype.Value [] vals = new IfaceSubtype.Value[ct];

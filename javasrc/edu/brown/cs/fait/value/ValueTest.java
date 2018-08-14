@@ -78,7 +78,7 @@ public ValueTest()
 @Test public void createValues()
 {
    IfaceType t1 = fait_control.findDataType("spr.onsets.OnsetMain");
-   IfaceType t2 = fait_control.findDataType("int");
+   IfaceType t2 = fait_control.findConstantType("int",5);
    IfaceType t3 = fait_control.findDataType("spr.onsets.OnsetExprSet$Expr");
    value_set[0] = fait_control.findAnyValue(t2);
    value_set[1] = fait_control.findAnyValue(t1);

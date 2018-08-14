@@ -38,6 +38,7 @@ import java.util.Collection;
 import java.util.List;
 
 import edu.brown.cs.fait.iface.FaitConstants.FaitOperator;
+import edu.brown.cs.fait.iface.FaitConstants.FaitTypeOperator;
 
 public interface IfaceType
 {
@@ -88,8 +89,9 @@ IfaceType getAnnotatedType(IfaceAnnotation ... an);
 IfaceType getAnnotatedType(Collection<IfaceAnnotation> ans);
 IfaceType getAnnotatedType(IfaceType tannot);
 
-IfaceType getComputedType(IfaceValue r,FaitOperator op,IfaceValue lv,IfaceValue rv);
-IfaceType getComputedType(FaitOperator op);
+IfaceType getComputedType(IfaceValue r,FaitOperator op,IfaceValue ... args);
+IfaceType getCallType(IfaceCall c,IfaceValue rslt,List<IfaceValue> args);
+IfaceType getComputedType(FaitTypeOperator op);
 
 IfaceTypeImplications getImpliedTypes(FaitOperator op,IfaceType tr);
 List<IfaceType> getBackTypes(FaitOperator op,IfaceValue ... v);

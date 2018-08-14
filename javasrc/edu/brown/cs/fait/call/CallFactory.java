@@ -41,7 +41,7 @@ import edu.brown.cs.ivy.xml.*;
 
 import java.util.*;
 import java.io.*;
-import org.w3c.dom.*;
+import org.w3c.dom.Element;
 
 
 public class CallFactory implements CallConstants
@@ -89,7 +89,7 @@ public CallFactory(IfaceControl fc)
 /*										*/
 /********************************************************************************/
 
-public IfaceCall findCall(IfaceProgramPoint pt,IfaceMethod fm,List<IfaceValue> args,InlineType inline)
+public IfaceCall findCall(IfaceProgramPoint pt,IfaceMethod fm,List<IfaceValue> args,IfaceSafetyStatus sts,InlineType inline)
 {
    Object key = null;
 
@@ -157,8 +157,11 @@ public IfaceCall findCall(IfaceProgramPoint pt,IfaceMethod fm,List<IfaceValue> a
 	  }
        }
       if (cm == null) {
-	 cm = new CallBase(fait_control,fm,pt);
+	 cm = new CallBase(fait_control,fm,pt,sts);
 	 mm.put(key,cm);
+       }
+      else {
+         cm = cm.getAlternateCall(sts,pt);
        }
     }
 
@@ -211,7 +214,7 @@ public IfaceCall findPrototypeMethod(IfaceProgramPoint pt,IfaceMethod fm)
    synchronized (proto_map) {
       CallBase cb = proto_map.get(fm);
       if (cb == null) {
-	 cb = new CallBase(fait_control,fm,pt);
+	 cb = new CallBase(fait_control,fm,pt,null);
 	 cb.setPrototype();
 	 proto_map.put(fm,cb);
        }

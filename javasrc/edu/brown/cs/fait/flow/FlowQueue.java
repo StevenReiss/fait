@@ -261,7 +261,7 @@ FlowQueueInstance setupNextFlowQueue()
    if (next == null) return null;
    IfaceCall cm = next.getKey();
    Set<IfaceProgramPoint> inset = next.getValue();
-
+   
    synchronized (call_map) {
       fqi = call_map.get(cm);
       if (fqi == null) {
@@ -277,16 +277,21 @@ FlowQueueInstance setupNextFlowQueue()
    if (newfqi) {
       IfaceState st0 = cm.getStartState();
       fqi.mergeState(st0);
+      FaitLog.logD1("Safety start: " + st0.getSafetyStatus());
     }
    else if (inset != null) {
       IfaceProgramPoint i0 = cm.getMethod().getStart();
       FaitLog.logD1("Add instruction " + i0);
       for (IfaceProgramPoint loc : inset) {
-	 if (loc.equals(i0)) fqi.mergeState(cm.getStartState(),loc);
+         FlowLocation floc = new FlowLocation(this,cm,loc);
+	 if (loc.equals(i0)) {
+            IfaceState nst = fqi.mergeState(cm.getStartState(),floc);
+            if (nst != null) FaitLog.logD1("Safety start: " + nst.getSafetyStatus());
+          }
 	 fqi.lookAt(loc);
        }
     }
-
+   
    return fqi;
 }
 
@@ -325,7 +330,7 @@ void initialize(IfaceType dt)
       Collection<IfaceMethod> sinit = fait_control.findAllMethods(dt,"<clinit>");
       if (sinit != null) {
          for (IfaceMethod fm : sinit) {
-            IfaceCall c = fait_control.findCall(null,fm,null,InlineType.NONE);
+            IfaceCall c = fait_control.findCall(null,fm,null,null,InlineType.NONE);
             static_inits.add(c);
             if (!c.hasResult()) {
                ++ctr;
@@ -350,7 +355,7 @@ void initialize(IfaceType dt)
 	 Collection<IfaceMethod> sinit = fait_control.findAllMethods(dt,"<clinit>");
 	 if (sinit != null) {
 	    for (IfaceMethod fm : sinit) {
-	       IfaceCall c = fait_control.findCall(null,fm,null,InlineType.NONE);
+	       IfaceCall c = fait_control.findCall(null,fm,null,null,InlineType.NONE);
 	       static_inits.add(c);
 	       if (!c.hasResult()) {
                   ++ctr;
@@ -624,7 +629,7 @@ void handleReturn(IfaceCall c0,IfaceValue v0,IfaceState st,IfaceLocation loc)
        }
     }
    
-   call_control.handleReturn(c0,v0,loc);
+   call_control.handleReturn(c0,v0,st.getSafetyStatus(),loc);
 }
 
 
@@ -685,7 +690,9 @@ IfaceValue castValue(IfaceType rtyp,IfaceValue v0,IfaceLocation loc)
       return v1;
     }
    else if (t0.isPrimitiveType()) {
+      IfaceType tr = rtyp.getAssociatedType();
       IfaceType t1 = t0.getBaseType();
+      if (tr != null && t0.isNumericType()) t1 = rtyp;
       if (t1 == null) return v0;
       t0 = t1;
       v0 = fait_control.findNativeValue(t0);

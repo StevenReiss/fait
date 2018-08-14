@@ -103,7 +103,6 @@ public ControlMain(IfaceProject ip)
    state_factory = new StateFactory(this);
    proto_factory = new ProtoFactory(this);
    call_factory = new CallFactory(this);
-   flow_factory = new FlowFactory(this);
    safety_factory = new SafetyFactory(this);
    
    user_project = ip;
@@ -118,6 +117,8 @@ public ControlMain(IfaceProject ip)
          type_factory.addSpecialFile(ff);
        }
     }
+   
+   flow_factory = new FlowFactory(this);
 }
 
 
@@ -397,9 +398,9 @@ void updateEntitySets(IfaceUpdater upd)
 /*										*/
 /********************************************************************************/
 
-@Override public IfaceState createState(int nlocal)
+@Override public IfaceState createState(int nlocal,IfaceSafetyStatus sts)
 {
-   return state_factory.createState(nlocal);
+   return state_factory.createState(nlocal,sts);
 }
 
 
@@ -622,9 +623,10 @@ void updateValues(IfaceUpdater upd)
 
 
 
-@Override public IfaceCall findCall(IfaceProgramPoint pt,IfaceMethod fm,List<IfaceValue> args,InlineType inline)
+@Override public IfaceCall findCall(IfaceProgramPoint pt,IfaceMethod fm,List<IfaceValue> args,
+      IfaceSafetyStatus sts,InlineType inline)
 {
-   return call_factory.findCall(pt,fm,args,inline);
+   return call_factory.findCall(pt,fm,args,sts,inline);
 }
 
 
@@ -667,9 +669,13 @@ void updateValues(IfaceUpdater upd)
    return bytecode_factory.getPoint(ins);
 }
 
-@Override public IfaceAnnotation [] getAnnotations(ASTNode n)
+@Override public IfaceAnnotation [] getAnnotations(IfaceProgramPoint pt)
 {
-   return ast_factory.getAnnotations(n);
+   IfaceAstReference ar = pt.getAstReference();
+   if (ar != null) {
+      return ast_factory.getAnnotations(ar.getAstNode());
+    }
+   return bytecode_factory.getAnnotations(pt.getInstruction());
 }
 
 
@@ -779,20 +785,6 @@ public IfaceType findCommonParent(IfaceType t1,IfaceType t2)
 
 /********************************************************************************/
 /*                                                                              */
-/*      Safety methods                                                          */
-/*                                                                              */
-/********************************************************************************/
-
-@Override public IfaceSafetyStatus getInitialStatus()
-{
-   return safety_factory.getInitialStatus();
-}
-
-
-
-
-/********************************************************************************/
-/*                                                                              */
 /*      Helper methods                                                          */
 /*                                                                              */
 /********************************************************************************/
@@ -870,6 +862,21 @@ IfaceBaseType createMethodType(IfaceType rtn,List<IfaceType> args)
    IfaceBaseType bt = ast_factory.getMethodType(rtn,args);
    return bt;
 }
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Safety methods                                                          */
+/*                                                                              */
+/********************************************************************************/
+
+@Override public IfaceSafetyStatus getInitialSafetyStatus()
+{
+   return safety_factory.getInitialStatus();
+}
+
+
 
 /********************************************************************************/
 /*                                                                              */

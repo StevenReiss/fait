@@ -60,8 +60,7 @@ private Map<IfaceField,IfaceValue> field_map;
 
 private Stack<Collection<IfaceProgramPoint>> return_stack;
 private Object                  prior_state;
-private IfaceProgramPoint       program_point;
-
+private IfaceLocation           state_location;
 
 
 /********************************************************************************/
@@ -70,15 +69,15 @@ private IfaceProgramPoint       program_point;
 /*										*/
 /********************************************************************************/
 
-StateBase(int numlocal)
+StateBase(int numlocal,IfaceSafetyStatus sts)
 {
    local_values = new IfaceValue[numlocal];
    stack_values = new Stack<>();
    field_map = new HashMap<>(4);
    return_stack = null;
-   program_point = null;
+   state_location = null;
    prior_state = null;
-   safety_values = null;
+   safety_values = sts;
    
    Arrays.fill(local_values,null);
 }
@@ -93,7 +92,7 @@ StateBase(int numlocal)
 
 @Override public IfaceState cloneState()
 {
-   StateBase ns = new StateBase(local_values.length);
+   StateBase ns = new StateBase(local_values.length,safety_values);
    ns.addPriorState(this);
 
    System.arraycopy(local_values,0,ns.local_values,0,local_values.length);
@@ -475,9 +474,9 @@ private boolean checkMergeWithState(StateBase cs)
 /*                                                                              */
 /********************************************************************************/
 
-@Override public void setProgramPoint(IfaceProgramPoint pt)     { program_point = pt; }
+@Override public void setLocation(IfaceLocation pt)             { state_location = pt; }
 
-@Override public IfaceProgramPoint getProgramPoint()            { return program_point; }   
+@Override public IfaceLocation getLocation()                    { return state_location; }   
 
 @SuppressWarnings("unchecked") 
 void addPriorState(StateBase st)
@@ -530,13 +529,58 @@ void addPriorState(StateBase st)
 }
 
 
-@Override public void updateSafetyStatus(String event)
+@Override public boolean mergeSafetyStatus(IfaceSafetyStatus sts)
 {
    if (safety_values == null) {
-      // set up default values  -- don't return if we have values
-      return;
+      if (sts == null) return false;
+      safety_values = sts;
+      return true;
     }
-   safety_values = safety_values.update(event);
+   if (sts == null) return false;
+   
+   IfaceSafetyStatus nsts = safety_values.merge(sts);
+   if (nsts == safety_values) return false;
+   safety_values = nsts;
+   
+   if (FaitLog.isTracing()) {
+      FaitLog.logD1("Safety state change: " + safety_values);
+    }
+   
+   return true;
+}
+
+
+@Override public void setSafetyStatus(IfaceSafetyStatus sts)
+{
+   safety_values = sts;
+}
+
+
+@Override public void updateSafetyStatus(String event,IfaceControl ctrl)
+{
+   if (FaitLog.isTracing()) FaitLog.logD("Safety event: " + event);
+   
+   IfaceLocation loc = null;
+   for (IfaceState sb = this; sb != null; sb = sb.getPriorState(0)) {
+      loc = sb.getLocation();
+      if (loc != null) break;
+    }
+   
+   if (safety_values == null) {
+      IfaceState st0 = getPriorState(0);
+      if (st0 != null) safety_values = st0.getSafetyStatus();
+    }
+   if (safety_values == null) {
+      IfaceSafetyStatus nsts = ctrl.getInitialSafetyStatus(); 
+      if (nsts != null) {
+         IfaceSafetyStatus nnsts = nsts.update(event,loc);
+         if (nnsts == nsts) return;
+       }
+      safety_values = nsts;
+    }
+   
+   safety_values = safety_values.update(event,loc);
+   if (FaitLog.isTracing()) FaitLog.logD1("Result state: " + safety_values);
 }
 
 
