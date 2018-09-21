@@ -329,5 +329,22 @@
    <METHOD NAME='org.junit.Assert.failSame' SCAN='TRUE' NORETURN='true' />
    <METHOD NAME='java.util.ServiceLoader.fail' SCAN='TRUE' NORETURN='true' />
 
+   <METHOD NAME='java.util.ServiceLoader.load' />
+   <METHOD NAME='javax.xml.datatype.DatatypeFactory.newInstance' />
+   <CLASS NAME='jdk.internal.ref.CleanerImpl' />
+   <CLASS NAME='jdk.internal.ref.Cleaner' />
+   <CLASS NAME='javax.swing.RepaintManager' />
+   <CLASS NAME='java.lang.ModuleLayer' />
+   <CLASS NAME='java.lang.ModuleLayer' />
+   <CLASS NAME='java.lang.Module' />
+   <PACKAGE NAME='java.lang.module' />
+   <CLASS NAME='java.lang.StackTraceElement' />
+   <PACKAGE NAME='java.lang.invoke' />
+   <PACKAGE NAME='jdk.internal.module' />
+   <PACKAGE NAME='jdk.internal.loader' />
+
+   <CLASS NAME='java.lang.invoke.VarHandle' />
+   <METHOD NAME='java.lang.invoke.VarHandle.weakCompareAndSet' />
+   <METHOD NAME='java.lang.invoke.VarHandle.compareAndSet' />
 
 </FAIT>

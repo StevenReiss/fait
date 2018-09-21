@@ -45,6 +45,7 @@ IfaceState cloneState();
 void pushStack(IfaceValue v);
 IfaceValue popStack();
 void resetStack(IfaceState tostate);
+void copyStackFrom(IfaceState fromstate);
 boolean stackIsCategory2();
 void handleDup(boolean dbl,int lvl);
 
@@ -62,8 +63,8 @@ Collection<IfaceField> getKnownFields();
 boolean hasKnownFields();
 void discardFields();
 
-void pushReturn(IfaceProgramPoint pt);
-Collection<IfaceProgramPoint> popReturn();
+
+
 
 IfaceSafetyStatus getSafetyStatus();
 boolean mergeSafetyStatus(IfaceSafetyStatus sts);

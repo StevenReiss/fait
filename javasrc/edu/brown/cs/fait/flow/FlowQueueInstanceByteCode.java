@@ -102,6 +102,7 @@ FlowQueueInstanceByteCode(FlowQueue fq,IfaceCall fc,QueueLevel lvl)
          IfaceType etyp = getControl().findDataType(tcb.getException().getName(),FaitAnnotation.NON_NULL);
          v1 = v0.restrictByType(etyp);
          if (v1.isEmptyEntitySet()) continue;
+         if (v1 == v0) v0 = null;
        }
       else v0 = null;
       JcodeInstruction ins0 = tcb.getStart();
@@ -124,7 +125,7 @@ FlowQueueInstanceByteCode(FlowQueue fq,IfaceCall fc,QueueLevel lvl)
       IfaceProgramPoint hdlr = getControl().getProgramPoint(tcb.getHandler());
       FlowLocation nloc = new FlowLocation(getWorkQueue(),cm,hdlr);
       mergeState(st1,nloc);
-      if (FaitLog.isTracing()) FaitLog.logD1("Handle throw to " + tcb.getHandler());
+      if (FaitLog.isTracing()) FaitLog.logD1("Handle throw to " + tcb.getHandler() + " for " + v1);
       
       if (v0 == null) break;
     }

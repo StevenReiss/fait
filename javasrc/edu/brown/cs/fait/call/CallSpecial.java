@@ -224,7 +224,7 @@ CallSpecial(IfaceControl fc,Element xml,boolean formthd)
       // else dt = fm.getReturnType();
     }
   
-   if (type_annots != null) {
+   if (type_annots != null && dt != null) {
       if (dt.isPrimitiveType()) {
          List<IfaceAnnotation> ans = null;
          for (int i = 0; i < type_annots.length; ++i) {
@@ -243,6 +243,9 @@ CallSpecial(IfaceControl fc,Element xml,boolean formthd)
       else {
          dt = dt.getAnnotatedType(type_annots);
        }
+    }
+   else if (type_annots != null) {
+      // handle type annot on a constructor here
     }
 
    IfaceValue rv = null;

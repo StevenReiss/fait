@@ -113,6 +113,9 @@ EntityFixed(IfaceType dt,boolean mutable,IfacePrototype ptyp)
          base_value = fc.findNativeValue(bty);
        }
     }
+   else if (base_value == null && getPrototype() != null) {
+      base_value = getPrototype().getArrayContents(idx);
+    }
 
    return base_value;
 }

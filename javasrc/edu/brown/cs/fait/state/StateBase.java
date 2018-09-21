@@ -58,7 +58,6 @@ private IfaceSafetyStatus       safety_values;
 
 private Map<IfaceField,IfaceValue> field_map;
 
-private Stack<Collection<IfaceProgramPoint>> return_stack;
 private Object                  prior_state;
 private IfaceLocation           state_location;
 
@@ -74,7 +73,6 @@ StateBase(int numlocal,IfaceSafetyStatus sts)
    local_values = new IfaceValue[numlocal];
    stack_values = new Stack<>();
    field_map = new HashMap<>(4);
-   return_stack = null;
    state_location = null;
    prior_state = null;
    safety_values = sts;
@@ -99,14 +97,6 @@ StateBase(int numlocal,IfaceSafetyStatus sts)
 
    for (IfaceValue iv : stack_values) {
       ns.stack_values.push(iv);
-    }
-
-   if (return_stack == null) ns.return_stack = null;
-   else {
-      ns.return_stack = new Stack<>();
-      for (Collection<IfaceProgramPoint> set : return_stack) {
-         ns.return_stack.add(new HashSet<>(set));
-       }
     }
 
    ns.field_map = new HashMap<>(field_map);
@@ -138,6 +128,20 @@ StateBase(int numlocal,IfaceSafetyStatus sts)
 {
    StateBase sb = (StateBase) s;
    while (stack_values.size() > sb.stack_values.size()) stack_values.pop();
+}
+
+
+@SuppressWarnings("unchecked") 
+@Override public void copyStackFrom(IfaceState s)
+{
+   StateBase sb = (StateBase) s;
+   stack_values = (Stack<IfaceValue>) sb.stack_values.clone();
+   
+   for (int i = 0; i < local_values.length; ++i) {
+      IfaceValue v0 = local_values[i];
+      if (v0 != null && v0.isBad())
+         local_values[i] = sb.local_values[i];
+    }
 }
 
 @Override public IfaceValue getStack(int idx)
@@ -298,31 +302,11 @@ StateBase(int numlocal,IfaceSafetyStatus sts)
 
 
 
-/********************************************************************************/
-/*										*/
-/*	Handle jsr return stack 						*/
-/*										*/
-/********************************************************************************/
-
-@Override public void pushReturn(IfaceProgramPoint ins)
-{
-   if (return_stack == null) return_stack = new Stack<>();
-   Set<IfaceProgramPoint> ptset = new HashSet<>();
-   ptset.add(ins);
-   return_stack.push(ptset);
-}
 
 
 
-@Override public Collection<IfaceProgramPoint> popReturn()
-{
-   if (return_stack == null) return null;
 
-   Collection<IfaceProgramPoint> v = return_stack.pop();
-   if (return_stack.empty()) return_stack = null;
 
-   return v;
-}
 
 
 
@@ -393,20 +377,6 @@ private boolean checkMergeWithState(StateBase cs)
 	  }
        }
     }
-   
-   if (return_stack != null) {
-      if (cs.return_stack == null) FaitLog.logE("Merge return with non-return");
-      else if (return_stack.size() != cs.return_stack.size()) FaitLog.logE("Return stacks have different sizes");
-      else {
-         for (int i = 0; i < return_stack.size(); ++i) {
-            Collection<IfaceProgramPoint> c0 = return_stack.get(i);
-            for (IfaceProgramPoint pt0 : cs.return_stack.get(i)) {
-               if (!c0.contains(pt0)) c0.add(pt0);
-             }
-          }
-       }
-    }
-   else if (cs.return_stack != null) FaitLog.logE("Merge non-return with return");
    
    if (safety_values != cs.safety_values && cs.safety_values != null) {
       if (safety_values == null) {

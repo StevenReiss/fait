@@ -544,7 +544,7 @@ CallBase(IfaceControl fc,IfaceMethod fm,IfaceProgramPoint pt,IfaceSafetyStatus s
       else {
 	 IfaceValue v0 = args.get(0);
 	 IfaceType dt = v0.getDataType();
-	 while (dt != null) {
+         while (dt != null) {
 	    nfm = fait_control.findMethod(dt.getName(),nm,desc);
 	    if (nfm != null) break;
 	    dt = dt.getSuperType();
@@ -957,6 +957,11 @@ private boolean removeCaller(IfaceCall src)
       alternate_call.outputStatistics();
     }
 }
+
+
+
+
+
 
 
 

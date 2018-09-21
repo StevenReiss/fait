@@ -149,7 +149,7 @@ public ValueBase rangeValue(IfaceType typ,Long v0,Long v1)
       typ = fait_control.findConstantType(typ,v0);
     }
    if (v0 != null && v1 != null && v0 > v1) {
-      FaitLog.logE("Inconsistent range value: " + v0 + " " + v1);
+      FaitLog.logW("Inconsistent range value: " + v0 + " " + v1);
       return anyValue(typ);
     }
 

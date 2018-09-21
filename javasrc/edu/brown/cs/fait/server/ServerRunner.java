@@ -99,6 +99,8 @@ synchronized void resumeAnalysis(int nth,String retid,ReportOption opt)
    if (retid != null) next_return = retid;
    if (opt != null) report_option = opt;
    
+   FaitLog.logI("Resume analysis request");
+   
    interrupt();
    restart_analysis = true;
    pause_analysis = false;
@@ -111,6 +113,7 @@ synchronized void resumeAnalysis(int nth,String retid,ReportOption opt)
 synchronized void pauseAnalysis()
 {
    interrupt();
+   FaitLog.logD("Pause analysis request");
    pause_analysis = true;
    restart_analysis = false;
    last_change = System.currentTimeMillis();
@@ -153,7 +156,10 @@ synchronized void pauseAnalysis()
             FaitLog.logI("Finished analysis " + return_id);
             for_project.sendAnalysis(return_id,ifc,report_option,anal-comp,comp-start,num_threads,update);
             synchronized (this) {
-               if (!restart_analysis) pause_analysis = true;
+               if (!restart_analysis) {
+                  FaitLog.logI("No restart -- pausing analysis");
+                  pause_analysis = true;
+                }
              }
           }
        }

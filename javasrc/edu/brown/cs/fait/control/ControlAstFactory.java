@@ -136,6 +136,9 @@ List<IfaceMethod> findAllMethods(IfaceBaseType typ,String name)
    List<JcompSymbol> syms = jt.lookupMethods(jcomp_typer,name,aname);
    if (syms != null) {
       for (JcompSymbol js : syms) {
+         if (js.isBinarySymbol()) {
+            continue;
+          }
 	 rslt.add(getMethod(js));
        }
     }
@@ -323,7 +326,13 @@ private JcompType getInternalType(String name)
       name = IvyFormat.formatTypeName(name);
     }
    JcompType jt = jcomp_typer.findType(name);
-   if (jt == null) jt = jcomp_typer.findSystemType(name);
+   try {
+      if (jt == null) jt = jcomp_typer.findSystemType(name);
+    }
+   catch (Throwable t) {
+      System.err.println("Problem with type " + name);
+      throw t;
+    }
    return jt;
 }
 
@@ -623,6 +632,7 @@ private class AstMethod implements IfaceMethod {
    @Override public boolean isEditable()		{ return true; }
    @Override public boolean hasCode() {
       MethodDeclaration md = (MethodDeclaration) method_symbol.getDefinitionNode();
+      if (md == null) return false;
       return md.getBody() != null;
     }
 
@@ -692,7 +702,9 @@ private class AstMethod implements IfaceMethod {
    private void checkLocals() {
       if (local_map != null) return;
       LocalVisitor lv = new LocalVisitor();
-      method_symbol.getDefinitionNode().accept(lv);
+      if (method_symbol.getDefinitionNode() != null) {
+         method_symbol.getDefinitionNode().accept(lv);
+       }
       local_count = lv.getLocalCount();
       local_map = lv.getLocalMap();
     }

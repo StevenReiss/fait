@@ -231,6 +231,7 @@ void sendCommand(String cmd,CommandArgs args,String cnts,MintReply rply)
 private void handleErrors(String proj,String file,Element messages)
 {
    boolean chng = server_control.handleErrors(proj,file,messages);
+   boolean errfree = server_control.isErrorFree();
 
    for (ServerSession ss : session_map.values()) {
       ServerProject sp = ss.getProject();
@@ -238,7 +239,7 @@ private void handleErrors(String proj,String file,Element messages)
 	 if (chng) {
 	    sp.resumeAnalysis();
 	  }
-	 else {
+	 else if (!errfree) {
 	    sp.pauseAnalysis();
 	  }
        }

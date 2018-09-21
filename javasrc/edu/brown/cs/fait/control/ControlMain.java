@@ -200,7 +200,8 @@ IfaceType findDataType(IfaceBaseType bt,List<IfaceAnnotation> ans)
 @Override public IfaceMethod findMethod(String cls,String method,String sign)
 {
    IfaceBaseType ctyp = findJavaType(cls);
-   if (ctyp.isEditable()) {
+   if (ctyp == null) return null;
+   else if (ctyp.isEditable()) {
       return ast_factory.findMethod(ctyp,method,sign);
     }
    else {

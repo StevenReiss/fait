@@ -97,6 +97,8 @@ ServerFile openFile(File f)
     }
    String linesep = IvyXml.getAttrString(filerslt,"LINESEP");
    byte [] data = IvyXml.getBytesElement(filerslt,"CONTENTS");
+   if (data == null) return null;
+   
    String cnts = new String(data);
    
    FaitLog.logD("File " + f + " started");

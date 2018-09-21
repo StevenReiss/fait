@@ -409,6 +409,9 @@ ValueInt(ValueFactory vf,IfaceType dt,Long minv,Long maxv,IfaceEntitySet es)
 	 if (mnv != null && mxv != null && mnv > mxv) {
 	    mnv = mxv = null;
 	  }
+         else if (mxv == null && mnv != null && rhs.max_value != null && rhs.max_value < mnv) {
+            mnv = mxv = null;
+          }
 	 lt = value_factory.rangeValue(getDataType(),
 	       (mnv == null ? min_value : mnv),
 	       (mxv == null ? max_value : mxv));

@@ -56,6 +56,7 @@ private BitSet			set_contents;
 private Map<Object,EntitySet>   next_map;
 
 private static final Object	MODEL_SET = new Object();
+private static final int        MAX_SET_SIZE = 10240;
 
 
 
@@ -194,6 +195,10 @@ private class EntitySetIterator implements Iterator<IfaceEntity> {
 {
    if (es0 == null || es0.size() == 0) return this;
    if (size() == 0) return es0;
+   if (size() >= MAX_SET_SIZE) {
+      FaitLog.logE("Attempt to add too many entities to entity set");
+      return this;
+    }
 
    EntitySet es = (EntitySet) es0;
    EntitySet rslt = this;
@@ -342,7 +347,7 @@ EntitySet handleTypeRestricts(IfaceType dt)
 
 @Override public IfaceEntitySet getModelSet()
 {
-   synchronized (next_map) {
+   synchronized (this) {
       EntitySet es = next_map.get(MODEL_SET);
       if (es == null) {
 	 BitSet bs = null;

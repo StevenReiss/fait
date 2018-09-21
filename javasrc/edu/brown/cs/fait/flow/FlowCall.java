@@ -96,7 +96,7 @@ CallReturn handleCall(FlowLocation loc,IfaceState st0,FlowQueueInstance wq)
    
    if (FaitLog.isTracing()) {
       for (IfaceValue av : args) FaitLog.logD1("Arg = " + av);
-      FaitLog.logD1("Saftey state = " + st0.getSafetyStatus());
+      FaitLog.logD1("Saftey state = " + getSafetyStatus(st0));
     }
    
    IfaceMethod tgt = findProperMethod(loc,args);
@@ -146,7 +146,7 @@ CallReturn handleCall(FlowLocation loc,IfaceState st0,FlowQueueInstance wq)
 
    if (FaitLog.isTracing()) {
       FaitLog.logD1("Return = " + rslt);
-      FaitLog.logD1("Return Safety State = " + st0.getSafetyStatus());
+      FaitLog.logD1("Return Safety State = " + getSafetyStatus(st0));
     }
 
    return CallReturn.CONTINUE;
@@ -163,7 +163,8 @@ CallReturn handleCall(FlowLocation loc,IfaceState st0,FlowQueueInstance wq)
 
 void handleCallback(IfaceMethod bm,List<IfaceValue> args,String cbid)
 {
-   processCall(bm,args,true,null,null,cbid);
+   IfaceState st0 = fait_control.createState(0,null);
+   processCall(bm,args,true,null,st0,cbid);
 }
 
 
@@ -370,7 +371,7 @@ private IfaceValue processCall(IfaceMethod bm,List<IfaceValue> args,boolean virt
     }
 
    if (nargs != null) {
-      IfaceCall mi = findCall(loc,bm,nargs,st0.getSafetyStatus());
+      IfaceCall mi = findCall(loc,bm,nargs,getSafetyStatus(st0));
       mi.addCallbacks(loc,nargs);
       Collection<IfaceMethod> c = mi.replaceWith(ppt,nargs);
       if (c == null) return rslt;
@@ -566,7 +567,7 @@ private IfaceValue processActualCall(IfaceMethod fm,List<IfaceValue> args,boolea
    IfaceMethod orig = fm;
    
    if (fm0 != fm) {
-      IfaceCall mi0 = findCall(loc,fm0,nargs,st.getSafetyStatus());
+      IfaceCall mi0 = findCall(loc,fm0,nargs,getSafetyStatus(st));
       synchronized (rename_map) {
 	 Set<IfaceCall> s = rename_map.get(mi0);
 	 if (s == null) {
@@ -581,7 +582,7 @@ private IfaceValue processActualCall(IfaceMethod fm,List<IfaceValue> args,boolea
       mi = mi0;
     }
    
-   if (mi.addCall(nargs,st.getSafetyStatus())) {
+   if (mi.addCall(nargs,getSafetyStatus(st))) {
       if (FaitLog.isTracing()) FaitLog.logD1("Call " + mi);
       if (mi.getMethod().hasCode()) {
          IfaceCall from = null;
@@ -694,10 +695,6 @@ private InlineType canBeInlined(IfaceProgramPoint pt,IfaceMethod fm)
 
 
 
-
-
-
-
 void handleException(IfaceValue v0,IfaceCall cm)
 {
    if (cm.addException(v0)) {
@@ -715,6 +712,12 @@ void handleException(IfaceValue v0,IfaceCall cm)
 }
 
 
+IfaceSafetyStatus getSafetyStatus(IfaceState st)
+{
+   if (st != null) return st.getSafetyStatus();
+   
+   return null;
+}
 
 /********************************************************************************/
 /*										*/

@@ -56,6 +56,7 @@ private IfaceEntity	array_entity;
 private IfaceEntity	iter_entity;
 private IfaceEntity	listiter_entity;
 private IfaceEntity	enum_entity;
+private Map<IfaceProgramPoint,IfaceEntity> sublist_entity;
 private IfaceValue	comparator_value;
 
 private Set<IfaceLocation> element_change;
@@ -79,6 +80,7 @@ public ProtoCollection(IfaceControl fc,IfaceType dt)
    listiter_entity = null;
    enum_entity = null;
    comparator_value = null;
+   sublist_entity = null;
 
    first_element = new HashSet<IfaceLocation>(4);
    element_change = new HashSet<IfaceLocation>(4);
@@ -566,7 +568,14 @@ public IfaceValue prototype_subList(IfaceMethod fm,List<IfaceValue> args,IfaceLo
 {
   // IfaceType dt = fait_control.findDataType("java.util.List",FaitAnnotation.NON_NULL);
    IfaceType dt = args.get(0).getDataType();
-   IfaceEntity ie = fait_control.findPrototypeEntity(dt,this,src,false);
+   
+   IfaceEntity ie = null;
+   if (sublist_entity == null) sublist_entity = new HashMap<>();
+   ie = sublist_entity.get(src.getProgramPoint());
+   if (ie == null) {
+      ie = fait_control.findPrototypeEntity(dt,this,src,false);
+      sublist_entity.put(src.getProgramPoint(),ie);
+    }
    IfaceEntitySet eset = fait_control.createSingletonSet(ie);
    IfaceValue v = fait_control.findObjectValue(dt,eset,FaitAnnotation.NON_NULL);
 

@@ -90,11 +90,6 @@ ValueMarker(ValueFactory vf,IfaceType voidtype,IfaceProgramPoint pt,Object v)
 {
    if (cv instanceof ValueMarker) {
       ValueMarker vm = (ValueMarker) cv;
-      if (vm.program_point.getAstReference().getAstNode() !=
-	 program_point.getAstReference().getAstNode()) {
-	 FaitLog.logE("Marker merge for different program points");
-	 return this;
-       }
       Set<Object> nval = null;
       if (marker_value != null) {
 	 nval = new HashSet<>(marker_value);

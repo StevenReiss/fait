@@ -58,6 +58,7 @@ private IfaceEntity     value_entity;
 private IfaceEntity     entry_entity;
 private IfaceEntity     map_source;
 private IfaceValue      map_value;
+private Map<IfaceProgramPoint,IfaceEntity> submap_entity;
 
 private boolean         is_empty;
 
@@ -80,6 +81,7 @@ public ProtoMap(IfaceControl fc,IfaceType dt)
    key_entity = fc.findPrototypeEntity(key_set.getDataType(),key_set,null,false);
    value_entity = fc.findPrototypeEntity(value_set.getDataType(),value_set,null,false);
    entry_entity = fc.findPrototypeEntity(entry_set.getDataType(),entry_set,null,false);
+   submap_entity = null;
    
    MapEntry ent = new MapEntry(fc);
    IfaceType etyp = fc.findDataType("java.util.Map$Entry",FaitAnnotation.NON_NULL);
@@ -312,7 +314,15 @@ public IfaceValue prototype_lastKey(IfaceMethod fm,List<IfaceValue> args,IfaceLo
 public IfaceValue prototype_subMap(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
 {
    IfaceType dt = fait_control.findDataType("java.util.SortedMap",FaitAnnotation.NON_NULL);
-   IfaceEntity subs = fait_control.findPrototypeEntity(dt,this,src,false);
+ 
+   IfaceEntity subs = null;
+   if (submap_entity == null) submap_entity = new HashMap<>();
+   subs = submap_entity.get(src.getProgramPoint());
+   if (subs == null) {
+      subs = fait_control.findPrototypeEntity(dt,this,src,false);
+      submap_entity.put(src.getProgramPoint(),subs);
+    }
+   
    IfaceEntitySet cset = fait_control.createSingletonSet(subs);
    IfaceValue cv = fait_control.findObjectValue(dt,cset,FaitAnnotation.NON_NULL);
    

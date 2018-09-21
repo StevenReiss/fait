@@ -133,6 +133,7 @@ int getNumChecks()
 SafetyCheck getCheck(int i)
 {
    if (i < 0 || i >= all_checks.size()) return null;
+   
    return all_checks.get(i);
 }
 

@@ -62,11 +62,11 @@ private SegmentedQueue				call_queue;
 
 private Set<IfaceBaseType>			class_setup;
 
-private Set<IfaceBaseType>	                staticinit_set;
+private Set<IfaceBaseType>			staticinit_set;
 private Set<IfaceBaseType>			staticinit_ran;
 private Set<IfaceBaseType>			staticinit_started;
 private Map<IfaceBaseType,Set<IfaceCall>>	staticinit_queue;
-private Map<IfaceBaseType,Set<FlowLocation>>    staticinit_redos;
+private Map<IfaceBaseType,Set<FlowLocation>>	staticinit_redos;
 private List<IfaceCall> 			static_inits;
 
 
@@ -125,7 +125,7 @@ FlowQueue(IfaceControl fc)
    for (String s : preset_classes) {
       IfaceType dt = fait_control.findDataType(s);
       if (dt != null) class_setup.add(dt.getJavaType());
-    } 
+    }
 
    staticinit_set = new ConcurrentHashSet<>();
    staticinit_set.add(fait_control.findDataType("java.lang.System").getJavaType());
@@ -233,14 +233,14 @@ private void queueMethod(IfaceCall c,IfaceProgramPoint ins,IfaceCall from)
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Back Propagation queueing                                               */
-/*                                                                              */
+/*										*/
+/*	Back Propagation queueing						*/
+/*										*/
 /********************************************************************************/
 
 void queueBackPropagation(IfaceCall c,IfaceProgramPoint ins,IfaceValue ref,IfaceType t)
 {
-   
+
 }
 
 
@@ -261,7 +261,7 @@ FlowQueueInstance setupNextFlowQueue()
    if (next == null) return null;
    IfaceCall cm = next.getKey();
    Set<IfaceProgramPoint> inset = next.getValue();
-   
+
    synchronized (call_map) {
       fqi = call_map.get(cm);
       if (fqi == null) {
@@ -271,27 +271,32 @@ FlowQueueInstance setupNextFlowQueue()
        }
     }
 
-   FaitLog.logD("");
-   FaitLog.logD("START WORK ON " + cm.getLogName());
+   if (FaitLog.isTracing()) {
+      FaitLog.logD("");
+      FaitLog.logD("START WORK ON " + cm.getLogName());
+    }
 
    if (newfqi) {
       IfaceState st0 = cm.getStartState();
       fqi.mergeState(st0);
-      FaitLog.logD1("Safety start: " + st0.getSafetyStatus());
+      if (FaitLog.isTracing()) FaitLog.logD1("Safety start: " + st0.getSafetyStatus());
     }
    else if (inset != null) {
       IfaceProgramPoint i0 = cm.getMethod().getStart();
-      FaitLog.logD1("Add instruction " + i0);
+      if (FaitLog.isTracing()) FaitLog.logD1("Add instruction " + i0);
       for (IfaceProgramPoint loc : inset) {
-         FlowLocation floc = new FlowLocation(this,cm,loc);
+	 FlowLocation floc = new FlowLocation(this,cm,loc);
 	 if (loc.equals(i0)) {
-            IfaceState nst = fqi.mergeState(cm.getStartState(),floc);
-            if (nst != null) FaitLog.logD1("Safety start: " + nst.getSafetyStatus());
-          }
+	    IfaceState nst = fqi.mergeState(cm.getStartState(),floc);
+	    if (nst != null) {
+	       if (FaitLog.isTracing())
+		  FaitLog.logD1("Safety start: " + nst.getSafetyStatus());
+	     }
+	  }
 	 fqi.lookAt(loc);
        }
     }
-   
+
    return fqi;
 }
 
@@ -321,25 +326,25 @@ void initialize(IfaceType dt)
 
    if (staticinit_set.add(bt)) {
       if (FaitLog.isTracing()) {
-         FaitLog.logD1("Initialize " + bt.getName());
+	 FaitLog.logD1("Initialize " + bt.getName());
        }
-      
+
       if (dt.getSuperType() != null) initialize(dt.getSuperType());
-      
+
       int ctr = 0;
       Collection<IfaceMethod> sinit = fait_control.findAllMethods(dt,"<clinit>");
       if (sinit != null) {
-         for (IfaceMethod fm : sinit) {
-            IfaceCall c = fait_control.findCall(null,fm,null,null,InlineType.NONE);
-            static_inits.add(c);
-            if (!c.hasResult()) {
-               ++ctr;
-               inits.add(c);
-             }
-          }
+	 for (IfaceMethod fm : sinit) {
+	    IfaceCall c = fait_control.findCall(null,fm,null,null,InlineType.NONE);
+	    static_inits.add(c);
+	    if (!c.hasResult()) {
+	       ++ctr;
+	       inits.add(c);
+	     }
+	  }
        }
       if (ctr == 0) {
-         finishedInitialization(bt);
+	 finishedInitialization(bt);
        }
     }
    synchronized(staticinit_set) {
@@ -358,9 +363,9 @@ void initialize(IfaceType dt)
 	       IfaceCall c = fait_control.findCall(null,fm,null,null,InlineType.NONE);
 	       static_inits.add(c);
 	       if (!c.hasResult()) {
-                  ++ctr;
-                  inits.add(c);
-                }
+		  ++ctr;
+		  inits.add(c);
+		}
 	     }
 	  }
 	 if (ctr == 0) {
@@ -393,26 +398,26 @@ boolean checkInitialized(IfaceCall cm,IfaceProgramPoint ins)
 
    if (ins.isMethodStart() && !getInitializerDone(bc)) {
       if (cm.getMethod().isStaticInitializer()) {
-         synchronized (staticinit_set) {
-            staticinit_started.add(bt);
-            requeueForInit(staticinit_queue.remove(bt));
-          }
+	 synchronized (staticinit_set) {
+	    staticinit_started.add(bt);
+	    requeueForInit(staticinit_queue.remove(bt));
+	  }
        }
       else {
-         if (!staticinit_started.contains(bt)) {
-            if (FaitLog.isTracing())
-               FaitLog.logD1("Class not initialized requeue: " + bc);
-            Set<IfaceCall> s0 = new HashSet<>();
-            synchronized (staticinit_set) {
-               Set<IfaceCall> s = staticinit_queue.putIfAbsent(bt,s0);
-               if (s == null) s = s0;
-               s.add(cm);
-             }
-            return false;
+	 if (!staticinit_started.contains(bt)) {
+	    if (FaitLog.isTracing())
+	       FaitLog.logD1("Class not initialized requeue: " + bc);
+	    Set<IfaceCall> s0 = new HashSet<>();
+	    synchronized (staticinit_set) {
+	       Set<IfaceCall> s = staticinit_queue.putIfAbsent(bt,s0);
+	       if (s == null) s = s0;
+	       s.add(cm);
+	     }
+	    return false;
 	  }
        }
     }
-   
+
    return true;
 }
 
@@ -448,18 +453,18 @@ private void finishedInitialization(IfaceBaseType bt)
    Set<IfaceCall> cs = staticinit_queue.remove(bt);
    if (cs != null) {
       for (IfaceCall nc : cs) {
-         if (FaitLog.isTracing())
-            FaitLog.logD("Requeue for initialization: " + nc);
-         queueMethodStart(nc,null);
+	 if (FaitLog.isTracing())
+	    FaitLog.logD("Requeue for initialization: " + nc);
+	 queueMethodStart(nc,null);
        }
     }
    Set<FlowLocation> fs = staticinit_redos.remove(bt);
    if (fs != null) {
       for (FlowLocation loc : fs) {
-         if (FaitLog.isTracing()) 
-            FaitLog.logD("Requeue for virtual initialization: " + loc);
-         queueMethodChange(loc);
-       } 
+	 if (FaitLog.isTracing())
+	    FaitLog.logD("Requeue for virtual initialization: " + loc);
+	 queueMethodChange(loc);
+       }
     }
 }
 
@@ -478,7 +483,7 @@ private boolean getInitializerDone(IfaceType dt)
 
    initialize(dt);
    if (!staticinit_ran.contains(bt)) return false;
-   
+
    return true;
 }
 
@@ -543,8 +548,8 @@ void handleArrayChange(IfaceValue arr)
 {
    for (IfaceEntity ce : arr.getEntities()) {
       if (FaitLog.isTracing()) {
-         FaitLog.logD1("Handle array change for " + ce + " (" + ce.hashCode() + ")" + " " +
-           ce.getFieldValue("length"));
+	 FaitLog.logD1("Handle array change for " + ce + " (" + ce.hashCode() + ")" + " " +
+	   ce.getFieldValue("length"));
        }
       array_control.noteArrayChange(ce);
     }
@@ -569,7 +574,7 @@ void handleFieldSet(FlowLocation loc,IfaceState st,boolean thisref,
       IfaceValue v0,IfaceValue base)
 {
    IfaceField fld = loc.getProgramPoint().getReferencedField();
-   
+
    if (fld == null) return;
 
    field_control.handleFieldSet(loc,fld,st,thisref,v0,base);
@@ -625,10 +630,10 @@ void handleReturn(IfaceCall c0,IfaceValue v0,IfaceState st,IfaceLocation loc)
    if (bm.isConstructor()) {
       IfaceType cnsttyp = bm.getDeclaringClass();
       for (Map.Entry<String,IfaceType> ent : cnsttyp.getJavaType().getFieldData().entrySet()) {
-         field_control.initializeField(ent.getKey(),ent.getValue());
+	 field_control.initializeField(ent.getKey(),ent.getValue());
        }
     }
-   
+
    call_control.handleReturn(c0,v0,st.getSafetyStatus(),loc);
 }
 
@@ -656,7 +661,7 @@ void handleException(IfaceValue v0,IfaceCall cm)
 IfaceValue castValue(IfaceType rtyp,IfaceValue v0,IfaceLocation loc)
 {
    if (v0 == null) return null;
-   
+
    IfaceValue v1 = v0;
    IfaceType t0 = v0.getDataType();
 
@@ -684,8 +689,8 @@ IfaceValue castValue(IfaceType rtyp,IfaceValue v0,IfaceLocation loc)
 	    // unbox v0 to get rtyp
 	    v1 = fait_control.findAnyValue(rtyp);
 	  }
-         else {
-          }
+	 else {
+	  }
        }
       return v1;
     }
@@ -696,6 +701,7 @@ IfaceValue castValue(IfaceType rtyp,IfaceValue v0,IfaceLocation loc)
       if (t1 == null) return v0;
       t0 = t1;
       v0 = fait_control.findNativeValue(t0);
+      v0 = v0.forceNonNull();
       if (t0.equals(rtyp)) return v0;
     }
 
@@ -710,9 +716,9 @@ IfaceValue castValue(IfaceType rtyp,IfaceValue v0,IfaceLocation loc)
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Statistics methods                                                      */
-/*                                                                              */
+/*										*/
+/*	Statistics methods							*/
+/*										*/
 /********************************************************************************/
 
 void printStatistics()
@@ -754,60 +760,60 @@ private static class SegmentedQueue {
       boolean chng = false;
       Set<IfaceProgramPoint> s = null;
       switch (ql) {
-         case STATIC_INIT :
-            s = init_queue.get(c);
-            if (s == null) {
-               s = constructor_queue.remove(c);
-               if (s == null) s = normal_queue.remove(c);
-               if (s == null) s = new HashSet<>();
-               init_queue.put(c,s);
-               chng = true;
-             }
-            break;
-         case INIT :
-            s = constructor_queue.get(c);
-            if (s == null) {
-               s = normal_queue.remove(c);
-               if (s == null) s = new HashSet<>();
-               constructor_queue.put(c,s);
-               chng = true;
-             }
-            break;
-         case NORMAL :
-            s = normal_queue.get(c);
-            if (s == null) {
-               s = new HashSet<>();
-               normal_queue.put(c,s);
-               chng = true;
-             }
-            break;
+	 case STATIC_INIT :
+	    s = init_queue.get(c);
+	    if (s == null) {
+	       s = constructor_queue.remove(c);
+	       if (s == null) s = normal_queue.remove(c);
+	       if (s == null) s = new HashSet<>();
+	       init_queue.put(c,s);
+	       chng = true;
+	     }
+	    break;
+	 case INIT :
+	    s = constructor_queue.get(c);
+	    if (s == null) {
+	       s = normal_queue.remove(c);
+	       if (s == null) s = new HashSet<>();
+	       constructor_queue.put(c,s);
+	       chng = true;
+	     }
+	    break;
+	 case NORMAL :
+	    s = normal_queue.get(c);
+	    if (s == null) {
+	       s = new HashSet<>();
+	       normal_queue.put(c,s);
+	       chng = true;
+	     }
+	    break;
        }
-   
+
       if (s != null && pt != null) s.add(pt);
-   
+
       if (chng) notifyAll();
-   
+
       return chng;
     }
 
    synchronized Map.Entry<IfaceCall,Set<IfaceProgramPoint>> getNextCall() {
       while (!allEmpty()) {
-         Map.Entry<IfaceCall,Set<IfaceProgramPoint>> rslt = null;
-         if (init_queue.size() > 0) {
-            rslt = getNext(init_queue);
-          }
-         else if (constructor_queue.size() > 0) {
-            rslt = getNext(constructor_queue);
-          }
-         else {
-            rslt = getNext(normal_queue);
-          }
-         if (rslt != null) return rslt;
-   
-         try {
-            wait(10000);
-          }
-         catch (InterruptedException e) { }
+	 Map.Entry<IfaceCall,Set<IfaceProgramPoint>> rslt = null;
+	 if (init_queue.size() > 0) {
+	    rslt = getNext(init_queue);
+	  }
+	 else if (constructor_queue.size() > 0) {
+	    rslt = getNext(constructor_queue);
+	  }
+	 else {
+	    rslt = getNext(normal_queue);
+	  }
+	 if (rslt != null) return rslt;
+
+	 try {
+	    wait(10000);
+	  }
+	 catch (InterruptedException e) { }
        }
       return null;
     }
@@ -821,16 +827,16 @@ private static class SegmentedQueue {
       Iterator<Map.Entry<IfaceCall,Set<IfaceProgramPoint>>> it;
       it = q.entrySet().iterator();
       while (it.hasNext()) {
-         Map.Entry<IfaceCall,Set<IfaceProgramPoint>> ent = it.next();
-         IfaceCall ic = ent.getKey();
-         if (active_calls.contains(ic)) continue;
-         it.remove();
-         if (ic.getMethod().hasCode()) {
-            active_calls.add(ic);
-            return ent;
-          }
+	 Map.Entry<IfaceCall,Set<IfaceProgramPoint>> ent = it.next();
+	 IfaceCall ic = ent.getKey();
+	 if (active_calls.contains(ic)) continue;
+	 it.remove();
+	 if (ic.getMethod().hasCode()) {
+	    active_calls.add(ic);
+	    return ent;
+	  }
        }
-   
+
       return null;
     }
 
