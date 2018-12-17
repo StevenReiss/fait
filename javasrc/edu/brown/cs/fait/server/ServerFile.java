@@ -224,7 +224,6 @@ ASTNode getResolvedAst(ServerProject sp)
    return an;
 }
 
-
 void resetProject(ServerProject sp)
 {
    synchronized (this) {

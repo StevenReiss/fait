@@ -65,7 +65,7 @@ boolean isAbstract();
 boolean isBroaderType(IfaceType t);
 boolean isDerivedFrom(IfaceType t);
 boolean isCompatibleWith(IfaceType t);
-boolean checkCompatibility(IfaceType t,IfaceLocation loc);
+boolean checkCompatibility(IfaceType t,IfaceLocation loc,IfaceValue val,int stackloc);
 
 IfaceType getArrayType();
 List<IfaceType> getInterfaces();

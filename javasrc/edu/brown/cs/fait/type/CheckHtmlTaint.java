@@ -38,7 +38,6 @@ package edu.brown.cs.fait.type;
 import edu.brown.cs.fait.iface.FaitError;
 import edu.brown.cs.fait.iface.IfaceBaseType;
 import edu.brown.cs.fait.iface.IfaceCall;
-import edu.brown.cs.fait.iface.IfaceError;
 import edu.brown.cs.fait.iface.IfaceSubtype;
 import edu.brown.cs.fait.iface.IfaceType;
 import edu.brown.cs.fait.iface.IfaceValue;
@@ -58,10 +57,9 @@ class CheckHtmlTaint extends TypeSubtype
 /*										*/
 /********************************************************************************/
 
-static IfaceError TAINT_ERROR = new FaitError(ErrorLevel.WARNING,
-      "Attempt to use tainted data in a non-tainted location");
-
 private static CheckHtmlTaint our_type = new CheckHtmlTaint();
+
+
 
 public enum TaintState implements IfaceSubtype.Value
 {
@@ -95,15 +93,20 @@ public static synchronized CheckHtmlTaint getType()
 
 private CheckHtmlTaint()
 {
+   super("CheckHtmlTaint");
+   
+   FaitError err = new FaitError(this,ErrorLevel.ERROR,
+         "Attempt to use tainted data in a non-tainted location");
+   
    defineMerge(HTMLTAINTED,UNHTMLTAINTED,HTMLTAINTED);
    defineMerge(MAYBE_HTMLTAINTED,HTMLTAINTED,HTMLTAINTED);
    defineMerge(MAYBE_HTMLTAINTED,UNHTMLTAINTED,MAYBE_HTMLTAINTED);
 
-   defineRestrict(HTMLTAINTED,UNHTMLTAINTED,TAINT_ERROR);
+   defineRestrict(HTMLTAINTED,UNHTMLTAINTED,err);
    defineRestrict(HTMLTAINTED,MAYBE_HTMLTAINTED,HTMLTAINTED);
    defineRestrict(UNHTMLTAINTED,HTMLTAINTED,UNHTMLTAINTED);
    defineRestrict(UNHTMLTAINTED,MAYBE_HTMLTAINTED,UNHTMLTAINTED);
-   defineRestrict(MAYBE_HTMLTAINTED,UNHTMLTAINTED,TAINT_ERROR);
+   defineRestrict(MAYBE_HTMLTAINTED,UNHTMLTAINTED,err);
    defineRestrict(MAYBE_HTMLTAINTED,HTMLTAINTED,HTMLTAINTED);
 
    defineAttribute("HtmlTainted",HTMLTAINTED);
@@ -122,6 +125,20 @@ private CheckHtmlTaint()
 @Override public TaintState getDefaultValue(IfaceBaseType typ)
 {
    if (typ.isPrimitiveType()) return UNHTMLTAINTED;
+   switch (typ.getName()) {
+      case "java.sql.Date" :
+      case "java.lang.Date" :
+         return UNHTMLTAINTED;
+      case "java.util.Number" :
+      case "java.util.Integer" :
+      case "java.util.Real" : 
+      case "java.util.Float" : 
+      case "java.util.Short" :
+      case "java.util.Byte" :
+      case "java.util.Long" :
+      case "java.util.Character" :
+         return UNHTMLTAINTED;
+    }
 
    return MAYBE_HTMLTAINTED;
 }

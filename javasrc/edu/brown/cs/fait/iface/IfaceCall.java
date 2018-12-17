@@ -48,6 +48,7 @@ default IfaceType getMethodClass()
 }
 
 IfaceState getStartState();
+Set<IfaceState> getReturnStates();
 IfaceValue getResultValue();
 IfaceValue getExceptionValue();
 IfaceSafetyStatus getResultSafetyStatus();
@@ -89,10 +90,10 @@ Iterable<IfaceValue> getParameterValues();
 boolean addCall(List<IfaceValue> args,IfaceSafetyStatus sts);
 boolean addException(IfaceValue exception);
 boolean hasResult();
-boolean addResult(IfaceValue v,IfaceSafetyStatus sts);
+boolean addResult(IfaceValue v,IfaceSafetyStatus sts,IfaceState fromstate);
 
-Collection<IfaceMethod> replaceWith(IfaceProgramPoint where,List<IfaceValue> args);
-IfaceValue fixReplaceArgs(IfaceMethod fm,LinkedList<IfaceValue> args);
+Map<IfaceMethod,List<IfaceValue>> replaceWith(IfaceProgramPoint where,List<IfaceValue> args);
+void fixReplaceArgs(IfaceMethod fm,LinkedList<IfaceValue> args);
 
 void addCallbacks(IfaceLocation loc,List<IfaceValue> args);
 IfaceMethod findCallbackMethod(IfaceType cls,String mthd,int asz,boolean intf);
@@ -110,6 +111,7 @@ List<IfaceProgramPoint> getErrorLocations();
 Collection<IfaceError> getErrors(IfaceProgramPoint pt);
 
 IfaceCall getAlternateCall(IfaceSafetyStatus sts,IfaceProgramPoint pt);
+Collection<IfaceCall> getAlternateCalls();
 
 void removeForUpdate(IfaceUpdater upd);
 void handleUpdates(IfaceUpdater upd);

@@ -61,6 +61,8 @@ private Map<IfaceType,ValueObject>	empty_map;
 
 private Map<IfaceEntitySet,List<ValueObject>> object_map;
 
+private Map<IfaceType,Map<Object,List<ValueRef>>> ref_map;
+
 private ValueBase			string_value;
 private ValueBase			null_value;
 private ValueBase			bad_value;
@@ -86,6 +88,7 @@ public ValueFactory(IfaceControl fc)
    null_map = new HashMap<>();
    empty_map = new HashMap<>();
    object_map = new WeakHashMap<>();
+   ref_map = new WeakHashMap<>();
 
    string_value = null;
    null_value = null;
@@ -156,7 +159,8 @@ public ValueBase rangeValue(IfaceType typ,Long v0,Long v1)
    ValueInt cv = new ValueInt(this,typ,v0,v1);
    ValueInt cv1 = range_map.addIfAbsent(cv);
    if (cv1 == null || cv1 == cv) {
-      FaitLog.logD("Create new INTVALUE " + typ + " " + v0 + " " + v1);
+      if (FaitLog.isTracing())
+         FaitLog.logD("Create new INTVALUE " + typ + " " + v0 + " " + v1);
       cv1 = cv;
       // if (v0 != null && v0 == 0 && v1 != null && v1 == 0) {
 	 // FaitLog.logD("RECHECK 0 " + typ + " " + typ.hashCode());
@@ -327,10 +331,13 @@ public ValueBase nullValue()
 public ValueBase nullValue(IfaceType dt)
 {
    synchronized (null_map) {
+     
       ValueBase cv = null_map.get(dt);
       if (cv == null) {
-	 cv = emptyValue(dt,FaitAnnotation.MUST_BE_NULL);
+         IfaceType dt1 = fait_control.findConstantType(dt,null);
+	 cv = emptyValue(dt1,FaitAnnotation.MUST_BE_NULL);
 	 null_map.put(dt,cv);
+         null_map.put(dt1,cv);
        }
       return cv;
     }
@@ -468,7 +475,25 @@ public IfaceValue initialFieldValue(IfaceField fld,boolean nat)
 
 public ValueBase refValue(IfaceType dt,int slot)
 {
-   return new ValueRef(this,dt,slot,null,null,null);
+   Map<Object,List<ValueRef>> mm = null;
+   synchronized (ref_map) {
+      mm = ref_map.get(dt);
+      if (mm == null) {
+         mm = new HashMap<>();
+         ref_map.put(dt,mm);
+       }
+    }  
+   synchronized (mm) {
+      List<ValueRef> lr = mm.get(slot);
+      if (lr == null) {
+         lr = new ArrayList<>();
+         ValueRef vr = new ValueRef(this,dt,slot,null,null,null);
+         lr.add(vr);
+         mm.put(slot,lr);
+         return vr;
+       }
+      else return lr.get(0);
+    }
 }
 
 
@@ -480,13 +505,67 @@ public ValueBase refValue(IfaceType dt,IfaceValue base,IfaceField fld)
    if (base != null && base.isBad()) {
       FaitLog.logE("Bad base value");
     }
-   return new ValueRef(this,dt,NO_REF,base,fld,null);
+   if (fld == null) {
+      FaitLog.logE("Field reference to non-existant field");
+    }
+   
+   Map<Object,List<ValueRef>> mm = null;
+   synchronized (ref_map) {
+      mm = ref_map.get(dt);
+      if (mm == null) {
+         mm = new HashMap<>();
+         ref_map.put(dt,mm);
+       }
+    }  
+   List<ValueRef> lr = null;
+   synchronized (mm) {
+      lr = mm.get(fld);
+      if (lr == null) {
+         lr = new ArrayList<>();
+         mm.put(fld,lr);
+       }
+    }
+   synchronized (lr) {
+      for (ValueRef vr : lr) {
+         if (vr.getRefBase() == base) return vr;
+       }
+      ValueRef nvr = new ValueRef(this,dt,NO_REF,base,fld,null);
+      lr.add(nvr);
+      return nvr;
+    }
 }
 
 
 public ValueBase refValue(IfaceType dt,IfaceValue base,IfaceValue idx)
 {
-   return new ValueRef(this,dt,NO_REF,base,null,idx);
+   if (idx == null) {
+      FaitLog.logE("Index reference to non-existant index");
+    }
+   
+   Map<Object,List<ValueRef>> mm = null;
+   synchronized (ref_map) {
+      mm = ref_map.get(dt);
+      if (mm == null) {
+         mm = new HashMap<>();
+         ref_map.put(dt,mm);
+       }
+    }  
+   List<ValueRef> lr = null;
+   synchronized (mm) {
+      lr = mm.get(idx);
+      if (lr == null) {
+         lr = new ArrayList<>();
+         mm.put(idx,lr);
+       }
+    }
+   synchronized (lr) {
+      for (ValueRef vr : lr) {
+         if (vr.getRefBase() == base) return vr;
+       }
+      ValueRef nvr = new ValueRef(this,dt,NO_REF,base,null,idx);
+      lr.add(nvr);
+      return nvr;
+    }
 }
 
 

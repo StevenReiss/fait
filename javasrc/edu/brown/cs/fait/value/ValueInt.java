@@ -155,7 +155,7 @@ ValueInt(ValueFactory vf,IfaceType dt,Long minv,Long maxv,IfaceEntitySet es)
 	  }
 	 if (max_value != null && rhs.max_value != null) {
 	    mxv = max_value * rhs.max_value;
-            if (mxv < mnv) mxv = null;
+            if (mnv != null && mxv < mnv) mxv = null;
 	  }
 	 break;
       case MOD :
@@ -182,6 +182,12 @@ ValueInt(ValueFactory vf,IfaceType dt,Long minv,Long maxv,IfaceEntitySet es)
 	    mxv = mnv;
 	  }
 	 break;
+      case ANDAND :
+         if (v0 != null && v0 == 0) return this;
+         if (v1 != null && v1 == 0) return rhsv;
+         if (v0 != null && v1 != null) return this;
+         break;
+         
       case OR :
 	 if (v0 != null && v1 != null) {
 	    mnv = v0 | v1;
@@ -196,6 +202,12 @@ ValueInt(ValueFactory vf,IfaceType dt,Long minv,Long maxv,IfaceEntitySet es)
 	     }
 	  }
 	 break;
+      case OROR :
+         if (v0 != null && v0 == 1) return this;
+         if (v1 != null && v1 == 1) return rhsv;
+         if (v0 != null && v1 != null) return this;
+         break;
+         
       case XOR :
 	 if (v0 != null && v1 != null) {
 	    mnv = v0 ^ v1;
@@ -602,7 +614,8 @@ ValueInt(ValueFactory vf,IfaceType dt,Long minv,Long maxv,IfaceEntitySet es)
    if (vb == this || vb == null) return this;
 
    if (!(vb instanceof ValueInt)) {
-      FaitLog.logD1("Invalidate variable: Bad int value merge: " + this + " " + vb);
+      if (FaitLog.isTracing())
+         FaitLog.logD1("Invalidate variable: Bad int value merge: " + this + " " + vb);
       return value_factory.badValue();
     }
 

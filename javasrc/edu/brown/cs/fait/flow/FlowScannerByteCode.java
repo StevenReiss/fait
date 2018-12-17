@@ -262,9 +262,13 @@ private void processInstruction(IfaceProgramPoint inspt)
 	 IfaceType newt0 = jdtyp;
 	 IfaceAnnotation [] nannots = fait_control.getAnnotations(inspt);
 	 if (nannots != null) newt0 = newt0.getAnnotatedType(nannots);
+         newt0 = newt0.getAnnotatedType(FaitAnnotation.NON_NULL);
 	 IfaceType newt1 = newt0.getComputedType(FaitTypeOperator.STARTINIT);
 	 flow_queue.initialize(newt0);
-	 ent = getLocalEntity(call,here,newt1);
+         if (fait_control.isSingleAllocation(newt1,false)) 
+            ent = fait_control.findFixedEntity(newt1);
+         else
+            ent = getLocalEntity(call,here,newt1);
 	 v0 = fait_control.findObjectValue(newt1,fait_control.createSingletonSet(ent));
 	 st1.pushStack(v0);
 	 break;
@@ -662,7 +666,7 @@ private void processInstruction(IfaceProgramPoint inspt)
 	 IfaceMethod fm = inspt.getReferencedMethod();
 	 st1 = handleAccess(here,st1);
 	 if (st1 == null) break;
-	 switch (flow_queue.handleCall(here,st1,work_queue)) {
+	 switch (flow_queue.handleCall(here,st1,work_queue,-1)) {
 	    case NOT_DONE :
 	       if (FaitLog.isTracing()) FaitLog.logD1("Unknown RETURN value for " + fm);
 	       IfaceCall ncall = call.getMethodCalled(inspt,fm);
@@ -793,12 +797,12 @@ private void processInstruction(IfaceProgramPoint inspt)
 	    if (v1 == st1.getLocal(0)) oref = true;
 	  }
 	 if (FaitLog.isTracing()) FaitLog.logD1("Set field of " + v1 + " = " + v0);
-	 flow_queue.handleFieldSet(here,st1,oref,v0,v1);
+	 flow_queue.handleFieldSet(here,st1,oref,v0,v1,0);
 	 break;
       case PUTSTATIC :
 	 v0 = st1.popStack();
 	 if (FaitLog.isTracing()) FaitLog.logD1("Static field = " + v0);
-	 flow_queue.handleFieldSet(here,st1,false,v0,null);
+	 flow_queue.handleFieldSet(here,st1,false,v0,null,0);
 	 break;
 
       default :
@@ -1397,7 +1401,11 @@ private void handleDynamicCall(IfaceLocation here,IfaceState st)
 	     }
 	  }
        }
-      IfaceEntity ent = fait_control.findFunctionRefEntity(here,t1,args[4]);
+      IfaceEntity ent = here.getCall().getBaseEntity(here.getProgramPoint());
+      if (ent == null) {
+         ent = fait_control.findFunctionRefEntity(here,t1,args[4]);
+         here.getCall().setBaseEntity(here.getProgramPoint(),ent);
+       }
       IfaceEntitySet eset = fait_control.createSingletonSet(ent);
       IfaceValue val = fait_control.findObjectValue(t1,eset,FaitAnnotation.NON_NULL);
       st.pushStack(val);

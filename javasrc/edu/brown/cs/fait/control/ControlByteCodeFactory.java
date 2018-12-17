@@ -387,6 +387,10 @@ private class InsMethod implements IfaceMethod {
    @Override public String getFullName()	{ return for_method.getFullName(); }
    @Override public String getName()		{ return for_method.getName(); }
    @Override public String getDescription()	{ return for_method.getDescription(); }
+   @Override public String getFile() {
+      return for_method.getFile();
+    }
+   
    @Override public boolean isStatic()		{ return for_method.isStatic(); }
    @Override public boolean isVarArgs() 	{ return for_method.isVarArgs(); }
    @Override public boolean isStaticInitializer() {
@@ -405,7 +409,12 @@ private class InsMethod implements IfaceMethod {
     }
    @Override public int getNumArgs()		{ return for_method.getNumArguments(); }
    @Override public IfaceType getArgType(int i) {
-      return getFaitType(for_method.getArgType(i));
+      IfaceType t0 = getFaitType(for_method.getArgType(i));
+      List<IfaceAnnotation> ann = getArgAnnotations(i);
+      if (ann != null) {
+         t0 = t0.getAnnotatedType(ann);
+       }
+      return t0;
     }
 
    @Override public IfaceType getDeclaringClass() {
@@ -459,8 +468,13 @@ private class InsMethod implements IfaceMethod {
       return getPoint(nins);
     }
 
-   @Override public int getLocalSize()		{ return for_method.getLocalSize(); }
+   @Override public int getLocalSize()		        { return for_method.getLocalSize(); }
    @Override public int getLocalOffset(Object o)        { return -1; }
+   @Override public Object getItemAtOffset(int off,IfaceProgramPoint pt) {
+      JcodeLocalVariable lcl = for_method.getLocalVariable(off,pt.getInstruction());
+      if (lcl == null) return null;
+      return lcl.getName();
+    }
    
    @Override public IfaceType getLocalType(int slot,IfaceProgramPoint pt) {
       JcodeLocalVariable jlv = for_method.getLocalVariable(slot,pt.getInstruction());
@@ -643,6 +657,17 @@ private class InsPoint implements IfaceProgramPoint {
       if (fm != null) return fm;
       return ControlByteCodeFactory.this.getMethod(m);
     }
+   
+   @Override public IfaceMethod getCalledMethod() {
+      switch (for_instruction.getOpcode()) {
+         case INVOKEINTERFACE :
+         case INVOKESPECIAL :
+         case INVOKESTATIC :
+         case INVOKEVIRTUAL :
+            return getReferencedMethod();
+       }
+      return null;
+    }
 
    @Override public IfaceField getReferencedField() {
       JcodeField f = for_instruction.getFieldReference();
@@ -711,6 +736,10 @@ private class InsPoint implements IfaceProgramPoint {
       return false;
     }
 
+   @Override public int getLineNumber() {
+      return for_instruction.getLineNumber();
+    }
+   
    @Override public boolean equals(Object o) {
       if (o instanceof InsPoint) {
 	 return for_instruction == ((InsPoint) o).for_instruction;
@@ -730,6 +759,7 @@ private class InsPoint implements IfaceProgramPoint {
       xw.field("KIND","BINARY");
       xw.field("LOC",for_instruction.getIndex());
       xw.field("OPCODE",for_instruction.getOpcode());
+      xw.field("LINE",getLineNumber());
       xw.text(for_instruction.toString());
       xw.end("POINT");
     }

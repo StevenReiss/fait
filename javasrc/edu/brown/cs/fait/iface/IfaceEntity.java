@@ -36,6 +36,7 @@
 
 package edu.brown.cs.fait.iface;
 
+import java.util.List;
 import java.util.Map;
 
 public interface IfaceEntity extends FaitConstants {
@@ -97,6 +98,8 @@ IfacePrototype getPrototype();
 Map<Object,IfaceValue> getBindings();
 String getMethodName();
 boolean isFunctionRef();
+
+List<IfaceValue> getContents(List<IfaceValue> rslt);
 
 
 

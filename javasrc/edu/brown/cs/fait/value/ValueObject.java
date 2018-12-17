@@ -170,6 +170,16 @@ ValueObject(ValueFactory vf,IfaceType typ,IfaceEntitySet es,IfaceAnnotation ... 
 }
 
 
+private ValueBase tryNonNull()
+{
+   if (!canBeNull()) return this;
+   if (isEmptyEntitySet()) return null;
+   ValueBase vb = forceNonNull();
+   if (vb.isEmptyEntitySet()) return null;
+   return vb;
+}
+
+
 @Override public ValueBase forceInitialized(FaitAnnotation what)
 {
    IfaceType t0 = getDataType().getAnnotatedType(what);
@@ -205,7 +215,8 @@ ValueObject(ValueFactory vf,IfaceType typ,IfaceEntitySet es,IfaceAnnotation ... 
    if (cv == this || cv == null) return this;
 
    if (!(cv instanceof ValueObject)) {
-      FaitLog.logD1("Invalidate variable: Bad value merge: " + this + " " + cv);
+      if (FaitLog.isTracing())
+         FaitLog.logD1("Invalidate variable: Bad value merge: " + this + " " + cv);
       return value_factory.badValue();
     }
 
@@ -251,13 +262,12 @@ ValueObject(ValueFactory vf,IfaceType typ,IfaceEntitySet es,IfaceAnnotation ... 
 	    return value_factory.rangeValue(typ,1l,1l);
 	 break;
       case EQL :
-         if (rhs == this) return value_factory.rangeValue(typ,1l,1l);
          if (rhs.mustBeNull() && mustBeNull()) return value_factory.rangeValue(typ,1l,1l);
          if (rhs.mustBeNull() && !canBeNull()) return value_factory.rangeValue(typ,0l,0l);
          if (!rhs.canBeNull() && mustBeNull()) return value_factory.rangeValue(typ,0l,0l);
          break;
       case NEQ :
-         if (rhs == this) return value_factory.rangeValue(typ,0l,0l);
+         // if (rhs == this) return value_factory.rangeValue(typ,0l,0l);
          if (rhs.mustBeNull() && mustBeNull()) return value_factory.rangeValue(typ,0l,0l);
          if (rhs.mustBeNull() && !canBeNull()) return value_factory.rangeValue(typ,1l,1l);
          if (!rhs.canBeNull() && mustBeNull()) return value_factory.rangeValue(typ,1l,1l);
@@ -283,36 +293,30 @@ ValueObject(ValueFactory vf,IfaceType typ,IfaceEntitySet es,IfaceAnnotation ... 
    switch (op) {  
       case NULL :
          lt = value_factory.nullValue(timp.getLhsTrueType());
-         lf = forceNonNull();
+         lf = tryNonNull();
          break;
       case NONNULL :
-         lt = forceNonNull();
+         lt = tryNonNull();
          lf = value_factory.nullValue(timp.getLhsFalseType());
          break;
       case EQL :
          if (rhs.mustBeNull()) {
             lt = value_factory.nullValue(timp.getLhsTrueType());
-            if (!mustBeNull()) lf = forceNonNull();
+            if (!mustBeNull()) lf = tryNonNull();
           }
-         else if (mustBeNull()) {
+         if (mustBeNull()) {
             rt = value_factory.nullValue(timp.getRhsTrueType());
-            if (!rhs.mustBeNull()) rf = forceNonNull();
-          }
-         else {
-            // IfaceEntitySet ls = getEntitySet();
-            // IfaceEntitySet rs = rhs.getEntitySet();
-            // compute ls intersect rs ?
-            // but allow generic things to match
+            if (!rhs.mustBeNull()) rf = tryNonNull();
           }
          break;
       case NEQ :
          if (rhs.mustBeNull()) {
             lf = value_factory.nullValue(timp.getLhsFalseType());
-            lf = forceNonNull();
+            lf = tryNonNull();
           }
-         else if (mustBeNull()) {
+         if (mustBeNull()) {
             rf = value_factory.nullValue(timp.getRhsFalseType());
-            rt = forceNonNull();
+            rt = tryNonNull();
           }
          break;
     }

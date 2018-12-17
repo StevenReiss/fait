@@ -50,6 +50,8 @@ IfaceValue getField(String fldkey);
 boolean setArrayContents(IfaceValue idx,IfaceValue val);
 IfaceValue getArrayContents(IfaceValue idx);
 
+List<IfaceValue> getContents(List<IfaceValue> rslt);
+
 void handleUpdates(IfaceUpdater upd);
 
 boolean isMethodRelevant(IfaceMethod fm);

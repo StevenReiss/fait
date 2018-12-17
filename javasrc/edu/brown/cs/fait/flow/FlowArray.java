@@ -124,6 +124,7 @@ IfaceValue handleNewArraySet(FlowLocation loc,IfaceType acls,int ndim,IfaceValue
 IfaceValue handleArrayAccess(FlowLocation loc,IfaceValue arr,IfaceValue idx)
 {
    IfaceValue cv = null;
+   if (arr.isBad()) return arr;
    
    for (IfaceEntity xe : arr.getEntities()) {
       if (xe.getDataType().isArrayType()) {
@@ -133,13 +134,14 @@ IfaceValue handleArrayAccess(FlowLocation loc,IfaceValue arr,IfaceValue idx)
    
    cv = arr.getArrayContents(idx);
    
-   if (cv == null || cv.getDataType().isVoidType()) 
+   if (cv == null || cv.getDataType().isVoidType()) {
       FaitLog.logE("Void type from array access");
+    }
    
    IfaceType ft = cv.getDataType();
    IfaceType rt = ft.getComputedType(cv,FaitOperator.ELEMENTACCESS,arr,idx);
    if (rt != ft) {
-      ft.checkCompatibility(rt,loc);
+      ft.checkCompatibility(rt,loc,cv,-1);
       cv = cv.changeType(rt);
     }
 

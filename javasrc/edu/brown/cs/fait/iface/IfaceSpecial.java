@@ -54,6 +54,7 @@ List<IfaceValue> getCallbackArgs(List<IfaceValue> args,IfaceValue newval);
 boolean getIsAsync();
 boolean getExits();
 boolean getNeverReturns();
+boolean getIgnoreVirtualCalls();
 boolean getDontScan();
 boolean getForceScan();
 List<String> getClassesToLoad();

@@ -44,6 +44,7 @@ import java.util.Map;
 
 import org.w3c.dom.Element;
 
+import edu.brown.cs.fait.iface.FaitException;
 import edu.brown.cs.fait.iface.FaitLog;
 import edu.brown.cs.ivy.mint.MintArguments;
 import edu.brown.cs.ivy.mint.MintConstants;
@@ -137,25 +138,25 @@ private class WaitForExit extends Thread {
    @Override public void run() {
       ServerMonitor mon = ServerMonitor.this;
       synchronized (mon) {
-	 for ( ; ; ) {
-	    if (checkEclipse()) break;
-	    try {
-	       mon.wait(30000l);
-	     }
-	    catch (InterruptedException e) { }
-	  }
-
-	 while (!is_done) {
-	    if (!checkEclipse()) is_done = true;
-	    else {
-	       try {
-		  mon.wait(30000l);
-		}
-	       catch (InterruptedException e) { }
-	     }
-	  }
+         for ( ; ; ) {
+            if (checkEclipse()) break;
+            try {
+               mon.wait(30000l);
+             }
+            catch (InterruptedException e) { }
+          }
+   
+         while (!is_done) {
+            if (!checkEclipse()) is_done = true;
+            else {
+               try {
+                  mon.wait(30000l);
+                }
+               catch (InterruptedException e) { }
+             }
+          }
        }
-
+   
       System.exit(0);
     }
 
@@ -331,7 +332,9 @@ private void handleAddFile(String sid,Element xml)
    for (Element e : IvyXml.children(xml,"FILE")) {
       String file = IvyXml.getAttrString(e,"NAME");
       ServerFile sf = server_control.getFileManager().openFile(new File(file));
-      if (sf != null) sp.addFile(sf);
+      if (sf != null) {
+         sp.addFile(sf);
+       }   
     }
 
    // sp.getJcompProject().resolve();
@@ -365,6 +368,31 @@ private void handleAnalyze(String sid,Element xml,IvyXmlWriter xw)
 
    sp.beginAnalysis(nth,retid,opt);
 }
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Query commands                                                          */
+/*                                                                              */
+/********************************************************************************/
+
+private void handleQuery(String sid,Element xml,IvyXmlWriter xw)
+{
+   ServerSession ss = session_map.get(sid);
+   if (ss == null) return;
+   ServerProject sp = ss.getProject();
+   
+   try {
+      sp.handleQuery(xml,xw);
+    }
+   catch (FaitException e) {
+      xw.begin("FAITQUERY");
+      xw.field("FAIL",true);
+      xw.field("ERROR",e.getMessage());
+      xw.end("FAITQUERY");
+    }
+}
+
 
 
 
@@ -452,6 +480,7 @@ private class BubblesHandler implements MintHandler {
 
 @Override public void receive(MintMessage msg,MintArguments args) {
    String cmd = args.getArgument(0);
+   FaitLog.logD("BUBBLES COMMAND: " + cmd);
    // Element e = msg.getXml();
    switch (cmd) {
       case "EXIT" :
@@ -495,6 +524,10 @@ private String processCommand(String cmd,String sid,Element e) throws ServerExce
       case "ANALYZE" :
 	 handleAnalyze(sid,e,xw);
 	 break;
+      case "QUERY" :
+         handleQuery(sid,e,xw);
+         break;
+
       case "TESTEDIT" :
          String txt = IvyXml.getText(e);
          File fil = new File(IvyXml.getAttrString(e,"FILE"));

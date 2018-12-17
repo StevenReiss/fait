@@ -48,6 +48,7 @@ IfaceAstReference getAstReference();
 boolean isByteCode();
 
 IfaceMethod getReferencedMethod();
+IfaceMethod getCalledMethod();
 IfaceField getReferencedField();
 IfaceType getReferencedType();
 IfaceProgramPoint getReferencedTarget();
@@ -61,6 +62,8 @@ IfaceProgramPoint getNext();
 IfaceProgramPoint getPrevious();
 
 IfaceMethod getMethod();
+
+int getLineNumber();
 
 void outputXml(IvyXmlWriter xw);
 

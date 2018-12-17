@@ -165,7 +165,6 @@ StateBase(int numlocal,IfaceSafetyStatus sts)
 }
 
 
-
 @Override public void handleDup(boolean dbl,int lvl)
 {
    IfaceValue v1 = stack_values.pop();
@@ -392,9 +391,31 @@ private boolean checkMergeWithState(StateBase cs)
        }
     }
    
+   StateBase priorbase = cs.getPriorBaseState();
+   for (int i = 0; i < getNumPriorStates(); ++i) {
+      StateBase sb = (StateBase) getPriorState(i);
+      StateBase sbase = sb.getPriorBaseState();
+      if (sbase == priorbase) {
+         removePriorState(sb);
+       }
+    }
    addPriorState(cs);
    
    return change;
+}
+
+
+
+
+private StateBase getPriorBaseState()
+{
+   if (state_location != null) return this;
+   for (int i = 0; i < getNumPriorStates(); ++i) {
+      StateBase sp = (StateBase) getPriorState(i);
+      StateBase asp = sp.getPriorBaseState();
+      if (asp != null) return asp;
+    }
+   return null;
 }
 
 
@@ -469,6 +490,22 @@ void addPriorState(StateBase st)
     }
 }
 
+
+
+@SuppressWarnings("unchecked") 
+private void removePriorState(StateBase st)
+{
+   if (st == null) return;
+   if (prior_state == null) return;
+   else if (prior_state == st) prior_state = null;
+   else if (prior_state instanceof IfaceState) return;
+   else {
+     List<IfaceState> priors = (List<IfaceState>) prior_state;
+     priors.remove(st);
+     if (priors.size() == 0) prior_state = null;
+    }
+}
+
 @Override public int getNumPriorStates()
 {
    if (prior_state == null) return 0;
@@ -492,6 +529,37 @@ void addPriorState(StateBase st)
    return (IfaceState) o;
 }
 
+
+@Override public boolean isStartOfMethod()
+{
+   if (getNumPriorStates() == 1) {
+      IfaceState st0 = getPriorState(0);
+      if (st0.getNumPriorStates() == 0 &&
+            st0.getLocation() == null &&
+            getLocation().getCall().getStartState() == st0)
+         return true;
+    }
+   
+   return false;
+}
+
+
+@Override public boolean isMethodCall()
+{
+   if (state_location == null) return false;
+   IfaceCall c = state_location.getCall();
+   IfaceProgramPoint pt = state_location.getProgramPoint();
+   if (!c.getAllMethodsCalled(pt).isEmpty()) return true;
+   return false;
+}
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Methods forhandling safety checks                                       */
+/*                                                                              */
+/********************************************************************************/
 
 @Override public IfaceSafetyStatus getSafetyStatus()
 {

@@ -571,20 +571,20 @@ void noteArrayChange(IfaceEntity arr)
 /********************************************************************************/
 
 void handleFieldSet(FlowLocation loc,IfaceState st,boolean thisref,
-      IfaceValue v0,IfaceValue base)
+      IfaceValue v0,IfaceValue base,int stackref)
 {
    IfaceField fld = loc.getProgramPoint().getReferencedField();
 
    if (fld == null) return;
 
-   field_control.handleFieldSet(loc,fld,st,thisref,v0,base);
+   field_control.handleFieldSet(loc,fld,st,thisref,v0,base,stackref);
 }
 
 
 void handleFieldSet(IfaceField fld,FlowLocation loc,IfaceState st,
-      boolean thisref,IfaceValue v0,IfaceValue base)
+      boolean thisref,IfaceValue v0,IfaceValue base,int stackref)
 {
-   field_control.handleFieldSet(loc,fld,st,thisref,v0,base);
+   field_control.handleFieldSet(loc,fld,st,thisref,v0,base,stackref);
 }
 
 
@@ -610,9 +610,9 @@ IfaceValue handleFieldGet(IfaceField jf,FlowLocation loc,IfaceState st,
 /*										*/
 /********************************************************************************/
 
-CallReturn handleCall(FlowLocation loc,IfaceState st0,FlowQueueInstance wq)
+CallReturn handleCall(FlowLocation loc,IfaceState st0,FlowQueueInstance wq,int varct)
 {
-   return call_control.handleCall(loc,st0,wq);
+   return call_control.handleCall(loc,st0,wq,varct);
 }
 
 
@@ -634,7 +634,7 @@ void handleReturn(IfaceCall c0,IfaceValue v0,IfaceState st,IfaceLocation loc)
        }
     }
 
-   call_control.handleReturn(c0,v0,st.getSafetyStatus(),loc);
+   call_control.handleReturn(c0,v0,st.getSafetyStatus(),st,loc,0);
 }
 
 
@@ -717,14 +717,34 @@ IfaceValue castValue(IfaceType rtyp,IfaceValue v0,IfaceLocation loc)
 
 /********************************************************************************/
 /*										*/
+/*	Query access methods							*/
+/*										*/
+/********************************************************************************/
+
+IfaceState findStateForLocation(IfaceCall c0,IfaceProgramPoint pt)
+{
+   if (c0 == null || pt == null) return null;
+
+   FlowQueueInstance wq = call_map.get(c0);
+   if (wq == null) return null;
+   return wq.getState(pt);
+}
+
+
+
+
+/********************************************************************************/
+/*										*/
 /*	Statistics methods							*/
 /*										*/
 /********************************************************************************/
 
 void printStatistics()
 {
-   for (IfaceCall fc : call_map.keySet()) {
-      fc.outputStatistics();
+   synchronized (call_map) {
+      for (IfaceCall fc : call_map.keySet()) {
+	 fc.outputStatistics();
+       }
     }
 }
 

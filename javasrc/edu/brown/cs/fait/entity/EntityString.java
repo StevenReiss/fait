@@ -36,6 +36,7 @@
 package edu.brown.cs.fait.entity;
 
 import edu.brown.cs.fait.iface.IfaceType;
+import edu.brown.cs.ivy.xml.IvyXml;
 
 
 class EntityString extends EntityObject
@@ -75,7 +76,7 @@ EntityString(IfaceType styp,String s)
 
 @Override public String toString()
 {
-   return "String " + constant_value.replace("\n","\\n");
+   return "String " + IvyXml.htmlSanitize(constant_value);
 }
 
 

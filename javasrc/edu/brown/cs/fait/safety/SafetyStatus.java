@@ -37,10 +37,13 @@ package edu.brown.cs.fait.safety;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import edu.brown.cs.fait.iface.IfaceError;
 import edu.brown.cs.fait.iface.IfaceLocation;
+import edu.brown.cs.fait.iface.IfaceSafetyCheck;
 import edu.brown.cs.fait.iface.IfaceSafetyStatus;
 import edu.brown.cs.fait.iface.IfaceSafetyCheck.Value;
 
@@ -73,10 +76,33 @@ SafetyStatus(SafetyFactory sf,int [] sts)
 
 
 
+/********************************************************************************/
+/*                                                                              */
+/*      Access methods                                                          */
+/*                                                                              */
+/********************************************************************************/
+
+@Override public Set<Value> getValue(IfaceSafetyCheck chk)
+{
+   int idx = for_factory.getAllChecks().indexOf(chk);
+   int val = cur_status[idx];
+   
+   Set<Value> rslt = new HashSet<>();
+   while (val != 0) {
+      int i = Integer.numberOfTrailingZeros(val);
+      Value v = chk.getValueForOrdinal(i);
+      rslt.add(v);
+      val ^= (1 << i);
+    }
+   
+   return rslt;
+}
+
+
 
 /********************************************************************************/
 /*                                                                              */
-/*      Abstract Method Implementations                                         */
+/*      Update methods                                                          */
 /*                                                                              */
 /********************************************************************************/
 

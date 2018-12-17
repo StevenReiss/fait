@@ -106,7 +106,7 @@ ServerFile openFile(File f)
    synchronized (known_files) {
       ServerFile sf = known_files.get(f);
       if (sf == null) {
-	 sf = new ServerFile(f,cnts,linesep);
+	 sf = new ServerFile(f,cnts,linesep); 
 	 known_files.put(f,sf);
        }
       return sf;

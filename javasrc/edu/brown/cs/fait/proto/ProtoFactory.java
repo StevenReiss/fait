@@ -89,15 +89,13 @@ public IfacePrototype createPrototype(IfaceType dt)
    synchronized (class_map) {
       which = class_map.get(dt);
       if (which == null) {
-         // if (!dt.isInProject()) {
-            if (dt.isDerivedFrom(fait_control.findDataType("java.util.Collection"))) {
-               which = ProtoWhich.COLLECTION;
-             }
-            else if (dt.isDerivedFrom(fait_control.findDataType("java.util.Map"))) {
-               which = ProtoWhich.MAP;
-             }
-            else which = ProtoWhich.NONE;
-          // }
+         if (dt.isDerivedFrom(fait_control.findDataType("java.util.Collection"))) {
+            which = ProtoWhich.COLLECTION;
+          }
+         else if (dt.isDerivedFrom(fait_control.findDataType("java.util.Map"))) {
+            which = ProtoWhich.MAP;
+          }
+         else which = ProtoWhich.NONE;
          class_map.put(dt,which);
        }
     }

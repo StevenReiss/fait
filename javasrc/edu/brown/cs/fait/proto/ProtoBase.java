@@ -104,6 +104,8 @@ IfaceType getDataType()			{ return proto_type; }
 
 @Override public IfaceValue getArrayContents(IfaceValue f)		{ return null; }
 
+@Override public List<IfaceValue> getContents(List<IfaceValue> rslt)    { return rslt; }
+
 @Override public void setAnyValue()                                     { }
 
 

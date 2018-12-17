@@ -96,9 +96,9 @@ private void loadCheck(Element xml)
          String err = IvyXml.getTextElement(telt,"ERROR");
          String warn = IvyXml.getTextElement(telt,"WARNING");
          String note = IvyXml.getTextElement(telt,"NOTE");
-         if (err != null) ierr = new FaitError(ErrorLevel.ERROR,err);
-         else if (warn != null) ierr = new FaitError(ErrorLevel.WARNING,warn);
-         else if (note != null) ierr = new FaitError(ErrorLevel.NOTE,note);
+         if (err != null) ierr = new FaitError(this,ErrorLevel.ERROR,err);
+         else if (warn != null) ierr = new FaitError(this,ErrorLevel.WARNING,warn);
+         else if (note != null) ierr = new FaitError(this,ErrorLevel.NOTE,note);
          Value tv = defineState(tonm,false);
          defineTransition(v,evtnm,tv,ierr);
        }

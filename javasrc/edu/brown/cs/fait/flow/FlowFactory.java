@@ -226,6 +226,17 @@ public void handleCallback(IfaceLocation frm,IfaceMethod fm,List<IfaceValue> arg
 }
    
 
+/********************************************************************************/
+/*                                                                              */
+/*      Query access methods                                                    */
+/*                                                                              */
+/********************************************************************************/
+
+public IfaceState findStateForLocation(IfaceCall c,IfaceProgramPoint pt)
+{
+   return flow_queue.findStateForLocation(c,pt);
+}
+
 
 }	// end of class FlowFactory
 

@@ -129,7 +129,7 @@ IfaceValue handleFieldGet(FlowLocation loc,IfaceField fld,IfaceState st,boolean 
          IfaceType ft = v0.getDataType();
          IfaceType rt = ft.getComputedType(v0,FaitOperator.FIELDACCESS,base);
          if (rt != ft) {
-            ft.checkCompatibility(rt,loc);
+            ft.checkCompatibility(rt,loc,v0,-1);
             v0 = v0.changeType(rt);
           }
        }
@@ -149,7 +149,7 @@ IfaceValue handleFieldGet(FlowLocation loc,IfaceField fld,IfaceState st,boolean 
 /********************************************************************************/
 
 void handleFieldSet(FlowLocation loc,IfaceField fld,IfaceState st,boolean thisref,
-      IfaceValue v0,IfaceValue base)
+      IfaceValue v0,IfaceValue base,int stackref)
 {
    IfaceType ftyp = fld.getType();
    String key = fld.getKey();
@@ -161,7 +161,7 @@ void handleFieldSet(FlowLocation loc,IfaceField fld,IfaceState st,boolean thisre
       v0 = v0.restrictByType(ftyp);
     }
    
-   v0 = FlowScanner.checkAssignment(v0,ftyp,loc);
+   v0 = FlowScanner.checkAssignment(v0,ftyp,loc,stackref);
    
    if (thisref || mthd.getMethod().isStaticInitializer()) {
       st.setFieldValue(fld,v0);
@@ -179,7 +179,6 @@ void handleFieldSet(FlowLocation loc,IfaceField fld,IfaceState st,boolean thisre
       if (v1 == null || v1.getDataType().isVoidType()) {
 	 boolean nat = (base == null ? false : base.isNative());
 	 if (nat) v1 = fait_control.findInitialFieldValue(fld,nat);
-	 // else v1 = fait_control.findInitialFieldValue(fld,nat);
 	 else v1 = v0;
 	 field_map.put(key,v1);
        }

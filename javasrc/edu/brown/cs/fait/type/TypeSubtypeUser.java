@@ -72,6 +72,8 @@ private UserValue default_value;
 
 TypeSubtypeUser(Element xml)
 {
+   super(IvyXml.getAttrString(xml,"NAME"));
+      
    value_set = new HashMap<>();
    default_constant = null;
    default_uninit = null;
@@ -128,9 +130,9 @@ TypeSubtypeUser(Element xml)
          String enm = IvyXml.getAttrString(velt,"ERROR");
          String wnm = IvyXml.getAttrString(velt,"WARNING");
          String nnm = IvyXml.getAttrString(velt,"NOTE");
-         if (enm != null) fe = new FaitError(FaitError.ErrorLevel.ERROR,enm);
-         else if (wnm != null) fe = new FaitError(FaitError.ErrorLevel.WARNING,wnm);   
-         else if (nnm != null) fe = new FaitError(FaitError.ErrorLevel.NOTE,nnm);   
+         if (enm != null) fe = new FaitError(this,FaitError.ErrorLevel.ERROR,enm);
+         else if (wnm != null) fe = new FaitError(this,FaitError.ErrorLevel.WARNING,wnm);   
+         else if (nnm != null) fe = new FaitError(this,FaitError.ErrorLevel.NOTE,nnm);   
          if (fe != null) defineRestrict(fvl,tvl,fe);
        }
     }

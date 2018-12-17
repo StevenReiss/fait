@@ -33,6 +33,7 @@ tags
 .*~
 *.pdf
 *.ps
+*.log
 
 fait.jar
 faitdbg.jar

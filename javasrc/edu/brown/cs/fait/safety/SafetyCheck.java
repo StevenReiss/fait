@@ -40,6 +40,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import edu.brown.cs.fait.iface.FaitError;
 import edu.brown.cs.fait.iface.IfaceError;
 import edu.brown.cs.fait.iface.IfaceSafetyCheck;
 
@@ -158,7 +159,10 @@ protected void defineDefault(Value fromstate,Value tostate)
          nval |= transition_set.getNextSet(i,evtno);
          IfaceError err = transition_set.getError(i,evtno);
          if (err != null) {
-            if (errs != null) errs.add(err);
+            if (errs != null) {
+               FaitError fe = new FaitError(err,getValueForOrdinal(i));
+               errs.add(fe);
+             }
           }
        }
       sv <<= 1;

@@ -35,14 +35,19 @@
 
 package edu.brown.cs.fait.iface;
 
-
+import edu.brown.cs.ivy.xml.IvyXmlWriter;
 
 public interface IfaceError extends FaitConstants
 {
 
 ErrorLevel getErrorLevel();
 String getErrorMessage();
+IfaceSafetyCheck getSafetyCheck();
+IfaceSubtype getSubtype();
+int getStackLocation();
+IfaceSafetyCheck.Value getSafetyValue();
 
+void outputXml(IfaceProgramPoint pt,IvyXmlWriter xw);
 
 
 }       // end of interface IfaceError

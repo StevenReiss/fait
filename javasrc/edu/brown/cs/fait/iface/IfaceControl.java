@@ -43,6 +43,7 @@ import java.util.*;
 import org.eclipse.jdt.core.dom.ASTNode;
 
 import edu.brown.cs.ivy.jcode.JcodeInstruction;
+import edu.brown.cs.ivy.xml.IvyXmlWriter;
 
 
 
@@ -188,6 +189,8 @@ IfaceAnnotation [] getAnnotations(IfaceProgramPoint pt);
 IfaceState createState(int nlocal,IfaceSafetyStatus sts);
 IfaceValue getFieldValue(IfaceState st,IfaceField fld,IfaceValue base,boolean thisref,IfaceLocation src);
 boolean setFieldValue(IfaceState st,IfaceField fld,IfaceValue v,IfaceValue base,boolean thisref,IfaceLocation src);
+IfaceState findStateForLocation(IfaceCall c,IfaceProgramPoint pt);
+IfaceState findStateForLocation(IfaceLocation loc);
 
 
 
@@ -210,6 +213,7 @@ IfaceCall findPrototypeMethod(IfaceProgramPoint pt,IfaceMethod fm);
 
 IfaceSpecial getCallSpecial(IfaceProgramPoint pt,IfaceMethod fm);
 void clearCallSpecial(IfaceMethod fm);
+boolean isSingleAllocation(IfaceType typ,boolean fromast);
 
 IfaceCall findCall(IfaceProgramPoint pt,IfaceMethod fm,List<IfaceValue> args,
       IfaceSafetyStatus sts,InlineType inline);
@@ -250,6 +254,9 @@ void removeCalls(Collection<IfaceCall> call);
 
 void clearAll();
 
+IfaceBackFlow getBackFlow(IfaceState backfrom,IfaceState backto,IfaceValue endref);
+
+void processErrorQuery(IfaceCall c,IfaceProgramPoint pt,IfaceError e,IvyXmlWriter xw);
 
 
 
@@ -290,6 +297,11 @@ class Factory {
     }
 
 }	// end if inner class Factory
+
+
+
+
+
 
 
 

@@ -14,6 +14,7 @@
       <ant antfile="build.xml" dir="edu/brown/cs/fait/proto" />
       <ant antfile="build.xml" dir="edu/brown/cs/fait/call" />
       <ant antfile="build.xml" dir="edu/brown/cs/fait/flow" />
+      <ant antfile="build.xml" dir="edu/brown/cs/fait/query" />
       <ant antfile="build.xml" dir="edu/brown/cs/fait/control" />
       <ant antfile="build.xml" dir="edu/brown/cs/fait/server" />
    </target>
@@ -34,6 +35,7 @@
 	 <package name='edu.brown.cs.fait.iface' />
 	 <package name='edu.brown.cs.fait.flow' />
 	 <package name='edu.brown.cs.fait.proto' />
+	 <package name='edu.brown.cs.fait.query' />
 	 <package name='edu.brown.cs.fait.safety' />
 	 <package name='edu.brown.cs.fait.server' />
 	 <package name='edu.brown.cs.fait.state' />

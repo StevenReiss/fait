@@ -87,6 +87,9 @@ IfaceLocation getLocation();
 int getNumPriorStates();
 IfaceState getPriorState(int idx);
 
+boolean isStartOfMethod();
+boolean isMethodCall();
+
 
 
 

@@ -56,7 +56,9 @@ private ReportOption report_option;
 private String next_return;
 private boolean restart_analysis;
 private boolean pause_analysis;
+private boolean abort_analysis;
 private long    last_change;
+private IfaceControl runner_control;
 
 private static final long MIN_STABLE_TIME = 1000;
 
@@ -82,7 +84,9 @@ ServerRunner(ServerProject sp,int nth,String retid,ReportOption opt)
    next_return = retid;
    restart_analysis = false;
    pause_analysis = false;
+   abort_analysis = false;
    last_change = 0;
+   runner_control = null;
 }
 
 
@@ -104,6 +108,7 @@ synchronized void resumeAnalysis(int nth,String retid,ReportOption opt)
    interrupt();
    restart_analysis = true;
    pause_analysis = false;
+   abort_analysis = true;
    notifyAll();
    
    last_change = System.currentTimeMillis();
@@ -121,6 +126,13 @@ synchronized void pauseAnalysis()
 
 
 
+IfaceControl getControl()
+{
+   return runner_control;
+}
+
+
+
 
 /********************************************************************************/
 /*                                                                              */
@@ -130,31 +142,31 @@ synchronized void pauseAnalysis()
 
 @Override public void run()
 {
-   IfaceControl ifc = null;
-   
    for ( ; ; ) {
       long start = System.currentTimeMillis();
       long comp = start;
       long anal = start;
+      abort_analysis = false;
       try {
          IfaceUpdateSet upd = for_project.compileProject();
          boolean update = false;
-         if (ifc == null) ifc = IfaceControl.Factory.createControl(for_project);
+         if (runner_control == null) runner_control = IfaceControl.Factory.createControl(for_project);
          else {
-            if (upd != null) ifc.doUpdate(upd);
+            if (upd != null) runner_control.doUpdate(upd);
             update = true;
           }
          comp = System.currentTimeMillis();
          anal = comp;
-         ifc.analyze(num_threads,update);
+         runner_control.analyze(num_threads,update);
          anal = System.currentTimeMillis();
-         if (interrupted()) {
+         if (interrupted() || abort_analysis) {
             FaitLog.logI("Aborted analysis " + return_id);
             for_project.sendAborted(return_id,anal-comp,comp-start);
           }
          else {
             FaitLog.logI("Finished analysis " + return_id);
-            for_project.sendAnalysis(return_id,ifc,report_option,anal-comp,comp-start,num_threads,update);
+            for_project.sendAnalysis(return_id,runner_control,report_option,
+                  anal-comp,comp-start,num_threads,update);
             synchronized (this) {
                if (!restart_analysis) {
                   FaitLog.logI("No restart -- pausing analysis");
@@ -167,6 +179,7 @@ synchronized void pauseAnalysis()
          FaitLog.logE("Problem doing analysis",t);
          for_project.sendAborted(return_id,anal-comp,comp-start);
        }
+      abort_analysis = false;
       return_id = next_return;
       synchronized (this) {
          for ( ; ; ) {
@@ -177,7 +190,7 @@ synchronized void pauseAnalysis()
                catch (InterruptedException e) { }
              }
             interrupted();
-            FaitLog.logD("Check resume analysis");
+            FaitLog.logI("Check resume analysis");
             long now = System.currentTimeMillis();
             while (now - last_change < MIN_STABLE_TIME) {
                long delta = last_change + MIN_STABLE_TIME - now;

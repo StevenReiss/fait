@@ -35,6 +35,7 @@
 
 package edu.brown.cs.fait.iface;
 
+import java.util.Set;
 
 public interface IfaceSafetyStatus extends FaitConstants
 {
@@ -43,7 +44,7 @@ IfaceSafetyStatus merge(IfaceSafetyStatus sts);
 
 IfaceSafetyStatus update(String event,IfaceLocation loc);
 
-
+Set<IfaceSafetyCheck.Value> getValue(IfaceSafetyCheck chk);
 
 
 }       // end of interface IfaceSafetyStatus

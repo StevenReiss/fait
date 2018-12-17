@@ -300,6 +300,31 @@ protected IfaceType findCommonParent(IfaceType t1,IfaceType t2)
 
 
 
+@Override public void checkContentCompatibility(IfaceType dt,IfaceLocation loc,int stkloc)
+{
+   if (loc == null) return;
+   List<IfaceValue> cnts = getContents();
+   if (cnts == null) return;
+   for (IfaceValue v0 : cnts) {
+      IfaceType t0 = v0.getDataType();
+      IfaceType dt0 = t0.getAnnotatedType(dt);
+      if (t0 == dt0) continue;
+      if (!t0.checkCompatibility(dt0,loc,v0,stkloc)) break;
+    }
+}
+
+
+@Override public List<IfaceValue> getContents()                        
+{
+   List<IfaceValue> rslt = null;
+   if (entity_set == null) return null;
+   for (IfaceEntity ent : entity_set.getEntities()) {
+      rslt = ent.getContents(rslt);
+    }
+   return rslt;
+}
+
+
 
 /********************************************************************************/
 /*										*/

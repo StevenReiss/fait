@@ -54,12 +54,15 @@ public class CallFactory implements CallConstants
 /*										*/
 /********************************************************************************/
 
+private enum AllocMode { LOCAL, BINARY, BINARY_INHERIT, AST, AST_INHERIT };
+
 private IfaceControl	fait_control;
 private Map<IfaceMethod,Map<Object,CallBase>> method_map;
 private Map<IfaceMethod,CallBase> proto_map;
 
 private Map<IfaceMethod,CallSpecial> special_methods;
 private Map<String,List<CallSpecial>> call_methods;
+private Map<String,AllocMode> alloc_map;
 
 
 private final static Object DEFAULT_OBJECT = new Object();
@@ -79,6 +82,7 @@ public CallFactory(IfaceControl fc)
    proto_map = new HashMap<>();
    special_methods = new HashMap<>();
    call_methods = new HashMap<>();
+   alloc_map = new HashMap<>();
 }
 
 
@@ -311,6 +315,9 @@ public void addSpecialFile(Element xml)
       if (msig != null) mnam += msig;
       addSpecial(mnam,new CallSpecial(fait_control,n,true));
     }
+   for (Element n : IvyXml.children(xml,"ALLOC")) {
+      addAllocation(n);
+    }
 }
 
 
@@ -325,6 +332,26 @@ private void addSpecial(String nm,CallSpecial cs)
    if (cs.match(null)) lcs.add(cs);
    else lcs.add(0,cs);
 }
+
+
+private void addAllocation(Element xml)
+{
+   String nm = IvyXml.getAttrString(xml,"CLASS");
+   if (nm == null) return;
+   
+   boolean ast = IvyXml.getAttrBool(xml,"AST");
+   boolean inherit = IvyXml.getAttrBool(xml,"INHERIT");
+   boolean local = IvyXml.getAttrBool(xml,"LOCAL");
+   AllocMode am = AllocMode.BINARY;
+   if (local) am = AllocMode.LOCAL;
+   else if (ast) {
+      if (inherit) am = AllocMode.AST_INHERIT;
+      else am = AllocMode.AST;
+    }
+   else if (inherit) am = AllocMode.BINARY_INHERIT;
+   alloc_map.put(nm,am);
+}
+
 
 
 public IfaceSpecial getSpecial(IfaceProgramPoint pt,IfaceMethod fm)
@@ -381,6 +408,45 @@ public IfaceSpecial getSpecial(IfaceProgramPoint pt,IfaceCall fc)
 {
    return getSpecial(pt,fc.getMethod());
 }
+
+
+public boolean isSingleAllocation(IfaceType typ,boolean fromast)
+{
+   IfaceBaseType bt = typ.getJavaType();
+   AllocMode am = alloc_map.get(bt.getName());
+   if (am == null) {
+      for (IfaceBaseType nbt = bt.getSuperType(); nbt != null; nbt = nbt.getSuperType()) {
+         am = alloc_map.get(nbt.getName());
+         if (am != null) {
+            switch (am) {
+               case AST_INHERIT :
+               case BINARY_INHERIT :
+                  break;
+               default :
+                  am = AllocMode.LOCAL;
+                  break;
+             }
+            break;
+          }
+       }
+      if (am == null) am = AllocMode.LOCAL;
+      alloc_map.put(bt.getName(),am);
+    }
+   
+   switch (am) {
+      default :
+      case LOCAL :
+         return false;
+      case AST_INHERIT :
+      case AST :
+         return true;
+      case BINARY_INHERIT :
+      case BINARY :
+         if (fromast) return false;
+         return true;
+    }
+}
+
 
 
 public void clearSpecial(IfaceMethod im)

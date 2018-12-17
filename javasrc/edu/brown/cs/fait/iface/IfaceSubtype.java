@@ -41,6 +41,8 @@ import java.util.List;
 public interface IfaceSubtype extends FaitConstants
 {
 
+String getName();
+
 IfaceSubtype.Value getDefaultValue(IfaceBaseType base);
 IfaceSubtype.Value getValueFor(IfaceSubtype.Attr attribute);
 IfaceSubtype.Value getMergeValue(IfaceSubtype.Value v1,IfaceSubtype.Value v2);

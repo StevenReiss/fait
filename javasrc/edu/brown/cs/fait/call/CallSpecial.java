@@ -70,6 +70,7 @@ private String		callback_id;
 private List<ArgValue>	callback_args;
 private boolean 	does_exit;
 private boolean         no_return;
+private boolean         no_virtual;
 private List<String>    load_types;
 private List<When>      when_conditions;
 
@@ -86,7 +87,7 @@ CallSpecial(IfaceControl fc,Element xml,boolean formthd)
 {
    fait_control = fc;
 
-   replace_name = IvyXml.getAttrString(xml,"REPLACE");
+   replace_name = IvyXml.getTextElement(xml,"REPLACE");
 
    return_arg0 = false;
    result_type = null;
@@ -161,13 +162,15 @@ CallSpecial(IfaceControl fc,Element xml,boolean formthd)
    async_call = IvyXml.getAttrBool(xml,"ASYNC");
    is_constructor = IvyXml.getAttrBool(xml,"CONSTRUCTOR");
    no_return = IvyXml.getAttrBool(xml,"NORETURN");
+   no_virtual = IvyXml.getAttrBool(xml,"NOVIRTUAL");
 
    dont_scan = !IvyXml.getAttrBool(xml,"SCAN");
+  
 
    callback_names = null;
    callback_args = null;
    callback_id = null;
-   String cbnm = IvyXml.getAttrString(xml,"CALLBACK");
+   String cbnm = IvyXml.getTextElement(xml,"CALLBACK");
    if (cbnm != null) {
       callback_names = new ArrayList<String>();
       callback_id = IvyXml.getAttrString(xml,"CBID");
@@ -187,6 +190,11 @@ CallSpecial(IfaceControl fc,Element xml,boolean formthd)
       callback_args = scanArgs(args);
     }
    
+   if (callback_args == null) {
+      String args = IvyXml.getAttrString(xml,"ARGS");
+      if (args != null) callback_args = scanArgs(args);
+    }
+    
    when_conditions = null;
    for (Element welt : IvyXml.children(xml,"WHEN")) {
       if (when_conditions == null) when_conditions = new ArrayList<>();
@@ -326,6 +334,8 @@ CallSpecial(IfaceControl fc,Element xml,boolean formthd)
 @Override public boolean getExits()	                { return does_exit; }
 
 @Override public boolean getNeverReturns()              { return no_return; }
+
+@Override public boolean getIgnoreVirtualCalls()        { return no_virtual; }
 
 @Override public boolean getDontScan()	                { return dont_scan; }
 @Override public boolean getForceScan()                 { return !dont_scan; }

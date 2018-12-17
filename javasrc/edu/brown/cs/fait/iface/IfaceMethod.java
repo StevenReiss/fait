@@ -48,6 +48,7 @@ public interface IfaceMethod
 String getFullName();
 String getName();
 String getDescription();
+String getFile();
 
 boolean isStatic();
 boolean isVarArgs();
@@ -78,6 +79,7 @@ List<IfaceAnnotation> getLocalAnnotations(int slot,IfaceProgramPoint pt);
 
 int getLocalSize();
 int getLocalOffset(Object symbol);
+Object getItemAtOffset(int offset,IfaceProgramPoint pt);
 
 
 }	// end of interface IfaceMethod

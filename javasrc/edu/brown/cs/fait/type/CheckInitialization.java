@@ -91,6 +91,8 @@ public static synchronized CheckInitialization getType()
 
 private CheckInitialization()
 {
+   super("CheckInitialization");
+   
    defineMerge(INITIALIZED,UNKNOWN,UNKNOWN);
    defineMerge(INITIALIZED,UNDER_INITIALIZATION,UNKNOWN);
    defineMerge(UNKNOWN,UNDER_INITIALIZATION,UNKNOWN);

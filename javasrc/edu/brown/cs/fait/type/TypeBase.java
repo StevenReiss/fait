@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 
 import edu.brown.cs.fait.iface.FaitConstants;
+import edu.brown.cs.fait.iface.FaitError;
 import edu.brown.cs.fait.iface.FaitLog;
 import edu.brown.cs.fait.iface.IfaceAnnotation;
 import edu.brown.cs.fait.iface.IfaceBaseType;
@@ -149,11 +150,11 @@ TypeBase(TypeFactory fac,IfaceBaseType base,IfaceSubtype.Value [] subs)
 
 @Override public boolean isCompatibleWith(IfaceType dt)
 {
-   return checkCompatibility(dt,null);
+   return checkCompatibility(dt,null,null,-1);
 }
 
 
-@Override public boolean checkCompatibility(IfaceType dt,IfaceLocation loc) 
+@Override public boolean checkCompatibility(IfaceType dt,IfaceLocation loc,IfaceValue v0,int stackloc) 
 {
    if (dt == null) return false;
    if (!base_type.isCompatibleWith(dt.getJavaType())) return false;
@@ -167,7 +168,11 @@ TypeBase(TypeFactory fac,IfaceBaseType base,IfaceSubtype.Value [] subs)
             if (FaitLog.isTracing()) {
                FaitLog.logD("Note Error: " + er);
              }
-            loc.noteError(er);
+            IfaceError er1 = er;
+            if (stackloc >= 0) {
+               er1 = new FaitError(er,stackloc);
+             }
+            loc.noteError(er1);
           }
          rslt = false;
        }

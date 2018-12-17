@@ -44,9 +44,11 @@ import edu.brown.cs.ivy.jcode.JcodeFactory;
 import edu.brown.cs.ivy.jcode.JcodeInstruction;
 import edu.brown.cs.ivy.jcomp.JcompType;
 import edu.brown.cs.ivy.jcomp.JcompTyper;
+import edu.brown.cs.ivy.xml.IvyXmlWriter;
 import edu.brown.cs.fait.state.*;
 import edu.brown.cs.fait.type.TypeFactory;
 import edu.brown.cs.fait.proto.*;
+import edu.brown.cs.fait.query.QueryFactory;
 import edu.brown.cs.fait.safety.SafetyFactory;
 import edu.brown.cs.fait.call.*;
 import edu.brown.cs.fait.flow.*;
@@ -80,6 +82,7 @@ private FlowFactory	flow_factory;
 private IfaceProject	user_project;
 private TypeFactory     type_factory;
 private SafetyFactory   safety_factory;
+private QueryFactory    query_factory;
 private Map<String,IfaceType> basic_types;
 
 
@@ -104,6 +107,7 @@ public ControlMain(IfaceProject ip)
    proto_factory = new ProtoFactory(this);
    call_factory = new CallFactory(this);
    safety_factory = new SafetyFactory(this);
+   query_factory = new QueryFactory(this);
    
    user_project = ip;
    
@@ -421,6 +425,18 @@ void updateEntitySets(IfaceUpdater upd)
 }
 
 
+@Override public IfaceState findStateForLocation(IfaceLocation loc)
+{
+   return findStateForLocation(loc.getCall(),loc.getProgramPoint());
+}
+
+
+@Override public IfaceState findStateForLocation(IfaceCall c,IfaceProgramPoint pt)
+{
+   return flow_factory.findStateForLocation(c,pt);
+}
+
+
 
 
 /********************************************************************************/
@@ -614,6 +630,12 @@ void updateValues(IfaceUpdater upd)
 @Override public IfaceSpecial getCallSpecial(IfaceProgramPoint pt,IfaceMethod fm)
 {
    return call_factory.getSpecial(pt,fm);
+}
+
+
+@Override public boolean isSingleAllocation(IfaceType typ,boolean fromast)
+{ 
+   return call_factory.isSingleAllocation(typ,fromast);
 }
 
 
@@ -881,6 +903,19 @@ IfaceBaseType createMethodType(IfaceType rtn,List<IfaceType> args)
 
 /********************************************************************************/
 /*                                                                              */
+/*      Query methods                                                           */
+/*                                                                              */
+/********************************************************************************/
+
+@Override public void processErrorQuery(IfaceCall c,IfaceProgramPoint pt,IfaceError e,IvyXmlWriter xw)
+{
+   query_factory.processErrorQuery(c,pt,e,xw);
+}
+
+
+
+/********************************************************************************/
+/*                                                                              */
 /*      Handle updates after a compilation                                      */
 /*                                                                              */
 /********************************************************************************/
@@ -910,6 +945,18 @@ IfaceBaseType createMethodType(IfaceType rtn,List<IfaceType> args)
 
 
 
+/********************************************************************************/
+/*                                                                              */
+/*      Back flow methods                                                       */
+/*                                                                              */
+/********************************************************************************/
+
+@Override public IfaceBackFlow getBackFlow(IfaceState backfrom,IfaceState backto,IfaceValue endref)
+{
+   ControlBackFlow cbf = new ControlBackFlow(this,backfrom,backto,endref);
+   cbf.computeBackFlow();
+   return cbf;
+}
 
 /********************************************************************************/
 /*                                                                              */

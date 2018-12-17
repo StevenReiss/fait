@@ -152,6 +152,11 @@ EntityProto(IfaceType typ,IfacePrototype from,boolean mutable)
    return proto_handler.getArrayContents(idx);
 }
 
+@Override public List<IfaceValue> getContents(List<IfaceValue> rslt) 
+{
+   return proto_handler.getContents(rslt);
+}
+
 
 
 /********************************************************************************/

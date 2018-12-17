@@ -38,7 +38,6 @@ package edu.brown.cs.fait.type;
 import edu.brown.cs.fait.iface.FaitError;
 import edu.brown.cs.fait.iface.IfaceBaseType;
 import edu.brown.cs.fait.iface.IfaceCall;
-import edu.brown.cs.fait.iface.IfaceError;
 import edu.brown.cs.fait.iface.IfaceSubtype;
 import edu.brown.cs.fait.iface.IfaceType;
 import edu.brown.cs.fait.iface.IfaceValue;
@@ -56,9 +55,6 @@ public class CheckTaint extends TypeSubtype
 /*      Private Storage                                                         */
 /*                                                                              */
 /********************************************************************************/
-
-static IfaceError TAINT_ERROR = new FaitError(ErrorLevel.WARNING,
-      "Attempt to use tainted data in a non-tainted location");
 
 private static CheckTaint our_type = new CheckTaint();
 
@@ -95,15 +91,20 @@ public static synchronized CheckTaint getType()
 
 private CheckTaint()
 {
+   super("CheckTaint");
+   
+   FaitError err = new FaitError(this,ErrorLevel.ERROR,
+         "Attempt to use tainted data in a non-tainted location");
+   
    defineMerge(TAINTED,UNTAINTED,TAINTED);
    defineMerge(MAYBE_TAINTED,TAINTED,TAINTED);
    defineMerge(MAYBE_TAINTED,UNTAINTED,MAYBE_TAINTED);
    
-   defineRestrict(TAINTED,UNTAINTED,TAINT_ERROR);
+   defineRestrict(TAINTED,UNTAINTED,err);
    defineRestrict(TAINTED,MAYBE_TAINTED,TAINTED);
    defineRestrict(UNTAINTED,TAINTED,UNTAINTED);
    defineRestrict(UNTAINTED,MAYBE_TAINTED,UNTAINTED);
-   defineRestrict(MAYBE_TAINTED,UNTAINTED,TAINT_ERROR);
+   defineRestrict(MAYBE_TAINTED,UNTAINTED,err);
    defineRestrict(MAYBE_TAINTED,TAINTED,TAINTED);
    
    defineAttribute("Tainted",TAINTED);

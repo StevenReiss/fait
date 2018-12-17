@@ -44,6 +44,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.StringTokenizer;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -57,9 +58,12 @@ import org.w3c.dom.Element;
 import edu.brown.cs.fait.iface.IfaceProgramPoint;
 import edu.brown.cs.fait.iface.IfaceProject;
 import edu.brown.cs.fait.iface.IfaceUpdateSet;
+import edu.brown.cs.fait.iface.FaitException;
+import edu.brown.cs.fait.iface.IfaceAstReference;
 import edu.brown.cs.fait.iface.IfaceCall;
 import edu.brown.cs.fait.iface.IfaceControl;
 import edu.brown.cs.fait.iface.IfaceError;
+import edu.brown.cs.fait.iface.IfaceMethod;
 import edu.brown.cs.ivy.jcode.JcodeFactory;
 import edu.brown.cs.ivy.jcomp.JcompAst;
 import edu.brown.cs.ivy.jcomp.JcompControl;
@@ -248,7 +252,7 @@ private void setupFromXml(Element xml)
       int idx = cnm.lastIndexOf(".");
       String pnm = null;
       if (idx > 0) {
-         pnm = cnm.substring(0,idx).trim();
+	 pnm = cnm.substring(0,idx).trim();
        }
       if (pnm == null) continue;
       project_packages.put(pnm,true);
@@ -516,7 +520,7 @@ public boolean isProjectClass(String cls)
       idx1 = xpkg.lastIndexOf(".");
     }
    project_packages.put(pkg,false);
-   
+
    return false;
 }
 
@@ -567,12 +571,10 @@ synchronized void pauseAnalysis()
 
 
 
-
-
-
 void sendAborted(String rid,long analt,long compt)
 {
-   CommandArgs args = new CommandArgs("ID",rid,"ABORTED",true,"COMPILETIME",compt,"ANALYSISTIME",analt);
+   CommandArgs args = new CommandArgs("ID",rid,"ABORTED",true,"COMPILETIME",compt,
+					 "ANALYSISTIME",analt);
    server_main.response("ANALYSIS",args,null,null);
 }
 
@@ -582,23 +584,23 @@ void sendAnalysis(String rid,IfaceControl ifc,ReportOption opt,long analt,long c
 {
    IvyXmlWriter xw = new IvyXmlWriter();
    xw.begin("DATA");
-   
+
    switch (opt) {
       case NONE :
-         break;
+	 break;
       case SOURCE :
-         outputErrors(ifc,xw,true);
-         break;
+	 outputErrors(ifc,xw,true);
+	 break;
       case FULL :
-         outputErrors(ifc,xw,true);
-         outputErrors(ifc,xw,false);
-         break;
+	 outputErrors(ifc,xw,true);
+	 outputErrors(ifc,xw,false);
+	 break;
     }
-   
+
    xw.end("DATA");
 
    CommandArgs args = new CommandArgs("ID",rid,"ABORTED",false,
-         "COMPILETIME",compt,"ANALYSISTIME",analt,"NTHREAD",nthread,"UPDATE",upd);
+	 "COMPILETIME",compt,"ANALYSISTIME",analt,"NTHREAD",nthread,"UPDATE",upd);
    server_main.response("ANALYSIS",args,xw.toString(),null);
 
    xw.close();
@@ -608,38 +610,134 @@ void sendAnalysis(String rid,IfaceControl ifc,ReportOption opt,long analt,long c
 
 private void outputErrors(IfaceControl ifc,IvyXmlWriter xw,boolean editable)
 {
-   // TODO: update to output errors in general rather than dead locations
+   for (IfaceCall ic0 : ifc.getAllCalls()) {
+      for (IfaceCall ic : ic0.getAlternateCalls()) {
+	 List<IfaceProgramPoint> ppts = ic.getErrorLocations();
+	 if (ppts == null || ppts.isEmpty()) continue;
+	 IfaceProgramPoint ppt0 = ppts.get(0);
+	 if (editable && ppt0.getAstReference() == null) continue;
+	 else if (!editable && ppt0.getAstReference() != null) continue;
 
-   for (IfaceCall ic : ifc.getAllCalls()) {
-      List<IfaceProgramPoint> ppts = ic.getErrorLocations();
-      if (ppts == null || ppts.isEmpty()) continue;
-      IfaceProgramPoint ppt0 = ppts.get(0);
-      if (editable && ppt0.getAstReference() == null) continue;
-      else if (!editable && ppt0.getAstReference() != null) continue;
-
-      xw.begin("CALL");
-      xw.field("METHOD",ic.getMethod().getName());
-      xw.field("CLASS",ic.getMethod().getDeclaringClass().getName());
-      xw.field("SIGNATURE",ic.getMethod().getDescription());
-      xw.field("HASHCODE",ic.hashCode());
-      if (ppts != null && !ppts.isEmpty()) {
-	 for (IfaceProgramPoint ppt : ppts) {
-            for (IfaceError ie : ic.getErrors(ppt)) {
-               xw.begin("ERROR");
-               xw.field("MESSAGE",ie.getErrorMessage());
-               xw.field("LEVEL",ie.getErrorLevel());
-               ppt.outputXml(xw);
-               xw.end("ERROR");
-             }
+	 String file = null;
+	 if (ppt0.getAstReference() != null) {
+	    ASTNode n = ppt0.getAstReference().getAstNode();
+	    JcompSource src = JcompAst.getSource(n);
+	    if (src != null) {
+	       file = src.getFileName();
+	     }
 	  }
+
+	 xw.begin("CALL");
+	 xw.field("METHOD",ic.getMethod().getName());
+	 xw.field("CLASS",ic.getMethod().getDeclaringClass().getName());
+	 xw.field("SIGNATURE",ic.getMethod().getDescription());
+	 if (file != null) xw.field("FILE",file);
+	 xw.field("HASHCODE",ic.hashCode());
+	 if (ppts != null && !ppts.isEmpty()) {
+	    for (IfaceProgramPoint ppt : ppts) {
+	       for (IfaceError ie : ic.getErrors(ppt)) {
+                  ie.outputXml(ppt,xw);
+		}
+	     }
+	  }
+	 xw.end("CALL");
        }
-      xw.end("CALL");
     }
 }
 
 
 
 
+/********************************************************************************/
+/*										*/
+/*	Query Processing							*/
+/*										*/
+/********************************************************************************/
+
+void handleQuery(Element qxml,IvyXmlWriter xw) throws FaitException
+{
+   IfaceControl ctrl = null;
+   if (current_runner != null) {
+      ctrl = current_runner.getControl();
+    }
+   if (ctrl == null) {
+      throw new FaitException("Analysis not run");
+    }
+
+   String methodinfo = IvyXml.getAttrString(qxml,"METHOD");
+   int idx = methodinfo.indexOf("@");
+   String mnm = methodinfo.substring(0,idx);
+   String callid = methodinfo.substring(idx+1);
+   int callhc = 0;
+   try {
+      if (callid != null) callhc = Integer.parseInt(callid);
+    }
+   catch (NumberFormatException e) { }
+
+   String msg = null;
+   String mcl = null;
+   int idx1 = mnm.indexOf("(");
+   if (idx1 > 0) {
+      msg = mnm.substring(idx1);
+      mnm = mnm.substring(0,idx1);
+    }
+   int idx2 = mnm.lastIndexOf(".");
+   if (idx2 > 0) {
+      mcl = mnm.substring(0,idx2);
+      mnm = mnm.substring(idx2+1);
+    }
+   IfaceMethod m = ctrl.findMethod(mcl,mnm,msg);
+
+   IfaceCall call = null;
+   for (IfaceCall c : ctrl.getAllCalls(m)) {
+      for (IfaceCall c1 : c.getAlternateCalls()) {
+	 if (callhc == 0 || callhc == c1.hashCode()) {
+	    call = c1;
+	    break;
+	  }
+	 else if (call == null) call = c1;
+       }
+    }
+   if (call == null) throw new FaitException("Call not found");
+
+   Set<Integer> errids = new HashSet<>();
+   StringTokenizer tok = new StringTokenizer(IvyXml.getAttrString(qxml,"ERROR"));
+   while (tok.hasMoreTokens()) {
+      try {
+	 int hc = Integer.parseInt(tok.nextToken());
+	 errids.add(hc);
+       }
+      catch (NumberFormatException e) { }
+    }
+   int spos = IvyXml.getAttrInt(qxml,"START");
+
+   Map<IfaceError,IfaceProgramPoint> errs = new HashMap<>();
+   List<IfaceProgramPoint> ppts = call.getErrorLocations();
+   for (IfaceProgramPoint pt : ppts) {
+      IfaceAstReference ar = pt.getAstReference();
+      if (ar == null) continue;
+      ASTNode an = ar.getAstNode();
+      if (an == null) continue;
+      if (spos >= 0 && an.getStartPosition() != spos) continue;
+      for (IfaceError ie : call.getErrors(pt)) {
+	 if (errids.size() == 0 || errids.contains(ie.hashCode()))
+	    errs.put(ie,pt);
+       }
+    }
+   if (errs.size() == 0) throw new FaitException("Error not found");
+
+   xw.begin("RESULTSET");
+   for (Map.Entry<IfaceError,IfaceProgramPoint> ent : errs.entrySet()) {
+      IfaceError ie = ent.getKey();
+      IfaceProgramPoint ppt = ent.getValue();
+      xw.begin("QUERY");
+      xw.field("METHOD",call.getMethod().getFullName());
+      ie.outputXml(ppt,xw);
+      ctrl.processErrorQuery(call,ppt,ie,xw);
+      xw.end("QUERY");
+    }
+   xw.end("RESULTSET");
+}
 
 
 

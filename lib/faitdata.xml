@@ -13,7 +13,6 @@
    <PACKAGE NAME='sun.nio.' />
    <PACKAGE NAME='java.io.' />
    <PACKAGE NAME='java.net.' />
-   <PACKAGE NAME='com.sun.org.apache.' />
    <PACKAGE NAME='java.nio.charset' />
    <PACKAGE NAME='javax.crypto' />
    <PACKAGE NAME='sun.net.www' />
@@ -65,7 +64,6 @@
    <CLASS NAME="javax.media.opengl.GLCanvas" />
    <CLASS NAME="javax.swing.ArrayTable" />
    <CLASS NAME="java.lang.UNIXProcess" />
-   <CLASS NAME='java.util.concurrent.ThreadPoolExecutor' />
 <!--  <CLASS NAME='sun.security.util.DerIndefLenConverter' />    -->
 
    <CLASS NAME="com.sun.org.apache.internal.impl.XMLErrorReporter" />
@@ -95,8 +93,8 @@
    <METHOD NAME="java.lang.String.getBytes" />
    <METHOD NAME="java.lang.String.equals" />
    <METHOD NAME="java.lang.String.valueOf" />
-   <METHOD NAME="java.lang.Object.equals" />
-   <METHOD NAME="java.lang.Object.toString" />
+   <METHOD NAME="java.lang.Object.equals" NOVIRTUAL='true' />
+   <METHOD NAME="java.lang.Object.toString" NOVIRTUAL='true' />
    <METHOD NAME="java.lang.Enum.valueOf" />
    <METHOD NAME="java.lang.Exception.getMessage" />
    <METHOD NAME="java.lang.Runtime.execInternal" RETURN="java.lang.UNIXProcess" />
@@ -291,6 +289,9 @@
    <METHOD NAME="javax.swing.JComponent.addVetoableChangeListener" CBID="awt" CALLBACK="vetoableChange" CBARGS="1" NARG="1" SCAN='TRUE' />
    <METHOD NAME='javax.swing.JEditorPane.getEditorKit' SCAN='true' />
    <METHOD NAME='javax.swing.text.StyleContext$NamedStyle.getName' />
+   <METHOD NAME='javax.swing.Jcomponent.setTransferHandler' CBID='awt' CBARGS='1' NARG='1' SCAN='TRUE'
+	CALLBACK='canImport createTransferable exportAsDrag exportDone exportToClipboard getDragImage getDragImageOffset getSourceActions getVisualRepresentation importData' />
+
    <CLASS NAME='javax.swing.UIManager' />
    <CLASS NAME='javax.swing.UIDefaults' />
    <METHOD NAME='javax.swing.JFileChooser.getSelectedFile' />
@@ -346,5 +347,33 @@
    <CLASS NAME='java.lang.invoke.VarHandle' />
    <METHOD NAME='java.lang.invoke.VarHandle.weakCompareAndSet' />
    <METHOD NAME='java.lang.invoke.VarHandle.compareAndSet' />
+
+<!--  <PACKAGE NAME='com.sun.org.apache.' />          -->
+   <METHOD NAME="javax.xml.parsers.SAXParser.parse" CBARGS='1'>
+      <CALLBACK>characters endDocument endElement endPrefixMapping error
+		fatalError ignorableWhitespace notationDecl processingInstruction
+		setDocumentLocator skippedEntity startDocument startElement
+		startPrefixMapping unparsedEntityDecl warning</CALLBACK>
+   </METHOD>
+
+   <CLASS NAME='java.util.concurrent.ThreadPoolExecutor' />
+   <METHOD NAME="java.util.concurrent.ThreadPoolExecutor.execute" REPLACE="run"
+	  CBARGS='1'
+	  ASYNC="true" RETURN="void" />
+
+   <CLASS NAME='java.lang.Runtime.Version' />
+
+   <METHOD NAME='javax.swing.SwingUtilities.invokeLater' CBID='awt' CBARGS='0' CALLBACK='run' />
+   <METHOD NAME='javax.swing.SwingUtilities.invokeAndWait' CBID='awt' CBARGS='0' CALLBACK='run' />
+   <METHOD NAME='java.awt.EventQueue.invokeLater' CBID='awt' CBARGS='0' CALLBACK='run' />
+   <METHOD NAME='java.awt.EventQueue.invokeAndWait' CBID='awt' CBARGS='0' CALLBACK='run' />
+
+   <CLASS NAME='sun.java2d.SunGraphics2D' />
+   <CLASS NAME='sun.awt.image.ImageRepresentation' />
+   <CLASS NAME='sun.awt.SunToolkit' />
+   <PACKAGE NAME='sun.java2d.' />
+   <PACKAGE NAME='sun.awt.image' />
+
+   <ALLOC CLASS='java.lang.Throwable' INHERIT='true' />
 
 </FAIT>

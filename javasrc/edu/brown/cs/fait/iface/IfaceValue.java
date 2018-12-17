@@ -39,6 +39,8 @@
 
 package edu.brown.cs.fait.iface;
 
+import java.util.List;
+
 public interface IfaceValue extends FaitConstants {
 
 
@@ -99,6 +101,7 @@ IfaceEntitySet getModelEntitySet();
 boolean isGoodEntitySet();
 
 IfaceValue getArrayContents();
+List<IfaceValue> getContents();
 IfaceValue getArrayLength();
 IfaceValue getArrayContents(IfaceValue idx);
 
@@ -110,6 +113,8 @@ int getRefStack();
 IfaceValue getRefBase();
 IfaceField getRefField();
 IfaceValue getRefIndex();
+
+void checkContentCompatibility(IfaceType dt,IfaceLocation loc,int stkloc);
 
 
 

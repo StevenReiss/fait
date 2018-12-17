@@ -124,25 +124,26 @@ protected IfaceEntity getLocalEntity(IfaceCall call,IfaceLocation loc,IfaceType 
 
 
 protected void setLocal(IfaceLocation loc,
-      IfaceState state,int slot,IfaceValue val)
+      IfaceState state,int slot,IfaceValue val,int stackref)
 {
    IfaceMethod ic = loc.getMethod();
    IfaceType typ = ic.getLocalType(slot,loc.getProgramPoint());
-   val = checkAssignment(val,typ,loc);
+   val = checkAssignment(val,typ,loc,stackref);
 
    state.setLocal(slot,val);
 }
 
 
-static IfaceValue checkAssignment(IfaceValue val,IfaceType typ,IfaceLocation loc)
+static IfaceValue checkAssignment(IfaceValue val,IfaceType typ,IfaceLocation loc,int stackref)
 {
    if (typ != null) {
-      if (!val.getDataType().checkCompatibility(typ,loc)) {
+      if (!val.getDataType().checkCompatibility(typ,loc,val,stackref)) {
 	 IfaceValue val1 = val.restrictByType(typ);
 	 if (val != val1) {
 	    if (!val.mustBeNull()) {
-	       if (FaitLog.isTracing())
+	       if (FaitLog.isTracing()) {
 		  FaitLog.logD("Value change on assignment " + val + " -> " + val1);
+                }
 	     }
 	    // val = val1;
 	    // should val be set here?
@@ -180,7 +181,7 @@ protected IfaceValue getActualValue(IfaceState state,FlowLocation here,IfaceValu
 	    FaitLog.logD1("Field Access " + ref.getRefField() + " = " + vrslt);
 	 IfaceValue nrslt = getNonNullResult(nonnull,vrslt);
 	 if (nrslt != null && nrslt != vrslt)
-	    flow_queue.handleFieldSet(ref.getRefField(),here,state,oref,nrslt,base);
+	    flow_queue.handleFieldSet(ref.getRefField(),here,state,oref,nrslt,base,-1);
 	 return nrslt;
        }
     }
@@ -238,7 +239,7 @@ protected IfaceValue getNonNullResult(boolean nonnull,IfaceValue v)
 
 
 
-protected IfaceValue assignValue(IfaceState state,FlowLocation here,IfaceValue ref,IfaceValue v)
+protected IfaceValue assignValue(IfaceState state,FlowLocation here,IfaceValue ref,IfaceValue v,int stackref)
 {
    IfaceValue v1 = flow_queue.castValue(ref.getDataType(),v,here);
 
@@ -252,13 +253,13 @@ protected IfaceValue assignValue(IfaceState state,FlowLocation here,IfaceValue r
       if (base != null && !fld.isStatic() &&
 	    base == state.getLocal(0)) thisref = true;
 
-      flow_queue.handleFieldSet(fld,here,state,thisref,v1,base);
+      flow_queue.handleFieldSet(fld,here,state,thisref,v1,base,stackref);
     }
    else if (idx != null) {
       flow_queue.handleArraySet(here,base,v1,idx);
     }
    else if (slot >= 0) {
-      setLocal(here,state,slot,v1);
+      setLocal(here,state,slot,v1,stackref);
       if (FaitLog.isTracing()) FaitLog.logD("Assign to Local " + slot + " = " + v1);
     }
    else if (stk >= 0) {
@@ -368,7 +369,7 @@ protected void queueBackRefs(FlowLocation here,IfaceState st,IfaceValue nextref,
 	     }
 	  }
 	 else {
-	    assignValue(st,here,nextref,nref);
+	    assignValue(st,here,nextref,nref,nref.getRefStack());
 	  }
 	 doprior = true;
        }

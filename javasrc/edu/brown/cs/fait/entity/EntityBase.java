@@ -161,6 +161,21 @@ public Collection<IfaceEntity> mutateTo(IfaceType dt,EntityFactory factory)
 
 @Override public void setArrayContents(IfaceValue fv)			{ }
 @Override public IfaceValue getArrayValue(IfaceValue id,IfaceControl ctl)       { return null; }
+
+
+@Override public List<IfaceValue> getContents(List<IfaceValue> rslt)
+{
+   IfaceValue v0 = getArrayValue(null,null);
+   if (v0 != null) {
+      if (rslt == null) rslt = new ArrayList<>();
+      rslt.add(v0);
+    }
+   IfacePrototype pt = getPrototype();
+   if (pt != null) {
+      rslt = pt.getContents(rslt);
+    }
+   return rslt;
+}
 @Override public boolean addToArrayContents(IfaceValue fv,IfaceValue idx,IfaceLocation loc)
 {
    return false;

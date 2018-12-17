@@ -38,7 +38,6 @@ package edu.brown.cs.fait.type;
 import edu.brown.cs.fait.iface.FaitError;
 import edu.brown.cs.fait.iface.IfaceBaseType;
 import edu.brown.cs.fait.iface.IfaceCall;
-import edu.brown.cs.fait.iface.IfaceError;
 import edu.brown.cs.fait.iface.IfaceSubtype;
 import edu.brown.cs.fait.iface.IfaceType;
 import edu.brown.cs.fait.iface.IfaceValue;
@@ -57,9 +56,6 @@ class CheckSqlTaint extends TypeSubtype
 /*      Private Storage                                                         */
 /*                                                                              */
 /********************************************************************************/
-
-static IfaceError TAINT_ERROR = new FaitError(ErrorLevel.WARNING,
-      "Attempt to use tainted data in a non-tainted location");
 
 private static CheckSqlTaint our_type = new CheckSqlTaint();
 
@@ -95,15 +91,20 @@ public static synchronized CheckSqlTaint getType()
 
 private CheckSqlTaint()
 {
+   super("CheckSqlTaint");
+   
+   FaitError err = new FaitError(this,ErrorLevel.ERROR,
+         "Attempt to use tainted data in a non-tainted location");
+   
    defineMerge(SQLTAINTED,UNSQLTAINTED,SQLTAINTED);
    defineMerge(MAYBE_SQLTAINTED,SQLTAINTED,SQLTAINTED);
    defineMerge(MAYBE_SQLTAINTED,UNSQLTAINTED,MAYBE_SQLTAINTED);
    
-   defineRestrict(SQLTAINTED,UNSQLTAINTED,TAINT_ERROR);
+   defineRestrict(SQLTAINTED,UNSQLTAINTED,err);
    defineRestrict(SQLTAINTED,MAYBE_SQLTAINTED,SQLTAINTED);
    defineRestrict(UNSQLTAINTED,SQLTAINTED,UNSQLTAINTED);
    defineRestrict(UNSQLTAINTED,MAYBE_SQLTAINTED,UNSQLTAINTED);
-   defineRestrict(MAYBE_SQLTAINTED,UNSQLTAINTED,TAINT_ERROR);
+   defineRestrict(MAYBE_SQLTAINTED,UNSQLTAINTED,err);
    defineRestrict(MAYBE_SQLTAINTED,SQLTAINTED,SQLTAINTED);
    
    defineAttribute("SqlTainted",SQLTAINTED);

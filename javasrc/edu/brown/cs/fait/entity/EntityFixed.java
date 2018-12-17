@@ -105,6 +105,7 @@ EntityFixed(IfaceType dt,boolean mutable,IfacePrototype ptyp)
    if (fv != null) return fv;
 
    if (getDataType().isArrayType() && base_value == null) {
+      if (fc == null) return null;
       IfaceType bty = getDataType().getBaseType();
       if (is_mutable || bty.isAbstract()) {
          base_value = fc.findMutableValue(bty);
@@ -132,6 +133,8 @@ EntityFixed(IfaceType dt,boolean mutable,IfacePrototype ptyp)
 @Override public Collection<IfaceEntity> mutateTo(IfaceType dt,EntityFactory factory)
 {
    IfaceEntity eb = null;
+   Collection<IfaceEntity> rslt = new ArrayList<IfaceEntity>();
+   
    if (is_mutable && dt.isDerivedFrom(getDataType())) {
       if (dt.isInterfaceType() || dt.isAbstract() || dt.getChildTypes().size() > 0) {
 	 eb = factory.createMutableEntity(dt);
@@ -151,23 +154,33 @@ EntityFixed(IfaceType dt,boolean mutable,IfacePrototype ptyp)
 	 eb = (EntityBase) factory.createFixedEntity(dt);
        }
     }
-   else if (is_mutable && getDataType().isJavaLangObject()) {
-      if (dt.isInterfaceType() || dt.isAbstract()) {
-	 eb = (EntityBase) factory.createMutableEntity(dt);
+   if (eb == null) {
+      if (is_mutable && getDataType().isJavaLangObject()) {
+         if (dt.isInterfaceType() || dt.isAbstract()) {
+            eb = (EntityBase) factory.createMutableEntity(dt);
+          }
+       }
+      else if (is_mutable && getDataType().isDerivedFrom(dt)) {
+         if (FaitLog.isTracing()) 
+            FaitLog.logD1("Mutable change " + getDataType() + " => " + dt);
+       }
+      else if (getDataType().getJavaType() == dt.getJavaType()) {
+         eb = (EntityBase) factory.createFixedEntity(dt);
+       }
+      else if (is_mutable) {
+         for (IfaceType st : getDataType().getChildTypes()) {
+            if (st.isDerivedFrom(dt)) {
+               EntityBase eb1 = (EntityBase) factory.createMutableEntity(st);
+               rslt.add(eb1);
+             }
+          }
        }
     }
-   else if (is_mutable && getDataType().isDerivedFrom(dt)) {
-      if (FaitLog.isTracing()) 
-         FaitLog.logD1("Mutable change " + getDataType() + " => " + dt);
-    }
-   else if (getDataType().getJavaType() == dt.getJavaType()) {
-      eb = (EntityBase) factory.createFixedEntity(dt);
-    }
-   // else if same Java type then treat as mutable
    
-   if (eb == null) return null;
-   Collection<IfaceEntity> rslt = new ArrayList<IfaceEntity>();
-   rslt.add(eb);
+   if (eb != null) rslt.add(eb);
+   
+   if (rslt.isEmpty()) return null;
+   
    return rslt;
 }
 

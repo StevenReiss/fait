@@ -732,6 +732,14 @@ synchronized void addFirstElement(IfaceLocation src)
    return element_value;
 }
 
+@Override public List<IfaceValue> getContents(List<IfaceValue> rslt)
+{
+   if (element_value == null || element_value.mustBeNull()) return rslt;
+   if (rslt == null) rslt = new ArrayList<>();
+   rslt.add(element_value);
+   return rslt;
+}
+
 IfaceValue getElementValue()			{ return element_value; }
 
 

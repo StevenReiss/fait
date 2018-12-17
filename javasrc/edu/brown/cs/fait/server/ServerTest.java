@@ -223,9 +223,6 @@ private void runServerTest(String dir,String pid,int ctr,String updfile)
          if (IvyXml.getAttrBool(fe,"SOURCE")) {
             File f1 = new File(IvyXml.getAttrString(fe,"PATH"));
             File f2 = new File(IvyXml.getText(fe));
-            if (f1.exists() && f1.getName().endsWith(".java")) {
-               // files += "<FILE NAME='" + f1.getPath() + "'/>";
-             }
             if (f2.exists() && f2.getName().endsWith(".java")) {
                files += "<FILE NAME='" + f2.getPath() + "'/>";
              }
@@ -246,6 +243,8 @@ private void runServerTest(String dir,String pid,int ctr,String updfile)
       if (ctr == 0) Assert.assertEquals(stops,0);
       else Assert.assertNotEquals(stops,0);
       if (ctr > 0) Assert.assertTrue(stops <= ctr);
+      
+      errorQueries(sid,rslt);
       
       if (updfile != null) {
          cargs = new CommandArgs("FILE",editfile.getPath(),"LENGTH",0,"OFFSET",0);
@@ -537,6 +536,39 @@ private int countStops(Element xml)
     }
    
    return ctr;
+}
+
+
+
+private void errorQueries(String sid,Element xml)
+{
+   for (Element call : IvyXml.elementsByTag(xml,"CALL")) {
+      for (Element err : IvyXml.children(call,"ERROR")) {
+         if (!IvyXml.getAttrString(err,"LEVEL").equals("ERROR")) continue;
+         int lno = 0;
+         int spos = 0;
+         for (Element pt : IvyXml.children(err,"POINT")) {
+            if (IvyXml.getAttrString(pt,"KIND").equals("EDIT")) {
+               lno = IvyXml.getAttrInt(pt,"LINE");
+               spos = IvyXml.getAttrInt(pt,"START");
+               if (lno > 0) break;
+             }
+          }
+         if (lno <= 0) continue;
+         String mthd = IvyXml.getAttrString(call,"CLASS");
+         mthd += "." + IvyXml.getAttrString(call,"METHOD");
+         mthd += IvyXml.getAttrString(call,"SIGNATURE");
+         mthd += "@" + IvyXml.getAttrString(call,"HASHCODE");
+         CommandArgs cargs = new CommandArgs("ERROR",IvyXml.getAttrString(err,"HASHCODE"),
+               "FILE",IvyXml.getAttrString(call,"FILE"),
+               "LINE",lno,
+               "METHOD",mthd,
+               "START",spos);
+         Element rslt = sendReply(sid,"QUERY",cargs,null);
+         Element q = IvyXml.getChild(rslt,"RESULTSET");
+         Assert.assertNotNull(q);
+       }
+    }
 }
 
 }	// end of class ServerTest

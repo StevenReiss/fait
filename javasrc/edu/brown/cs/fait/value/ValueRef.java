@@ -160,7 +160,20 @@ ValueRef(ValueFactory vf,IfaceType dt,int var,IfaceValue base,IfaceField fld,Ifa
 @Override public String toString()
 {
    StringBuffer buf = new StringBuffer();
-   buf.append("[ ^^^ ");
+   buf.append("[ ^^^");
+   if (variable_slot >= 0) {
+      buf.append(" v");
+      buf.append(variable_slot);
+    }
+   else if (variable_slot < -1) {
+      buf.append(" s");
+      buf.append(getRefStack());
+    }
+   else if (field_name != null) {
+      buf.append(" f:");
+      buf.append(field_name);
+    }
+   buf.append(" ");
    buf.append(getDataType());
    buf.append("]");
    return buf.toString();

@@ -85,7 +85,17 @@ ServerUpdateData(List<ServerFile> files)
    IfaceProgramPoint pt = m.getStart();
    if (pt == null) return false;
    IfaceAstReference ar = pt.getAstReference();
-   if (ar == null) return false;                // might want to handle binary updates
+   if (ar == null) {
+      // TODO: if method is now AST-based, then update
+      String cnm = m.getDeclaringClass().getName();
+      if (cnm.startsWith("java.") ||
+            cnm.startsWith("javax.") ||
+            cnm.startsWith("sun.")) return false;
+      IfaceMethod m0 = call.getControl().findMethod(m.getDeclaringClass().getName(),
+            m.getName(),m.getDescription());
+      if (m0 == m) return false;
+      return true;               
+    }
    
    JcompSource src = JcompAst.getSource(ar.getAstNode());
    if (update_files.contains(src)) return true;

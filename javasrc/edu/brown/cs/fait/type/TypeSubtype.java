@@ -58,6 +58,7 @@ abstract class TypeSubtype implements IfaceSubtype, TypeConstants
 /*                                                                              */
 /********************************************************************************/
 
+private String subtype_name;
 private Combiner combiner_map;
 private Combiner restrict_map;
 private Map<Attr,Value> attribute_map;
@@ -73,8 +74,9 @@ private int subtype_index;
 /*                                                                              */
 /********************************************************************************/
 
-protected TypeSubtype()
+protected TypeSubtype(String nm)
 { 
+   subtype_name = nm;
    combiner_map = new Combiner();
    restrict_map = new Combiner();
    attribute_map = new HashMap<>();
@@ -135,6 +137,19 @@ protected void defineError(Value v1,Value v2,IfaceError er)
 
 void setIndex(int i)                            { subtype_index = i; }
 int getIndex()                                  { return subtype_index; }
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Access methods                                                          */
+/*                                                                              */
+/********************************************************************************/
+
+@Override public String getName()
+{
+   return subtype_name; 
+}
 
 
 
@@ -248,10 +263,6 @@ IfaceSubtype.Value getAnnotationValue(IfaceAnnotation [] annots)
     }
    return null;
 }
-
-
-
-
 
 
 

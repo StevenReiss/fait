@@ -38,7 +38,6 @@ package edu.brown.cs.fait.type;
 import edu.brown.cs.fait.iface.FaitAnnotation;
 import edu.brown.cs.fait.iface.FaitError;
 import edu.brown.cs.fait.iface.IfaceBaseType;
-import edu.brown.cs.fait.iface.IfaceError;
 import edu.brown.cs.fait.iface.IfaceSubtype;
 import edu.brown.cs.fait.iface.IfaceType;
 import edu.brown.cs.fait.iface.IfaceValue;
@@ -67,10 +66,6 @@ public enum NullState implements IfaceSubtype.Value
 
    @Override public IfaceSubtype getSubtype()	{ return our_type; }
 }
-
-
-static IfaceError NULL_ERROR = new FaitError(ErrorLevel.WARNING,"Attempt to assign null to non-null location");
-static IfaceError NULL_ERROR1 = new FaitError(ErrorLevel.WARNING,"Attempt to assign non-null to null location");
 
 private static CheckNullness  our_type = new CheckNullness();
 
@@ -101,6 +96,11 @@ public static synchronized CheckNullness getType()
 
 private CheckNullness() 		
 {
+   super("CheckNullness");
+   
+   FaitError err = new FaitError(this,ErrorLevel.WARNING,"Attempt to assign null to non-null location");
+   FaitError err1 = new FaitError(this,ErrorLevel.WARNING,"Attempt to assign non-null to null location");   
+   
    defineMerge(MUST_BE_NULL,NON_NULL,CAN_BE_NULL);
    defineMerge(MUST_BE_NULL,CAN_BE_NULL,CAN_BE_NULL);
    defineMerge(MUST_BE_NULL,DEREFED,DEREFED);
@@ -108,16 +108,16 @@ private CheckNullness()
    defineMerge(NON_NULL,DEREFED,DEREFED);
    defineMerge(CAN_BE_NULL,DEREFED,DEREFED);
 
-   defineRestrict(MUST_BE_NULL,NON_NULL,NULL_ERROR);
+   defineRestrict(MUST_BE_NULL,NON_NULL,err);
    defineRestrict(MUST_BE_NULL,CAN_BE_NULL,MUST_BE_NULL);
-   defineRestrict(MUST_BE_NULL,DEREFED,NULL_ERROR);
-   defineRestrict(NON_NULL,MUST_BE_NULL,NULL_ERROR1);
+   defineRestrict(MUST_BE_NULL,DEREFED,err);
+   defineRestrict(NON_NULL,MUST_BE_NULL,err1);
    defineRestrict(NON_NULL,CAN_BE_NULL,NON_NULL);
    defineRestrict(NON_NULL,DEREFED,NON_NULL);
    defineRestrict(CAN_BE_NULL,MUST_BE_NULL,MUST_BE_NULL);
    defineRestrict(CAN_BE_NULL,NON_NULL,NON_NULL);
    defineRestrict(CAN_BE_NULL,DEREFED,DEREFED);
-   defineRestrict(DEREFED,MUST_BE_NULL,NULL_ERROR1);
+   defineRestrict(DEREFED,MUST_BE_NULL,err1);
    defineRestrict(DEREFED,NON_NULL,NON_NULL);
    defineRestrict(DEREFED,CAN_BE_NULL,CAN_BE_NULL);
 

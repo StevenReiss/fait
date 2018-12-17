@@ -98,6 +98,27 @@
       </java>
    </target>
 
+   <target name='testbubbles' depends='compile'>
+      <junit fork='true' printsummary='on'>
+	 <classpath refid='fait.classpath' />
+	 <assertions><enable/></assertions>
+	 <formatter type='xml' usefile='true' />
+	 <test name='edu.brown.cs.fait.server.ServerTest'
+	       methods='serverTestBubbles'
+	       outfile='testbubbles.out' />
+      </junit>
+   </target>
+
+   <target name='testsecurity' depends='compile'>
+      <junit fork='true' printsummary='on'>
+	 <classpath refid='fait.classpath' />
+	 <assertions><enable/></assertions>
+	 <formatter type='xml' usefile='true' />
+	 <test name='edu.brown.cs.fait.server.ServerTest'
+	       methods='serverTestJavaSecurity'
+	       outfile='testsecurity.out' />
+      </junit>
+   </target>
 
 </project>
 

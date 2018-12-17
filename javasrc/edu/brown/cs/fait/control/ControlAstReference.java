@@ -51,7 +51,9 @@ import java.util.List;
 
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ArrayAccess;
+import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
+import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.StructuralPropertyDescriptor;
 
 import edu.brown.cs.fait.iface.FaitConstants;
@@ -137,12 +139,29 @@ ControlAstReference(ControlAstFactory af,ASTNode n,ASTNode c,IfaceAstStatus sts)
    if (js == null) {
       js = JcompAst.getReference(n);
     }
-   if (js != null) {
+   if (js != null && js.isMethodSymbol()) {
        return ast_factory.getMethod(js);
     }
 
    return null;
 }
+
+
+@Override public IfaceMethod getCalledMethod() 
+{
+   if (eval_node instanceof MethodInvocation) {
+      MethodInvocation mi = (MethodInvocation) eval_node;
+      int ct = mi.arguments().size();
+      if (ct > 0) {
+         if (after_child != mi.arguments().get(ct-1)) return null;
+       }
+      else if (mi.getExpression() != null && after_child != mi.getExpression()) return null;
+      return getReferencedMethod();
+    }
+   return null;
+}
+
+
 
 @Override public IfaceField getReferencedField()
 {
@@ -212,6 +231,12 @@ ControlAstReference(ControlAstFactory af,ASTNode n,ASTNode c,IfaceAstStatus sts)
 {
    return eval_node.getNodeType() == ASTNode.METHOD_DECLARATION &&
    after_child == null && run_status == null;
+}
+
+@Override public int getLineNumber()
+{
+   CompilationUnit cu = (CompilationUnit)(eval_node.getRoot());
+   return cu.getLineNumber(eval_node.getStartPosition());
 }
 
 
@@ -307,6 +332,7 @@ void update()
    xw.field("KIND","EDIT");
    xw.field("START",eval_node.getStartPosition());
    xw.field("END",eval_node.getStartPosition() + eval_node.getLength());
+   xw.field("LINE",getLineNumber());
    String typ = eval_node.getClass().getName();
    int idx = typ.lastIndexOf(".");
    if (idx > 0) typ = typ.substring(idx+1);
@@ -331,6 +357,15 @@ void update()
    String typ = eval_node.getClass().getName();
    int idx = typ.lastIndexOf(".");
    if (idx > 0) typ = typ.substring(idx+1);
+   if (after_child != null) {
+      StructuralPropertyDescriptor spd = after_child.getLocationInParent();
+      typ += "/" + spd.getId();
+      if (spd.isChildListProperty()) {
+         List<?> children = (List<?>) eval_node.getStructuralProperty(spd);
+         int cidx = children.indexOf(after_child);
+         typ += "/" + cidx;
+       }
+    }
 
    if (run_status == null) {
       return "@" + typ + ":" + eval_node.getStartPosition();
