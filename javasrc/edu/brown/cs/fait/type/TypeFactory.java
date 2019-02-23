@@ -40,8 +40,11 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.w3c.dom.Element;
@@ -67,6 +70,7 @@ public class TypeFactory implements TypeConstants, FaitConstants
 
 private TypeMap type_map;
 private List<TypeSubtype> all_subtypes;
+private Set<TypeSubtype> base_subtypes;
 
 
 
@@ -83,6 +87,8 @@ public TypeFactory(IfaceControl ic)
    all_subtypes.add(CheckNullness.getType());
    // all_subtypes.add(CheckInitialization.getType());
    // all_subtypes.add(CheckTaint.getType());
+   
+   base_subtypes= new HashSet<>(all_subtypes);
    
    for (int i = 0; i < all_subtypes.size(); ++i) {
       TypeSubtype tst = all_subtypes.get(i);
@@ -295,6 +301,19 @@ public synchronized void addSpecialFile(Element xml)
       int ct = all_subtypes.size();
       all_subtypes.add(tsu);
       tsu.setIndex(ct);
+    }
+}
+
+
+public void clearAllSpecials()
+{
+   for (Iterator<TypeSubtype> it = all_subtypes.iterator(); it.hasNext(); ) {
+      TypeSubtype tst = it.next();
+      if (!base_subtypes.contains(tst)) it.remove();
+    }
+   for (int i = 0; i < all_subtypes.size(); ++i) {
+      TypeSubtype tst = all_subtypes.get(i);
+      tst.setIndex(i);
     }
 }
 

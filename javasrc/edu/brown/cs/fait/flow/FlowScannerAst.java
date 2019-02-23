@@ -1644,7 +1644,7 @@ private Object visit(MethodInvocation v)
        }
     }
    else if (after_node == null && v.getExpression() != null) {
-      if (!js.isStatic()) return v.getExpression();
+      if (js == null || !js.isStatic()) return v.getExpression();
     }
 
    int idx = 0;
@@ -1653,7 +1653,7 @@ private Object visit(MethodInvocation v)
    if (idx < args.size()) return args.get(idx);
 
    int act = args.size();
-   if (!js.isStatic()) ++act;
+   if (js != null && !js.isStatic()) ++act;
 
    switch (processCall(v,act)) {
       case NOT_DONE :
@@ -1724,8 +1724,9 @@ private IfaceValue visitBack(MethodInvocation v,IfaceValue ref,IfaceType settype
 private Object visit(SuperConstructorInvocation v)
 {
    JcompType rty = JcompAst.getExprType(v);
-   rty = rty.getSuperType();
+   // rty = rty.getSuperType();
    if (rty == null) return null;	// supertype is Object -- ignore
+   if (rty.isJavaLangObject()) return null;
 
    if (after_node == null) {
       IfaceValue v0 = cur_state.getLocal(0);
@@ -2631,9 +2632,15 @@ private Object visit(LambdaExpression v)
 	  }
        }
       IfaceType typ = convertType(JcompAst.getExprType(v));
-      IfaceEntity ie = fait_control.findFunctionRefEntity(getHere(),typ,bindings);
-      IfaceEntitySet set = fait_control.createSingletonSet(ie);
-      IfaceValue rv = fait_control.findObjectValue(typ,set);
+      IfaceValue rv = null;
+      if (typ == null) {
+         rv = fait_control.findAnyObjectValue();
+       }
+      else {
+         IfaceEntity ie = fait_control.findFunctionRefEntity(getHere(),typ,bindings);
+         IfaceEntitySet set = fait_control.createSingletonSet(ie);
+         rv = fait_control.findObjectValue(typ,set);
+       }
       pushValue(rv);
     }
 
@@ -3255,6 +3262,8 @@ private TestBranch getTestResult(IfaceValue v1)
 private CallReturn processCall(ASTNode v,int act)
 {
    JcompSymbol js = JcompAst.getReference(v);
+   if (js == null) return CallReturn.NOT_DONE;
+   
    JcompType jt = js.getType();
 
    int checkarg = -1;

@@ -120,6 +120,17 @@
       </junit>
    </target>
 
+   <target name='testwebgoat' depends='compile'>
+      <junit fork='true' printsummary='on'>
+	 <classpath refid='fait.classpath' />
+	 <assertions><enable/></assertions>
+	 <formatter type='xml' usefile='true' />
+	 <test name='edu.brown.cs.fait.server.ServerTest'
+	       methods='serverTestWebGoat'
+	       outfile='testwebgoat.out' />
+      </junit>
+   </target>
+
 </project>
 
 

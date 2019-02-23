@@ -84,6 +84,7 @@ private TypeFactory     type_factory;
 private SafetyFactory   safety_factory;
 private QueryFactory    query_factory;
 private Map<String,IfaceType> basic_types;
+private Map<File,Long>  fait_files;
 
 
 
@@ -111,14 +112,11 @@ public ControlMain(IfaceProject ip)
    
    user_project = ip;
    
-   call_factory.addSpecialFile(getDescriptionFile());
-   safety_factory.addSpecialFile(getDescriptionFile());
-   type_factory.addSpecialFile(getDescriptionFile());
+   fait_files = new LinkedHashMap<>();
+   addSpecialFile(getDescriptionFile());
    if (ip.getDescriptionFiles() != null) {
       for (File ff : ip.getDescriptionFiles()) {
-         call_factory.addSpecialFile(ff);
-         safety_factory.addSpecialFile(ff);
-         type_factory.addSpecialFile(ff);
+         addSpecialFile(ff);
        }
     }
    
@@ -130,13 +128,55 @@ public ControlMain(IfaceProject ip)
 
 /********************************************************************************/
 /*										*/
-/*	Access methods 							*/
+/*	Description File methods                				*/
 /*										*/
 /********************************************************************************/
 
 @Override public File getDescriptionFile()
 {
    return new File("/research/people/spr/fait/lib/faitdata.xml");
+}
+
+
+void addSpecialFile(File f)
+{
+   if (f.exists() && f.canRead()) {
+      fait_files.put(f,f.lastModified());
+      call_factory.addSpecialFile(f);
+      safety_factory.addSpecialFile(f);
+      type_factory.addSpecialFile(f);
+    }
+}
+
+
+boolean checkSpecialFiles()
+{
+   boolean chng = false;
+   for (Map.Entry<File,Long> ent : fait_files.entrySet()) {
+      File f1 = ent.getKey();
+      if (f1.exists() && f1.canRead()) {
+         if (f1.lastModified() > ent.getValue()) chng = true;
+       }
+      else chng = true;
+    }
+   
+   return chng;
+}
+
+
+
+void reloadSpecialFiles()
+{
+   call_factory.clearAllSpecials();
+   safety_factory.clearAllSpecials();
+   type_factory.clearAllSpecials();
+   fait_files.clear();
+   addSpecialFile(getDescriptionFile());
+   if (user_project.getDescriptionFiles() != null) {
+      for (File ff : user_project.getDescriptionFiles()) {
+         addSpecialFile(ff);
+       }
+    }
 }
 
 

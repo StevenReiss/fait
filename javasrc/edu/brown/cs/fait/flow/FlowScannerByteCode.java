@@ -261,6 +261,11 @@ private void processInstruction(IfaceProgramPoint inspt)
       case NEW :
 	 IfaceType newt0 = jdtyp;
 	 IfaceAnnotation [] nannots = fait_control.getAnnotations(inspt);
+         if (newt0 == null) {
+            FaitLog.logI("Unknown type for NEW: " + ins);
+            nins = null;
+            break; 
+          }
 	 if (nannots != null) newt0 = newt0.getAnnotatedType(nannots);
          newt0 = newt0.getAnnotatedType(FaitAnnotation.NON_NULL);
 	 IfaceType newt1 = newt0.getComputedType(FaitTypeOperator.STARTINIT);

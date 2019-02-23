@@ -818,22 +818,22 @@ private static class SegmentedQueue {
 
    synchronized Map.Entry<IfaceCall,Set<IfaceProgramPoint>> getNextCall() {
       while (!allEmpty()) {
-	 Map.Entry<IfaceCall,Set<IfaceProgramPoint>> rslt = null;
-	 if (init_queue.size() > 0) {
-	    rslt = getNext(init_queue);
-	  }
-	 else if (constructor_queue.size() > 0) {
-	    rslt = getNext(constructor_queue);
-	  }
-	 else {
-	    rslt = getNext(normal_queue);
-	  }
-	 if (rslt != null) return rslt;
-
-	 try {
-	    wait(10000);
-	  }
-	 catch (InterruptedException e) { }
+         Map.Entry<IfaceCall,Set<IfaceProgramPoint>> rslt = null;
+         if (init_queue.size() > 0) {
+            rslt = getNext(init_queue);
+          }
+         else if (constructor_queue.size() > 0) {
+            rslt = getNext(constructor_queue);
+          }
+         else {
+            rslt = getNext(normal_queue);
+          }
+         if (rslt != null) return rslt;
+   
+         try {
+            wait(10000);
+          }
+         catch (InterruptedException e) { }
        }
       return null;
     }

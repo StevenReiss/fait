@@ -124,7 +124,8 @@ IfaceValue handleNewArraySet(FlowLocation loc,IfaceType acls,int ndim,IfaceValue
 IfaceValue handleArrayAccess(FlowLocation loc,IfaceValue arr,IfaceValue idx)
 {
    IfaceValue cv = null;
-   if (arr.isBad()) return arr;
+   if (arr.isBad()) 
+      return arr;
    
    for (IfaceEntity xe : arr.getEntities()) {
       if (xe.getDataType().isArrayType()) {

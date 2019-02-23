@@ -114,6 +114,13 @@ public void addSpecialFile(Element xml)
 
 
 
+public void clearAllSpecials()
+{
+   all_checks.clear();
+}
+
+
+
 /********************************************************************************/
 /*                                                                              */
 /*      Access methods                                                          */

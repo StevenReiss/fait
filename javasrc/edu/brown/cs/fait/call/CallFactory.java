@@ -455,6 +455,12 @@ public void clearSpecial(IfaceMethod im)
 }
 
 
+public void clearAllSpecials()
+{
+   special_methods.clear();
+   call_methods.clear();
+}
+
 
 public boolean canBeCallback(IfaceProgramPoint pt,IfaceMethod fm)
 {

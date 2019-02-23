@@ -376,4 +376,6 @@
 
    <ALLOC CLASS='java.lang.Throwable' INHERIT='true' />
 
+   <CLASS NAME='java.time.format.DateTimeFormatter' />
+
 </FAIT>

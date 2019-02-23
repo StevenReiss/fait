@@ -57,7 +57,7 @@ import edu.brown.cs.ivy.mint.MintReply;
 import edu.brown.cs.ivy.xml.IvyXml;
 import edu.brown.cs.ivy.xml.IvyXmlWriter;
 
-public class ServerTest implements ServerConstants, MintConstants 
+public class ServerTest implements ServerConstants, MintConstants
 {
 
 
@@ -92,7 +92,7 @@ public ServerTest()
 /*										*/
 /********************************************************************************/
 
-@Test 
+@Test
 public synchronized void serverTestNim()
 {
    runServerTest("nim","nim",0,null);
@@ -101,9 +101,9 @@ public synchronized void serverTestNim()
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Nim test with update                                                    */
-/*                                                                              */
+/*										*/
+/*	Nim test with update							*/
+/*										*/
 /********************************************************************************/
 
 @Test
@@ -130,9 +130,9 @@ public synchronized void serverTestUpod()
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      SEEDE test                                                              */
-/*                                                                              */
+/*										*/
+/*	SEEDE test								*/
+/*										*/
 /********************************************************************************/
 
 @Test
@@ -144,9 +144,9 @@ public synchronized void serverTestSeede()
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      S6 test                                                                 */
-/*                                                                              */
+/*										*/
+/*	S6 test 								*/
+/*										*/
 /********************************************************************************/
 
 @Test
@@ -158,9 +158,9 @@ public synchronized void serverTestS6()
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Bubbles tes                                                             */
-/*                                                                              */
+/*										*/
+/*	Bubbles tes								*/
+/*										*/
 /********************************************************************************/
 
 @Test
@@ -172,9 +172,9 @@ public synchronized void serverTestBubbles()
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      JavaSecurity test                                                       */
-/*                                                                              */
+/*										*/
+/*	JavaSecurity test							*/
+/*										*/
 /********************************************************************************/
 
 @Test
@@ -187,32 +187,47 @@ public synchronized void serverTestJavaSecurity()
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Generic testing routine                                                 */
-/*                                                                              */
+/*										*/
+/*	WebGoat(spr) test							*/
+/*										*/
+/********************************************************************************/
+
+@Test
+public synchronized void serverTestWebGoat()
+{
+   runServerTest("webgoatspr","webgoat",2,null);
+}
+
+
+
+/********************************************************************************/
+/*										*/
+/*	Generic testing routine 						*/
+/*										*/
 /********************************************************************************/
 
 private void runServerTest(String dir,String pid,int ctr,String updfile)
 {
-   if (dir == null) dir = pid;
-   String mid = "FAIT_TEST_" + pid.toUpperCase();
-   
-   setupBedrock(dir,mid,pid);
    int rint = random_gen.nextInt(1000000);
    
-   try {  
+   if (dir == null) dir = pid;
+   String mid = "FAIT_TEST_" + pid.toUpperCase() + "_" + rint;
+
+   setupBedrock(dir,mid,pid);
+
+   try {
       String [] args = new String[] { "-m", mid, "-DEBUG", "-TRACE",
-            "-LOG", "/vol/spr/servertest" + dir + ".log" };
-      
+	    "-LOG", "/vol/spr/servertest" + dir + ".log" };
+
       ServerMain.main(args);
-      
+
       mint_control.register("<FAITEXEC TYPE='_VAR_0' />",new FaitHandler());
-      
+
       String sid = "SERVER" + rint;
       CommandArgs cargs = null;
       Element xml= sendReply(sid,"BEGIN",cargs,null);
       Assert.assertTrue(IvyXml.isElement(xml,"RESULT"));
-      
+
       cargs = new CommandArgs("FILES",true);
       Element pxml = sendBubblesXmlReply("OPENPROJECT",pid,cargs,null);
       Assert.assertTrue(IvyXml.isElement(pxml,"RESULT"));
@@ -220,38 +235,38 @@ private void runServerTest(String dir,String pid,int ctr,String updfile)
       String files = "";
       File editfile = null;
       for (Element fe : IvyXml.children(p1,"FILE")) {
-         if (IvyXml.getAttrBool(fe,"SOURCE")) {
-            File f1 = new File(IvyXml.getAttrString(fe,"PATH"));
-            File f2 = new File(IvyXml.getText(fe));
-            if (f2.exists() && f2.getName().endsWith(".java")) {
-               files += "<FILE NAME='" + f2.getPath() + "'/>";
-             }
-            if (updfile != null && f1.getPath().contains(updfile)) editfile = f1;
-          }
+	 if (IvyXml.getAttrBool(fe,"SOURCE")) {
+	    File f1 = new File(IvyXml.getAttrString(fe,"PATH"));
+	    File f2 = new File(IvyXml.getText(fe));
+	    if (f2.exists() && f2.getName().endsWith(".java")) {
+	       files += "<FILE NAME='" + f2.getPath() + "'/>";
+	     }
+	    if (updfile != null && f1.getPath().contains(updfile)) editfile = f1;
+	  }
        }
       xml = sendReply(sid,"ADDFILE",null,files);
       Assert.assertTrue(IvyXml.isElement(xml,"RESULT"));
-      
+
       String rid = "RETURN" + rint;
       cargs = new CommandArgs("ID",rid,"THREADS",1);
       xml = sendReply(sid,"ANALYZE",cargs,null);
       Assert.assertTrue(IvyXml.isElement(xml,"RESULT"));
       Element rslt = waitForAnalysis(rid);
       Assert.assertNotNull(rslt);
-      
+
       int stops = countStops(rslt);
       if (ctr == 0) Assert.assertEquals(stops,0);
       else Assert.assertNotEquals(stops,0);
       if (ctr > 0) Assert.assertTrue(stops <= ctr);
-      
+
       errorQueries(sid,rslt);
-      
+
       if (updfile != null) {
-         cargs = new CommandArgs("FILE",editfile.getPath(),"LENGTH",0,"OFFSET",0);
-         xml = sendReply(sid,"TESTEDIT",cargs,null);
-         rslt = waitForAnalysis(rid);
-         Assert.assertNotNull(rslt);
-         Assert.assertEquals(ctr,countStops(rslt));
+	 cargs = new CommandArgs("FILE",editfile.getPath(),"LENGTH",0,"OFFSET",0);
+	 xml = sendReply(sid,"TESTEDIT",cargs,null);
+	 rslt = waitForAnalysis(rid);
+	 Assert.assertNotNull(rslt);
+	 Assert.assertEquals(ctr,countStops(rslt));
        }
     }
    finally {
@@ -332,24 +347,24 @@ private class FaitHandler implements MintHandler {
       String cmd = args.getArgument(0);
       Element xml = msg.getXml();
       switch (cmd) {
-         case "ANALYSIS" :
-            String rid = IvyXml.getAttrString(xml,"ID");
-            synchronized (done_map) {
-               done_map.put(rid,xml);
-               done_map.notifyAll();
-             }
-            msg.replyTo();
-            break;
-         case "PING" :
-            msg.replyTo("<PONG/>");
-            break;
-         default :
-            msg.replyTo();
-            break;
+	 case "ANALYSIS" :
+	    String rid = IvyXml.getAttrString(xml,"ID");
+	    synchronized (done_map) {
+	       done_map.put(rid,xml);
+	       done_map.notifyAll();
+	     }
+	    msg.replyTo();
+	    break;
+	 case "PING" :
+	    msg.replyTo("<PONG/>");
+	    break;
+	 default :
+	    msg.replyTo();
+	    break;
        }
     }
 
-}       // end of inner class FaitHandler
+}	// end of inner class FaitHandler
 
 
 
@@ -398,12 +413,12 @@ private static void sendBubblesMessage(String cmd,String proj,Map<String,Object>
    xw.field("LANG","eclipse");
    if (cnts != null) xw.xmlText(cnts);
    xw.end("BUBBLES");
-   
+
    String xml = xw.toString();
    xw.close();
-   
+
    FaitLog.logD("SEND to BUBBLES: " + xml);
-   
+
    int fgs = MINT_MSG_NO_REPLY;
    if (rply != null) fgs = MINT_MSG_FIRST_NON_NULL;
    mint_control.send(xml,rply,fgs);
@@ -413,16 +428,16 @@ private static void sendBubblesMessage(String cmd,String proj,Map<String,Object>
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Bedrock setup / shutdown methods                                        */
-/*                                                                              */
+/*										*/
+/*	Bedrock setup / shutdown methods					*/
+/*										*/
 /********************************************************************************/
 
 private static void setupBedrock(String dir,String mint,String proj)
 {
    mint_control = MintControl.create(mint,MintSyncMode.ONLY_REPLIES);
    mint_control.register("<BEDROCK SOURCE='ECLIPSE' TYPE='_VAR_0' />",new TestEclipseHandler());
-   
+
    System.err.println("SETTING UP BEDROCK");
    File ec1 = new File("/u/spr/eclipse-oxygenx/eclipse/eclipse");
    File ec2 = new File("/u/spr/Eclipse/" + dir);
@@ -434,7 +449,7 @@ private static void setupBedrock(String dir,String mint,String proj)
       System.err.println("Can't find bubbles version of eclipse to run");
       System.exit(1);
     }
-   
+
    String cmd = ec1.getAbsolutePath();
    cmd += " -application edu.brown.cs.bubbles.bedrock.application";
    cmd += " -data " + ec2.getAbsolutePath();
@@ -443,9 +458,9 @@ private static void setupBedrock(String dir,String mint,String proj)
    cmd += " -vmargs -Dedu.brown.cs.bubbles.MINT=" + mint;
    cmd += " -Xdebug -Xrunjdwp:transport=dt_socket,address=32328,server=y,suspend=n";
   // cmd += " -Xmx16000m";
-   
+
    System.err.println("RUN: " + cmd);
-   
+
    try {
       for (int i = 0; i < 250; ++i) {
 	 if (pingEclipse()) {
@@ -457,13 +472,13 @@ private static void setupBedrock(String dir,String mint,String proj)
 	    return;
 	  }
 	 if (i == 0) new IvyExec(cmd);
-         else {
-            try { Thread.sleep(100); } catch (InterruptedException e) { }
-          }
+	 else {
+	    try { Thread.sleep(100); } catch (InterruptedException e) { }
+	  }
        }
     }
    catch (IOException e) { }
-   
+
    throw new Error("Problem running Eclipse: " + cmd);
 }
 
@@ -471,23 +486,23 @@ private static void setupBedrock(String dir,String mint,String proj)
 
 
 private static class TestEclipseHandler implements MintHandler {
-   
+
    @Override public void receive(MintMessage msg,MintArguments args) {
       String cmd = args.getArgument(0);
       switch (cmd) {
-         case "PING" :
-            msg.replyTo("<PONG/>");
-            break;
-         case "ELISION" :
-         case "RESOURCE" :
-            break;
-         default :
-            msg.replyTo();
-            break;
+	 case "PING" :
+	    msg.replyTo("<PONG/>");
+	    break;
+	 case "ELISION" :
+	 case "RESOURCE" :
+	    break;
+	 default :
+	    msg.replyTo();
+	    break;
        }
     }
-   
-}       // end of inner class TestEclipseHandler
+
+}	// end of inner class TestEclipseHandler
 
 
 
@@ -497,7 +512,7 @@ private static void shutdownBedrock()
    sendBubblesMessage("EXIT");
    while (pingEclipse()) {
       try {
-         Thread.sleep(1000);
+	 Thread.sleep(1000);
        }
       catch (InterruptedException e) { }
     }
@@ -517,9 +532,9 @@ private static boolean pingEclipse()
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Checking methods                                                         */
-/*                                                                              */
+/*										*/
+/*	Checking methods							 */
+/*										*/
 /********************************************************************************/
 
 private int countStops(Element xml)
@@ -527,14 +542,14 @@ private int countStops(Element xml)
    int ctr = 0;
    for (Element call : IvyXml.elementsByTag(xml,"CALL")) {
       for (Element dead : IvyXml.children(call,"ERROR")) {
-         for (Element pt : IvyXml.children(dead,"POINT")) {
-            if (IvyXml.getAttrString(pt,"KIND").equals("EDIT")) {
-               ++ctr;
-             }
-          }
+	 for (Element pt : IvyXml.children(dead,"POINT")) {
+	    if (IvyXml.getAttrString(pt,"KIND").equals("EDIT")) {
+	       ++ctr;
+	     }
+	  }
        }
     }
-   
+
    return ctr;
 }
 
@@ -544,29 +559,29 @@ private void errorQueries(String sid,Element xml)
 {
    for (Element call : IvyXml.elementsByTag(xml,"CALL")) {
       for (Element err : IvyXml.children(call,"ERROR")) {
-         if (!IvyXml.getAttrString(err,"LEVEL").equals("ERROR")) continue;
-         int lno = 0;
-         int spos = 0;
-         for (Element pt : IvyXml.children(err,"POINT")) {
-            if (IvyXml.getAttrString(pt,"KIND").equals("EDIT")) {
-               lno = IvyXml.getAttrInt(pt,"LINE");
-               spos = IvyXml.getAttrInt(pt,"START");
-               if (lno > 0) break;
-             }
-          }
-         if (lno <= 0) continue;
-         String mthd = IvyXml.getAttrString(call,"CLASS");
-         mthd += "." + IvyXml.getAttrString(call,"METHOD");
-         mthd += IvyXml.getAttrString(call,"SIGNATURE");
-         mthd += "@" + IvyXml.getAttrString(call,"HASHCODE");
-         CommandArgs cargs = new CommandArgs("ERROR",IvyXml.getAttrString(err,"HASHCODE"),
-               "FILE",IvyXml.getAttrString(call,"FILE"),
-               "LINE",lno,
-               "METHOD",mthd,
-               "START",spos);
-         Element rslt = sendReply(sid,"QUERY",cargs,null);
-         Element q = IvyXml.getChild(rslt,"RESULTSET");
-         Assert.assertNotNull(q);
+	 if (!IvyXml.getAttrString(err,"LEVEL").equals("ERROR")) continue;
+	 int lno = 0;
+	 int spos = 0;
+	 for (Element pt : IvyXml.children(err,"POINT")) {
+	    if (IvyXml.getAttrString(pt,"KIND").equals("EDIT")) {
+	       lno = IvyXml.getAttrInt(pt,"LINE");
+	       spos = IvyXml.getAttrInt(pt,"START");
+	       if (lno > 0) break;
+	     }
+	  }
+	 if (lno <= 0) continue;
+	 String mthd = IvyXml.getAttrString(call,"CLASS");
+	 mthd += "." + IvyXml.getAttrString(call,"METHOD");
+	 mthd += IvyXml.getAttrString(call,"SIGNATURE");
+	 mthd += "@" + IvyXml.getAttrString(call,"HASHCODE");
+	 CommandArgs cargs = new CommandArgs("ERROR",IvyXml.getAttrString(err,"HASHCODE"),
+	       "FILE",IvyXml.getAttrString(call,"FILE"),
+	       "LINE",lno,
+	       "METHOD",mthd,
+	       "START",spos);
+	 Element rslt = sendReply(sid,"QUERY",cargs,null);
+	 Element q = IvyXml.getChild(rslt,"RESULTSET");
+	 Assert.assertNotNull(q);
        }
     }
 }
