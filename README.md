@@ -7,3 +7,6 @@ system concentrates on security-related problems.
 
 Building FAIT will require ivy.  Also you will need faitmock and karma
 in order to use it.
+
+FAIT is currently working with the Code Bubbles environment.  The source
+for this is available from SourceForge.

@@ -373,8 +373,8 @@
 	 <assertions><enable/></assertions>
 	 <formatter type='xml' usefile='true' />
 	 <test name='edu.brown.cs.fait.server.ServerTest'
-	       methods='serverTestTimedRoller'
-	       outfile='testpebble.out' />
+	       methods='serverTestTimedUpdateRoller'
+	       outfile='testroller.out' />
       </junit>
    </target>
 

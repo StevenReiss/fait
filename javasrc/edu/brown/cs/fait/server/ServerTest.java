@@ -208,7 +208,7 @@ public synchronized void serverTestFait()
 @Test
 public synchronized void serverTestBubbles()
 {
-   runServerTest("bubblesx","bubbles",0,null,true);
+   runServerTest("bubblesx","bubbles",0,null,false);
 }
 
 

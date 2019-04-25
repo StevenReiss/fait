@@ -180,10 +180,11 @@ EntityArray(IfaceControl ctrl,IfaceType cls,IfaceValue size)
 
 @Override public IfaceValue getArrayValue(IfaceValue idx,IfaceControl ctl)
 {
-   if (known_values != null && idx != null) {
+   Map<Integer,IfaceValue> known = known_values;
+   if (known != null && idx != null) {
       Integer idxv = idx.getIndexValue();
       if (idxv != null) {
-         IfaceValue v1 = known_values.get(idxv);
+         IfaceValue v1 = known.get(idxv);
          if (v1 != null) return v1;
        }
     }

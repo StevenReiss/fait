@@ -716,8 +716,12 @@ private Object visit(BooleanLiteral v)
 
 private Object visit(CharacterLiteral v)
 {
-   int val = v.charValue();
-   IfaceType ctyp = fait_control.findConstantType("char",v.charValue());
+   String s = v.getEscapedValue();
+   String s1 = IvyFormat.getLiteralValue(s);
+   int val;
+   if (s1.length() == 0) val = 0;
+   else val = s1.charAt(0);
+   IfaceType ctyp = fait_control.findConstantType("char",val);
    IfaceValue v0 = fait_control.findConstantValue(ctyp,val);
    pushValue(v0);
    return null;
@@ -983,6 +987,12 @@ private Object visit(ConditionalExpression ce)
 	 workOn(imps.getElement0(),ce.getThenExpression());
        }
       return NO_NEXT;
+    }
+   else {
+      IfaceValue v = popActual();
+      IfaceType ctyp = convertType(JcompAst.getExprType(ce));
+      IfaceValue v1 = flow_queue.castValue(ctyp,v,getHere());
+      pushValue(v1);
     }
 
    return null;
@@ -2545,6 +2555,7 @@ private Object visit(EnhancedForStatement s)
 	 ijt = ijt.getRunTimeType();
 	 IfaceValue cnts1 = flow_queue.castValue(ijt,cnts,getHere());
 	 if (cnts1 == null || cnts1.isEmptyEntitySet()) {
+            if (callneeded) return null;
 	    FaitLog.logE("CAST TO EMPTY ENTITY SET " + iv + " => " + cnts1);
 	    cnts = iv.getArrayContents();
 	    cnts1 = flow_queue.castValue(ijt,cnts,getHere());
