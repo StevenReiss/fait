@@ -205,7 +205,7 @@ IfaceSubtype.Value getDefaultValue(IfaceBaseType typ,Collection<IfaceAnnotation>
 }
    
 
-public IfaceSubtype.Value getDefaultValue(IfaceAnnotation [] annots,IfaceSubtype.Value dflt)
+public IfaceSubtype.Value getDefaultValue(IfaceBaseType base,IfaceAnnotation [] annots,IfaceSubtype.Value dflt)
 {
    if (annots != null) {
       for (IfaceAnnotation an : annots) {
@@ -218,11 +218,11 @@ public IfaceSubtype.Value getDefaultValue(IfaceAnnotation [] annots,IfaceSubtype
     }
    if (dflt != null) return dflt;
    
-   return getDefaultValue((IfaceBaseType) null);
+   return getDefaultValue(base);
 }
 
 
-public IfaceSubtype.Value getDefaultValue(Collection<IfaceAnnotation> annots,IfaceSubtype.Value dflt)
+public IfaceSubtype.Value getDefaultValue(IfaceBaseType typ,Collection<IfaceAnnotation> annots,IfaceSubtype.Value dflt)
 {
    if (annots != null) {
       for (IfaceAnnotation an : annots) {
@@ -235,7 +235,7 @@ public IfaceSubtype.Value getDefaultValue(Collection<IfaceAnnotation> annots,Ifa
     }
    if (dflt != null) return dflt;
    
-   return getDefaultValue((IfaceBaseType) null);
+   return getDefaultValue(typ);
 }
 
 
@@ -384,6 +384,36 @@ void checkImpliedTypes(TypeImplications rslt,FaitOperator op)
 }
 
 
+
+@Override public IfaceSubtype.Value adjustValueForBase(IfaceSubtype.Value v,IfaceBaseType b)
+{
+   return v;
+}
+
+
+
+protected  IfaceSubtype.Value adjustDefaultForPrimitive(IfaceSubtype.Value v,IfaceBaseType b)
+{
+   if (b.isPrimitiveType()) return getDefaultValue(b);
+   return v;
+}
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Back flow computations                                                  */
+/*                                                                              */
+/********************************************************************************/
+
+@Override public boolean isPredecessorRelevant(IfaceSubtype.Value pred,IfaceSubtype.Value cur)
+{
+   if (cur == pred) return true;
+   IfaceSubtype.Value v1 = getMergeValue(pred,cur);
+   if (v1 == pred) return true;
+   
+   return false;
+}
 
 
 /********************************************************************************/

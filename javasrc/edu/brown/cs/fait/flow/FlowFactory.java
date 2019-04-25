@@ -76,26 +76,34 @@ public FlowFactory(IfaceControl fc)
 /*										*/
 /********************************************************************************/
 
-public void analyze(int nthread,boolean update)
+public void analyze(int nthread,boolean update,ReportOption opt)
 {
    if (!update) {
-      Collection<IfaceMethod> start = fait_control.getStartMethods();
-      List<IfaceValue> sargl = new LinkedList<IfaceValue>();
-      IfaceSafetyStatus ists = fait_control.getInitialSafetyStatus();
-      sargl.add(fait_control.findMainArgsValue());
-      for (IfaceMethod fm : start) {
-         IfaceCall ic = fait_control.findCall(null,fm,sargl,ists,InlineType.NONE);
-         ic.addCall(sargl,ists);
-         flow_queue.queueMethodStart(ic,null);
+      for (String s : fait_control.getDefaultClasses()) {
+         IfaceType dt = fait_control.findDataType(s);
+         if (dt != null) flow_queue.initialize(dt);
        }
+    }
+   
+   Collection<IfaceMethod> start = fait_control.getStartMethods();
+   List<IfaceValue> sargl = new LinkedList<IfaceValue>();
+   List<IfaceValue> targl = new LinkedList<IfaceValue>();
+   IfaceSafetyStatus ists = fait_control.getInitialSafetyStatus();
+   sargl.add(fait_control.findMainArgsValue());
+   for (IfaceMethod fm : start) {
+      List<IfaceValue> argl = sargl;
+      if (fm.getName().contains(TESTER_NAME)) argl = targl;
+      IfaceCall ic = fait_control.findCall(null,fm,argl,ists,InlineType.NONE);
+      if (ic.addCall(argl,ists))
+         flow_queue.queueMethodStart(ic,null);
     }
 
    FlowProcessor fp = new FlowProcessor(nthread,fait_control,flow_queue);
-   fp.process();
+   fp.process(opt);
 }
 
 
-public void analyze(IfaceMethod im,int nth)
+public void analyze(IfaceMethod im,int nth,ReportOption reportopt)
 {
    Set<IfaceType> done = new HashSet<>();
    
@@ -140,7 +148,7 @@ public void analyze(IfaceMethod im,int nth)
    ic.addCall(args,null);
    flow_queue.queueMethodStart(ic,null);
    FlowProcessor fp = new FlowProcessor(nth,fait_control,flow_queue);
-   fp.process();
+   fp.process(reportopt);
    IfaceValue retv = ic.getResultValue();
    boolean arg0 = false;
    if (thisv != null && thisv == retv) arg0 = true;
@@ -213,10 +221,14 @@ public void initialize(IfaceType typ)
 /*                                                                              */
 /********************************************************************************/
 
-public void handleStateUpdate(IfaceUpdater upd)
+public void handleUpdate(IfaceUpdater upd)
 {
    flow_queue.handleUpdate(upd);
 }
+
+
+
+
 
 
 
@@ -237,6 +249,15 @@ public IfaceState findStateForLocation(IfaceCall c,IfaceProgramPoint pt)
    return flow_queue.findStateForLocation(c,pt);
 }
 
+public Collection<IfaceAuxReference> getAuxRefs(IfaceField fld)
+{
+   return flow_queue.getFieldRefs(fld);
+}
+
+public Collection<IfaceAuxReference> getAuxArrayRefs(IfaceValue arr)
+{
+   return flow_queue.getArrayRefs(arr);
+}
 
 }	// end of class FlowFactory
 

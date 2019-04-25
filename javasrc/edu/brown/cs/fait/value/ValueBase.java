@@ -137,6 +137,7 @@ protected IfaceEntitySet getEntitySet() 		{ return entity_set; }
 
 @Override public boolean isCategory2()			{ return false; }
 @Override public boolean isNative()			{ return false; }
+@Override public boolean isFixed()                      { return false; }
 @Override public boolean isAllNative()			{ return false; }
 @Override public boolean isMutable()                   
 {

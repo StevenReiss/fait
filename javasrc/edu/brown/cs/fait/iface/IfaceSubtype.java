@@ -57,12 +57,15 @@ IfaceSubtype.Value getDefaultUninitializedValue(IfaceType type);
 IfaceSubtype.Value getDefaultTypeValue(IfaceType type);                 // x.class
 
 IfaceSubtype.Value getDefaultValue(IfaceValue v);
+IfaceSubtype.Value adjustValueForBase(IfaceSubtype.Value v,IfaceBaseType base);
 
 IfaceSubtype.Value getComputedValue(IfaceValue rslt,FaitOperator op,IfaceValue lv,IfaceValue rv);
 IfaceSubtype.Value getComputedValue(FaitTypeOperator op,IfaceSubtype.Value oval);
 IfaceSubtype.Value getCallValue(IfaceCall cm,IfaceValue rslt,List<IfaceValue> args);
 IfaceSubtype.Value getImpliedValue(FaitOperator op,IfaceValue v0,IfaceValue v1,boolean branch);
 IfaceAnnotation getArgumentAnnotation(FaitOperator op,int opnd,IfaceValue [] vals);
+
+boolean isPredecessorRelevant(IfaceSubtype.Value pred,IfaceSubtype.Value cur);
 
 
 

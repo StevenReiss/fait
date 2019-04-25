@@ -217,6 +217,8 @@ EntityArray(IfaceControl ctrl,IfaceType cls,IfaceValue size)
       IfaceValue fv = upd.getNewValue(size_value);
       if (fv != null) size_value = fv;
     }
+   
+   if (getPrototype() != null) getPrototype().handleUpdates(upd);
 }
 
 

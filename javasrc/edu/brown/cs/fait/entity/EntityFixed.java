@@ -87,6 +87,12 @@ EntityFixed(IfaceType dt,boolean mutable,IfacePrototype ptyp)
 }
 
 
+@Override public boolean isFixed()
+{
+   return true;
+}
+
+
 @Override public boolean isMutable()
 {
    return is_mutable;
@@ -140,7 +146,8 @@ EntityFixed(IfaceType dt,boolean mutable,IfacePrototype ptyp)
 	 eb = factory.createMutableEntity(dt);
        }
       else {
-	 eb = factory.createFixedEntity(dt);
+         eb = factory.createMutableEntity(dt);
+	 // eb = factory.createFixedEntity(dt);
        }
     }
    else if (getDataType().isInterfaceType() || getDataType().isAbstract()) {

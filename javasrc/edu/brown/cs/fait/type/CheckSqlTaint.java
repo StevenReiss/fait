@@ -61,7 +61,7 @@ private static CheckSqlTaint our_type = new CheckSqlTaint();
 
 public enum TaintState implements IfaceSubtype.Value
 {
-   MAYBE_SQLTAINTED, SQLTAINTED, UNSQLTAINTED;
+   MAYBE_SQLTAINTED, SQLTAINTED, FULLY_SQLTAINTED, UNSQLTAINTED;
 
    @Override public IfaceSubtype getSubtype()   { return our_type; }
 }
@@ -94,14 +94,22 @@ private CheckSqlTaint()
    super("CheckSqlTaint");
    
    FaitError err = new FaitError(this,ErrorLevel.ERROR,
-         "Attempt to use tainted data in a non-tainted location");
+         "Attempt to use tainted SQL data in a non-tainted location");
    
    defineMerge(SQLTAINTED,UNSQLTAINTED,SQLTAINTED);
    defineMerge(MAYBE_SQLTAINTED,SQLTAINTED,SQLTAINTED);
    defineMerge(MAYBE_SQLTAINTED,UNSQLTAINTED,MAYBE_SQLTAINTED);
+   defineMerge(MAYBE_SQLTAINTED,UNSQLTAINTED,MAYBE_SQLTAINTED);
+   defineMerge(FULLY_SQLTAINTED,SQLTAINTED,FULLY_SQLTAINTED);
+   defineMerge(FULLY_SQLTAINTED,UNSQLTAINTED,FULLY_SQLTAINTED);
+   defineMerge(FULLY_SQLTAINTED,UNSQLTAINTED,FULLY_SQLTAINTED);
+   defineMerge(FULLY_SQLTAINTED,MAYBE_SQLTAINTED,FULLY_SQLTAINTED);
    
    defineRestrict(SQLTAINTED,UNSQLTAINTED,err);
    defineRestrict(SQLTAINTED,MAYBE_SQLTAINTED,SQLTAINTED);
+   defineRestrict(FULLY_SQLTAINTED,UNSQLTAINTED,err);
+   defineRestrict(FULLY_SQLTAINTED,MAYBE_SQLTAINTED,FULLY_SQLTAINTED);
+   defineRestrict(FULLY_SQLTAINTED,SQLTAINTED,FULLY_SQLTAINTED);
    defineRestrict(UNSQLTAINTED,SQLTAINTED,UNSQLTAINTED);
    defineRestrict(UNSQLTAINTED,MAYBE_SQLTAINTED,UNSQLTAINTED);
    defineRestrict(MAYBE_SQLTAINTED,UNSQLTAINTED,err);
@@ -122,9 +130,17 @@ private CheckSqlTaint()
 
 @Override public TaintState getDefaultValue(IfaceBaseType typ)
 {
-   if (typ.isPrimitiveType()) return UNSQLTAINTED;
+   if (typ != null && typ.isPrimitiveType()) return UNSQLTAINTED;
    
    return MAYBE_SQLTAINTED;
+}
+
+
+
+@Override public IfaceSubtype.Value adjustValueForBase(IfaceSubtype.Value v,IfaceBaseType b)
+{
+   if (b.isPrimitiveType()) return UNSQLTAINTED;
+   return v;
 }
 
 
@@ -164,6 +180,10 @@ private CheckSqlTaint()
          t1 = t2;
          s1 = s2;
          break;
+      case ADD :
+         if (s0 == UNSQLTAINTED && s1 == UNSQLTAINTED) return UNSQLTAINTED;
+         if (s0 == MAYBE_SQLTAINTED && s1 == MAYBE_SQLTAINTED) return MAYBE_SQLTAINTED;
+         return FULLY_SQLTAINTED;
       default :
          break;
     }
@@ -206,6 +226,16 @@ private CheckSqlTaint()
    return super.getComputedValue(op,oval);
 }
 
+
+@Override public boolean isPredecessorRelevant(IfaceSubtype.Value pred,IfaceSubtype.Value cur)
+{
+   if (pred == cur) return true;
+   if (cur == FULLY_SQLTAINTED) {
+      if (pred == SQLTAINTED || pred == FULLY_SQLTAINTED) return true;
+    }
+   
+   return super.isPredecessorRelevant(pred,cur);
+}
 
 
 }       // end of class CheckSqlTaint

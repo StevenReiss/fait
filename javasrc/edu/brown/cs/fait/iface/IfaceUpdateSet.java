@@ -35,12 +35,15 @@
 
 package edu.brown.cs.fait.iface;
 
-
+import java.util.Collection;
 
 public interface IfaceUpdateSet extends FaitConstants
 {
 
 boolean shouldUpdate(IfaceCall ic);
+boolean shouldUpdate(IfaceMethod im);
+Collection<IfaceField> getUpdatedFields(IfaceControl fc);
+Collection<IfaceType> getUpdatedTypes(IfaceControl fc);
 
 
 

@@ -80,6 +80,9 @@ List<IfaceAnnotation> getLocalAnnotations(int slot,IfaceProgramPoint pt);
 int getLocalSize();
 int getLocalOffset(Object symbol);
 Object getItemAtOffset(int offset,IfaceProgramPoint pt);
+Collection<Object> getExternalSymbols();
+void setExternalValue(Object sym,IfaceValue v);
+IfaceValue getExternalValue(Object sym);
 
 
 }	// end of interface IfaceMethod

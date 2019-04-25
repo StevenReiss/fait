@@ -55,7 +55,7 @@ private IfaceType               data_type;
 private IfaceLocation           source_location;
 private boolean                 is_mutable;
 private boolean                 is_native;
-
+   
 
 
 
@@ -96,6 +96,7 @@ EntityProto(IfaceType typ,IfacePrototype from,boolean mutable)
 @Override public IfaceType getDataType()                { return data_type; }
 @Override public IfacePrototype getPrototype()          { return proto_handler; }
 @Override public boolean isNative()                     { return is_native; }
+@Override public boolean isFixed()                      { return is_native | is_mutable; }
 
 
 

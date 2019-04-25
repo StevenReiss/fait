@@ -42,6 +42,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 
+
 class FlowQueue implements FlowConstants
 {
 
@@ -172,10 +173,6 @@ void queueMethodCall(IfaceCall c,IfaceState st,IfaceCall from)
 
    queueMethod(c,from);
 }
-
-
-
-
 
 
 
@@ -498,6 +495,50 @@ private boolean getInitializerDone(IfaceType dt)
 
 void handleUpdate(IfaceUpdater upd)
 {
+   field_control.handleFieldUpdates(upd);
+   array_control.handleUpdate(upd);
+   call_control.handleUpdate(upd);
+   call_queue.handleUpdate(upd);
+
+   for (Iterator<IfaceCall> it = call_map.keySet().iterator(); it.hasNext(); ) {
+      IfaceCall call = it.next();
+      if (upd.isCallRemoved(call)) it.remove();
+    }
+
+   for (Iterator<IfaceCall> it = static_inits.iterator(); it.hasNext(); ) {
+      IfaceCall call = it.next();
+      if (upd.isCallRemoved(call)) it.remove();
+    }
+   for (Iterator<Set<IfaceCall>> it1 = staticinit_queue.values().iterator(); it1.hasNext(); ) {
+      Set<IfaceCall> calls = it1.next();
+      for (Iterator<IfaceCall> it2 = calls.iterator(); it2.hasNext(); ) {
+	 IfaceCall call = it2.next();
+	 if (upd.isCallRemoved(call)) it2.remove();
+       }
+      if (calls.isEmpty()) it1.remove();
+    }
+   for (Iterator<Set<FlowLocation>> it1 = staticinit_redos.values().iterator(); it1.hasNext(); ) {
+      Set<FlowLocation> locs = it1.next();
+      for (Iterator<FlowLocation> it2 = locs.iterator(); it2.hasNext(); ) {
+	 FlowLocation loc = it2.next();
+	 if (upd.isLocationRemoved(loc)) it2.remove();
+       }
+      if (locs.isEmpty()) it1.remove();
+    }
+
+   for (IfaceType typ : upd.getTypesRemoved()) {
+      FaitLog.logD("Remove inited type " + typ);
+      IfaceBaseType btyp = typ.getJavaType();
+      if (staticinit_set.contains(btyp)) {
+	 staticinit_set.remove(btyp);
+	 staticinit_ran.remove(btyp);
+	 staticinit_started.remove(btyp);
+	 staticinit_queue.remove(btyp);
+	 staticinit_redos.remove(btyp);
+	 initialize(typ);
+       }
+    }
+
    synchronized (call_map) {
       for (FlowQueueInstance qi : call_map.values()) {
 	 qi.handleUpdate(upd);
@@ -532,9 +573,9 @@ IfaceValue handleArrayLength(FlowLocation loc,IfaceValue arr)
 
 
 
-void handleArraySet(FlowLocation loc,IfaceValue arr,IfaceValue val,IfaceValue idx)
+void handleArraySet(FlowLocation loc,IfaceValue arr,IfaceValue val,IfaceValue idx,int stackref)
 {
-   array_control.handleArraySet(loc,arr,val,idx);
+   array_control.handleArraySet(loc,arr,val,idx,stackref);
 }
 
 
@@ -604,6 +645,20 @@ IfaceValue handleFieldGet(IfaceField jf,FlowLocation loc,IfaceState st,
 
 
 
+Collection<IfaceAuxReference> getFieldRefs(IfaceField fld)
+{
+   return field_control.getSetterRefs(fld);
+}
+
+
+Collection<IfaceAuxReference> getArrayRefs(IfaceValue arr)
+{
+   return array_control.getSetterRefs(arr);
+}
+
+
+
+
 /********************************************************************************/
 /*										*/
 /*	Call management methods 						*/
@@ -612,7 +667,13 @@ IfaceValue handleFieldGet(IfaceField jf,FlowLocation loc,IfaceState st,
 
 CallReturn handleCall(FlowLocation loc,IfaceState st0,FlowQueueInstance wq,int varct)
 {
-   return call_control.handleCall(loc,st0,wq,varct);
+   return call_control.handleCall(loc,st0,wq,varct,null);
+}
+
+
+CallReturn handleCall(FlowLocation loc,IfaceState st0,FlowQueueInstance wq,int varct,IfaceMethod im)
+{
+   return call_control.handleCall(loc,st0,wq,varct,im);
 }
 
 
@@ -633,6 +694,7 @@ void handleReturn(IfaceCall c0,IfaceValue v0,IfaceState st,IfaceLocation loc)
 	 field_control.initializeField(ent.getKey(),ent.getValue());
        }
     }
+   // v0 = fixReturnValue(v0,bm);
 
    call_control.handleReturn(c0,v0,st.getSafetyStatus(),st,loc,0);
 }
@@ -666,6 +728,7 @@ IfaceValue castValue(IfaceType rtyp,IfaceValue v0,IfaceLocation loc)
    IfaceType t0 = v0.getDataType();
 
    if (t0.equals(rtyp)) return v0;
+   if (rtyp == null) return v0;
 
    if (rtyp.isPrimitiveType()) {
       if (t0.isPrimitiveType()) {
@@ -712,6 +775,40 @@ IfaceValue castValue(IfaceType rtyp,IfaceValue v0,IfaceLocation loc)
 
    return v1;
 }
+
+
+
+static IfaceValue fixReturnValue(IfaceValue rslt,IfaceMethod fm)
+{
+   if (rslt == null) return null;
+
+   List<IfaceAnnotation> ann = fm.getReturnAnnotations();
+   if (ann == null) return rslt;
+
+   IfaceType typ = rslt.getDataType();
+   IfaceType ntyp = typ.getAnnotatedType(ann);
+   if (typ == ntyp) return rslt;
+   rslt = rslt.changeType(ntyp);
+
+   return rslt;
+}
+
+
+
+static IfaceType getAnnotatedReturnType(IfaceMethod fm)
+{
+   IfaceType rtyp = fm.getReturnType();
+   if (rtyp == null || rtyp.isVoidType()) return rtyp;
+
+   List<IfaceAnnotation> ann = fm.getReturnAnnotations();
+   if (ann == null) return rtyp;
+
+   IfaceType ntyp = rtyp.getAnnotatedType(ann);
+
+   return ntyp;
+}
+
+
 
 
 
@@ -818,22 +915,22 @@ private static class SegmentedQueue {
 
    synchronized Map.Entry<IfaceCall,Set<IfaceProgramPoint>> getNextCall() {
       while (!allEmpty()) {
-         Map.Entry<IfaceCall,Set<IfaceProgramPoint>> rslt = null;
-         if (init_queue.size() > 0) {
-            rslt = getNext(init_queue);
-          }
-         else if (constructor_queue.size() > 0) {
-            rslt = getNext(constructor_queue);
-          }
-         else {
-            rslt = getNext(normal_queue);
-          }
-         if (rslt != null) return rslt;
-   
-         try {
-            wait(10000);
-          }
-         catch (InterruptedException e) { }
+	 Map.Entry<IfaceCall,Set<IfaceProgramPoint>> rslt = null;
+	 if (init_queue.size() > 0) {
+	    rslt = getNext(init_queue);
+	  }
+	 else if (constructor_queue.size() > 0) {
+	    rslt = getNext(constructor_queue);
+	  }
+	 else {
+	    rslt = getNext(normal_queue);
+	  }
+	 if (rslt != null) return rslt;
+
+	 try {
+	    wait(10000);
+	  }
+	 catch (InterruptedException e) { }
        }
       return null;
     }
@@ -860,6 +957,24 @@ private static class SegmentedQueue {
       return null;
     }
 
+   synchronized void handleUpdate(IfaceUpdater upd) {
+      for (Iterator<IfaceCall> it = init_queue.keySet().iterator(); it.hasNext(); ) {
+	 IfaceCall c = it.next();
+	 if (upd.isCallRemoved(c)) it.remove();
+       }
+      for (Iterator<IfaceCall> it = constructor_queue.keySet().iterator(); it.hasNext(); ) {
+	 IfaceCall c = it.next();
+	 if (upd.isCallRemoved(c)) it.remove();
+       }
+      for (Iterator<IfaceCall> it = normal_queue.keySet().iterator(); it.hasNext(); ) {
+	 IfaceCall c = it.next();
+	 if (upd.isCallRemoved(c)) it.remove();
+       }
+      for (Iterator<IfaceCall> it = active_calls.iterator(); it.hasNext(); ) {
+	 IfaceCall c = it.next();
+	 if (upd.isCallRemoved(c)) it.remove();
+       }
+    }
 }
 
 

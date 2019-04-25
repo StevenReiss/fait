@@ -35,15 +35,16 @@
 
 package edu.brown.cs.fait.iface;
 
-import java.util.List;
+import java.util.Collection;
 
 public interface IfaceBackFlow
 {
 
 IfaceValue getStartReference();
-List<IfaceValue> getAuxReferences();
-IfaceField getAuxField();
-IfaceValue getAuxArray();
+
+Collection<IfaceAuxReference> getAuxRefs();
+
+
 
 
 

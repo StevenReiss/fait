@@ -41,8 +41,6 @@ import edu.brown.cs.ivy.jcode.JcodeFactory;
 import edu.brown.cs.ivy.jcomp.JcompProject;
 import edu.brown.cs.ivy.jcomp.JcompTyper;
 
-import java.io.*;
-
 public interface IfaceProject extends FaitConstants
 {
 
@@ -50,7 +48,7 @@ JcompProject getJcompProject();
 JcodeFactory getJcodeFactory();
 JcompTyper getTyper();
 
-Collection<File> getDescriptionFiles();
+Collection<IfaceDescriptionFile> getDescriptionFiles();
 
 boolean isProjectClass(String cls);
 boolean isEditableClass(String cls);

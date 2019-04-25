@@ -88,7 +88,7 @@ public void flowTestOnsets()
    start_classes = new ArrayList<String>();
    start_classes.add("spr.onsets.OnsetMain");
 
-   fait_control.analyze(1,false);
+   fait_control.analyze(1,false,ReportOption.FULL_STATS);
 
 }
 
@@ -106,7 +106,7 @@ public void flowTestOnsetsThreaded()
 
    FaitLog.setLogLevel(FaitLog.LogLevel.DEBUG);
 
-   fait_control.analyze(4,false);
+   fait_control.analyze(4,false,ReportOption.FULL_STATS);
 
    showResults();
 }
@@ -127,7 +127,7 @@ public void flowTestSolar()
    FaitLog.setLogLevel(FaitLog.LogLevel.DEBUG);
    FaitLog.setLogFile("/vol/spr/faittestsolar.log");
 
-   fait_control.analyze(4,false);
+   fait_control.analyze(4,false,ReportOption.FULL_STATS);
 
    showResults();
 }
@@ -175,7 +175,7 @@ public void flowTestUpod()
    start_classes = new ArrayList<String>();
    start_classes.add("edu.brown.cs.upod.smartsign.SmartSignMain");
    
-   fait_control.analyze(1,false);
+   fait_control.analyze(1,false,ReportOption.FULL_STATS);
    
    showResults();
 }
@@ -203,7 +203,7 @@ public void flowTestS6()
    FaitLog.setLogLevel(FaitLog.LogLevel.DEBUG);
    FaitLog.setLogFile("/vol/spr/faittests6.log");
    
-   fait_control.analyze(1,false);
+   fait_control.analyze(1,false,ReportOption.FULL_STATS);
 // fait_control.analyze(4);
 
    showResults();

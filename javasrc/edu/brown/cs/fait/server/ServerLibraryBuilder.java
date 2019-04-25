@@ -354,7 +354,7 @@ private void process()
       IfaceControl control = IfaceControl.Factory.createControl(fait_project);
       IfaceMethod im = control.findMethod(cnts[0],cnts[1],cnts[2]);
       if (!shouldIgnore(control,im)) {
-         control.analyze(im,num_threads);
+         control.analyze(im,num_threads,ReportOption.NONE);
          for (IfaceCall cc : control.getAllCalls(im)) {
             outputCall(cc);
             System.err.println("RESULT: " + cc);

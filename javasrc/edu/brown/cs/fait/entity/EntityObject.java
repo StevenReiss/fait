@@ -166,6 +166,8 @@ protected void copyFields(EntityObject toobj)
 
 @Override public IfaceValue getArrayValue(IfaceValue idx,IfaceControl ctl)
 {
+   if (array_value != null) return array_value;
+   if (proto_handler != null) return proto_handler.getArrayContents(idx);
    return array_value;
 }
 

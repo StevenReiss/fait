@@ -12,6 +12,7 @@
    <PACKAGE NAME="sun.jkernel." />
    <PACKAGE NAME='sun.nio.' />
    <PACKAGE NAME='java.io.' />
+   <PACKAGE NAME='java.util.zip.' />
    <PACKAGE NAME='java.net.' />
    <PACKAGE NAME='java.nio.charset' />
    <PACKAGE NAME='javax.crypto' />
@@ -30,8 +31,8 @@
    <CLASS NAME="java.lang.reflect.Field" />
    <CLASS NAME='java.lang.ClassLoader' />
    <CLASS NAME='java.lang.Class' />
-   <CLASS NAME='java.lang.StringBuilder' />
-   <CLASS NAME='java.lang.StringBuffer' />
+   <!-- <CLASS NAME='java.lang.StringBuilder' /> -->
+   <!-- <CLASS NAME='java.lang.StringBuffer' /> -->
    <CLASS NAME='java.lang.AbstractStringBuilder' />
    <CLASS NAME="java.lang.Integer" />
    <CLASS NAME="java.lang.Float" />
@@ -42,7 +43,7 @@
    <CLASS NAME='java.lang.ProcessEnvironment' />
    <CLASS NAME='java.lang.Character' />
    <CLASS NAME="java.lang.reflect.Method" />
-   <CLASS NAME='java.lang.ThreadLocal' />
+   <!-- <CLASS NAME='java.lang.ThreadLocal' />  -->
    <CLASS NAME="java.util.Locale" />
    <CLASS NAME="java.util.EnumSet" />
    <CLASS NAME='java.util.ResourceBundle' />
@@ -79,12 +80,6 @@
    <METHOD NAME="java.lang.Class.desiredAssertionStatus" />
    <METHOD NAME="java.lang.Class.getEnumConstants" RETURN="java.lang.Enum[]" MUTABLE="true" />
 
-   <METHOD NAME='java.lang.StringBuilder.toString' />
-   <METHOD NAME="java.lang.StringBuilder.&lt;init&gt;" />
-   <METHOD NAME="java.lang.StringBuilder.append" RETURN="0" />
-   <METHOD NAME="java.lang.StringBuffer.&lt;init&gt;" />
-   <METHOD NAME="java.lang.StringBuffer.append" RETURN="0" />
-   <METHOD NAME='java.lang.StringBuffer.toString' />
    <METHOD NAME="java.lang.System.getSecurityManager"
 		RETURN="java.lang.SecurityManager" MUTABLE="true" NULL="true" />
    <METHOD NAME="java.lang.Thread.start" REPLACE="run" ASYNC="true" RETURN="void" />
@@ -95,6 +90,8 @@
    <METHOD NAME="java.lang.String.valueOf" />
    <METHOD NAME="java.lang.Object.equals" NOVIRTUAL='true' />
    <METHOD NAME="java.lang.Object.toString" NOVIRTUAL='true' />
+   <METHOD NAME='java.lang.StringBuffer.toString' SCAN='true' />
+   <METHOD NAME='java.lang.StringBuilder.toString' SCAN='true' />
    <METHOD NAME="java.lang.Enum.valueOf" />
    <METHOD NAME="java.lang.Exception.getMessage" />
    <METHOD NAME="java.lang.Runtime.execInternal" RETURN="java.lang.UNIXProcess" />
@@ -377,5 +374,7 @@
    <ALLOC CLASS='java.lang.Throwable' INHERIT='true' />
 
    <CLASS NAME='java.time.format.DateTimeFormatter' />
+
+   <PACKAGE NAME='java.lang.management' />
 
 </FAIT>

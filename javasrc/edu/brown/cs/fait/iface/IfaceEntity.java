@@ -62,6 +62,7 @@ boolean isUsedInLock();
 UserEntity getUserEntity();
 
 boolean isNative();
+boolean isFixed();
 
 boolean isMutable();
 

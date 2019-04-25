@@ -42,10 +42,13 @@ import java.util.Map;
 import java.util.Set;
 
 import edu.brown.cs.fait.iface.FaitConstants;
+import edu.brown.cs.fait.iface.IfaceBaseType;
 import edu.brown.cs.fait.iface.IfaceCall;
 import edu.brown.cs.fait.iface.IfaceEntity;
 import edu.brown.cs.fait.iface.IfaceEntitySet;
+import edu.brown.cs.fait.iface.IfaceLocation;
 import edu.brown.cs.fait.iface.IfaceProgramPoint;
+import edu.brown.cs.fait.iface.IfaceType;
 import edu.brown.cs.fait.iface.IfaceUpdateSet;
 import edu.brown.cs.fait.iface.IfaceUpdater;
 import edu.brown.cs.fait.iface.IfaceValue;
@@ -68,6 +71,8 @@ private Set<IfaceEntity>        remove_entities;
 private Map<IfaceEntitySet,IfaceEntitySet> entityset_map;
 private Map<IfaceValue,IfaceValue> value_map;
 private Set<QueueItem>          queued_calls;
+private Set<IfaceType>          updated_types;
+private Set<IfaceBaseType>      updated_basetypes;
  
 
 
@@ -88,6 +93,8 @@ ControlUpdater(ControlMain cm,IfaceUpdateSet upd)
    entityset_map = new HashMap<>();
    value_map = new HashMap<>();
    queued_calls = new HashSet<>();
+   updated_types = new HashSet<>();
+   updated_basetypes = new HashSet<>();
 }
 
 
@@ -102,12 +109,11 @@ void processUpdate()
 {
    // get initial set of updated calls
    Set<IfaceCall> upds = new HashSet<>();
-   for (IfaceCall ic : fait_control.getAllCalls()) {
+   for (IfaceCall ic : fait_control.getAllCalls()) { 
       if (update_set.shouldUpdate(ic)) {
          upds.add(ic);
        }
     }
-   if (upds.isEmpty()) return;
    
    fait_control.removeCalls(upds);
    
@@ -121,6 +127,14 @@ void processUpdate()
        }
       if (new_updates == null) break;
       upds = new_updates;
+    } 
+      
+   Collection<IfaceType> utyps = update_set.getUpdatedTypes(fait_control);
+   if (utyps != null) {
+      for (IfaceType typ : utyps) {
+         updated_types.add(typ);
+         updated_basetypes.add(typ.getJavaType());
+       }
     }
    
    // next we have to update entity sets and remove the entities
@@ -130,16 +144,25 @@ void processUpdate()
    fait_control.updateValues(this);
    
    // then update states 
-   fait_control.updateQueuedStates(this);
+   fait_control.updateStates(this);
+   fait_control.updateFlow(this);
    
    // add queued calls to work queue
    for (QueueItem qi : queued_calls) {
-      qi.addCall(fait_control);
+      qi.addCall(fait_control,this);
     }
    
    done_updates = null;
 }
 
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Update access methods                                                   */
+/*                                                                              */
+/********************************************************************************/
 
 @Override public boolean shouldUpdate(IfaceCall ic)
 {
@@ -157,6 +180,44 @@ void processUpdate()
    if (new_updates == null) new_updates = new HashSet<>();
    new_updates.add(ic);
 }
+
+
+
+@Override public boolean isLocationRemoved(IfaceLocation loc)
+{
+   return done_updates.contains(loc.getCall());
+}
+
+
+@Override public boolean isCallRemoved(IfaceCall ic)
+{
+   if (done_updates.contains(ic)) return true;
+   
+   return false;
+}
+
+
+@Override public boolean isTypeRemoved(IfaceType it)
+{
+   if (updated_types.contains(it)) return true;
+   
+   return false;
+}
+
+
+@Override public boolean isTypeRemoved(IfaceBaseType it)
+{
+   if (updated_basetypes.contains(it)) return true;
+   
+   return false;
+}
+
+
+@Override public Collection<IfaceType> getTypesRemoved()
+{
+   return updated_types;
+}
+
 
 
 /********************************************************************************/
@@ -181,8 +242,10 @@ private static class QueueItem {
       from_where = pt;
     }
    
-   void addCall(ControlMain cm) {
-      cm.queueLocation(for_call,from_where);
+   void addCall(ControlMain cm,ControlUpdater upd) {
+      if (!upd.isCallRemoved(for_call)) {
+         cm.queueLocation(for_call,from_where);
+       }
     }
    
    @Override public int hashCode() {

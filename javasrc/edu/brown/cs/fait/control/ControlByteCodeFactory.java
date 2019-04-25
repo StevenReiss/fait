@@ -475,6 +475,13 @@ private class InsMethod implements IfaceMethod {
       if (lcl == null) return null;
       return lcl.getName();
     }
+   @Override public Collection<Object> getExternalSymbols() {
+      return null;
+    }
+   
+   @Override public void setExternalValue(Object o,IfaceValue v)  { }
+   @Override public IfaceValue getExternalValue(Object o)         { return null; }
+   
    
    @Override public IfaceType getLocalType(int slot,IfaceProgramPoint pt) {
       JcodeLocalVariable jlv = for_method.getLocalVariable(slot,pt.getInstruction());
@@ -738,6 +745,29 @@ private class InsPoint implements IfaceProgramPoint {
 
    @Override public int getLineNumber() {
       return for_instruction.getLineNumber();
+    }
+   
+   @Override public String getSourceFile() {
+      JcodeMethod jm = for_instruction.getMethod();
+      
+      if (jm != null) return jm.getSourceFile();
+      return null;
+    }
+   
+   @Override public int getInstanceNumber() {
+      IfaceMethod im = getMethod();
+      IfaceMethod mthd = getReferencedMethod();
+      IfaceProgramPoint pt0 = im.getStart();
+      int ctr = 0;
+      while (pt0 != null) {
+         IfaceMethod m1 = pt0.getReferencedMethod();
+         if (m1 == mthd) {
+            ++ctr;
+            if (this == pt0) return ctr;
+          }
+         pt0 = pt0.getNext();
+       }
+      return -1;
     }
    
    @Override public boolean equals(Object o) {

@@ -1,0 +1,145 @@
+<project name='fait.faitmock' default='compile'>
+
+   <property file='../../../../../../build.properties' />
+   <property name='PRO' value='/research' />
+   <available file="${PRO}/ivy" type="dir" property="ivy.present" />
+   <property name='IVYBIN' value='${PRO}/ivy/java' />
+   <property name='FAIT' value='/research/people/spr/fait' />
+
+   <target name='init'>
+      <path id='fait.classpath'>
+	 <pathelement location='${FAIT}/java' />
+	 <pathelement location='${IVYBIN}' />
+	 <pathelement location='${PRO}/bubbles/lib/junit.jar' />
+	 <fileset dir='${FAIT}/lib/' includes='asm*.jar' />
+	 <fileset dir='${FAIT}/lib/' includes='velocity*.jar' />
+      </path>
+      <path id='test.classpath'>
+	 <pathelement location='${FAIT}/java' />
+	 <pathelement location='${IVYBIN}' />
+	 <pathelement location='${PRO}/bubbles/lib/junit.jar' />
+	 <fileset dir='${FAIT}/lib/' includes='asm*.jar' />
+	 <fileset dir='${FAIT}/lib/' includes='velocity*.jar' />
+      </path>
+   </target>
+
+   <target name='compile' depends='init'>
+      <javac srcdir='.' destdir='${FAIT}/java' debug='on' deprecation='on'
+		includeantruntime='false' excludes='scan/**' >
+	 <classpath refid='fait.classpath' />
+	 <compilerarg value='-Xlint:all' />
+      </javac>
+   </target>
+
+   <target name='clean'>
+      <delete dir='${FAIT}/java/edu/brown/cs/fait/query' />
+   </target>
+
+   <target name='test' depends='compile'>
+      <java classname='edu.brown.cs.fait.faitmock.FaitMockCreator'>
+	 <classpath refid='test.classpath' />
+	 <arg value='-o' />
+	 <arg value='/research/people/spr/fait/faitmock/src/mocktest.out' />
+	 <arg value="-d" />
+	 <arg value='/research/people/spr/pebble/pebble-web' />
+	 <arg value="-d" />
+	 <arg value='/research/people/spr/pebble/pebble-core' />
+      </java>
+   </target>
+
+   <target name='testjunit' depends='compile'>
+      <junit fork='true' printsummary='on'>
+	 <classpath refid='test.classpath' />
+	 <assertions><enable/></assertions>
+	 <formatter type='plain' />
+	 <test name='edu.brown.cs.fait.faitmock.FaitMockTest' />
+      </junit>
+   </target>
+
+   <target name='securibench' depends='compile' >
+      <java classname='edu.brown.cs.fait.faitmock.FaitMockCreator'>
+	 <classpath refid='test.classpath' />
+	 <arg value='-p' /><arg value='se.bluefish.blueblog' />
+	 <arg value='-c' /><arg value='FaitInvokeServlets' />
+	 <arg value='-u' /><arg value='se.bluefish.blueblog.' />
+	 <arg value='-o' />
+	 <arg value='/research/people/spr/blueblog/src/se/bluefish/blueblog/FaitInvokeServlets.java' />
+	 <arg value="-d" />
+	 <arg value='/research/people/spr/blueblog' />
+      </java>
+      <java classname='edu.brown.cs.fait.faitmock.FaitMockCreator'>
+	 <classpath refid='test.classpath' />
+	 <arg value='-p' /><arg value='net.sf.jboard.test.mock' />
+	 <arg value='-c' /><arg value='FaitInvokeServlets' />
+	 <arg value='-u' /><arg value='net.sf.jboard.' />
+	 <arg value='-o' />
+	 <arg value='/research/people/spr/jboard/jboard/WEB-INF/src/java/net/sf/jboard/test/mock/FaitInvokeServlets.java' />
+	 <arg value="-d" />
+	 <arg value='/research/people/spr/jboard' />
+      </java>
+      <java classname='edu.brown.cs.fait.faitmock.FaitMockCreator'>
+	 <classpath refid='test.classpath' />
+	 <arg value='-p' /><arg value='pebble.mock' />
+	 <arg value='-c' /><arg value='FaitInvokeServlets' />
+	 <arg value='-u' /><arg value='pebble.' />
+	 <arg value='-o' />
+	 <arg value='/research/people/spr/pebble/pebble-core/test/pebble/mock/FaitInvokeServlets.java' />
+	 <arg value="-d" />
+	 <arg value='/research/people/spr/pebble' />
+      </java>
+      <java classname='edu.brown.cs.fait.faitmock.FaitMockCreator'>
+	 <classpath refid='test.classpath' />
+	 <arg value='-p' /><arg value='net.eyde.personalblog.test' />
+	 <arg value='-c' /><arg value='FaitInvokeServlets' />
+	 <arg value='-u' /><arg value='net.eyde.personalblog.' />
+	 <arg value='-o' />
+	 <arg value='/research/people/spr/personalblog/source/net/eyde/personalblog/test/FaitInvokeServlets.java' />
+	 <arg value="-d" />
+	 <arg value='/research/people/spr/personalblog' />
+      </java>
+      <java classname='edu.brown.cs.fait.faitmock.FaitMockCreator'>
+	 <classpath refid='test.classpath' />
+	 <arg value='-p' /><arg value='org.roller.mock' />
+	 <arg value='-c' /><arg value='FaitInvokeServlets' />
+	 <arg value='-u' /><arg value='org.roller.' />
+	 <arg value='-o' />
+	 <arg value='/research/people/spr/roller/src/org/roller/mock/FaitInvokeServlets.java' />
+	 <arg value="-d" />
+	 <arg value='/research/people/spr/roller' />
+      </java>
+      <java classname='edu.brown.cs.fait.faitmock.FaitMockCreator'>
+	 <classpath refid='test.classpath' />
+	 <arg value='-p' /><arg value='org.snipsnap.mock' />
+	 <arg value='-c' /><arg value='FaitInvokeServlets' />
+	 <arg value='-u' /><arg value='org.snipsnap.' />
+	 <arg value='-o' />
+	 <arg value='/research/people/spr/snipsnap/snipsnap/src/org/snipsnap/mock/FaitInvokeServlets.java' />
+	 <arg value="-d" />
+	 <arg value='/research/people/spr/snipsnap' />
+      </java>
+      <java classname='edu.brown.cs.fait.faitmock.FaitMockCreator'>
+	 <classpath refid='test.classpath' />
+	 <arg value='-p' /><arg value='webgoat.mock' />
+	 <arg value='-c' /><arg value='FaitInvokeServlets' />
+	 <arg value='-u' /><arg value='webgoat.' />
+	 <arg value='-o' />
+	 <arg value='/research/people/spr/webgoatbench/src/webgoat/mock/FaitInvokeServlets.java' />
+	 <arg value="-d" />
+	 <arg value='/research/people/spr/webgoatbench' />
+      </java>
+   </target>
+
+   <target name='try' depends='compile'>
+      <java classname='edu.brown.cs.fait.faitmock.FaitMockCreator'>
+	 <classpath refid='test.classpath' />
+	 <arg value='-p' /><arg value='net.eyde.personalblog.test' />
+	 <arg value='-c' /><arg value='FaitInvokeServlets' />
+	 <arg value='-u' /><arg value='net.eyde.personalblog.' />
+	 <arg value='-o' />
+	 <arg value='/research/people/spr/personalblog/source/net/eyde/personalblog/test/FaitInvokeServlets.java' />
+	 <arg value="-d" />
+	 <arg value='/research/people/spr/personalblog' />
+      </java>
+   </target>
+
+</project>

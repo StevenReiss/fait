@@ -35,7 +35,8 @@
 
 package edu.brown.cs.fait.control;
 
-import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -139,6 +140,7 @@ import org.eclipse.jdt.core.dom.WildcardType;
 import edu.brown.cs.fait.iface.FaitConstants;
 import edu.brown.cs.fait.iface.FaitLog;
 import edu.brown.cs.fait.iface.IfaceAstReference;
+import edu.brown.cs.fait.iface.IfaceAuxReference;
 import edu.brown.cs.fait.iface.IfaceBackFlow;
 import edu.brown.cs.fait.iface.IfaceControl;
 import edu.brown.cs.fait.iface.IfaceField;
@@ -171,9 +173,7 @@ private IfaceValue      end_ref;
 private IfaceProgramPoint execute_point;
 
 private IfaceValue      start_ref;
-private List<IfaceValue> aux_refs;
-private IfaceField      aux_field;
-private IfaceValue      aux_array;
+private Collection<IfaceAuxReference> aux_refs;
 
 
 
@@ -192,9 +192,6 @@ ControlBackFlow(IfaceControl fc,IfaceState endstate,IfaceState priorstate,IfaceV
    execute_point = prior_state.getLocation().getProgramPoint();
    
    start_ref = null;
-   aux_refs = null;
-   aux_field = null;
-   aux_array = null;
 }
 
 
@@ -208,11 +205,11 @@ ControlBackFlow(IfaceControl fc,IfaceState endstate,IfaceState priorstate,IfaceV
 
 @Override public IfaceValue getStartReference()         { return start_ref; }
 
-@Override public List<IfaceValue> getAuxReferences()    { return aux_refs; }
+@Override public Collection<IfaceAuxReference> getAuxRefs()   { return aux_refs; }
 
-@Override public IfaceField getAuxField()               { return aux_field; }
 
-@Override public IfaceValue getAuxArray()               { return aux_array; }
+
+
 
 
 
@@ -524,7 +521,7 @@ void computeByteCodeBackFlow()
 	    start_ref = null;
 	  }
 	 else if (reffld != null) {
-            aux_field = reffld;
+            addAuxRefs(reffld);
             start_ref = null;
           }
 	 else start_ref = adjustRef(end_ref,act,1);
@@ -548,7 +545,7 @@ void computeByteCodeBackFlow()
       case BALOAD : case CALOAD : case DALOAD : case FALOAD :
       case IALOAD : case LALOAD : case SALOAD :
 	 if (stk == 0) {
-            aux_array = prior_state.getStack(1);
+            addAuxArrayRefs(prior_state.getStack(1));
 	    start_ref = null;
 	  }
 	 else start_ref = adjustRef(end_ref,2,1);
@@ -567,7 +564,7 @@ void computeByteCodeBackFlow()
 	 break;
       case ARRAYLENGTH :
          if (stk == 0) {
-            aux_array = prior_state.getStack(0);
+            addAuxArrayRefs(prior_state.getStack(0));
           }
 	 start_ref = adjustRef(end_ref,1,1);
 	 break;
@@ -575,13 +572,13 @@ void computeByteCodeBackFlow()
 /* FIELD INSTRUCTIONS */
       case GETFIELD :
 	 if (stk == 0) {
+            IfaceField fld = execute_point.getReferencedField();
             IfaceValue vobj = prior_state.getStack(0);
-            if (prior_state.getFieldValue(aux_field) != null && vobj == prior_state.getLocal(0)) {
-               start_ref = fait_control.findRefValue(settype,prior_state.getStack(0),
-                     execute_point.getReferencedField());
+            if (prior_state.getFieldValue(fld) != null && vobj == prior_state.getLocal(0)) {
+               start_ref = fait_control.findRefValue(settype,prior_state.getStack(0),fld);
              }
             else {
-               aux_field = execute_point.getReferencedField();
+               addAuxRefs(fld);
                start_ref = null;
              }
 	  }
@@ -589,7 +586,7 @@ void computeByteCodeBackFlow()
 	 break;
       case GETSTATIC :
 	 if (stk == 0) {
-            aux_field = execute_point.getReferencedField();
+            addAuxRefs(execute_point.getReferencedField());
             start_ref = null;
 	  }
 	 else start_ref = adjustRef(end_ref,0,1);
@@ -640,7 +637,7 @@ private class BackVisitor extends ASTVisitor {
    @Override public boolean visit(ArrayAccess v) {
       if (after_node == null || after_node == v.getArray()) start_ref = end_ref;
       else if (end_ref.getRefStack() == 0) {
-         aux_array = prior_state.getStack(1);
+         addAuxArrayRefs(prior_state.getStack(1));
          start_ref = null;
        }
       else start_ref = adjustRef(end_ref,2,1);
@@ -720,13 +717,16 @@ private class BackVisitor extends ASTVisitor {
     }
    
    @Override public boolean visit(ClassInstanceCreation v) {
+      List<?> args = v.arguments();
       JcompType rty = JcompAst.getJavaType(v.getType());
-      if (after_node == null) {
+      if (after_node == null && args.size() == 0) {
+         pushOne();
+       }
+      else if (after_node == null) {
          int ct = (rty.needsOuterClass() ? 3 : 2);
          start_ref = adjustRef(end_ref,ct,0);
        }
       else {
-         List<?> args = v.arguments();
          int idx = args.indexOf(after_node)+1;
          if (idx < args.size()) noChange();
          else start_ref = adjustRef(end_ref,args.size()+1,0);
@@ -737,19 +737,10 @@ private class BackVisitor extends ASTVisitor {
    @Override public boolean visit(ConditionalExpression v) {
       if (after_node == null) noChange();
       else if (after_node == v.getExpression()) {
-         start_ref = adjustRef(end_ref,1,1);
-       }
-      else if (after_node == v.getThenExpression()) {
-         if (end_state.getStack(0) instanceof IfaceStackMarker) {
-            start_ref = adjustRef(end_ref,1,1);
-          }
-         else popOne();         
-       }
-      else if (after_node == v.getElseExpression()) {
          popOne();
-         if (end_ref.getRefStack() == 0) {
-            addAuxRef(1);
-          }
+       }
+      else {
+         noChange();
        }
       return false;
     }
@@ -834,7 +825,7 @@ private class BackVisitor extends ASTVisitor {
           }
          else {
             start_ref = null;
-            aux_field = fld;
+            addAuxRefs(fld);
           }
        }
       else start_ref = adjustRef(end_ref,1,1);
@@ -976,7 +967,10 @@ private class BackVisitor extends ASTVisitor {
    
    @Override public boolean visit(ReturnStatement s) {
       if (after_node == null && s.getExpression() != null) start_ref = end_ref;
-      else start_ref = adjustRef(end_ref,1,0);
+      else if (s.getExpression() != null && end_ref.getRefStack() == 0) {
+        noChange();
+       }
+      else popOne();
       return false;
     }
    
@@ -1186,6 +1180,8 @@ private class BackVisitor extends ASTVisitor {
    
 }       // end of inner class BackVisitor
 
+
+
 /********************************************************************************/
 /*                                                                              */
 /*      Common helper methods                                                   */
@@ -1236,7 +1232,12 @@ private boolean popOne()
 private void addAuxRef(int stk)
 {
    IfaceValue val = prior_state.getStack(stk);
+   if (val == null) {
+      System.err.println("CHECK HERE");
+      return;
+    }
    IfaceValue ref = fait_control.findRefStackValue(val.getDataType(),stk);
+   
    addAuxRef(ref);
 }
 
@@ -1244,7 +1245,13 @@ private void addAuxRef(int stk)
 private void addAuxRef(IfaceValue ref)
 {
    if (ref == null || !ref.isReference()) return;
-   if (aux_refs == null) aux_refs = new ArrayList<>();
+   addAuxRef(fait_control.getAuxReference(prior_state.getLocation(),ref));
+}
+
+
+private void addAuxRef(IfaceAuxReference ref)
+{
+   if (aux_refs == null) aux_refs = new HashSet<>();
    aux_refs.add(ref);
 }
 
@@ -1256,6 +1263,25 @@ private void addAuxVarRef(int slot)
    IfaceValue ref = fait_control.findRefValue(val.getDataType(),slot);
    addAuxRef(ref);
 }
+
+
+private void addAuxRefs(IfaceField fld)
+{
+   if (fld == null) return;
+   Collection<IfaceAuxReference> refs = fait_control.getAuxRefs(fld);
+   if (refs == null) return;
+   for (IfaceAuxReference r : refs) addAuxRef(r);
+}
+
+
+private void addAuxArrayRefs(IfaceValue arr)
+{
+   if (arr == null) return;
+   Collection<IfaceAuxReference> refs = fait_control.getAuxArrayRefs(arr);
+   if (refs == null) return;
+   for (IfaceAuxReference r : refs) addAuxRef(r);
+}
+
 
 
 

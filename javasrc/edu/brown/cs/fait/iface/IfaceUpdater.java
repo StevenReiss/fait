@@ -53,6 +53,13 @@ void addToValueMap(IfaceValue oval,IfaceValue nval);
 boolean shouldUpdate(IfaceCall ic);
 void removeCall(IfaceCall ic);
 
+boolean isLocationRemoved(IfaceLocation loc);
+boolean isTypeRemoved(IfaceType typ);
+boolean isTypeRemoved(IfaceBaseType typ);
+boolean isCallRemoved(IfaceCall ic);
+
+Collection<IfaceType> getTypesRemoved();
+
 void addToWorkQueue(IfaceCall ic,IfaceProgramPoint pt);
    
 }	// end of interface IfaceUpdater

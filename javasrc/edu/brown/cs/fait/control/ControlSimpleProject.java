@@ -35,12 +35,12 @@
 
 package edu.brown.cs.fait.control;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 import edu.brown.cs.fait.iface.FaitConstants;
+import edu.brown.cs.fait.iface.IfaceDescriptionFile;
 import edu.brown.cs.fait.iface.IfaceProject;
 import edu.brown.cs.ivy.jcode.JcodeFactory;
 import edu.brown.cs.ivy.jcomp.JcompControl;
@@ -98,7 +98,7 @@ public ControlSimpleProject(String cp,String pfx)
 @Override public JcompProject getJcompProject()         { return jcomp_project; }
 
 
-@Override public Collection<File> getDescriptionFiles() { return null; }
+@Override public Collection<IfaceDescriptionFile> getDescriptionFiles() { return null; }
 
 
 

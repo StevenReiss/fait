@@ -38,8 +38,10 @@ package edu.brown.cs.fait.server;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -70,6 +72,10 @@ public class ServerTest implements ServerConstants, MintConstants
 private static MintControl	mint_control;
 private Map<String,Element> done_map;
 private static Random random_gen = new Random();
+
+private static int MAX_UPDATE = 50;
+
+private static int default_threads = 1;
 
 
 
@@ -114,6 +120,15 @@ public synchronized void serverTestNimUpdate()
 
 
 
+@Test
+public synchronized void serverTestNimUpdateTimed()
+{
+   default_threads = 4;
+   runServerTest("nim","nim",0,"*ALL*",true);
+}
+
+
+
 
 /********************************************************************************/
 /*										*/
@@ -125,6 +140,15 @@ public synchronized void serverTestNimUpdate()
 public synchronized void serverTestUpod()
 {
    runServerTest("upod","upod",0,null);
+}
+
+
+
+@Test
+public synchronized void serverTestUpodTimed()
+{
+   runServerTest("upod","upod",0,"*ALL*",true);
+
 }
 
 
@@ -159,6 +183,24 @@ public synchronized void serverTestS6()
 
 /********************************************************************************/
 /*										*/
+/*	Fait test								*/
+/*										*/
+/********************************************************************************/
+
+@Test
+public synchronized void serverTestFait()
+{
+   runServerTest("fait","fait",0,null);
+}
+
+
+
+
+
+
+
+/********************************************************************************/
+/*										*/
 /*	Bubbles tes								*/
 /*										*/
 /********************************************************************************/
@@ -166,7 +208,7 @@ public synchronized void serverTestS6()
 @Test
 public synchronized void serverTestBubbles()
 {
-   runServerTest("bubblesx","bubbles",0,null);
+   runServerTest("bubblesx","bubbles",0,null,true);
 }
 
 
@@ -180,9 +222,31 @@ public synchronized void serverTestBubbles()
 @Test
 public synchronized void serverTestJavaSecurity()
 {
-   runServerTest("javasecurity","WebServer",11,null);
+   runServerTest("javasecurity","WebServer",50,null);
 }
 
+
+@Test
+public synchronized void serverTestJavaSecurityUpdateTimed()
+{
+   default_threads = 4;
+   runServerTest("javasecurity","WebServer",50,"*ALL*",true);
+}
+
+
+
+@Test
+public synchronized void serverTestJavaSecurityUpdate()
+{
+   runServerTest("javasecurity","WebServer",50,"*ALL*",false);
+}
+
+
+@Test
+public synchronized void serverTestTimedJavaSecurity()
+{
+   runServerTest("javasecurity","WebServer",11,null,true);
+}
 
 
 
@@ -199,6 +263,181 @@ public synchronized void serverTestWebGoat()
 }
 
 
+/********************************************************************************/
+/*										*/
+/*	SecuriBench test							*/
+/*										*/
+/********************************************************************************/
+
+@Test
+public synchronized void serverTestJboard()
+{
+   runServerTest("jboard","jboard",1000,null);
+}
+
+
+@Test
+public synchronized void serverTestBlueBlog()
+{
+   runServerTest("blueblog","blueblog",100,null);
+}
+
+
+@Test
+public synchronized void serverTestPebble()
+{
+   runServerTest("pebble","pebble",1000,null);
+}
+
+
+
+@Test
+public synchronized void serverTestPersonalBlog()
+{
+   runServerTest("personalblog","personalblog",1000,null);
+}
+
+
+@Test
+public synchronized void serverTestRoller()
+{
+   runServerTest("roller","roller",1000,null);
+}
+
+
+
+@Test
+public synchronized void serverTestSnipSnap()
+{
+   runServerTest("snipsnap","snipsnap",1000,null);
+}
+
+
+
+@Test
+public synchronized void serverTestWebgoatBench()
+{
+   runServerTest("webgoatbench","webgoatbench",1000,null);
+}
+
+
+
+
+/********************************************************************************/
+/*										*/
+/*	SecuriBench timed tests 						*/
+/*										*/
+/********************************************************************************/
+
+@Test
+public synchronized void serverTestTimedJboard()
+{
+   runServerTest("jboard","jboard",1000,null,true);
+}
+
+
+@Test
+public synchronized void serverTestTimedBlueBlog()
+{
+   runServerTest("blueblog","blueblog",100,null,true);
+}
+
+
+@Test
+public synchronized void serverTestTimedPebble()
+{
+   runServerTest("pebble","pebble",1000,null,true);
+}
+
+
+
+@Test
+public synchronized void serverTestTimedPersonalBlog()
+{
+   runServerTest("personalblog","personalblog",1000,null,true);
+}
+
+
+@Test
+public synchronized void serverTestTimedRoller()
+{
+   runServerTest("roller","roller",1000,null,true);
+}
+
+
+
+@Test
+public synchronized void serverTestTimedSnipSnap()
+{
+   runServerTest("snipsnap","snipsnap",1000,null,true);
+}
+
+
+
+@Test
+public synchronized void serverTestTimedWebgoatBench()
+{
+   runServerTest("webgoatbench","webgoatbench",1000,null,true);
+}
+
+
+
+/********************************************************************************/
+/*										*/
+/*	SecuriBench timed update tests						*/
+/*										*/
+/********************************************************************************/
+
+@Test
+public synchronized void serverTestTimedUpdateJboard()
+{
+   runServerTest("jboard","jboard",1000,"*ALL*",true);
+}
+
+
+@Test
+public synchronized void serverTestTimedUpdateBlueBlog()
+{
+   runServerTest("blueblog","blueblog",100,"*ALL*",true);
+}
+
+
+@Test
+public synchronized void serverTestTimedUpdatePebble()
+{
+   runServerTest("pebble","pebble",1000,"*ALL*",true);
+}
+
+
+
+@Test
+public synchronized void serverTestTimedUpdatePersonalBlog()
+{
+   runServerTest("personalblog","personalblog",1000,"*ALL*",true);
+}
+
+
+@Test
+public synchronized void serverTestTimedUpdateRoller()
+{
+   runServerTest("roller","roller",1000,"*ALL*",true);
+}
+
+
+
+@Test
+public synchronized void serverTestTimedUpdateSnipSnap()
+{
+   runServerTest("snipsnap","snipsnap",1000,"*ALL*",true);
+}
+
+
+@Test
+public synchronized void serverTestTimedUpdateWebgoatBench()
+{
+   runServerTest("webgoatbench","webgoatbench",1000,"*ALL*",true);
+}
+
 
 /********************************************************************************/
 /*										*/
@@ -208,16 +447,52 @@ public synchronized void serverTestWebGoat()
 
 private void runServerTest(String dir,String pid,int ctr,String updfile)
 {
+   try {
+      runServerTest(dir,pid,ctr,updfile,false);
+    }
+   catch (Throwable t) {
+      FaitLog.logE("Test failed",t);
+      throw t;
+    }
+}
+
+
+
+private void runServerTest(String dir,String pid,int ctr,String updfile,boolean timed)
+{
+   Set<File> testfiles = new HashSet<>();
+
    int rint = random_gen.nextInt(1000000);
-   
+
    if (dir == null) dir = pid;
    String mid = "FAIT_TEST_" + pid.toUpperCase() + "_" + rint;
 
    setupBedrock(dir,mid,pid);
 
+   int nthread = default_threads;
+   if (timed) {
+      String nthstr = System.getenv("FAIT_THREADS");
+      FaitLog.logD("FAIT_THREAD = " + nthstr);
+      nthread = 4;
+      try {
+	 nthread = Integer.parseInt(nthstr);
+       }
+      catch (NumberFormatException e) { }
+    }
+
    try {
       String [] args = new String[] { "-m", mid, "-DEBUG", "-TRACE",
 	    "-LOG", "/vol/spr/servertest" + dir + ".log" };
+      if (timed) args = new String[] { "-m", mid,
+	    "-LOG", "/vol/spr/timedtest_" + nthread + "_" + dir + ".log" };
+      if (timed && updfile != null && updfile.equals("*ALL*")) {
+	 args = new String[] { "-m", mid,
+	       "-LOG", "/vol/spr/updatetest_" + nthread + "_" + dir + ".log" };
+       }
+      if (!timed && updfile != null && updfile.equals("*ALL*")) {
+	 args = new String[] { "-m", mid, "-DEBUG", "-TRACE",
+	       "-LOG", "/vol/spr/updatetest" + dir + ".log" };
+       }
 
       ServerMain.main(args);
 
@@ -239,7 +514,13 @@ private void runServerTest(String dir,String pid,int ctr,String updfile)
 	    File f1 = new File(IvyXml.getAttrString(fe,"PATH"));
 	    File f2 = new File(IvyXml.getText(fe));
 	    if (f2.exists() && f2.getName().endsWith(".java")) {
-	       files += "<FILE NAME='" + f2.getPath() + "'/>";
+	       try {
+		  f2 = f2.getCanonicalFile();
+		}
+	       catch (IOException e) { }
+	       if (testfiles.add(f2)) {
+		  files += "<FILE NAME='" + f2.getPath() + "'/>";
+		}
 	     }
 	    if (updfile != null && f1.getPath().contains(updfile)) editfile = f1;
 	  }
@@ -248,13 +529,16 @@ private void runServerTest(String dir,String pid,int ctr,String updfile)
       Assert.assertTrue(IvyXml.isElement(xml,"RESULT"));
 
       String rid = "RETURN" + rint;
-      cargs = new CommandArgs("ID",rid,"THREADS",1);
+      String typ = "FULL_STATS";
+      if (timed) typ = "FULL";
+      cargs = new CommandArgs("ID",rid,"THREADS",nthread,"REPORT",typ);
       xml = sendReply(sid,"ANALYZE",cargs,null);
       Assert.assertTrue(IvyXml.isElement(xml,"RESULT"));
       Element rslt = waitForAnalysis(rid);
       Assert.assertNotNull(rslt);
 
       int stops = countStops(rslt);
+      FaitLog.logD("STOPS: " + stops + " " + ctr);
       if (ctr == 0) Assert.assertEquals(stops,0);
       else Assert.assertNotEquals(stops,0);
       if (ctr > 0) Assert.assertTrue(stops <= ctr);
@@ -262,11 +546,31 @@ private void runServerTest(String dir,String pid,int ctr,String updfile)
       errorQueries(sid,rslt);
 
       if (updfile != null) {
-	 cargs = new CommandArgs("FILE",editfile.getPath(),"LENGTH",0,"OFFSET",0);
-	 xml = sendReply(sid,"TESTEDIT",cargs,null);
-	 rslt = waitForAnalysis(rid);
-	 Assert.assertNotNull(rslt);
-	 Assert.assertEquals(ctr,countStops(rslt));
+	 if (updfile.equals("*ALL*")) {
+	    double ct = testfiles.size();
+	    for (File f : testfiles) {
+	       if (f.getPath().contains("InvokeServlets")) continue;
+	       if (f.getPath().contains("FAIT_TEST_CLASS_GENERATED")) continue;
+	       if (ct > MAX_UPDATE) {
+		  double lim = MAX_UPDATE / ct;
+		  if (random_gen.nextDouble() > lim) continue;
+		}
+	       cargs = new CommandArgs("FILE",f.getPath(),"LENGTH",0,"OFFSET",0);
+	       xml = sendReply(sid,"TESTEDIT",cargs,null);
+	       rslt = waitForAnalysis(rid);
+	       Assert.assertNotNull(rslt);
+	       int nstops = countStops(rslt);
+	       // Assert.assertEquals(stops,countStops(rslt));
+	       FaitLog.logI("UPDATESTOPS: " + nstops + " " + stops);
+	     }
+	  }
+	 else {
+	    cargs = new CommandArgs("FILE",editfile.getPath(),"LENGTH",0,"OFFSET",0);
+	    xml = sendReply(sid,"TESTEDIT",cargs,null);
+	    rslt = waitForAnalysis(rid);
+	    Assert.assertNotNull(rslt);
+	    Assert.assertEquals(stops,countStops(rslt));
+	  }
        }
     }
    finally {
@@ -301,6 +605,7 @@ private void send(String sid,String cmd,CommandArgs args,String xml,MintReply rp
    msg.field("SID",sid);
    if (args != null) {
       for (Map.Entry<String,Object> ent : args.entrySet()) {
+	 if (ent.getValue() == null) continue;
 	 msg.field(ent.getKey(),ent.getValue().toString());
        }
     }
@@ -348,6 +653,7 @@ private class FaitHandler implements MintHandler {
       Element xml = msg.getXml();
       switch (cmd) {
 	 case "ANALYSIS" :
+	    if (IvyXml.getAttrBool(xml,"STARTED")) break;
 	    String rid = IvyXml.getAttrString(xml,"ID");
 	    synchronized (done_map) {
 	       done_map.put(rid,xml);
@@ -456,7 +762,7 @@ private static void setupBedrock(String dir,String mint,String proj)
    cmd += " -bhide";
    cmd += " -nosplash";
    cmd += " -vmargs -Dedu.brown.cs.bubbles.MINT=" + mint;
-   cmd += " -Xdebug -Xrunjdwp:transport=dt_socket,address=32328,server=y,suspend=n";
+  // cmd += " -Xdebug -Xrunjdwp:transport=dt_socket,address=32328,server=y,suspend=n";
   // cmd += " -Xmx16000m";
 
    System.err.println("RUN: " + cmd);
@@ -508,15 +814,8 @@ private static class TestEclipseHandler implements MintHandler {
 
 private static void shutdownBedrock()
 {
-   System.err.println("Shut down bedrock");
+   System.err.println("SHUT DOWN BEDROCK");
    sendBubblesMessage("EXIT");
-   while (pingEclipse()) {
-      try {
-	 Thread.sleep(1000);
-       }
-      catch (InterruptedException e) { }
-    }
-   mint_control.shutDown();
    mint_control = null;
 }
 
@@ -540,11 +839,18 @@ private static boolean pingEclipse()
 private int countStops(Element xml)
 {
    int ctr = 0;
+   Set<String> found = new HashSet<>();
+
    for (Element call : IvyXml.elementsByTag(xml,"CALL")) {
       for (Element dead : IvyXml.children(call,"ERROR")) {
+	 String emsg = IvyXml.getTextElement(dead,"MESSAGE");
 	 for (Element pt : IvyXml.children(dead,"POINT")) {
-	    if (IvyXml.getAttrString(pt,"KIND").equals("EDIT")) {
-	       ++ctr;
+	    String pttxt = IvyXml.convertXmlToString(pt);
+	    String key = pttxt + "@" + emsg;
+	    if (found.add(key)) {
+	       if (IvyXml.getAttrString(dead,"SUBTYPE") != null) ++ctr;
+	       else if (IvyXml.getAttrString(dead,"SAFETY") != null) ++ctr;
+	       else if (IvyXml.getAttrString(pt,"KIND").equals("EDIT")) ++ctr;
 	     }
 	  }
        }
@@ -561,13 +867,19 @@ private void errorQueries(String sid,Element xml)
       for (Element err : IvyXml.children(call,"ERROR")) {
 	 if (!IvyXml.getAttrString(err,"LEVEL").equals("ERROR")) continue;
 	 int lno = 0;
-	 int spos = 0;
+	 int spos = -1;
+	 int loc = -1;
 	 for (Element pt : IvyXml.children(err,"POINT")) {
 	    if (IvyXml.getAttrString(pt,"KIND").equals("EDIT")) {
 	       lno = IvyXml.getAttrInt(pt,"LINE");
 	       spos = IvyXml.getAttrInt(pt,"START");
 	       if (lno > 0) break;
 	     }
+	    else {
+	       lno = IvyXml.getAttrInt(pt,"LINE");
+	       loc = IvyXml.getAttrInt(pt,"LOC");
+	     }
+	
 	  }
 	 if (lno <= 0) continue;
 	 String mthd = IvyXml.getAttrString(call,"CLASS");
@@ -578,7 +890,7 @@ private void errorQueries(String sid,Element xml)
 	       "FILE",IvyXml.getAttrString(call,"FILE"),
 	       "LINE",lno,
 	       "METHOD",mthd,
-	       "START",spos);
+	       "START",spos,"LOCATION",loc);
 	 Element rslt = sendReply(sid,"QUERY",cargs,null);
 	 Element q = IvyXml.getChild(rslt,"RESULTSET");
 	 Assert.assertNotNull(q);

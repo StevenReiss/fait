@@ -39,10 +39,13 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.ConcurrentModificationException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
@@ -59,6 +62,7 @@ import org.eclipse.jdt.core.dom.LambdaExpression;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.NumberLiteral;
 import org.eclipse.jdt.core.dom.ParameterizedType;
+import org.eclipse.jdt.core.dom.SimpleName;
 import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 import org.eclipse.jdt.core.dom.StringLiteral;
 import org.eclipse.jdt.core.dom.StructuralPropertyDescriptor;
@@ -67,6 +71,7 @@ import org.eclipse.jdt.core.dom.UnionType;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 
 import edu.brown.cs.fait.iface.FaitConstants;
+import edu.brown.cs.fait.iface.FaitLog;
 import edu.brown.cs.fait.iface.IfaceAnnotation;
 import edu.brown.cs.fait.iface.IfaceAstReference;
 import edu.brown.cs.fait.iface.IfaceAstStatus;
@@ -464,8 +469,8 @@ private class AstType implements IfaceBaseType {
       Map<String,JcompType> flds = jcomp_type.getFields(jcomp_typer);
       Map<String,IfaceType> rslt = new HashMap<>();
       for (Map.Entry<String,JcompType> ent : flds.entrySet()) {
-	 IfaceType t0 = getFullType(ent.getValue());
-	 rslt.put(ent.getKey(),t0);
+         IfaceType t0 = getFullType(ent.getValue());
+         rslt.put(ent.getKey(),t0);
        }
       return rslt;
     }
@@ -477,13 +482,22 @@ private class AstType implements IfaceBaseType {
 
    @Override public List<IfaceBaseType> getChildTypes() {
       List<IfaceBaseType> rslt = new ArrayList<>();
-      Collection<String> typs = jcomp_type.getChildTypes();
-      if (typs != null) {
-	 for (String jtnm : typs) {
-	    JcompType jt = jcomp_typer.findType(jtnm);
-	    if (jt != null) rslt.add(getType(jt));
-	  }
+      for ( ; ; ) {
+         try {
+            Collection<String> typs = jcomp_type.getChildTypes();
+            if (typs != null) {
+               for (String jtnm : typs) {
+                  JcompType jt = jcomp_typer.findType(jtnm);
+                  if (jt != null) rslt.add(getType(jt));
+                }
+             }
+            break;
+          }
+         catch (ConcurrentModificationException e) {
+            rslt.clear();
+          }
        }
+      
       return rslt;
     }
 
@@ -544,11 +558,17 @@ IfaceMethod getMethod(JcompSymbol js)
        }
       desc = buf.toString();
     }
-   typ = typ.getRunTimeType();
+   IfaceBaseType rtyp = typ.getRunTimeType();
 
-   IfaceMethod im = fait_control.findMethod(typ.getName(),jsy.getName(),desc);
+   IfaceMethod im = fait_control.findMethod(rtyp.getName(),jsy.getName(),desc);
    if (im != null) return im;
-   System.err.println("METHOD NOT FOUND "  + js);
+   JcompSymbol njs = js.getOriginalMethod();
+   if (njs != js) {
+      return getMethod(njs);
+    }
+   
+   FaitLog.logE("METHOD NOT FOUND "  + js + " " + rtyp.getName() + " " + jsy.getName() + " " + desc + " " + typ);
+   
    return null;
 }
 
@@ -564,6 +584,9 @@ private void updateMethods()
 	 am.setJcompSymbol(js1);
 	 nmethodmap.put(js1,am);
        }
+      else { 
+         am.setJcompSymbol(js);
+       }
     }
    method_map = nmethodmap;
 }
@@ -577,10 +600,16 @@ private JcompSymbol mapMethod(JcompSymbol js)
    if (jt == null) return null;
    String tnm = js.getType().getName();
    JcompType jt2 = jcomp_typer.findType(tnm);
-   if (jt2 == null)
-      return null;
-   JcompSymbol js1 = jt.lookupMethod(jcomp_typer,js.getName(),jt2);
-   return js1;
+   if (jt2 != null) {
+      JcompSymbol js1 = jt.lookupMethod(jcomp_typer,js.getName(),jt2);
+      return js1;
+    }
+   List<JcompSymbol> cands = jt.lookupMethods(jcomp_typer,js.getName(),null);
+   for (JcompSymbol njs : cands) {
+      String ntnm = njs.getType().getName();
+      if (ntnm.equals(tnm)) return njs;
+    }
+   return null;
 }
 
 
@@ -592,6 +621,8 @@ private class AstMethod implements IfaceMethod {
    private int local_count;
    private List<IfaceMethod> parent_methods;
    private Collection<IfaceMethod> child_methods;
+   private Set<JcompSymbol> external_syms;
+   private Map<Object,IfaceValue> external_values;
 
    AstMethod(JcompSymbol js) {
       method_symbol = js;
@@ -599,6 +630,8 @@ private class AstMethod implements IfaceMethod {
       local_count = 0;
       parent_methods = null;
       child_methods = null;
+      external_values = null;
+      external_syms = null;
     }
 
    JcompSymbol getJcompSymbol() 			{ return method_symbol; }
@@ -626,7 +659,7 @@ private class AstMethod implements IfaceMethod {
     }
    @Override public boolean isStaticInitializer() {
       return method_symbol.getName().equals("<clinit>") ||
-	  method_symbol.getName().equals(INITER_NAME);
+          method_symbol.getName().equals(INITER_NAME);
     }
    @Override public boolean isConstructor() {
       return method_symbol.isConstructorSymbol();
@@ -680,7 +713,7 @@ private class AstMethod implements IfaceMethod {
 
    @Override public Collection<IfaceMethod> getChildMethods() {
       if (child_methods == null) {
-	child_methods = fait_control.findChildMethods(getDeclaringClass(),getName(),getDescription(),false,null);
+        child_methods = fait_control.findChildMethods(getDeclaringClass(),getName(),getDescription(),false,null);
        }
       return child_methods;
     }
@@ -719,6 +752,27 @@ private class AstMethod implements IfaceMethod {
       return null;
     }
 
+   @Override public Collection<Object> getExternalSymbols() {
+      checkLocals();
+      if (external_syms == null) return null;
+      return new ArrayList<>(external_syms);
+    }
+   
+   @Override public void setExternalValue(Object sym,IfaceValue v) {
+      if (v == null) return;
+      checkLocals();
+      if (external_values != null) {
+         IfaceValue v0 = external_values.get(sym);
+         IfaceValue v1 = v.mergeValue(v0);
+         external_values.put(sym,v1);
+       }
+    }
+   
+   @Override public IfaceValue getExternalValue(Object sym) {
+      if (external_values != null) return external_values.get(sym);
+      return null;
+    }
+   
    private void checkLocals() {
       if (local_map != null) return;
       LocalVisitor lv = new LocalVisitor();
@@ -727,6 +781,8 @@ private class AstMethod implements IfaceMethod {
        }
       local_count = lv.getLocalCount();
       local_map = lv.getLocalMap();
+      external_syms = lv.getExternalSymbols();
+      if (external_syms != null) external_values = new HashMap<>();
     }
 
    @Override public IfaceType getLocalType(int slot,IfaceProgramPoint at) {
@@ -779,17 +835,17 @@ private class AstMethod implements IfaceMethod {
       return rslt;
     }
 
-   @Override public int hashCode() {
-      return method_symbol.hashCode();
-    }
+   // @Override public int hashCode() {
+      // return method_symbol.hashCode();
+    // }
 
-   @Override public boolean equals(Object o) {
-      if (o instanceof AstMethod) {
-	 AstMethod am = (AstMethod) o;
-	 return am.method_symbol == method_symbol;
-       }
-      return false;
-    }
+   // @Override public boolean equals(Object o) {
+      // if (o instanceof AstMethod) {
+         // AstMethod am = (AstMethod) o;
+         // return am.method_symbol == method_symbol;
+       // }
+      // return false;
+    // }
 
    @Override public String toString() {
       return method_symbol.toString();
@@ -803,29 +859,41 @@ private class AstMethod implements IfaceMethod {
 private static class LocalVisitor extends ASTVisitor {
 
    private Map<Object,Integer> local_map;
-   int local_count;
+   private int local_count;
+   private Set<JcompSymbol> external_syms;
+   private MethodDeclaration top_method;
 
    LocalVisitor() {
       local_map = new HashMap<>();
       local_count = 0;
+      top_method = null;
+      external_syms = null;
     }
 
    int getLocalCount()				{ return local_count; }
    Map<Object,Integer> getLocalMap()		{ return local_map; }
+   Set<JcompSymbol> getExternalSymbols()        { return external_syms; }
 
    @Override public boolean visit(MethodDeclaration md) {
+      if (top_method == null) top_method = md;
       if (!Modifier.isStatic(md.getModifiers())) {
-	 local_map.put("this",local_count++);
-	 JcompSymbol js = JcompAst.getDefinition(md);
-	 if (js.isConstructorSymbol()) {
-	    JcompType jt = js.getClassType();
-	    if (jt.needsOuterClass()) {
-	       String nm = "this$0";
-	       local_map.put(nm,local_count++);
-	     }
-	  }
+         local_map.put("this",local_count++);
+         JcompSymbol js = JcompAst.getDefinition(md);
+         if (js.isConstructorSymbol()) {
+            JcompType jt = js.getClassType();
+            if (jt.needsOuterClass()) {
+               String nm = "this$0";
+               local_map.put(nm,local_count++);
+             }
+          }
        }
       return true;
+    }
+   
+   @Override public void endVisit(MethodDeclaration md) {
+      if (md == top_method) {
+         top_method = null;
+       }
     }
 
    @Override public boolean visit(SingleVariableDeclaration svd) {
@@ -845,7 +913,27 @@ private static class LocalVisitor extends ASTVisitor {
        }
       return true;
     }
-
+   
+   @Override public void endVisit(SimpleName v) {
+      JcompSymbol js = JcompAst.getReference(v);
+      if (js == null || js.isFieldSymbol() || js.isEnumSymbol() || 
+            js.isTypeSymbol() || js.isMethodSymbol()) 
+         return;
+      ASTNode an = js.getDefinitionNode();
+      if (an == null) return;
+      for (ASTNode pn = an; pn != null; pn = pn.getParent()) {
+         if (pn instanceof MethodDeclaration) {
+            if (pn != top_method) {
+               if (external_syms == null) external_syms = new HashSet<>();
+               external_syms.add(js);
+               local_map.put(js,local_count++);
+               if (js.getType().isCategory2()) ++local_count;
+             }
+            break;
+          }
+       }
+    }
+   
    @Override public boolean visit(AnonymousClassDeclaration atd) {
       return false;
     }
@@ -884,7 +972,8 @@ void updateFields()
    Map<JcompSymbol,AstField> nfieldmap = new ConcurrentHashMap<>();
    for (AstField af : field_map.values()) {
       JcompSymbol js1 = af.getJcompSymbol();
-      JcompType jt = jcomp_typer.findType(js1.getDeclaredType().getName());
+      JcompType jt0 = js1.getClassType();
+      JcompType jt = jcomp_typer.findType(jt0.getName());
       if (jt == null) continue;
       JcompSymbol js2 = jt.lookupField(jcomp_typer,js1.getName());
       if (js2 == null) continue;
@@ -1210,10 +1299,11 @@ private static class RefComparator implements Comparator<ControlAstReference> {
 private void updateRefs()
 {
    Map<ControlAstReference,ControlAstReference> nrefs = new ConcurrentSkipListMap<>();
-
+    
    for (ControlAstReference car : ref_map.keySet()) {
-      car.update();
-      nrefs.put(car,car);
+      if (car.update()) {
+         nrefs.put(car,car);
+       }
     }
    ref_map = nrefs;
 }

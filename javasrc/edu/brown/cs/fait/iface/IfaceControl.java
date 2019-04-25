@@ -1,6 +1,6 @@
 /********************************************************************************/
 /*										*/
-/*		FaitControl.java						*/
+/*		IfaceControl.java						*/
 /*										*/
 /*	Flow Analysis Incremental Tool value definition 			*/
 /*										*/
@@ -43,6 +43,7 @@ import java.util.*;
 import org.eclipse.jdt.core.dom.ASTNode;
 
 import edu.brown.cs.ivy.jcode.JcodeInstruction;
+import edu.brown.cs.ivy.jcomp.JcompSymbol;
 import edu.brown.cs.ivy.xml.IvyXmlWriter;
 
 
@@ -53,19 +54,19 @@ public interface IfaceControl extends FaitConstants {
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Worker methods                                                          */
-/*                                                                              */
+/*										*/
+/*	Worker methods								*/
+/*										*/
 /********************************************************************************/
 
 
 
 /**
- *      Do the analysis
+ *	Do the analysis
  **/
 
-void analyze(int nthread,boolean update);
-void analyze(IfaceMethod im,int nth);
+void analyze(int nthread,boolean update,ReportOption opt);
+void analyze(IfaceMethod im,int nth,ReportOption opt);
 
 
 
@@ -98,6 +99,7 @@ IfaceType findConstantType(IfaceType t,Object cnst);
 
 
 IfaceMethod findMethod(String cls,String method,String sign);
+IfaceMethod findMethod(JcompSymbol js);
 
 
 IfaceMethod findInheritedMethod(IfaceType cls,String name,String sign);
@@ -151,7 +153,7 @@ IfaceValue findConstantValue(IfaceType typ,long v);
 IfaceValue findConstantValue(boolean v);
 IfaceValue findConstantValue(IfaceType typ,double v);
 IfaceValue findRangeValue(IfaceType typ,double v0,double v1);
-IfaceValue findObjectValue(IfaceType typ,IfaceEntitySet ss,IfaceAnnotation ...  flags);
+IfaceValue findObjectValue(IfaceType typ,IfaceEntitySet ss,IfaceAnnotation ...	flags);
 IfaceValue findEmptyValue(IfaceType typ,IfaceAnnotation ... flags);
 IfaceValue findConstantStringValue();
 IfaceValue findConstantStringValue(String v);
@@ -251,10 +253,14 @@ IfaceSafetyStatus getInitialSafetyStatus();
 void updateAll();
 void doUpdate(IfaceUpdateSet what);
 void removeCalls(Collection<IfaceCall> call);
+Collection<String> getDefaultClasses();
 
 void clearAll();
 
 IfaceBackFlow getBackFlow(IfaceState backfrom,IfaceState backto,IfaceValue endref);
+IfaceAuxReference getAuxReference(IfaceLocation loc,IfaceValue ref);
+Collection<IfaceAuxReference> getAuxRefs(IfaceField fld);
+Collection<IfaceAuxReference> getAuxArrayRefs(IfaceValue arr);
 
 void processErrorQuery(IfaceCall c,IfaceProgramPoint pt,IfaceError e,IvyXmlWriter xw);
 
@@ -281,17 +287,17 @@ class Factory {
        }
       return null;
     }
-   
+
    public static IfaceProject createSimpleProject(String cp,String pfx) {
       try {
-         Class<?> c = Class.forName("edu.brown.cs.fait.control.ControlSimpleProject");
-         Constructor<?> cnst = c.getConstructor(String.class,String.class);
-         Object o = cnst.newInstance(cp,pfx);
-         return (IfaceProject) o;
+	 Class<?> c = Class.forName("edu.brown.cs.fait.control.ControlSimpleProject");
+	 Constructor<?> cnst = c.getConstructor(String.class,String.class);
+	 Object o = cnst.newInstance(cp,pfx);
+	 return (IfaceProject) o;
        }
       catch (Throwable t) {
-         System.err.println("FAIT: Can't create simple project " + t);
-         t.printStackTrace();
+	 System.err.println("FAIT: Can't create simple project " + t);
+	 t.printStackTrace();
        }
       return null;
     }
@@ -311,9 +317,14 @@ class Factory {
 
 
 
-}	// end of interface FaitControl
 
 
 
 
-/* end of FaitControl.java */
+
+}	// end of interface IfaceControl
+
+
+
+
+/* end of IfaceControl.java */

@@ -143,6 +143,14 @@ private CheckNullness()
    return CAN_BE_NULL;
 }
 
+
+
+@Override public IfaceSubtype.Value adjustValueForBase(IfaceSubtype.Value v,IfaceBaseType b)
+{
+   if (b.isPrimitiveType()) return NON_NULL;
+   return v;
+}
+
 @Override public NullState getDefaultConstantValue(IfaceBaseType typ,Object cnst)
 {
    if (cnst == null) return MUST_BE_NULL;
@@ -167,6 +175,8 @@ private CheckNullness()
       case FIELDACCESS :
       case ELEMENTACCESS :
          break;
+      case ADD :
+         return NON_NULL;
       default :
          break;
     }

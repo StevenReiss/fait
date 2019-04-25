@@ -36,11 +36,10 @@
 package edu.brown.cs.fait.query;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
 
+import edu.brown.cs.fait.iface.IfaceAuxReference;
 import edu.brown.cs.fait.iface.IfaceBackFlow;
-import edu.brown.cs.fait.iface.IfaceField;
-import edu.brown.cs.fait.iface.IfaceValue;
 
 class QueryBackFlowData implements QueryConstants
 {
@@ -52,10 +51,9 @@ class QueryBackFlowData implements QueryConstants
 /*                                                                              */
 /********************************************************************************/
 
-private List<IfaceValue>        aux_references;
-private IfaceField              aux_field;
-private IfaceValue              aux_array;
+private Collection<IfaceAuxReference> aux_refs;
 private QueryContext            back_context;
+
 
 
 
@@ -68,9 +66,7 @@ private QueryContext            back_context;
 QueryBackFlowData(QueryContext ctx,IfaceBackFlow bf)
 {
    back_context = ctx;
-   aux_references = bf.getAuxReferences();
-   aux_field = bf.getAuxField();
-   aux_array = bf.getAuxArray();
+   aux_refs = bf.getAuxRefs();
 }
 
 
@@ -78,9 +74,7 @@ QueryBackFlowData(QueryContext ctx,IfaceBackFlow bf)
 QueryBackFlowData(QueryContext ctx)
 {
    back_context = ctx;
-   aux_references = null;
-   aux_field = null;
-   aux_array = null;
+   aux_refs = null;
 }
 
 
@@ -93,16 +87,18 @@ QueryBackFlowData(QueryContext ctx)
 
 QueryContext getContext()                       { return back_context; }
 
-List<IfaceValue> getAuxReferences()             { return aux_references; }
 
-IfaceValue getAuxArray()                        { return aux_array; }
+Collection<IfaceAuxReference> getAuxRefs()      { return aux_refs; }
 
-IfaceField getAuxField()                        { return aux_field; }
 
-void addAuxReference(IfaceValue v)  
-{ 
-   if (aux_references == null) aux_references = new ArrayList<>();
-   aux_references.add(v);
+
+
+
+
+void addAuxReference(IfaceAuxReference ref)
+{
+   if (aux_refs == null) aux_refs = new ArrayList<>();
+   aux_refs.add(ref);
 }
 
 

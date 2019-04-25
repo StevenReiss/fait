@@ -71,7 +71,9 @@ private List<ArgValue>	callback_args;
 private boolean 	does_exit;
 private boolean         no_return;
 private boolean         no_virtual;
-private List<String>    load_types;
+private boolean         set_fields;
+private boolean         is_affected;
+private Collection<String> load_types;
 private List<When>      when_conditions;
 
 
@@ -163,6 +165,8 @@ CallSpecial(IfaceControl fc,Element xml,boolean formthd)
    is_constructor = IvyXml.getAttrBool(xml,"CONSTRUCTOR");
    no_return = IvyXml.getAttrBool(xml,"NORETURN");
    no_virtual = IvyXml.getAttrBool(xml,"NOVIRTUAL");
+   set_fields = IvyXml.getAttrBool(xml,"SETFIELDS");
+   is_affected = IvyXml.getAttrBool(xml,"AFFECTED");
 
    dont_scan = !IvyXml.getAttrBool(xml,"SCAN");
   
@@ -204,10 +208,25 @@ CallSpecial(IfaceControl fc,Element xml,boolean formthd)
    
    load_types = null;
    for (Element lelt : IvyXml.children(xml,"LOAD")) {
-      if (load_types == null) load_types = new ArrayList<>();
+      if (load_types == null) load_types = new HashSet<>();
       String nm = IvyXml.getAttrString(lelt,"NAME");
       if (nm == null) nm = IvyXml.getText(lelt);
       if (nm != null) load_types.add(nm);
+    }
+   
+   if (replace_name != null) {
+      StringTokenizer tok = new StringTokenizer(replace_name);
+      while (tok.hasMoreTokens()) {
+         String mthd = tok.nextToken();
+         int idx = mthd.indexOf("(");
+         if (idx > 0) mthd = mthd.substring(0,idx);
+         if (!is_constructor) {
+            idx = mthd.lastIndexOf(".");
+            if (idx > 0) mthd = mthd.substring(0,idx);
+          }
+         if (load_types == null) load_types = new HashSet<>();
+         load_types.add(mthd);
+       }
     }
 }
 
@@ -265,9 +284,18 @@ CallSpecial(IfaceControl fc,Element xml,boolean formthd)
       rv = fait_control.findNativeValue(dt);
 
    if (!canbe_null || fm.isConstructor() || dt.isPrimitiveType()) rv = rv.forceNonNull();
-
+   
    return rv;
 }
+
+
+
+@Override public IfaceAnnotation [] getArgAnnotations(int idx)
+{
+   if (arg_annots == null) return null;
+   return arg_annots.get(idx);
+}
+
 
 @Override public List<IfaceValue> getExceptions(IfaceProgramPoint pt,IfaceMethod fm)
 {
@@ -337,10 +365,13 @@ CallSpecial(IfaceControl fc,Element xml,boolean formthd)
 
 @Override public boolean getIgnoreVirtualCalls()        { return no_virtual; }
 
+@Override public boolean getSetFields()                 { return set_fields; }
+@Override public boolean isAffected()                   { return is_affected; }
+
 @Override public boolean getDontScan()	                { return dont_scan; }
 @Override public boolean getForceScan()                 { return !dont_scan; }
 
-@Override public List<String> getClassesToLoad()        { return load_types; }
+@Override public Collection<String> getClassesToLoad()        { return load_types; }
 
 
 /********************************************************************************/
@@ -407,12 +438,14 @@ private static class When {
          if (!caller_description.equals(desc)) return false;
        }
       if (instance_number >= 0) {
-         // TODO: check for instance in method
+         int inno = pt.getInstanceNumber();
+         if (inno != instance_number) return false;
        }
       
       return true;
     }
 }
+
 
 
 

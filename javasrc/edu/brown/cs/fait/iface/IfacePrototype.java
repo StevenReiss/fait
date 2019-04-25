@@ -59,6 +59,8 @@ IfaceValue handleCall(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src);
 
 void setAnyValue();
 
+
+
 }	// end of interface IfacePrototype
 
 

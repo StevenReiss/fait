@@ -17,6 +17,7 @@
       <ant antfile="build.xml" dir="edu/brown/cs/fait/query" />
       <ant antfile="build.xml" dir="edu/brown/cs/fait/control" />
       <ant antfile="build.xml" dir="edu/brown/cs/fait/server" />
+      <ant antfile="build.xml" dir="edu/brown/cs/fait/faitmock" />
    </target>
 
    <path id='jdocsrc'>
@@ -41,6 +42,7 @@
 	 <package name='edu.brown.cs.fait.state' />
 	 <package name='edu.brown.cs.fait.type' />
 	 <package name='edu.brown.cs.fait.value' />
+	 <package name='edu.brown.cs.fait.faitmock' />
       </javadoc>
    </target>
 

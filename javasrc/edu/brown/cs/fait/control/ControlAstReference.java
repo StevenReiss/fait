@@ -35,6 +35,7 @@
 
 package edu.brown.cs.fait.control;
 
+import edu.brown.cs.fait.iface.FaitLog;
 import edu.brown.cs.fait.iface.IfaceAstReference;
 import edu.brown.cs.fait.iface.IfaceAstStatus;
 import edu.brown.cs.fait.iface.IfaceField;
@@ -43,6 +44,7 @@ import edu.brown.cs.fait.iface.IfaceProgramPoint;
 import edu.brown.cs.fait.iface.IfaceType;
 import edu.brown.cs.ivy.jcode.JcodeInstruction;
 import edu.brown.cs.ivy.jcomp.JcompAst;
+import edu.brown.cs.ivy.jcomp.JcompSource;
 import edu.brown.cs.ivy.jcomp.JcompSymbol;
 import edu.brown.cs.ivy.jcomp.JcompType;
 import edu.brown.cs.ivy.xml.IvyXmlWriter;
@@ -50,6 +52,7 @@ import edu.brown.cs.ivy.xml.IvyXmlWriter;
 import java.util.List;
 
 import org.eclipse.jdt.core.dom.ASTNode;
+import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.ArrayAccess;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
@@ -90,7 +93,7 @@ ControlAstReference(ControlAstFactory af,ASTNode n,ASTNode c,IfaceAstStatus sts)
    run_status = sts;
 
    if (n == null) {
-      System.err.println("EVAL NODE SHOULDN'T BE NULL");
+      FaitLog.logX("Eval node shouldn't be null");
     }
 }
 
@@ -140,7 +143,7 @@ ControlAstReference(ControlAstFactory af,ASTNode n,ASTNode c,IfaceAstStatus sts)
       js = JcompAst.getReference(n);
     }
    if (js != null && js.isMethodSymbol()) {
-       return ast_factory.getMethod(js);
+      return ast_factory.getMethod(js);
     }
 
    return null;
@@ -233,11 +236,78 @@ ControlAstReference(ControlAstFactory af,ASTNode n,ASTNode c,IfaceAstStatus sts)
    after_child == null && run_status == null;
 }
 
+
 @Override public int getLineNumber()
 {
    CompilationUnit cu = (CompilationUnit)(eval_node.getRoot());
    return cu.getLineNumber(eval_node.getStartPosition());
 }
+
+
+@Override public String getSourceFile() 
+{
+   if (eval_node == null) return null;
+   JcompSource src = JcompAst.getSource(eval_node);
+   if (src != null) return src.getFileName();
+   return null;
+}
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Instance number methods                                                 */
+/*                                                                              */
+/********************************************************************************/
+
+@Override public int getInstanceNumber()
+{
+   IfaceMethod find = getReferencedMethod();
+   if (find == null) return -1;
+   
+   IfaceMethod m0 = getMethod();
+   IfaceAstReference aref = getAstReference();
+   ASTNode callnode = aref.getAstNode();
+   
+   IfaceProgramPoint pt0 = m0.getStart();
+   IfaceAstReference aref0 = pt0.getAstReference();
+   ASTNode methodnode = aref0.getAstNode();
+   
+   InstanceFinder fndr = new InstanceFinder(find,callnode);
+   methodnode.accept(fndr);
+   
+   return fndr.getResult();
+}
+
+
+
+private class InstanceFinder extends ASTVisitor {
+   
+   private int cur_counter;
+   private int result_counter;
+   private IfaceMethod find_method;
+   private ASTNode find_node;
+   
+   InstanceFinder(IfaceMethod im,ASTNode node) {
+      find_method = im;
+      find_node = node;
+      cur_counter = 0;
+      result_counter = -1;
+    }
+   
+   int getResult()                              { return result_counter; }
+   
+   @Override public void preVisit(ASTNode n) {
+      IfaceAstReference ar = ast_factory.getAstReference(n,null,null);
+      IfaceMethod m0 = ar.getReferencedMethod();
+      if (m0 == find_method) {
+         ++cur_counter;
+         if (n == find_node) result_counter = cur_counter;
+       }
+    }
+   
+}       // end of inner class InstanceFinder 
+
 
 
 
@@ -247,10 +317,17 @@ ControlAstReference(ControlAstFactory af,ASTNode n,ASTNode c,IfaceAstStatus sts)
 /*										*/
 /********************************************************************************/
 
-void update()
+boolean update()
 {
-   eval_node = ast_factory.mapAstNode(eval_node);
+   ASTNode n = ast_factory.mapAstNode(eval_node);
+   if (n == null) {
+      FaitLog.logE("Unknown AST Node on match");
+      return false;
+    }
+   eval_node = n;      
    after_child = ast_factory.mapAstNode(after_child);
+   
+   return true;
 }
 
 
@@ -330,13 +407,15 @@ void update()
 {
    xw.begin("POINT");
    xw.field("KIND","EDIT");
-   xw.field("START",eval_node.getStartPosition());
-   xw.field("END",eval_node.getStartPosition() + eval_node.getLength());
-   xw.field("LINE",getLineNumber());
-   String typ = eval_node.getClass().getName();
-   int idx = typ.lastIndexOf(".");
-   if (idx > 0) typ = typ.substring(idx+1);
-   xw.field("NODETYPE",typ);
+   if (eval_node != null) {
+      xw.field("START",eval_node.getStartPosition());
+      xw.field("END",eval_node.getStartPosition() + eval_node.getLength());
+      xw.field("LINE",getLineNumber());
+      String typ = eval_node.getClass().getName();
+      int idx = typ.lastIndexOf(".");
+      if (idx > 0) typ = typ.substring(idx+1);
+      xw.field("NODETYPE",typ);
+    }
    if (after_child != null) {
       StructuralPropertyDescriptor spd = after_child.getLocationInParent();
       xw.field("AFTER",spd.getId());
@@ -344,7 +423,7 @@ void update()
    if (run_status != null) {
       xw.field("STATUS",run_status.getReason());
     }
-   xw.cdata(eval_node.toString());
+   if (eval_node != null) xw.cdata(eval_node.toString());
    xw.end("POINT");
 }
 

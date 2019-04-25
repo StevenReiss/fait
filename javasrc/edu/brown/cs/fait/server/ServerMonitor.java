@@ -211,7 +211,7 @@ void sendCommand(String cmd,CommandArgs args,String cnts,MintReply rply)
    String msg = xw.toString();
    xw.close();
 
-   FaitLog.logD("Send to Bubbles: " + msg);
+   FaitLog.logI("Send to Bubbles: " + msg);
    if (rply != null) {
       sendMessage(msg,rply,MintConstants.MINT_MSG_FIRST_REPLY);
     }
@@ -355,7 +355,7 @@ private void handleAnalyze(String sid,Element xml,IvyXmlWriter xw)
    ServerProject sp = ss.getProject();
    int nth = IvyXml.getAttrInt(xml,"THREADS",ss.getNumThread());
    if (nth != 0) ss.setNumThread(nth);
-   ReportOption opt = IvyXml.getAttrEnum(xml,"REPORT",ReportOption.FULL);
+   ReportOption opt = IvyXml.getAttrEnum(xml,"REPORT",ReportOption.FULL_STATS);
    String retid = IvyXml.getAttrString(xml,"ID");
    if (retid == null) {
       retid = sid;
@@ -549,14 +549,14 @@ private String processCommand(String cmd,String sid,Element e) throws ServerExce
 private class CommandHandler implements MintHandler {
 
    @Override public void receive(MintMessage msg,MintArguments args) {
-      FaitLog.logD("PROCESS COMMAND: " + msg.getText());
+      FaitLog.logI("PROCESS COMMAND: " + msg.getText());
       String cmd = args.getArgument(0);
       String sid = args.getArgument(1);
       Element e = msg.getXml();
       String rslt = null;
       try {
          rslt = processCommand(cmd,sid,e);
-         FaitLog.logD("COMMAND RESULT: " + rslt);
+         FaitLog.logI("COMMAND RESULT: " + rslt);
        }
       catch (ServerException t) {
          String xmsg = "BEDROCK: error in command " + cmd + ": " + t;

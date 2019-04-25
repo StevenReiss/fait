@@ -622,15 +622,13 @@ private void processInstruction(IfaceProgramPoint inspt)
 /* SUBROUTINE CALLS */
 
       case JSR : case JSR_W :
-	 // st1.pushStack(fait_control.findBadValue());
-	 // st1.pushReturn(nins);
 	 nins = inspt.getReferencedTarget();
 	 st1.pushStack(fait_control.findMarkerValue(nins,inspt));
 	 break;
       case RET :
-	 // Collection<IfaceProgramPoint> rets = st1.popReturn();
 	 i0 = ins.getLocalVariable();
 	 IfaceValue rmrk = st1.getLocal(i0);
+         st1.setLocal(i0,null);
 	 IfaceStackMarker smrk = (IfaceStackMarker) rmrk;
 	 Set<Object> rtvs = smrk.getMarkerValues();
 	 nins = null;
@@ -716,7 +714,7 @@ private void processInstruction(IfaceProgramPoint inspt)
 	 v0 = st1.popStack();
 	 v1 = st1.popStack();
 	 v2 = st1.popStack();
-	 flow_queue.handleArraySet(here,v2,v0,v1);
+	 flow_queue.handleArraySet(here,v2,v0,v1,0);
 	 break;
       case ANEWARRAY :
 	 v0 = st1.popStack();
@@ -772,7 +770,7 @@ private void processInstruction(IfaceProgramPoint inspt)
 	 v0 = st1.popStack();
 	 v1 = st1.popStack();
 	 v2 = st1.popStack();
-	 flow_queue.handleArraySet(here,v2,v0,v1);
+	 flow_queue.handleArraySet(here,v2,v0,v1,0);
 	 break;
 
 /* FIELD INSTRUCTIONS */

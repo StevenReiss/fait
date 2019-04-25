@@ -330,8 +330,9 @@ public ValueBase nullValue()
 
 public ValueBase nullValue(IfaceType dt)
 {
+   if (dt == null) return nullValue();
+   
    synchronized (null_map) {
-     
       ValueBase cv = null_map.get(dt);
       if (cv == null) {
          IfaceType dt1 = fait_control.findConstantType(dt,null);
@@ -456,7 +457,8 @@ public IfaceValue initialFieldValue(IfaceField fld,boolean nat)
 	    fnm.equals("parent")) nonnull = false;
       else if (ctyp.getName().startsWith("java.lang.")) nonnull = true;
       if (ftyp.isAbstract()) s0 = mutableValue(ftyp);
-      else s0 = nativeValue(ftyp);
+      // else s0 = nativeValue(ftyp);
+      else s0 = mutableValue(ftyp);
       if (nonnull) s0 = s0.forceNonNull();
     }
    else {
@@ -592,8 +594,6 @@ public void handleUpdates(IfaceUpdater upd)
 	  }
        }
     }
-
-   // what about numeric values with user entities
 }
 
 

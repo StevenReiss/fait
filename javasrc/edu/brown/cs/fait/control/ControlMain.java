@@ -42,6 +42,7 @@ import edu.brown.cs.fait.value.*;
 import edu.brown.cs.ivy.jcode.JcodeClass;
 import edu.brown.cs.ivy.jcode.JcodeFactory;
 import edu.brown.cs.ivy.jcode.JcodeInstruction;
+import edu.brown.cs.ivy.jcomp.JcompSymbol;
 import edu.brown.cs.ivy.jcomp.JcompType;
 import edu.brown.cs.ivy.jcomp.JcompTyper;
 import edu.brown.cs.ivy.xml.IvyXmlWriter;
@@ -113,11 +114,19 @@ public ControlMain(IfaceProject ip)
    user_project = ip;
    
    fait_files = new LinkedHashMap<>();
+   SortedSet<IfaceDescriptionFile> files = new TreeSet<>();
+   if (getDescriptionFile() != null) {
+      files.add(new ControlDescriptionFile(getDescriptionFile(),
+            IfaceDescriptionFile.PRIORITY_BASE));
+    }
    addSpecialFile(getDescriptionFile());
    if (ip.getDescriptionFiles() != null) {
-      for (File ff : ip.getDescriptionFiles()) {
-         addSpecialFile(ff);
+      for (IfaceDescriptionFile ff : ip.getDescriptionFiles()) {
+         files.add(ff);
        }
+    }
+   for (IfaceDescriptionFile f : files) {
+      addSpecialFile(f.getFile());
     }
    
    flow_factory = new FlowFactory(this);
@@ -142,9 +151,10 @@ void addSpecialFile(File f)
 {
    if (f.exists() && f.canRead()) {
       fait_files.put(f,f.lastModified());
-      call_factory.addSpecialFile(f);
-      safety_factory.addSpecialFile(f);
-      type_factory.addSpecialFile(f);
+      if (call_factory.addSpecialFile(f)) {
+         safety_factory.addSpecialFile(f);
+         type_factory.addSpecialFile(f);
+       }
     }
 }
 
@@ -171,11 +181,18 @@ void reloadSpecialFiles()
    safety_factory.clearAllSpecials();
    type_factory.clearAllSpecials();
    fait_files.clear();
-   addSpecialFile(getDescriptionFile());
+   SortedSet<IfaceDescriptionFile> files = new TreeSet<>();
+   if (getDescriptionFile() != null) {
+      files.add(new ControlDescriptionFile(getDescriptionFile(),
+            IfaceDescriptionFile.PRIORITY_BASE));
+    }
    if (user_project.getDescriptionFiles() != null) {
-      for (File ff : user_project.getDescriptionFiles()) {
-         addSpecialFile(ff);
+      for (IfaceDescriptionFile ff : user_project.getDescriptionFiles()) {
+         files.add(ff);
        }
+    }
+   for (IfaceDescriptionFile f : files) {
+      addSpecialFile(f.getFile());
     }
 }
 
@@ -230,6 +247,8 @@ IfaceBaseType findJavaType(String cls)
 
 @Override public IfaceType findConstantType(IfaceType t,Object cnst)
 {
+   if (t == null) return null;
+   
    return type_factory.createConstantType(t.getJavaType(),cnst);
 }
 
@@ -252,6 +271,15 @@ IfaceType findDataType(IfaceBaseType bt,List<IfaceAnnotation> ans)
       return bytecode_factory.findMethod(ctyp,method,sign);
     }
 }
+
+
+@Override public IfaceMethod findMethod(JcompSymbol js) 
+{
+   return ast_factory.getMethod(js);
+}
+
+
+
 
 public List<IfaceMethod> findAllMethods(IfaceBaseType typ,String name)
 {
@@ -302,12 +330,15 @@ public Collection<IfaceMethod> getStartMethods()
    
    JcodeFactory jf = user_project.getJcodeFactory();
    for (JcodeClass jc : jf.getAllPossibleClasses(new ProjectFilter())) { 
-      findJavaType(jc.getName());
+      String nm = jc.getName();
+      nm = nm.replace("$",".");
+      findJavaType(nm);
     }
    Collection<IfaceMethod> rslt = new HashSet<>();
    
    JcompTyper typer = user_project.getTyper();
    for (JcompType jt : typer.getAllTypes()) {
+      if (!user_project.isProjectClass(jt.getName())) continue;
       if (jt.isPrimitiveType()) continue;
       if (jt.isErrorType()) continue;
       if (jt.isAnnotationType()) continue;
@@ -660,6 +691,12 @@ void updateValues(IfaceUpdater upd)
 }
 
 
+void updateStates(IfaceUpdater upd)
+{
+   state_factory.handleUpdates(upd);
+}
+
+
 
 /********************************************************************************/
 /*										*/
@@ -699,7 +736,6 @@ void updateValues(IfaceUpdater upd)
 }
 
 
-
 @Override public Collection<IfaceCall> getAllCalls()
 {
    return call_factory.getAllCalls();
@@ -709,6 +745,18 @@ void updateValues(IfaceUpdater upd)
 {
    call_factory.removeCalls(calls);
 }
+
+
+@Override public Collection<String> getDefaultClasses()
+{
+   return call_factory.getDefaultClasses();
+}
+
+/********************************************************************************/
+/*                                                                              */
+/*      Location methods                                                        */
+/*                                                                              */
+/********************************************************************************/
 
 
 @Override public IfaceAstReference getAstReference(ASTNode n)
@@ -750,15 +798,15 @@ void updateValues(IfaceUpdater upd)
 /*										*/
 /********************************************************************************/
 
-@Override public void analyze(int nthread,boolean update)
+@Override public void analyze(int nthread,boolean update,ReportOption reportopt)
 {
-   flow_factory.analyze(nthread,update);
+   flow_factory.analyze(nthread,update,reportopt);
 }
 
 
-@Override public void analyze(IfaceMethod im,int nth)
+@Override public void analyze(IfaceMethod im,int nth,ReportOption rptopt)
 {
-   flow_factory.analyze(im,nth);
+   flow_factory.analyze(im,nth,rptopt);
 }
 
 
@@ -786,9 +834,9 @@ void updateValues(IfaceUpdater upd)
 }
 
 
-void updateQueuedStates(IfaceUpdater upd)
+void updateFlow(IfaceUpdater upd)
 {
-   flow_factory.handleStateUpdate(upd);
+   flow_factory.handleUpdate(upd);
 }
 
 
@@ -827,7 +875,17 @@ boolean isEditableClass(IfaceBaseType dt)
 {
    if (user_project == null) return false;
    
-   return user_project.isEditableClass(dt.getName());
+   String name = dt.getName();
+   
+   if (user_project.isEditableClass(name)) return true;
+   
+   int idx = name.indexOf(".$");;
+   if (idx > 0) {
+      String onm = name.substring(0,idx);
+      return user_project.isEditableClass(onm);
+    }
+   
+   return false;
 }
 
 
@@ -998,6 +1056,25 @@ IfaceBaseType createMethodType(IfaceType rtn,List<IfaceType> args)
    return cbf;
 }
 
+
+
+@Override public IfaceAuxReference getAuxReference(IfaceLocation loc,IfaceValue ref)
+{
+   return QueryFactory.getAuxReference(loc,ref);
+}
+
+
+
+@Override public Collection<IfaceAuxReference> getAuxRefs(IfaceField fld)
+{
+   return flow_factory.getAuxRefs(fld);
+}
+
+
+@Override public Collection<IfaceAuxReference> getAuxArrayRefs(IfaceValue arr)
+{
+   return flow_factory.getAuxArrayRefs(arr);
+}
 /********************************************************************************/
 /*                                                                              */
 /*      Handle clean up                                                         */

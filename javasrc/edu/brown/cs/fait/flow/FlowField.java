@@ -52,8 +52,9 @@ class FlowField implements FlowConstants
 
 private IfaceControl			fait_control;
 private FlowQueue			flow_queue;
-private Map<String,IfaceValue>	field_map;
-private Map<String,Set<FlowLocation>> field_accessors;
+private Map<String,IfaceValue>	        field_map;
+private Map<String,Set<FlowLocation>>   field_accessors;
+private Map<String,Map<FlowLocation,Integer>> field_setters;
 
 
 
@@ -69,6 +70,7 @@ FlowField(IfaceControl fc,FlowQueue fq)
    flow_queue = fq;
    field_map = new HashMap<>();
    field_accessors = new HashMap<>();
+   field_setters = new HashMap<>();
 }
 
 
@@ -109,7 +111,11 @@ IfaceValue handleFieldGet(FlowLocation loc,IfaceField fld,IfaceState st,boolean 
    
    synchronized (field_map) {
       IfaceValue v0 = field_map.get(key);
-      boolean nat = (base == null ? false : base.isNative());
+      boolean nat = false;
+      if (base != null) {
+         if (base.isFixed() || base.isMutable()) nat = true;
+       }
+       
       if (v0 == null) {
 	 v0 = fait_control.findInitialFieldValue(fld,nat);
 	 if (!v0.mustBeNull()) flow_queue.initialize(ftyp);
@@ -164,7 +170,7 @@ void handleFieldSet(FlowLocation loc,IfaceField fld,IfaceState st,boolean thisre
    v0 = FlowScanner.checkAssignment(v0,ftyp,loc,stackref);
    
    if (thisref || mthd.getMethod().isStaticInitializer()) {
-      st.setFieldValue(fld,v0);
+      if (!fld.isVolatile()) st.setFieldValue(fld,v0);
     }
    
    IfaceValue v2 = null;
@@ -187,6 +193,17 @@ void handleFieldSet(FlowLocation loc,IfaceField fld,IfaceState st,boolean thisre
       if (v2 != v1) {
         chng = true;
         field_map.put(key,v2);
+       }
+    }
+   
+   if (stackref >= 0 && loc != null) {
+      synchronized (field_setters) {
+	 Map<FlowLocation,Integer> locs = field_setters.get(key);
+	 if (locs == null) {
+	    locs = new HashMap<>();
+	    field_setters.put(key,locs);
+	  }
+	 locs.put(loc,stackref);
        }
     }
    
@@ -241,6 +258,61 @@ void handleFieldChanged(IfaceField fld)
 }
 
 
+List<IfaceAuxReference> getSetterRefs(IfaceField fld)
+{
+   String key = fld.getKey();
+   Map<FlowLocation,Integer> set = field_setters.get(key);
+   if (set == null) return null;
+   List<IfaceAuxReference> rslt = new ArrayList<>();
+   for (Map.Entry<FlowLocation,Integer> ent : set.entrySet()) {
+      IfaceValue rv = fait_control.findRefStackValue(fld.getType(),ent.getValue());
+      IfaceAuxReference r = fait_control.getAuxReference(ent.getKey(),rv);
+      rslt.add(r);
+    }
+   return rslt;
+}
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Handle incremental updates                                              */
+/*                                                                              */
+/********************************************************************************/
+
+void handleFieldUpdates(IfaceUpdater upd)
+{
+   Set<String> chng = new HashSet<>();
+   for (Map.Entry<String,Set<FlowLocation>> ent : field_accessors.entrySet()) {
+      for (Iterator<FlowLocation> it = ent.getValue().iterator(); it.hasNext(); ) {
+         FlowLocation loc = it.next();
+         if (upd.isLocationRemoved(loc)) {
+            it.remove();
+            chng.add(ent.getKey());
+          }
+       }
+    }
+   for (Map.Entry<String,Map<FlowLocation,Integer>> ent : field_setters.entrySet()) {
+      for (Iterator<FlowLocation> it = ent.getValue().keySet().iterator(); it.hasNext(); ) {
+         FlowLocation loc = it.next();
+         if (upd.isLocationRemoved(loc)) {
+            it.remove();
+            chng.add(ent.getKey());
+          }
+       }
+    }
+   for (String fldn : chng) {
+       Set<FlowLocation> acc = field_accessors.get(fldn);
+       Map<FlowLocation,Integer> set = field_setters.get(fldn);
+       if (acc == null || acc.isEmpty()) {
+          if (set == null || set.isEmpty()) {
+             field_accessors.remove(fldn);
+             field_setters.remove(fldn);
+             field_map.remove(fldn);
+             break;
+           }
+        }
+    }
+}
 
 
 }	// end of class FlowField

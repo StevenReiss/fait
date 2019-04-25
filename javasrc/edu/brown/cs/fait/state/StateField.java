@@ -236,6 +236,22 @@ void handleFieldChanged(IfaceField fld)
 
 
 
+void handleUpdates(IfaceUpdater upd)
+{
+   for (Iterator<Map.Entry<String,Set<IfaceLocation>>> it = field_uses.entrySet().iterator(); it.hasNext(); ) {
+      Map.Entry<String,Set<IfaceLocation>> ent = it.next();
+      boolean gone = true;
+      for (Iterator<IfaceLocation> it1 = ent.getValue().iterator(); it1.hasNext(); ) {
+         IfaceLocation loc = it1.next();
+         if (upd.isLocationRemoved(loc)) {
+            it1.remove();;
+          }
+         else gone = false;
+       }
+      if (gone) it.remove();
+    }
+}
+
 
 }	// end of class StateField
 

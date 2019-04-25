@@ -42,6 +42,7 @@ import java.util.Set;
 
 import edu.brown.cs.fait.iface.IfaceCall;
 import edu.brown.cs.fait.iface.IfaceControl;
+import edu.brown.cs.fait.iface.IfaceMethod;
 import edu.brown.cs.fait.iface.IfaceProgramPoint;
 import edu.brown.cs.fait.iface.IfaceSafetyCheck;
 import edu.brown.cs.fait.iface.IfaceSafetyStatus;
@@ -155,6 +156,23 @@ QueryContextSafetyCheck(IfaceControl ctrl,IfaceSafetyCheck chk,IfaceSafetyCheck.
 {
    return;
 }
+
+
+@Override protected boolean handleInternalCall(IfaceState st0,QueryBackFlowData bfd,QueryNode n)
+{  
+   IfaceMethod im = st0.getLocation().getProgramPoint().getReferencedMethod();
+   if (im != null && im.getName().equals("KarmaEvent")) {
+      QueryGraph g = n.getGraph();
+      QueryNode n1 = g.addNode(st0.getLocation().getCall(),st0.getLocation().getProgramPoint(),
+            this,"State Transition for event",n);
+      g.markAsEndNode(n1);
+    }
+   return false;
+}
+
+
+
+
 /********************************************************************************/
 /*										*/
 /*	Helper methods								*/

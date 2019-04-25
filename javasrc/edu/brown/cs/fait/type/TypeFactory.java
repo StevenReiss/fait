@@ -176,12 +176,13 @@ public IfaceType createType(IfaceType base,IfaceAnnotation ... annots)
    if (base == null) return null;
    
    IfaceSubtype.Value [] vals = new IfaceSubtype.Value[getNumSubtypes()];  
+   IfaceBaseType jtyp = base.getJavaType();
    for (int i = 0; i < getNumSubtypes(); ++i) {
       TypeSubtype st = getSubtype(i);
-      vals[i] = st.getDefaultValue(annots,base.getValue(st));
+      vals[i] = st.getDefaultValue(jtyp,annots,base.getValue(st));
     }
    
-   return createActualType(base.getJavaType(),vals);
+   return createActualType(jtyp,vals);
 }
 
 
@@ -191,12 +192,13 @@ public IfaceType createType(IfaceType base,Collection<IfaceAnnotation> annots)
    if (base == null) return null;
    
    IfaceSubtype.Value [] vals = new IfaceSubtype.Value[getNumSubtypes()];  
+   IfaceBaseType jtyp = base.getJavaType();
    for (int i = 0; i < getNumSubtypes(); ++i) {
       TypeSubtype st = getSubtype(i);
-      vals[i] = st.getDefaultValue(annots,base.getValue(st));
+      vals[i] = st.getDefaultValue(jtyp,annots,base.getValue(st));
     }
    
-   return createActualType(base.getJavaType(),vals);
+   return createActualType(jtyp,vals);
 }
 
 
@@ -251,6 +253,11 @@ private IfaceType createActualType(IfaceBaseType base,Map<IfaceSubtype,IfaceSubt
 
 private IfaceType createActualType(IfaceBaseType base,IfaceSubtype.Value [] subs)
 {
+   for (int i = 0; i < getNumSubtypes(); ++i) {
+      TypeSubtype st = getSubtype(i);
+      subs[i] = st.adjustValueForBase(subs[i],base);
+    }
+   
    IfaceType t0 = type_map.findType(base,subs);
    if (t0 == null) {
       t0 = new TypeBase(this,base,subs);

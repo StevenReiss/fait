@@ -55,7 +55,7 @@ private boolean 	used_in_lock;
 
 
 private static int		entity_counter = 0;
-private static List<EntityBase> all_entities = new Vector<EntityBase>();
+private static List<EntityBase> all_entities = new ArrayList<EntityBase>();
 
 
 
@@ -91,6 +91,7 @@ protected EntityBase()
 @Override public IfacePrototype getPrototype()          { return null; }
 
 @Override public boolean isNative()		{ return false; }
+@Override public boolean isFixed()              { return false; }
 @Override public boolean isUserEntity()         { return false; }
 @Override public boolean isMutable()            { return false; }
 
@@ -121,12 +122,6 @@ public Collection<IfaceEntity> mutateTo(IfaceType dt,EntityFactory factory)
 {
    return null;
 }
-
-
-
-
-
-
 
 
 @Override public final void setFieldContents(IfaceValue fv,IfaceField fld)	
@@ -195,15 +190,16 @@ public Collection<IfaceEntity> mutateTo(IfaceType dt,EntityFactory factory)
 
 
 
-
-
 /********************************************************************************/
 /*										*/
 /*	Update methods								*/
 /*										*/
 /********************************************************************************/
 
-@Override public void handleUpdates(IfaceUpdater upd)			{ }
+@Override public void handleUpdates(IfaceUpdater upd)		 
+{
+   if (getPrototype() != null) getPrototype().handleUpdates(upd);
+}
 
 
 
@@ -227,11 +223,8 @@ public Collection<IfaceEntity> mutateTo(IfaceType dt,EntityFactory factory)
 static void clearAll()
 {
    entity_counter = 0;
-   all_entities = new Vector<EntityBase>();
+   all_entities.clear();
 }
-
-
-
 
 
 

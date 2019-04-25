@@ -382,6 +382,16 @@ private ValueBase tryNonNull()
 }
 
 
+@Override public boolean isFixed()
+{
+   for (IfaceEntity ent : getEntities()) {
+      if (ent.isFixed()) return true;
+    }
+   
+   return false;
+}
+
+
 @Override public boolean isAllNative()
 {
    int ct = 0;

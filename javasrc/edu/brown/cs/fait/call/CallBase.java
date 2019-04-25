@@ -62,18 +62,20 @@ private boolean 	is_clone;
 private boolean 	is_arg0;
 private boolean 	is_proto;
 private boolean 	can_exit;
+private boolean 	set_fields;
 private int		num_adds;
 private int		num_result;
-private boolean         is_scanned;
+private boolean 	is_scanned;
+private boolean 	is_affected;
 private QueueLevel	queue_level;
 private List<IfaceType> implied_arg_types;
-private IfaceType       implied_return_type;
+private IfaceType	implied_return_type;
 private IfaceSafetyStatus safety_result;
-private CallBase        alternate_call;
+private CallBase	alternate_call;
 
-private int             num_forward;
-private int             num_backward;
-private int             num_scan;
+private int		num_forward;
+private int		num_backward;
+private int		num_scan;
 
 private Map<IfaceProgramPoint,IfaceEntity> array_map;
 private Map<IfaceProgramPoint,IfaceEntity> entity_map;
@@ -96,33 +98,35 @@ private Map<IfaceProgramPoint,Collection<IfaceError>> error_set;
 CallBase(IfaceControl fc,IfaceMethod fm,IfaceProgramPoint pt,IfaceSafetyStatus sts)
 {
    fait_control = fc;
-   
+
    result_set = null;
    exception_set = null;
-   
+
    num_adds = 0;
    num_result = 0;
-   
+
    is_clone = false;
    is_arg0 = false;
    is_proto = false;
    can_exit = false;
    is_scanned = false;
-   
+   set_fields = false;
+   is_affected = false;
+
    queue_level = QueueLevel.NORMAL;
-   
+
    alternate_call = null;
-   
+
    array_map = Collections.synchronizedMap(new IdentityHashMap<>(4));
    entity_map = Collections.synchronizedMap(new IdentityHashMap<>(4));
    userentity_map = Collections.synchronizedMap(new IdentityHashMap<>(4));
    method_map = new IdentityHashMap<>();
    call_set = new HashSet<>();
    error_set = new IdentityHashMap<>();
-   
+
    for_method = fm;
    special_data = fc.getCallSpecial(pt,fm);
-   
+
    if (fm.getReturnType() != null && !fm.getReturnType().isVoidType()) {
       result_set = fc.findMutableValue(fm.getReturnType());
     }
@@ -132,6 +136,10 @@ CallBase(IfaceControl fc,IfaceMethod fm,IfaceProgramPoint pt,IfaceSafetyStatus s
 
    int idx = 0;
    if (!fm.isStatic()) {
+      if (fm.getLocalSize() == 0) {
+	 FaitLog.logE("Problem with method " + fm.getFullName() + " " + fm.getLocalSize() + " " +
+	    fm.getDescription() + " " + fm.hasCode() + " " + fm.getClass() + " " + fm.getStart());
+       }
       IfaceValue fv = fc.findAnyValue(fm.getDeclaringClass());
       fv = fv.forceNonNull();
       start_state.setLocal(idx++,fv);
@@ -146,6 +154,16 @@ CallBase(IfaceControl fc,IfaceMethod fm,IfaceProgramPoint pt,IfaceSafetyStatus s
       if (atyp.isCategory2()) ++idx;
     }
 
+   if (fm.getExternalSymbols() != null) {
+      for (Object sym : fm.getExternalSymbols()) {
+	 IfaceValue iv = fm.getExternalValue(sym);
+	 int slot = fm.getLocalOffset(sym);
+	 if (slot > 0 && iv != null) {
+	    start_state.setLocal(slot,iv);
+	  }
+       }
+    }
+
    if (fm.getName().equals("clone") && fm.getDeclaringClass().isJavaLangObject()) {
       is_clone = true;
       ++num_result;
@@ -153,27 +171,30 @@ CallBase(IfaceControl fc,IfaceMethod fm,IfaceProgramPoint pt,IfaceSafetyStatus s
    else if (special_data != null) {
       is_arg0 = special_data.returnsArg0();
       can_exit = special_data.getExits();
+      set_fields = special_data.getSetFields();
+      is_affected = special_data.isAffected();
       // this null needs to be a FaitLocaiton with fm as the method
       if (special_data.getDontScan()) {
-         IfaceValue rv = special_data.getReturnValue(null,for_method);
-         addResult(rv,null,null);
-         if (rv != null) {
-            List<IfaceValue> excs = special_data.getExceptions(null,for_method);
-            IfaceValue ev = null;
-            if (excs != null) {
-               for (IfaceValue v0 : excs) {
-                  ev = v0.mergeValue(ev);
-                }
-             }
-            else {
-               for (IfaceType edt : fm.getExceptionTypes()) {
-                  IfaceValue ecv = fc.findNativeValue(edt);
-                  ecv = ecv.forceNonNull();
-                  ev = ecv.mergeValue(ev);
-                }
-             }
-            exception_set = ev;
-          }
+	 IfaceValue rv = special_data.getReturnValue(null,for_method);
+	 result_set = null;
+	 addResult(rv,null,null);
+	 if (rv != null) {
+	    List<IfaceValue> excs = special_data.getExceptions(null,for_method);
+	    IfaceValue ev = null;
+	    if (excs != null) {
+	       for (IfaceValue v0 : excs) {
+		  ev = v0.mergeValue(ev);
+		}
+	     }
+	    else {
+	       for (IfaceType edt : fm.getExceptionTypes()) {
+		  IfaceValue ecv = fc.findNativeValue(edt);
+		  ecv = ecv.forceNonNull();
+		  ev = ecv.mergeValue(ev);
+		}
+	     }
+	    exception_set = ev;
+	  }
        }
     }
 
@@ -187,23 +208,23 @@ CallBase(IfaceControl fc,IfaceMethod fm,IfaceProgramPoint pt,IfaceSafetyStatus s
 	 result_set = fc.findMutableValue(fm.getReturnType());
       ++num_result;
     }
-   
+
    int act = fm.getNumArgs();
    implied_arg_types = new ArrayList<>();
    for (int i = 0; i < act; ++i) {
       implied_arg_types.add(fm.getArgType(i));
     }
    implied_return_type = fm.getReturnType();
-   
+
    loadClasses();
-   
+
    num_scan = 0;
    num_forward = 0;
    num_backward = 0;
-   
+
    if (num_result > 0) is_scanned = false;
    else is_scanned = true;
-   
+
    safety_result = null;
 }
 
@@ -238,13 +259,26 @@ CallBase(IfaceControl fc,IfaceMethod fm,IfaceProgramPoint pt,IfaceSafetyStatus s
 @Override public boolean isClone()		{ return is_clone; }
 @Override public boolean isReturnArg0() 	{ return is_arg0; }
 
+@Override public boolean isSetFields(boolean clr)
+{
+   boolean rslt = set_fields;
+   if (clr) set_fields = false;
+   return rslt;
+}
+
+
+@Override public boolean isAffected()
+{
+   return is_affected;
+}
+
 @Override public boolean getCanExit()		{ return can_exit; }
 @Override public void setCanExit()		{ can_exit = true; }
 
 @Override public boolean isPrototype()		{ return is_proto; }
 @Override public void setPrototype()		{ is_proto = true; }
 
-@Override public boolean isScanned()            { return is_scanned; }
+@Override public boolean isScanned()		{ return is_scanned; }
 
 
 @Override public boolean getIsAsync()
@@ -254,12 +288,12 @@ CallBase(IfaceControl fc,IfaceMethod fm,IfaceProgramPoint pt,IfaceSafetyStatus s
 }
 
 
-@Override public void loadClasses()  
+@Override public void loadClasses()
 {
    if (special_data != null && special_data.getClassesToLoad() != null) {
       for (String s : special_data.getClassesToLoad()) {
-         IfaceType typ = fait_control.findDataType(s);
-         if (typ != null) fait_control.initialize(typ);
+	 IfaceType typ = fait_control.findDataType(s);
+	 if (typ != null) fait_control.initialize(typ);
        }
     }
 }
@@ -409,10 +443,10 @@ CallBase(IfaceControl fc,IfaceMethod fm,IfaceProgramPoint pt,IfaceSafetyStatus s
        }
       if (num_adds++ == 0) chng = true;
     }
-   
+
    if (special_data != null && special_data.getDontScan()) chng = false;
    else if (start_state.mergeSafetyStatus(sts)) chng = true;
-   
+
    return chng;
 }
 
@@ -443,7 +477,7 @@ CallBase(IfaceControl fc,IfaceMethod fm,IfaceProgramPoint pt,IfaceSafetyStatus s
 @Override synchronized public boolean addResult(IfaceValue v,IfaceSafetyStatus sts,IfaceState fromstate)
 {
    boolean chng = false;
-   
+
    if (v == null) {				// handle void routines
       if (num_result++ == 0) chng = true;
     }
@@ -455,34 +489,34 @@ CallBase(IfaceControl fc,IfaceMethod fm,IfaceProgramPoint pt,IfaceSafetyStatus s
    else {
       ++num_result;
       if (result_set != v) {
-         IfaceValue nv = result_set.mergeValue(v);
-         if (nv != result_set) {
-            result_set = nv;
-            chng = true;
-          }
+	 IfaceValue nv = result_set.mergeValue(v);
+	 if (nv != result_set) {
+	    result_set = nv;
+	    chng = true;
+	  }
        }
     }
-   
+
    if (is_arg0) chng = false;
-   
+
    if (sts != null) {
       if (safety_result == null) {
-         safety_result = sts;
-         if (!is_arg0) chng = true;
+	 safety_result = sts;
+	 if (!is_arg0) chng = true;
        }
       else {
-         IfaceSafetyStatus nsts = safety_result.merge(sts);
-         if (nsts != safety_result) {
-            safety_result = nsts;
-            chng = true;
-          }
+	 IfaceSafetyStatus nsts = safety_result.merge(sts);
+	 if (nsts != safety_result) {
+	    safety_result = nsts;
+	    chng = true;
+	  }
        }
     }
-   
+
    if (chng && fromstate != null) {
       addReturnStates(fromstate);
     }
-   
+
    return chng;
 }
 
@@ -493,8 +527,8 @@ private void addReturnStates(IfaceState st)
    if (st.getLocation() != null) return_states.add(st);
    else {
       for (int i = 0; i < st.getNumPriorStates(); ++i) {
-         IfaceState stp = st.getPriorState(i);
-         addReturnStates(stp);
+	 IfaceState stp = st.getPriorState(i);
+	 addReturnStates(stp);
        }
     }
 }
@@ -514,14 +548,9 @@ private void addReturnStates(IfaceState st)
 
    if (special_data.isConstructor()) {
       if (nm == null) {
-         IfaceValue fv = special_data.getReturnValue(pt,for_method);
-         nm  = fv.getDataType().getName();
+	 IfaceValue fv = special_data.getReturnValue(pt,for_method);
+	 nm  = fv.getDataType().getName();
        }
-      // List<IfaceValue> nargs = special_data.getCallbackArgs(args,fv);
-      // String rtyp = fv.getDataType().getName();
-      // nm = rtyp + ".<init>";
-      // args.clear();
-      // args.addAll(nargs);
     }
 
    if (nm == null)
@@ -532,7 +561,7 @@ private void addReturnStates(IfaceState st)
 
    String desc = "(";
    String statdesc = "(";
-   int act = 0; 
+   int act = 0;
    for (IfaceValue v : args) {
       String d = v.getDataType().getJavaTypeName();
       if (act++ > 0) desc += d;
@@ -546,51 +575,56 @@ private void addReturnStates(IfaceState st)
       IfaceValue newval = null;
       nm = tok.nextToken();
       if (special_data.isConstructor()) {
-         IfaceType rtyp = fait_control.findDataType(nm);
-         newval = fait_control.findAnyValue(rtyp);
-         nm += ".<init>";
+	 String tynm = nm;
+	 int idx1 = tynm.indexOf("(");
+	 if (idx1 > 0) tynm = tynm.substring(0,idx1);
+	 IfaceType rtyp = fait_control.findDataType(tynm);
+	 newval = fait_control.findAnyValue(rtyp);
+	 String nnm = tynm + ".<init>";
+	 if (idx1 > 0) nnm += nm.substring(idx1);
+	 nm = nnm;
        }
       String adesc = null;
       int aidx = nm.indexOf("(");
       if (aidx > 0) {
-         adesc = nm.substring(aidx);
-         nm = nm.substring(0,aidx);
+	 adesc = nm.substring(aidx);
+	 nm = nm.substring(0,aidx);
        }
-      
+
       int idx = nm.lastIndexOf(".");
       if (idx > 0) {
 	 String cls = nm.substring(0,idx);
 	 String mnm = nm.substring(idx+1);
-         if (adesc != null) nfm = fait_control.findMethod(cls,mnm,adesc);
-         else {
-            nfm = fait_control.findMethod(cls,mnm,desc);
-            if (nfm != null && nfm.isStatic()) nfm = null;
-            if (nfm == null) {
-               nfm = fait_control.findMethod(cls,mnm,statdesc);
-               if (nfm != null && !nfm.isStatic()) nfm = null;
-             }
-          }
+	 if (adesc != null) nfm = fait_control.findMethod(cls,mnm,adesc);
+	 else {
+	    nfm = fait_control.findMethod(cls,mnm,desc);
+	    if (nfm != null && nfm.isStatic()) nfm = null;
+	    if (nfm == null) {
+	       nfm = fait_control.findMethod(cls,mnm,statdesc);
+	       if (nfm != null && !nfm.isStatic()) nfm = null;
+	     }
+	  }
        }
       else {
-         List<IfaceValue> nargs = special_data.getCallbackArgs(args,newval);
+	 List<IfaceValue> nargs = special_data.getCallbackArgs(args,newval);
 	 IfaceValue v0 = args.get(0);
-         if (nargs != null) v0 = nargs.get(0);
+	 if (nargs != null) v0 = nargs.get(0);
 	 IfaceType dt = v0.getDataType();
-         while (dt != null) {
-            if (adesc != null) nfm = fait_control.findMethod(dt.getName(),nm,adesc);
+	 while (dt != null) {
+	    if (adesc != null) nfm = fait_control.findMethod(dt.getName(),nm,adesc);
 	    else nfm = fait_control.findMethod(dt.getName(),nm,desc);
 	    if (nfm != null) break;
 	    dt = dt.getSuperType();
 	  }
        }
       if (nfm != null && !nfm.isNative() && !nfm.isAbstract()) {
-         List<IfaceValue> nargs = special_data.getCallbackArgs(args,newval);
-         if (nargs == null) nargs = args;
-         rslt.put(nfm,nargs);
+	 List<IfaceValue> nargs = special_data.getCallbackArgs(args,newval);
+	 if (nargs == null) nargs = args;
+	 rslt.put(nfm,nargs);
        }
     }
 
-   
+
    if (rslt.isEmpty()) rslt.put(for_method,args);
 
    return rslt;
@@ -778,7 +812,6 @@ private void removeMethodCall(IfaceLocation loc,IfaceCall c)
    for (IfaceEntity ie : entity_map.values()) {
       upd.addEntityToRemove(ie);
     }
-   // TODO: handle user entities here as well
 
    // next find all items called from here and remove this as a caller
    // if we were the only caller, then remove that call as well
@@ -792,13 +825,21 @@ private void removeMethodCall(IfaceLocation loc,IfaceCall c)
    // finally remove this call from any call site for it and requeue
    // that call to be evaluated.  Ignore if the call site will also
    // be eliminated
+   requeueCall(upd);
+}
+
+
+private void requeueCall(IfaceUpdater upd)
+{
    for (IfaceLocation loc : call_set) {
-      if (upd.shouldUpdate(loc.getCall())) continue;
-      upd.addToWorkQueue(loc.getCall(),loc.getProgramPoint());
       CallBase cb = (CallBase) loc.getCall();
       cb.removeMethodCall(loc,this);
+      if (!upd.shouldUpdate(cb)) {
+	 upd.addToWorkQueue(cb,loc.getProgramPoint());
+       }
     }
 }
+
 
 
 private boolean removeCaller(IfaceCall src)
@@ -827,6 +868,8 @@ private boolean removeCaller(IfaceCall src)
 
 @Override public String toString()
 {
+   if (for_method == null) return "???";
+
    StringBuffer buf = new StringBuffer();
    buf.append(for_method.getName());
    buf.append(for_method.getDescription());
@@ -881,9 +924,9 @@ private boolean removeCaller(IfaceCall src)
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Handle backwards flow data                                              */
-/*                                                                              */
+/*										*/
+/*	Handle backwards flow data						*/
+/*										*/
 /********************************************************************************/
 
 @Override public void backFlowParameter(IfaceValue ref,IfaceType settype)
@@ -891,7 +934,7 @@ private boolean removeCaller(IfaceCall src)
    if (ref == null || ref.getRefSlot() < 0) return;
    int argno = -1;
    int slot = ref.getRefSlot();
-   
+
    if (!for_method.isStatic() && slot == 0) {
       argno = 0;
     }
@@ -899,22 +942,22 @@ private boolean removeCaller(IfaceCall src)
       int idx = 0;
       if (!for_method.isStatic()) idx = 1;
       for (int i = 0; i < for_method.getNumArgs(); ++i) {
-         if (slot == idx) {
-            argno = i;
-            break;
-          }
-         IfaceType atyp = for_method.getArgType(i);
-         if (atyp == null) return;
-         if (atyp.isCategory2()) ++idx;
-         ++idx;
+	 if (slot == idx) {
+	    argno = i;
+	    break;
+	  }
+	 IfaceType atyp = for_method.getArgType(i);
+	 if (atyp == null) return;
+	 if (atyp.isCategory2()) ++idx;
+	 ++idx;
        }
     }
    if (argno < 0) return;
-   
+
    IfaceType typ0 = implied_arg_types.get(argno);
    IfaceType typ1 = typ0.getAnnotatedType(settype);
    if (typ0 == typ1) return;
-   
+
    FaitLog.logD("Call Backwards " + argno + " " + typ1);
    implied_arg_types.set(argno,typ1);
 }
@@ -923,13 +966,13 @@ private boolean removeCaller(IfaceCall src)
 
 @Override public void backFlowReturn(IfaceLocation loc,IfaceType settype)
 {
-   if (implied_return_type == null) return;     // handle constructors
+   if (implied_return_type == null) return;	// handle constructors
    IfaceType typ0 = implied_return_type.getAnnotatedType(settype);
    if (typ0 == implied_return_type) return;
    implied_return_type = typ0;
    if (FaitLog.isTracing())
       FaitLog.logD("Return Backwards type change: " + typ0);
-   
+
    for (IfaceCall ic : getAllMethodsCalled(loc.getProgramPoint())) {
       FaitLog.logD("Return Backwards " + ic + " " + typ0);
       // TODO: might want to requeue the call here knowing the type changed
@@ -938,32 +981,32 @@ private boolean removeCaller(IfaceCall src)
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Handle finding alternate calls based on safety status                   */
-/*                                                                              */
+/*										*/
+/*	Handle finding alternate calls based on safety status			*/
+/*										*/
 /********************************************************************************/
 
 @Override public CallBase getAlternateCall(IfaceSafetyStatus sts,IfaceProgramPoint pt)
 {
    if (sts == null) return this;
-   
-   if (special_data != null && special_data.getDontScan() && safety_result == null) 
+
+   if (special_data != null && special_data.getDontScan() && safety_result == null)
       return this;
-      
+
    IfaceSafetyStatus osts = start_state.getSafetyStatus();
-   
+
    if (sts == osts) return this;
    if (osts != null) {
       // IfaceSafetyStatus xsts = osts.merge(sts);
       // if (xsts == osts) return this;
     }
   // if (osts == null && sts == fait_control.getInitialSafetyStatus()) return this;
-   
-   if (alternate_call != null) return alternate_call.getAlternateCall(sts,pt); 
-   
+
+   if (alternate_call != null) return alternate_call.getAlternateCall(sts,pt);
+
    CallBase cb = new CallBase(fait_control,for_method,pt,sts);
    alternate_call = cb;
-   
+
    return cb;
 }
 
@@ -972,19 +1015,19 @@ private boolean removeCaller(IfaceCall src)
 @Override public Collection<IfaceCall> getAlternateCalls()
 {
    if (alternate_call == null) return Collections.singleton(this);
-  
+
    List<IfaceCall> rslt = new ArrayList<IfaceCall>();
    for (CallBase cb = this; cb != null; cb = cb.alternate_call) {
       rslt.add(cb);
     }
-   
+
    return rslt;
 }
 
 /********************************************************************************/
-/*                                                                              */
-/*      Statistics methods                                                      */
-/*                                                                              */
+/*										*/
+/*	Statistics methods							*/
+/*										*/
 /********************************************************************************/
 
 @Override public void noteScan(int fwd,int bwd)
@@ -998,12 +1041,12 @@ private boolean removeCaller(IfaceCall src)
 @Override public void outputStatistics()
 {
    FaitLog.logS(getLogName() + ", " + num_scan + ", " + num_forward + ", " +
-         num_backward + ", " + num_adds + ", " + num_result);
-   
+	 num_backward + ", " + num_adds + ", " + num_result);
+
    num_scan = 0;
    num_forward = 0;
    num_backward = 0;
-   
+
    if (alternate_call != null) {
       alternate_call.outputStatistics();
     }

@@ -52,7 +52,7 @@ public class ProtoFactory implements ProtoConstants
 /********************************************************************************/
 
 private enum ProtoWhich {
-   NONE, COLLECTION, MAP
+   NONE, COLLECTION, MAP, BUILDER
 }
 
 
@@ -95,6 +95,10 @@ public IfacePrototype createPrototype(IfaceType dt)
          else if (dt.isDerivedFrom(fait_control.findDataType("java.util.Map"))) {
             which = ProtoWhich.MAP;
           }
+         else if (dt.getName().equals("java.lang.StringBuilder") ||
+               dt.getName().equals("java.lang.StringBuffer")) {
+            which = ProtoWhich.BUILDER;
+          }
          else which = ProtoWhich.NONE;
          class_map.put(dt,which);
        }
@@ -108,6 +112,8 @@ public IfacePrototype createPrototype(IfaceType dt)
          return new ProtoCollection(fait_control,dt);
       case MAP :
          return new ProtoMap(fait_control,dt);
+      case BUILDER :
+         return new ProtoStringBuilder(fait_control,dt);
     }
 }
       
@@ -119,17 +125,17 @@ public IfacePrototype createPrototype(IfaceType dt)
 /*                                                                              */
 /********************************************************************************/
 
-static boolean isMethodRelevant(IfaceMethod fm,IfaceType basetype)
+static public boolean isMethodRelevant(IfaceMethod fm,IfaceType basetype)
 {
    IfaceType dt = fm.getDeclaringClass();
    String dnm = dt.getName();
    if (dnm.startsWith("java.util.") || dnm.equals("java.lang.Iterable") ||
-         dnm.startsWith("sun.security.")) {
+         dnm.startsWith("sun.security.") || dnm.startsWith("java.lang.")) {
       return true;
     }
    for (IfaceMethod im : fm.getParentMethods()) {
       IfaceType pt = im.getDeclaringClass();
-      if (pt.getName().startsWith("java.util.")) {
+      if (pt.getName().startsWith("java.util.") || pt.getName().startsWith("java.lang.")) {
          return true;
        }
     }

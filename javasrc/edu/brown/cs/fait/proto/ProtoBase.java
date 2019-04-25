@@ -84,6 +84,8 @@ protected ProtoBase(IfaceControl fc,IfaceType base)
 
 IfaceType getDataType()			{ return proto_type; }
 
+void setDataType(IfaceType typ)                 { proto_type = typ; }
+
 
 
 

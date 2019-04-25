@@ -38,6 +38,7 @@ package edu.brown.cs.fait.query;
 import java.util.List;
 
 import edu.brown.cs.fait.iface.FaitLog;
+import edu.brown.cs.fait.iface.IfaceAuxReference;
 import edu.brown.cs.fait.iface.IfaceCall;
 import edu.brown.cs.fait.iface.IfaceControl;
 import edu.brown.cs.fait.iface.IfaceLocation;
@@ -151,44 +152,17 @@ private void handleFlowFrom(IfaceState backfrom,IfaceState st0,QueryProcessor qp
    QueryBackFlowData bfd = getPriorStateContext(backfrom,st0);
    QueryContext priorctx = bfd.getContext();
    addRelevantArgs(st0,bfd);
+   boolean islinked = false;
    
-   if (bfd.getAuxReferences() != null) {
-      IfaceLocation loc = st0.getLocation();
-      for (IfaceValue v0 : bfd.getAuxReferences()) {
-	 // need to check relevance here
-	 QueryGraph graph = node.getGraph();
-	 QueryContext nctx = newReference(v0);
-	 if (nctx.isPriorStateRelevant(st0)) {
-            String desc = "Referenced value";
-            if (v0.getRefSlot() >= 0) {
-               Object v = loc.getCall().getMethod().getItemAtOffset(v0.getRefSlot(),loc.getProgramPoint());
-               if (v != null) {
-                  if (v instanceof JcompSymbol) {
-                     desc = "Variable " + ((JcompSymbol) v).getFullName() + " referenced";
-                   }
-                  else {
-                     desc = "Variable " + v.toString() + " referenced";
-                   }
-                }
-             }
-	    QueryNode nn = graph.addNode(loc.getCall(),loc.getProgramPoint(),nctx,desc,node);
-	    QueryQueueItem nqqi = new QueryQueueItem(loc,nctx);
-	    qp.addItem(nqqi,nn);
-	  }
+   if (bfd.getAuxRefs() != null) {
+      for (IfaceAuxReference aref : bfd.getAuxRefs()) {
+         islinked |= handleAuxReference(aref,qp,node,st0);
        }
     }
-   if (bfd.getAuxField() != null) {
-      // queue all settings of field that are compatible
-    }
-   if (bfd.getAuxArray() != null) {
-      // queue all assignments to array elements that are compatible
-    }
-
-   if (priorctx == null) {
-      node.getGraph().markAsEndNode(node);
-      return;
-    }   
-   if (priorctx.isPriorStateRelevant(st0)) {
+   
+   if (priorctx == null && !islinked) node.getGraph().markAsEndNode(node);
+   
+   if (priorctx != null && priorctx.isPriorStateRelevant(st0)) {
       QueryQueueItem nqqi = new QueryQueueItem(st0.getLocation(),priorctx);
       qp.addItem(nqqi,node);	
     }
@@ -198,22 +172,26 @@ private void handleFlowFrom(IfaceState backfrom,IfaceState st0,QueryProcessor qp
       QueryContext retctx = getReturnContext(call2);
       if (retctx == null) return;
       IfaceProgramPoint ppt2  = st0.getLocation().getProgramPoint();
-
-      // Set<IfaceSafetyCheck.Value> svals = getValues(st0);
-      for (IfaceCall from : call2.getAllMethodsCalled(ppt2)) {
-	 // if return did not include value of interest, skip
-	 if (!retctx.isReturnRelevant(st0,from)) continue;
-	 for (IfaceState st1 : from.getReturnStates()) {
-	    if (!retctx.isPriorStateRelevant(st1)) continue;
-	    QueryGraph graph = node.getGraph();
-	    QueryNode nn = graph.addNode(from,st1.getLocation().getProgramPoint(),retctx,
-                  "Result of method " + from.getMethod().getName(),node);
-	    QueryQueueItem nqqi = new QueryQueueItem(st1.getLocation(),retctx);
-	    qp.addItem(nqqi,nn);
-	  }
+      if (call2.getAllMethodsCalled(ppt2).isEmpty()) {
+         islinked |= handleInternalCall(st0,bfd,node);
+         if (!islinked) node.getGraph().markAsEndNode(node);
+       }
+      else {
+         for (IfaceCall from : call2.getAllMethodsCalled(ppt2)) {
+            // if return did not include value of interest, skip
+            if (!retctx.isReturnRelevant(st0,from)) continue;
+            for (IfaceState st1 : from.getReturnStates()) {
+               if (!retctx.isPriorStateRelevant(st1)) continue;
+               QueryGraph graph = node.getGraph();
+               QueryNode nn = graph.addNode(from,st1.getLocation().getProgramPoint(),retctx,
+                     "Result of method " + from.getMethod().getName(),node);
+               QueryQueueItem nqqi = new QueryQueueItem(st1.getLocation(),retctx);
+               qp.addItem(nqqi,nn);
+             }
+          }
        }
     }
-   else {
+   else if (priorctx != null) {
       List<QueryContext> nctxs = priorctx.getTransitionContext(st0);
       if (nctxs.size() > 0) {
          for (QueryContext ctx : priorctx.getTransitionContext(st0)) {
@@ -236,6 +214,37 @@ private void handleFlowFrom(IfaceState backfrom,IfaceState st0,QueryProcessor qp
    // STILL need to handle flows based on exceptions
 }
 
+
+private boolean handleAuxReference(IfaceAuxReference ref,QueryProcessor qp,QueryNode node,IfaceState st0)
+{
+   IfaceLocation loc = ref.getLocation();
+   IfaceValue v0 = ref.getReference();
+   IfaceState st1 = fait_control.findStateForLocation(loc);
+   boolean linked = false;
+   
+   QueryGraph graph = node.getGraph();
+   QueryContext nctx = newReference(v0);
+   if (nctx.isPriorStateRelevant(st1)) {
+      String desc = "Referenced value";
+      if (v0.getRefSlot() >= 0) {
+         Object v = loc.getCall().getMethod().getItemAtOffset(v0.getRefSlot(),loc.getProgramPoint());
+         if (v != null) {
+            if (v instanceof JcompSymbol) {
+               desc = "Variable " + ((JcompSymbol) v).getFullName() + " referenced";
+             }
+            else {
+               desc = "Variable " + v.toString() + " referenced";
+             }
+          }
+       }
+      QueryNode nn = graph.addNode(loc.getCall(),loc.getProgramPoint(),nctx,desc,node);
+      QueryQueueItem nqqi = new QueryQueueItem(loc,nctx);
+      qp.addItem(nqqi,nn);
+      linked = true;
+    }
+   
+   return linked;
+}
 /********************************************************************************/
 /*										*/
 /*	Context-dependent methods						*/
@@ -279,6 +288,10 @@ protected abstract boolean isReturnRelevant(IfaceState st0,IfaceCall call);
    // return true if the return should be investigated
 
 protected abstract void addRelevantArgs(IfaceState st0,QueryBackFlowData bfd);
+
+
+protected abstract boolean handleInternalCall(IfaceState st0,QueryBackFlowData bfd,QueryNode n);
+
 
 
 

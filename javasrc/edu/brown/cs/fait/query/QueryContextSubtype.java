@@ -38,13 +38,15 @@ package edu.brown.cs.fait.query;
 import java.util.ArrayList;
 import java.util.List;
 
-import edu.brown.cs.fait.iface.FaitLog;
+import edu.brown.cs.fait.iface.IfaceAuxReference;
 import edu.brown.cs.fait.iface.IfaceBackFlow;
 import edu.brown.cs.fait.iface.IfaceCall;
 import edu.brown.cs.fait.iface.IfaceControl;
+import edu.brown.cs.fait.iface.IfaceEntity;
 import edu.brown.cs.fait.iface.IfaceField;
 import edu.brown.cs.fait.iface.IfaceMethod;
 import edu.brown.cs.fait.iface.IfaceProgramPoint;
+import edu.brown.cs.fait.iface.IfacePrototype;
 import edu.brown.cs.fait.iface.IfaceState;
 import edu.brown.cs.fait.iface.IfaceSubtype;
 import edu.brown.cs.fait.iface.IfaceType;
@@ -123,7 +125,7 @@ QueryContextSubtype(IfaceControl ctrl,IfaceValue v,IfaceSubtype.Value stv)
    QueryContext nctx = this;
    IfaceValue v = bf.getStartReference();
    if (v == null) nctx = null;
-   if (v != for_value) nctx = newReference(v);
+   else if (v != for_value) nctx = newReference(v);
    return new QueryBackFlowData(nctx,bf);
 }
 
@@ -155,26 +157,18 @@ QueryContextSubtype(IfaceControl ctrl,IfaceValue v,IfaceSubtype.Value stv)
 
 @Override protected boolean isPriorStateRelevant(IfaceState st0) 
 {
-   IfaceValue v0 = null;
-   if (for_value.getRefStack() >= 0) {
-      v0 = st0.getStack(for_value.getRefStack());
-    }
-   else if (for_value.getRefSlot() >= 0) {
-      v0 = st0.getLocal(for_value.getRefSlot());
-    }
-   else if (for_value.getRefField() != null) {
-      v0 = st0.getFieldValue(for_value.getRefField());
-    }
+   IfaceValue v0 = QueryFactory.dereference(for_value,st0);
    
    if (v0 == null) return false;
+   if (v0.isReference() && v0.getRefField() != null) {
+      IfaceValue v1 = fait_control.getFieldValue(st0,v0.getRefField(),null,false,null);
+      if (v1 != null) v0 = v1;
+    }
+   
    IfaceType t0 = v0.getDataType();
    IfaceSubtype.Value sv0 = t0.getValue(for_subtype);
    
-   if (sv0 == subtype_value) return true;
-   
-   IfaceSubtype.Value sv1 = for_subtype.getMergeValue(sv0,subtype_value);
-  
-   if (sv1 == sv0) return true;
+   if (for_subtype.isPredecessorRelevant(sv0,subtype_value)) return true;
    
    List<IfaceValue> cnts = v0.getContents();
    if (cnts != null) {
@@ -195,7 +189,7 @@ QueryContextSubtype(IfaceControl ctrl,IfaceValue v,IfaceSubtype.Value stv)
 @Override protected boolean isReturnRelevant(IfaceState st0,IfaceCall call)
 {
    // return true if the return should be investigated
-
+   
    return true;
 }
 
@@ -205,18 +199,49 @@ QueryContextSubtype(IfaceControl ctrl,IfaceValue v,IfaceSubtype.Value stv)
 {
    IfaceProgramPoint pt = st0.getLocation().getProgramPoint();
    IfaceMethod mthd = pt.getCalledMethod();
-   if (mthd == null || mthd.isStatic()) return;
-   int ct = mthd.getNumArgs();
-   IfaceValue v0 = st0.getStack(ct);
-   if (v0 == null) return;
-   FaitLog.logD("INVOKE " + mthd.getName() + " " + v0.getRefSlot() + " " + for_value.getRefSlot());
-   if (v0.getRefSlot() > 0 && v0.getRefSlot() == for_value.getRefSlot()) {
+   if (mthd == null) return;
+   
+   if (for_value.getRefStack() == 0 && mthd.getReturnType() != null &&
+         !mthd.getReturnType().isVoidType()) {
+      int ct = mthd.getNumArgs();
       for (int i = 0; i < ct; ++i) {
          IfaceValue vs = st0.getStack(i);
          IfaceValue vr = fait_control.findRefStackValue(vs.getDataType(),i);
-         bfd.addAuxReference(vr);
+         IfaceAuxReference ref = fait_control.getAuxReference(st0.getLocation(),vr);
+         bfd.addAuxReference(ref);
+       }
+      
+      if (!mthd.isStatic()) {
+         IfaceValue thisv = st0.getStack(ct);
+         if (thisv != null) {
+            for (IfaceEntity ent : thisv.getEntities()) {
+               IfacePrototype proto = ent.getPrototype();
+               if (proto != null) {
+                  // handle back from proto
+                }
+             }
+          }
        }
     }
+   else if (!mthd.isStatic()) {
+      int ct = mthd.getNumArgs();
+      IfaceValue v0 = st0.getStack(ct);
+      if (v0 != null && v0.getRefSlot() > 0 && v0.getRefSlot() == for_value.getRefSlot()) {
+         for (int i = 0; i < ct; ++i) {
+            IfaceValue vs = st0.getStack(i);
+            IfaceValue vr = fait_control.findRefStackValue(vs.getDataType(),i);
+            IfaceAuxReference ref = fait_control.getAuxReference(st0.getLocation(),vr);
+            bfd.addAuxReference(ref);
+          }
+       }
+    }
+}
+
+
+
+@Override protected boolean handleInternalCall(IfaceState st0,QueryBackFlowData bfd,QueryNode n)
+{
+   return false;
 }
 
 /********************************************************************************/

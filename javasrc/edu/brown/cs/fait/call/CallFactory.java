@@ -63,6 +63,7 @@ private Map<IfaceMethod,CallBase> proto_map;
 private Map<IfaceMethod,CallSpecial> special_methods;
 private Map<String,List<CallSpecial>> call_methods;
 private Map<String,AllocMode> alloc_map;
+private Set<String> load_classes;
 
 
 private final static Object DEFAULT_OBJECT = new Object();
@@ -83,6 +84,7 @@ public CallFactory(IfaceControl fc)
    special_methods = new HashMap<>();
    call_methods = new HashMap<>();
    alloc_map = new HashMap<>();
+   load_classes = new HashSet<>();
 }
 
 
@@ -134,7 +136,7 @@ public IfaceCall findCall(IfaceProgramPoint pt,IfaceMethod fm,List<IfaceValue> a
 	    break;
        }
     }
-
+   
    Map<Object,CallBase> mm;
    synchronized (method_map) {
       mm = method_map.get(fm);
@@ -143,7 +145,7 @@ public IfaceCall findCall(IfaceProgramPoint pt,IfaceMethod fm,List<IfaceValue> a
 	 method_map.put(fm,mm);
        }
     }
-
+   
    CallBase cm;
    synchronized (mm) {
       cm = mm.get(key);
@@ -250,11 +252,13 @@ public Collection<IfaceCall> getAllCalls(IfaceMethod fm)
 
 public Collection<IfaceCall> getAllCalls()
 {
-   Collection<IfaceCall> rslt = new ArrayList<IfaceCall>();
+   Collection<IfaceCall> rslt = new HashSet<IfaceCall>();
 
    synchronized (method_map) {
       for (Map<Object,CallBase> mm : method_map.values()) {
-	 rslt.addAll(mm.values());
+         for (CallBase cb : mm.values()) {
+            rslt.addAll(cb.getAlternateCalls());
+          }
        }
     }
 
@@ -287,11 +291,19 @@ public void removeCalls(Collection<IfaceCall> calls)
 /*										*/
 /********************************************************************************/
 
-public void addSpecialFile(File f)
+public boolean addSpecialFile(File f)
 {
    FaitLog.logI("Adding special file " + f);
    
-   addSpecialFile(IvyXml.loadXmlFromFile(f));
+   Element e = IvyXml.loadXmlFromFile(f);
+   if (e == null) {
+      FaitLog.logE("Problem loading special file " + f);
+      return false;
+    }
+   
+   addSpecialFile(e);
+   
+   return true;
 }
 
 
@@ -317,6 +329,9 @@ public void addSpecialFile(Element xml)
     }
    for (Element n : IvyXml.children(xml,"ALLOC")) {
       addAllocation(n);
+    }
+   for (Element n : IvyXml.children(xml,"LOAD")) {
+      addLoad(n);
     }
 }
 
@@ -350,6 +365,15 @@ private void addAllocation(Element xml)
     }
    else if (inherit) am = AllocMode.BINARY_INHERIT;
    alloc_map.put(nm,am);
+}
+
+
+
+private void addLoad(Element xml)
+{
+   String nm = IvyXml.getAttrString(xml,"CLASS");
+   if (nm == null) return;
+   load_classes.add(nm);
 }
 
 
@@ -487,6 +511,13 @@ public boolean canBeReplaced(IfaceProgramPoint pt,IfaceMethod fm)
    if (is != null) return is.getReplaceName() != null;
 
    return false;
+}
+
+
+
+public Collection<String> getDefaultClasses()
+{
+   return load_classes;
 }
 
 

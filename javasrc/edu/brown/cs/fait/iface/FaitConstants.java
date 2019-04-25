@@ -119,6 +119,24 @@ enum TryState { BODY, CATCH, FINALLY }
 
 String INITER_NAME = "$$$$clinit$$$$";
 String TESTER_NAME = "$$$$test$$$$";
+String TEST_FILE_NAME = "TESTDUMMYFILE.java";
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Reporting options                                                       */
+/*                                                                              */
+/********************************************************************************/
+
+enum ReportOption {
+   NONE,
+   SOURCE,
+   SOURCE_STATS,
+   FULL,
+   FULL_STATS
+}
+
 
 
 

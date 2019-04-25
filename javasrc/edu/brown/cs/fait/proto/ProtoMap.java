@@ -389,6 +389,9 @@ private void setNonEmpty()
       IfaceValue nv = upd.getNewValue(map_value);
       if (nv != null) map_value = nv;
     }
+   key_set.handleUpdates(upd);
+   value_set.handleUpdates(upd);
+   entry_set.handleUpdates(upd);
 }
 
 

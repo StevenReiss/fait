@@ -97,6 +97,8 @@ private AST		the_ast;
 private static final HashSet<String> TEST_ANNOTATIONS;
 private static final String TEST_THIS = "test_this";
 
+private static boolean do_tests = false;
+
 static {
    TEST_ANNOTATIONS = new HashSet<>();
    TEST_ANNOTATIONS.add("org.junit.Test");
@@ -145,7 +147,7 @@ private void fixType(AbstractTypeDeclaration td,boolean inner)
    boolean iface = false;
    boolean istesting = false;
    Type supertype = null;
-   
+
    if (td instanceof TypeDeclaration) {
       TypeDeclaration ttd = (TypeDeclaration) td;
       iface = ttd.isInterface();
@@ -179,7 +181,7 @@ private void fixType(AbstractTypeDeclaration td,boolean inner)
 	    if (vdf.getInitializer() != null) {
 	       if (Modifier.isStatic(fd.getModifiers()) || iface) haveinits = true;
 	       else havecinits = true;
-	     }	
+	     }
 	  }
        }
     }
@@ -200,9 +202,6 @@ private void fixType(AbstractTypeDeclaration td,boolean inner)
       md.setName(the_ast.newSimpleName(INITER_NAME));
       md.setReturnType2(the_ast.newPrimitiveType(PrimitiveType.VOID));
       md.modifiers().addAll(the_ast.newModifiers(Modifier.STATIC | Modifier.PUBLIC));
-      for (Initializer initer : initers) {
-	 md.getBody().statements().add((Statement) ASTNode.copySubtree(the_ast,initer.getBody()));
-       }
 
       int enumctr = 0;
       int numenum = 0;
@@ -261,7 +260,7 @@ private void fixType(AbstractTypeDeclaration td,boolean inner)
 	 Type t2 = the_ast.newArrayType(t1);
 	 vfd.setType(t2);
 	 td.bodyDeclarations().add(vfd);
-	
+
 	 ArrayCreation e1 = the_ast.newArrayCreation();
 	 Type t3 = the_ast.newSimpleType(the_ast.newSimpleName(td.getName().getIdentifier()));
 	 ArrayType t4 = the_ast.newArrayType(t3);
@@ -278,6 +277,9 @@ private void fixType(AbstractTypeDeclaration td,boolean inner)
 	 asgn.setRightHandSide(e1);
 	 ExpressionStatement es = the_ast.newExpressionStatement(asgn);
 	 md.getBody().statements().add(es);
+       }
+      for (Initializer initer : initers) {
+	 md.getBody().statements().add((Statement) ASTNode.copySubtree(the_ast,initer.getBody()));
        }
 
       FaitLog.logD("CREATED/MODIFIED initializer: " + md);
@@ -450,6 +452,8 @@ private void addEnumMethods(EnumDeclaration ed)
 @SuppressWarnings("unchecked")
 private void addTestMethods(AbstractTypeDeclaration atd)
 {
+   if (!do_tests) return;
+   
    MethodDeclaration md = the_ast.newMethodDeclaration();
    md.setBody(the_ast.newBlock());
    md.setName(the_ast.newSimpleName(TESTER_NAME));

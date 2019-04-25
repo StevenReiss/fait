@@ -83,28 +83,44 @@ FlowProcessor(int nthread,IfaceControl fc,FlowQueue q)
 /*										*/
 /********************************************************************************/
 
-void process()
+void process(ReportOption opt)
 {
    for (Worker w : worker_threads) {
       w.start();
     }
+   
+   boolean abort = false;
 
-   for (Worker w : worker_threads) {
+   for ( ; ; ) {
       try {
-	 w.join();
+         for (Worker w : worker_threads) {
+            w.join();
+          }
+         break;
        }
       catch (InterruptedException e) {
-         if (Thread.currentThread().isInterrupted()) interruptWorkers();
+         if (Thread.currentThread().isInterrupted()) {
+            interruptWorkers();
+            abort = true;
+          }     
        }
     }
   
-   flow_queue.printStatistics();
+   switch (opt) {
+      case FULL_STATS :
+      case SOURCE_STATS :
+         if (!abort) flow_queue.printStatistics();
+         break;
+      default :
+         break;
+    }
 }
 
 
 
 void interruptWorkers()
 {
+   FaitLog.logI("Interrupt workers");
    for (Worker w : worker_threads) {
       w.interrupt();
     }

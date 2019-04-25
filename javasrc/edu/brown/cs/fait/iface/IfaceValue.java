@@ -58,6 +58,7 @@ boolean isEmptyEntitySet();
 boolean isBad();
 boolean isCategory2();
 boolean isNative();
+boolean isFixed();
 boolean isMutable();
 
 IfaceType getDataType();
@@ -115,6 +116,16 @@ IfaceField getRefField();
 IfaceValue getRefIndex();
 
 void checkContentCompatibility(IfaceType dt,IfaceLocation loc,int stkloc);
+
+
+
+
+
+
+
+
+
+
 
 
 

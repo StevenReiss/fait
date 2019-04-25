@@ -35,6 +35,8 @@
 
 package edu.brown.cs.fait.server;
 
+import java.util.Collection;
+
 import edu.brown.cs.fait.iface.FaitLog;
 import edu.brown.cs.fait.iface.IfaceControl;
 import edu.brown.cs.fait.iface.IfaceUpdateSet;
@@ -118,7 +120,7 @@ synchronized void resumeAnalysis(int nth,String retid,ReportOption opt)
 synchronized void pauseAnalysis()
 {
    interrupt();
-   FaitLog.logD("Pause analysis request");
+   FaitLog.logI("Pause analysis request");
    pause_analysis = true;
    restart_analysis = false;
    last_change = System.currentTimeMillis();
@@ -147,17 +149,26 @@ IfaceControl getControl()
       long comp = start;
       long anal = start;
       abort_analysis = false;
+      
+      waitForNextTime();
+      
       try {
+         FaitLog.logI("Start compilation");
          IfaceUpdateSet upd = for_project.compileProject();
+         FaitLog.logI("Project compiled");
          boolean update = false;
          if (runner_control == null) runner_control = IfaceControl.Factory.createControl(for_project);
          else {
+            FaitLog.logI("Begin update " + return_id);
             if (upd != null) runner_control.doUpdate(upd);
             update = true;
           }
+         
+         for_project.sendStarted(return_id);
+         FaitLog.logI("Begin analysis " + return_id);
          comp = System.currentTimeMillis();
          anal = comp;
-         runner_control.analyze(num_threads,update);
+         runner_control.analyze(num_threads,update,report_option);
          anal = System.currentTimeMillis();
          if (interrupted() || abort_analysis) {
             FaitLog.logI("Aborted analysis " + return_id);
@@ -179,32 +190,55 @@ IfaceControl getControl()
          FaitLog.logE("Problem doing analysis",t);
          for_project.sendAborted(return_id,anal-comp,comp-start);
        }
-      abort_analysis = false;
       return_id = next_return;
-      synchronized (this) {
-         for ( ; ; ) {
-            while (pause_analysis || !for_project.isErrorFree()) {
-               try {
-                  wait(1000);
-                }
-               catch (InterruptedException e) { }
-             }
-            interrupted();
-            FaitLog.logI("Check resume analysis");
-            long now = System.currentTimeMillis();
-            while (now - last_change < MIN_STABLE_TIME) {
-               long delta = last_change + MIN_STABLE_TIME - now;
-               try {
-                  wait(delta);
-                }
-               catch (InterruptedException e) { }
-               now = System.currentTimeMillis();
-             }
-            if (!pause_analysis) break;
-          }
-         restart_analysis = false;
-       }
     }
+}
+
+
+
+private synchronized void waitForNextTime()
+{
+   for ( ; ; ) {
+      while (pause_analysis || !for_project.isErrorFree()) {
+         try {
+            wait(10000);
+          }
+         catch (InterruptedException e) { }
+       }
+      interrupted();
+      FaitLog.logI("Check resume analysis");
+      long now = System.currentTimeMillis();
+      while (now - last_change < MIN_STABLE_TIME) {
+         long delta = last_change + MIN_STABLE_TIME - now;
+         try {
+            wait(delta);
+          }
+         catch (InterruptedException e) { }
+         now = System.currentTimeMillis();
+       }
+      abort_analysis = false;
+      if (!pause_analysis && getAllAsts()) break;
+    }
+   restart_analysis = false;
+}
+
+
+
+private boolean getAllAsts()
+{
+   int editcount = ServerFile.getEditCount();
+   FaitLog.logI("Getting ASTS " + editcount);
+   
+   Collection<ServerFile> files = for_project.getActiveFiles();
+   for (ServerFile sf : files) {
+      if (ServerFile.getEditCount() != editcount) break;
+      sf.saveAst();
+    }
+   if (ServerFile.getEditCount() != editcount) {
+      FaitLog.logI("Edit count changed " + ServerFile.getEditCount());
+      return false;
+    }
+   return true;
 }
 
 }       // end of class ServerRunner

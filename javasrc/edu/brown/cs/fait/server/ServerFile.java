@@ -37,6 +37,7 @@ package edu.brown.cs.fait.server;
 
 import java.io.File;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.dom.AST;
@@ -52,8 +53,6 @@ import edu.brown.cs.fait.iface.FaitLog;
 import edu.brown.cs.ivy.jcomp.JcompAst;
 import edu.brown.cs.ivy.jcomp.JcompAstCleaner;
 import edu.brown.cs.ivy.jcomp.JcompExtendedSource;
-import edu.brown.cs.ivy.jcomp.JcompProject;
-import edu.brown.cs.ivy.jcomp.JcompSemantics;
 
 class ServerFile implements ServerConstants, JcompAstCleaner, JcompExtendedSource 
 {
@@ -67,9 +66,10 @@ class ServerFile implements ServerConstants, JcompAstCleaner, JcompExtendedSourc
 
 private IDocument		edit_document;
 private File			for_file;
-private ASTNode	        project_root;
 private ASTNode                 general_root;
+private ASTNode                 project_root;
 
+private static AtomicInteger    edit_counter = new AtomicInteger();
 private static ServerProject	current_project;
 
 
@@ -99,6 +99,8 @@ ServerFile(File f,String cnts,String linesep)
 
 void editFile(int len,int off,String txt,boolean complete)
 {
+   edit_counter.incrementAndGet();
+   
    if (complete) len = edit_document.getLength();
    try {
       edit_document.replace(off,len,txt);
@@ -113,10 +115,7 @@ void editFile(int len,int off,String txt,boolean complete)
 }
 
 
-void resetSemantics()
-{
-   project_root = null;
-}
+
 
 
 
@@ -133,6 +132,12 @@ void resetSemantics()
 static void setCurrentProject(ServerProject sp)
 {
    current_project = sp;
+}
+
+
+static int getEditCount()
+{
+   return edit_counter.get();
 }
 
 
@@ -180,7 +185,7 @@ private ASTNode buildAst()
    parser.setKind(ASTParser.K_COMPILATION_UNIT);
    parser.setSource(edit_document.get().toCharArray());
    Map<String,String> options = JavaCore.getOptions();
-   JavaCore.setComplianceOptions(JavaCore.VERSION_1_6,options);
+   JavaCore.setComplianceOptions(JavaCore.VERSION_1_8,options);
    parser.setCompilerOptions(options);
    parser.setResolveBindings(false);
    parser.setStatementsRecovery(true);
@@ -192,43 +197,22 @@ private ASTNode buildAst()
 }
 
 
+void saveAst()
+{
+   ASTNode an = buildAst();
+   FaitLog.logI("Save ast for " + for_file + " " + (an == null));
+   project_root = an;
+   if (for_file.getPath().contains("SecurityRequest") &&
+        !an.toString().contains("$$$")) {
+      FaitLog.logE("Bad AST: " + an);
+    }
+}
+
 
 private void cleanupAstRoot(ASTNode an)
 {
    ServerAstCleaner sac = new ServerAstCleaner(current_project,(CompilationUnit) an);
    sac.precleanAst();
-}
-
-
-
-ASTNode getResolvedAst(ServerProject sp)
-{
-   ASTNode an = null;
-   synchronized (this) {
-      an = project_root;
-      if (an != null && JcompAst.isResolved(an)) return an;
-    }
-   
-   JcompProject proj = sp.getJcompProject();
-   proj.resolve();
-   // calling compileProject causes random updates with intermediate edits
-   JcompSemantics semdata = ServerMain.getJcompBase().getSemanticData(this);
-   an = semdata.getAstNode();
-   
-   synchronized (this) {
-      ASTNode nan = project_root;
-      if (nan != null) an = nan;
-      else project_root = an;
-    }
-   
-   return an;
-}
-
-void resetProject(ServerProject sp)
-{
-   synchronized (this) {
-      project_root = null;
-    }
 }
 
 

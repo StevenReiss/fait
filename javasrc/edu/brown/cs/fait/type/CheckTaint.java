@@ -126,6 +126,14 @@ private CheckTaint()
 }
 
 
+
+@Override public IfaceSubtype.Value adjustValueForBase(IfaceSubtype.Value v,IfaceBaseType b)
+{
+   if (b.isPrimitiveType()) return UNTAINTED;
+   return v;
+}
+
+
 @Override public TaintState getDefaultConstantValue(IfaceBaseType typ,Object cnst)
 {
    return UNTAINTED;

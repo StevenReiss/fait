@@ -103,6 +103,11 @@ public boolean setFieldValue(IfaceState st,IfaceField fld,
 
 
 
+public void handleUpdates(IfaceUpdater upd)
+{
+   field_values.handleUpdates(upd);
+}
+
 
 }	// end of class StateFactory
 

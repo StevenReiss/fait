@@ -54,12 +54,12 @@ class StateBase implements StateConstants, IfaceState
 
 private IfaceValue []		local_values;
 private Stack<IfaceValue>	stack_values;
-private IfaceSafetyStatus       safety_values;
+private IfaceSafetyStatus	safety_values;
 
 private Map<IfaceField,IfaceValue> field_map;
 
-private Object                  prior_state;
-private IfaceLocation           state_location;
+private Object			prior_state;
+private IfaceLocation		state_location;
 
 
 /********************************************************************************/
@@ -76,7 +76,7 @@ StateBase(int numlocal,IfaceSafetyStatus sts)
    state_location = null;
    prior_state = null;
    safety_values = sts;
-   
+
    Arrays.fill(local_values,null);
 }
 
@@ -115,13 +115,13 @@ StateBase(int numlocal,IfaceSafetyStatus sts)
 
 @Override public void pushStack(IfaceValue v)		{ stack_values.push(v); }
 
-@Override public IfaceValue popStack()			
-{ 
+@Override public IfaceValue popStack()		
+{
    if (stack_values.size() == 0) {
       FaitLog.logE("Attempt to pop empty stack");
       return null;
     }
-   return stack_values.pop(); 
+   return stack_values.pop();
 }
 
 @Override public void resetStack(IfaceState s)
@@ -131,16 +131,16 @@ StateBase(int numlocal,IfaceSafetyStatus sts)
 }
 
 
-@SuppressWarnings("unchecked") 
+@SuppressWarnings("unchecked")
 @Override public void copyStackFrom(IfaceState s)
 {
    StateBase sb = (StateBase) s;
    stack_values = (Stack<IfaceValue>) sb.stack_values.clone();
-   
+
    for (int i = 0; i < local_values.length; ++i) {
       IfaceValue v0 = local_values[i];
       if (v0 != null && v0.isBad())
-         local_values[i] = sb.local_values[i];
+	 local_values[i] = sb.local_values[i];
     }
 }
 
@@ -151,7 +151,7 @@ StateBase(int numlocal,IfaceSafetyStatus sts)
    return stack_values.get(ct-1-idx);
 }
 
-@Override public void setStack(int idx,IfaceValue v) 
+@Override public void setStack(int idx,IfaceValue v)
 {
    int ct = stack_values.size();
    if (idx < 0 || idx >= ct) return;
@@ -235,22 +235,27 @@ StateBase(int numlocal,IfaceSafetyStatus sts)
 /*										*/
 /********************************************************************************/
 
-@Override public IfaceValue getLocal(int idx)		
-{ 
+@Override public IfaceValue getLocal(int idx)	
+{
    if (idx < 0 || idx >= local_values.length) return null;
-   
+
    return local_values[idx];
 }
 
 
-@Override public void setLocal(int idx,IfaceValue v)	{ local_values[idx] = v; }
+@Override public void setLocal(int idx,IfaceValue v)
+{
+   local_values[idx] = v;
+}
+
+
 
 @Override public boolean addToLocal(int idx,IfaceValue v)
 {
    IfaceValue ov = local_values[idx];
    if (ov == null) local_values[idx] = v;
    else local_values[idx] = ov.mergeValue(v);
-   
+
    // if (local_values[idx] != ov) {
        // IfaceValue nv = ov.mergeValue(v);
        // System.err.println("MERGE -> " + nv + " " + ov + " " + v);
@@ -275,8 +280,8 @@ StateBase(int numlocal,IfaceSafetyStatus sts)
 
 @Override public void setFieldValue(IfaceField fld,IfaceValue v)
 {
-   if ( v == null) return;
-   
+   if (v == null) return;
+
    field_map.put(fld,v);
 }
 
@@ -318,7 +323,7 @@ StateBase(int numlocal,IfaceSafetyStatus sts)
 @Override public IfaceState mergeWith(IfaceState ifs)
 {
    StateBase cs = (StateBase) ifs;
-   
+
    if (!checkMergeWithState(cs)) return null;
 
    return this;
@@ -359,48 +364,56 @@ private boolean checkMergeWithState(StateBase cs)
        }
     }
 
-   for (Iterator<Map.Entry<IfaceField,IfaceValue>> it = field_map.entrySet().iterator(); it.hasNext(); ) {
-      Map.Entry<IfaceField,IfaceValue> ent = it.next();
+   Map<IfaceField,IfaceValue> changes = null;
+   for (Map.Entry<IfaceField,IfaceValue> ent : field_map.entrySet()) {
       IfaceField fld = ent.getKey();
       IfaceValue val = ent.getValue();
       IfaceValue nval = cs.getFieldValue(fld);
       if (nval == null) {
-	 it.remove();
+         if (changes == null) changes = new HashMap<>();
+         changes.put(fld,null);
 	 change = true;
        }
       else {
 	 nval = val.mergeValue(nval);
 	 if (val != nval) {
-	    field_map.put(fld,nval);
+            if (changes == null) changes = new HashMap<>();
+            changes.put(fld,nval);
 	    change = true;
 	  }
        }
     }
-   
-   if (safety_values != cs.safety_values && cs.safety_values != null) {
-      if (safety_values == null) {
-         safety_values = cs.safety_values;
-         change = true;
-       }
-      else {
-         IfaceSafetyStatus nsts = safety_values.merge(cs.safety_values);
-         if (nsts != safety_values) {
-            safety_values = nsts;
-            change = true;
-          }
+   if (changes != null) {
+      for (Map.Entry<IfaceField,IfaceValue> ent : changes.entrySet()) {
+         if (ent.getValue() == null) field_map.remove(ent.getKey());
+         else field_map.put(ent.getKey(),ent.getValue());
        }
     }
-   
+
+   if (safety_values != cs.safety_values && cs.safety_values != null) {
+      if (safety_values == null) {
+	 safety_values = cs.safety_values;
+	 change = true;
+       }
+      else {
+	 IfaceSafetyStatus nsts = safety_values.merge(cs.safety_values);
+	 if (nsts != safety_values) {
+	    safety_values = nsts;
+	    change = true;
+	  }
+       }
+    }
+
    StateBase priorbase = cs.getPriorBaseState();
    for (int i = 0; i < getNumPriorStates(); ++i) {
       StateBase sb = (StateBase) getPriorState(i);
       StateBase sbase = sb.getPriorBaseState();
       if (sbase == priorbase) {
-         removePriorState(sb);
+	 removePriorState(sb);
        }
     }
    addPriorState(cs);
-   
+
    return change;
 }
 
@@ -426,7 +439,7 @@ private StateBase getPriorBaseState()
 /*										*/
 /********************************************************************************/
 
-@Override public void startInitialization(IfaceType dt)	{ }
+@Override public void startInitialization(IfaceType dt) { }
 
 @Override public boolean testDoingInitialization(IfaceType dt)	{ return false; }
 
@@ -440,7 +453,7 @@ private StateBase getPriorBaseState()
 /********************************************************************************/
 
 @Override public void handleUpdate(IfaceUpdater upd)
-{ 
+{
    for (int i = 0; i < local_values.length; ++i) {
       IfaceValue nvl = upd.getNewValue(local_values[i]);
       if (nvl != null) local_values[i] = nvl;
@@ -460,16 +473,16 @@ private StateBase getPriorBaseState()
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Methods for handling back propagation                                   */
-/*                                                                              */
+/*										*/
+/*	Methods for handling back propagation					*/
+/*										*/
 /********************************************************************************/
 
-@Override public void setLocation(IfaceLocation pt)             { state_location = pt; }
+@Override public void setLocation(IfaceLocation pt)		{ state_location = pt; }
 
-@Override public IfaceLocation getLocation()                    { return state_location; }   
+@Override public IfaceLocation getLocation()			{ return state_location; }
 
-@SuppressWarnings("unchecked") 
+@SuppressWarnings("unchecked")
 void addPriorState(StateBase st)
 {
    if (st == null) return;
@@ -477,14 +490,14 @@ void addPriorState(StateBase st)
    else {
       List<IfaceState> priors = null;
       if (prior_state instanceof IfaceState) {
-         if (prior_state == st) return;
-         priors = new ArrayList<>();
-         priors.add((IfaceState) prior_state);
-         prior_state = priors;
+	 if (prior_state == st) return;
+	 priors = new ArrayList<>();
+	 priors.add((IfaceState) prior_state);
+	 prior_state = priors;
        }
       else {
-         priors = (List<IfaceState>) prior_state;
-         if (priors.contains(st)) return;
+	 priors = (List<IfaceState>) prior_state;
+	 if (priors.contains(st)) return;
        }
       priors.add(st);
     }
@@ -492,7 +505,7 @@ void addPriorState(StateBase st)
 
 
 
-@SuppressWarnings("unchecked") 
+@SuppressWarnings("unchecked")
 private void removePriorState(StateBase st)
 {
    if (st == null) return;
@@ -510,7 +523,7 @@ private void removePriorState(StateBase st)
 {
    if (prior_state == null) return 0;
    else if (prior_state instanceof IfaceState) return 1;
-   
+
    List<?> priors = (List<?>) prior_state;
    return priors.size();
 }
@@ -525,7 +538,7 @@ private void removePriorState(StateBase st)
     }
    List<?> priors = (List<?>) prior_state;
    if (idx >= priors.size()) return null;
-   Object o = priors.get(idx);   
+   Object o = priors.get(idx);	
    return (IfaceState) o;
 }
 
@@ -535,11 +548,11 @@ private void removePriorState(StateBase st)
    if (getNumPriorStates() == 1) {
       IfaceState st0 = getPriorState(0);
       if (st0.getNumPriorStates() == 0 &&
-            st0.getLocation() == null &&
-            getLocation().getCall().getStartState() == st0)
-         return true;
+	    st0.getLocation() == null &&
+	    getLocation().getCall().getStartState() == st0)
+	 return true;
     }
-   
+
    return false;
 }
 
@@ -550,15 +563,19 @@ private void removePriorState(StateBase st)
    IfaceCall c = state_location.getCall();
    IfaceProgramPoint pt = state_location.getProgramPoint();
    if (!c.getAllMethodsCalled(pt).isEmpty()) return true;
+   IfaceMethod im = pt.getCalledMethod();
+   if (im != null) {
+      return true;
+    }
    return false;
 }
 
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Methods forhandling safety checks                                       */
-/*                                                                              */
+/*										*/
+/*	Methods forhandling safety checks					*/
+/*										*/
 /********************************************************************************/
 
 @Override public IfaceSafetyStatus getSafetyStatus()
@@ -575,15 +592,15 @@ private void removePriorState(StateBase st)
       return true;
     }
    if (sts == null) return false;
-   
+
    IfaceSafetyStatus nsts = safety_values.merge(sts);
    if (nsts == safety_values) return false;
    safety_values = nsts;
-   
+
    if (FaitLog.isTracing()) {
       FaitLog.logD1("Safety state change: " + safety_values);
     }
-   
+
    return true;
 }
 
@@ -597,26 +614,26 @@ private void removePriorState(StateBase st)
 @Override public void updateSafetyStatus(String event,IfaceControl ctrl)
 {
    if (FaitLog.isTracing()) FaitLog.logD("Safety event: " + event);
-   
+
    IfaceLocation loc = null;
    for (IfaceState sb = this; sb != null; sb = sb.getPriorState(0)) {
       loc = sb.getLocation();
       if (loc != null) break;
     }
-   
+
    if (safety_values == null) {
       IfaceState st0 = getPriorState(0);
       if (st0 != null) safety_values = st0.getSafetyStatus();
     }
    if (safety_values == null) {
-      IfaceSafetyStatus nsts = ctrl.getInitialSafetyStatus(); 
+      IfaceSafetyStatus nsts = ctrl.getInitialSafetyStatus();
       if (nsts != null) {
-         IfaceSafetyStatus nnsts = nsts.update(event,loc);
-         if (nnsts == nsts) return;
+	 IfaceSafetyStatus nnsts = nsts.update(event,loc);
+	 if (nnsts == nsts) return;
        }
       safety_values = nsts;
     }
-   
+
    safety_values = safety_values.update(event,loc);
    if (FaitLog.isTracing()) FaitLog.logD1("Result state: " + safety_values);
 }

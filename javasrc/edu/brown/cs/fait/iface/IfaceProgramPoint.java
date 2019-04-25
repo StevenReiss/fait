@@ -62,8 +62,10 @@ IfaceProgramPoint getNext();
 IfaceProgramPoint getPrevious();
 
 IfaceMethod getMethod();
+int getInstanceNumber();
 
 int getLineNumber();
+String getSourceFile();
 
 void outputXml(IvyXmlWriter xw);
 

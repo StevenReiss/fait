@@ -55,6 +55,8 @@ IfaceSafetyStatus getResultSafetyStatus();
 
 boolean isClone();
 boolean isReturnArg0();
+boolean isSetFields(boolean clr);
+boolean isAffected();
 boolean isScanned();
 
 boolean getCanExit();

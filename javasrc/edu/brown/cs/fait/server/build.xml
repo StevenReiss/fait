@@ -36,7 +36,7 @@
    </target>
 
    <target name='test' depends='compile'>
-      <junit fork='true' printsummary='on'>
+      <junit fork='true' printsummary='on' outputtoformatters='true'>
 	 <classpath refid='test.classpath' />
 	 <assertions><enable/></assertions>
 	 <formatter type='plain' />
@@ -99,7 +99,7 @@
    </target>
 
    <target name='testbubbles' depends='compile'>
-      <junit fork='true' printsummary='on'>
+      <junit fork='true' printsummary='on' outputtoformatters='true'>
 	 <classpath refid='fait.classpath' />
 	 <assertions><enable/></assertions>
 	 <formatter type='xml' usefile='true' />
@@ -109,8 +109,30 @@
       </junit>
    </target>
 
+   <target name='testfait' depends='compile'>
+      <junit fork='true' printsummary='on' outputtoformatters='true'>
+	 <classpath refid='fait.classpath' />
+	 <assertions><enable/></assertions>
+	 <formatter type='xml' usefile='true' />
+	 <test name='edu.brown.cs.fait.server.ServerTest'
+	       methods='serverTestFait'
+	       outfile='testfait.out' />
+      </junit>
+   </target>
+
+   <target name='testupod' depends='compile'>
+      <junit fork='true' printsummary='on' outputtoformatters='true'>
+	 <classpath refid='fait.classpath' />
+	 <assertions><enable/></assertions>
+	 <formatter type='xml' usefile='true' />
+	 <test name='edu.brown.cs.fait.server.ServerTest'
+	       methods='serverTestUpod'
+	       outfile='testfait.out' />
+      </junit>
+   </target>
+
    <target name='testsecurity' depends='compile'>
-      <junit fork='true' printsummary='on'>
+      <junit fork='true' printsummary='on' outputtoformatters='true'>
 	 <classpath refid='fait.classpath' />
 	 <assertions><enable/></assertions>
 	 <formatter type='xml' usefile='true' />
@@ -120,14 +142,239 @@
       </junit>
    </target>
 
+   <target name='testupdatesecurity' depends='compile'>
+      <echo message="Start" />
+      <junit fork='true' printsummary='on' outputtoformatters='true'>
+	 <classpath refid='fait.classpath' />
+	 <assertions><enable/></assertions>
+	 <formatter type='xml' usefile='true' />
+	 <test name='edu.brown.cs.fait.server.ServerTest'
+	       methods='serverTestJavaSecurityUpdate'
+	       outfile='testsecurity.out' />
+      </junit>
+      <echo message="Finish" />
+   </target>
+
+   <target name='testupdatetimedsecurity' depends='compile'>
+      <echo message="Start" />
+      <junit fork='true' printsummary='on' outputtoformatters='true'>
+	 <classpath refid='fait.classpath' />
+	 <assertions><enable/></assertions>
+	 <formatter type='xml' usefile='true' />
+	 <test name='edu.brown.cs.fait.server.ServerTest'
+	       methods='serverTestJavaSecurityUpdateTimed'
+	       outfile='testsecurity.out' />
+      </junit>
+      <echo message="Finish" />
+   </target>
+
+   <target name='testtimedsecurity' depends='compile'>
+      <junit fork='true' printsummary='on' outputtoformatters='true'>
+	 <classpath refid='fait.classpath' />
+	 <assertions><enable/></assertions>
+	 <formatter type='xml' usefile='true' />
+	 <test name='edu.brown.cs.fait.server.ServerTest'
+	       methods='serverTestTimedJavaSecurity'
+	       outfile='testsecurity.out' />
+      </junit>
+   </target>
+
    <target name='testwebgoat' depends='compile'>
-      <junit fork='true' printsummary='on'>
+      <junit fork='true' printsummary='on' outputtoformatters='true'>
 	 <classpath refid='fait.classpath' />
 	 <assertions><enable/></assertions>
 	 <formatter type='xml' usefile='true' />
 	 <test name='edu.brown.cs.fait.server.ServerTest'
 	       methods='serverTestWebGoat'
 	       outfile='testwebgoat.out' />
+      </junit>
+   </target>
+
+   <target name='securibench' depends='compile'>
+      <junit fork='true' printsummary='on' outputtoformatters='true'>
+	 <classpath refid='fait.classpath' />
+	 <assertions><enable/></assertions>
+	 <formatter type='xml' usefile='true' />
+	 <test name='edu.brown.cs.fait.server.ServerTest'
+	       methods='serverTestBlueBlog'
+	       outfile='testblueblog.out' />
+      </junit>
+      <junit fork='true' printsummary='on' outputtoformatters='true'>
+	 <classpath refid='fait.classpath' />
+	 <assertions><enable/></assertions>
+	 <formatter type='xml' usefile='true' />
+	 <test name='edu.brown.cs.fait.server.ServerTest'
+	       methods='serverTestJboard'
+	       outfile='testjboard.out' />
+      </junit>
+      <junit fork='true' printsummary='on' outputtoformatters='true'>
+	 <classpath refid='fait.classpath' />
+	 <assertions><enable/></assertions>
+	 <formatter type='xml' usefile='true' />
+	 <test name='edu.brown.cs.fait.server.ServerTest'
+	       methods='serverTestPebble'
+	       outfile='testpebble.out' />
+      </junit>
+      <junit fork='true' printsummary='on' outputtoformatters='true'>
+	 <classpath refid='fait.classpath' />
+	 <assertions><enable/></assertions>
+	 <formatter type='xml' usefile='true' />
+	 <test name='edu.brown.cs.fait.server.ServerTest'
+	       methods='serverTestPersonalBlog'
+	       outfile='testpersonalblog.out' />
+      </junit>
+      <junit fork='true' printsummary='on' outputtoformatters='true'>
+	 <classpath refid='fait.classpath' />
+	 <assertions><enable/></assertions>
+	 <formatter type='xml' usefile='true' />
+	 <test name='edu.brown.cs.fait.server.ServerTest'
+	       methods='serverTestRoller'
+	       outfile='testroller.out' />
+      </junit>
+      <junit fork='true' printsummary='on' outputtoformatters='true'>
+	 <classpath refid='fait.classpath' />
+	 <assertions><enable/></assertions>
+	 <formatter type='xml' usefile='true' />
+	 <test name='edu.brown.cs.fait.server.ServerTest'
+	       methods='serverTestSnipSnap'
+	       outfile='testsnipsnap.out' />
+      </junit>
+      <junit fork='true' printsummary='on' outputtoformatters='true'>
+	 <classpath refid='fait.classpath' />
+	 <assertions><enable/></assertions>
+	 <formatter type='xml' usefile='true' />
+	 <test name='edu.brown.cs.fait.server.ServerTest'
+	       methods='serverTestWebgoatBench'
+	       outfile='testwebgoatbench.out' />
+      </junit>
+   </target>
+
+   <target name='securibenchtimed' depends='compile'>
+      <junit fork='true' printsummary='on' outputtoformatters='true'>
+	 <classpath refid='fait.classpath' />
+	 <assertions><enable/></assertions>
+	 <formatter type='xml' usefile='true' />
+	 <test name='edu.brown.cs.fait.server.ServerTest'
+	       methods='serverTestTimedBlueBlog'
+	       outfile='testblueblog.out' />
+      </junit>
+      <junit fork='true' printsummary='on' outputtoformatters='true'>
+	 <classpath refid='fait.classpath' />
+	 <assertions><enable/></assertions>
+	 <formatter type='xml' usefile='true' />
+	 <test name='edu.brown.cs.fait.server.ServerTest'
+	       methods='serverTestTimedJboard'
+	       outfile='testjboard.out' />
+      </junit>
+      <junit fork='true' printsummary='on' outputtoformatters='true'>
+	 <classpath refid='fait.classpath' />
+	 <assertions><enable/></assertions>
+	 <formatter type='xml' usefile='true' />
+	 <test name='edu.brown.cs.fait.server.ServerTest'
+	       methods='serverTestTimedPebble'
+	       outfile='testpebble.out' />
+      </junit>
+      <junit fork='true' printsummary='on' outputtoformatters='true'>
+	 <classpath refid='fait.classpath' />
+	 <assertions><enable/></assertions>
+	 <formatter type='xml' usefile='true' />
+	 <test name='edu.brown.cs.fait.server.ServerTest'
+	       methods='serverTestTimedPersonalBlog'
+	       outfile='testpersonalblog.out' />
+      </junit>
+      <junit fork='true' printsummary='on' outputtoformatters='true'>
+	 <classpath refid='fait.classpath' />
+	 <assertions><enable/></assertions>
+	 <formatter type='xml' usefile='true' />
+	 <test name='edu.brown.cs.fait.server.ServerTest'
+	       methods='serverTestTimedRoller'
+	       outfile='testroller.out' />
+      </junit>
+      <junit fork='true' printsummary='on' outputtoformatters='true'>
+	 <classpath refid='fait.classpath' />
+	 <assertions><enable/></assertions>
+	 <formatter type='xml' usefile='true' />
+	 <test name='edu.brown.cs.fait.server.ServerTest'
+	       methods='serverTestTimedSnipSnap'
+	       outfile='testsnipsnap.out' />
+      </junit>
+      <junit fork='true' printsummary='on' outputtoformatters='true'>
+	 <classpath refid='fait.classpath' />
+	 <assertions><enable/></assertions>
+	 <formatter type='xml' usefile='true' />
+	 <test name='edu.brown.cs.fait.server.ServerTest'
+	       methods='serverTestTimedWebgoatBench'
+	       outfile='testwebgoatbench.out' />
+      </junit>
+   </target>
+
+   <target name='securibenchupdate' depends='compile'>
+      <junit fork='true' printsummary='on' outputtoformatters='true'>
+	 <classpath refid='fait.classpath' />
+	 <assertions><enable/></assertions>
+	 <formatter type='xml' usefile='true' />
+	 <test name='edu.brown.cs.fait.server.ServerTest'
+	       methods='serverTestTimedUpdateBlueBlog'
+	       outfile='testblueblog.out' />
+      </junit>
+      <junit fork='true' printsummary='on' outputtoformatters='true'>
+	 <classpath refid='fait.classpath' />
+	 <assertions><enable/></assertions>
+	 <formatter type='xml' usefile='true' />
+	 <test name='edu.brown.cs.fait.server.ServerTest'
+	       methods='serverTestTimedUpdateJboard'
+	       outfile='testjboard.out' />
+      </junit>
+      <junit fork='true' printsummary='on' outputtoformatters='true'>
+	 <classpath refid='fait.classpath' />
+	 <assertions><enable/></assertions>
+	 <formatter type='xml' usefile='true' />
+	 <test name='edu.brown.cs.fait.server.ServerTest'
+	       methods='serverTestTimedUpdatePebble'
+	       outfile='testpebble.out' />
+      </junit>
+      <junit fork='true' printsummary='on' outputtoformatters='true'>
+	 <classpath refid='fait.classpath' />
+	 <assertions><enable/></assertions>
+	 <formatter type='xml' usefile='true' />
+	 <test name='edu.brown.cs.fait.server.ServerTest'
+	       methods='serverTestTimedUpdatePersonalBlog'
+	       outfile='testpersonalblog.out' />
+      </junit>
+      <junit fork='true' printsummary='on' outputtoformatters='true'>
+	 <classpath refid='fait.classpath' />
+	 <assertions><enable/></assertions>
+	 <formatter type='xml' usefile='true' />
+	 <test name='edu.brown.cs.fait.server.ServerTest'
+	       methods='serverTestTimedUpdateRoller'
+	       outfile='testroller.out' />
+      </junit>
+      <junit fork='true' printsummary='on' outputtoformatters='true'>
+	 <classpath refid='fait.classpath' />
+	 <assertions><enable/></assertions>
+	 <formatter type='xml' usefile='true' />
+	 <test name='edu.brown.cs.fait.server.ServerTest'
+	       methods='serverTestTimedUpdateSnipSnap'
+	       outfile='testsnipsnap.out' />
+      </junit>
+      <junit fork='true' printsummary='on' outputtoformatters='true'>
+	 <classpath refid='fait.classpath' />
+	 <assertions><enable/></assertions>
+	 <formatter type='xml' usefile='true' />
+	 <test name='edu.brown.cs.fait.server.ServerTest'
+	       methods='serverTestTimedUpdateWebgoatBench'
+	       outfile='testwebgoatbench.out' />
+      </junit>
+   </target>
+
+   <target name='try' depends='compile'>
+      <junit fork='true' printsummary='on' outputtoformatters='true'>
+	 <classpath refid='fait.classpath' />
+	 <assertions><enable/></assertions>
+	 <formatter type='xml' usefile='true' />
+	 <test name='edu.brown.cs.fait.server.ServerTest'
+	       methods='serverTestTimedRoller'
+	       outfile='testpebble.out' />
       </junit>
    </target>
 

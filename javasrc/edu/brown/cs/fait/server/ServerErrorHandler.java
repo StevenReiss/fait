@@ -40,6 +40,7 @@ import java.util.Map;
 
 import org.w3c.dom.Element;
 
+import edu.brown.cs.fait.iface.FaitLog;
 import edu.brown.cs.ivy.xml.IvyXml;
 
 class ServerErrorHandler implements ServerConstants
@@ -80,6 +81,16 @@ boolean isErrorFree()
 }
 
 
+int errorCount()
+{
+   int ct = 0;
+   for (ProblemState ps : current_errors.values()) {
+      ct += ps.getNumErrors();
+    }
+   return ct;
+}
+
+
 
 /********************************************************************************/
 /*                                                                              */
@@ -94,6 +105,9 @@ boolean handleErrors(String proj,String forfile,Element ep)
    ProblemState ps = new ProblemState(ep);
    if (ps.getNumErrors() == 0) current_errors.remove(forfile);
    else current_errors.put(forfile,ps);
+   
+   FaitLog.logI("Error state " + errorCount() + " " + isErrorFree() + " " + 
+         current_errors.size());
    
    if (haderrs && current_errors.isEmpty()) return true;
    

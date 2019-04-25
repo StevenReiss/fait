@@ -96,7 +96,7 @@ private CheckHtmlTaint()
    super("CheckHtmlTaint");
    
    FaitError err = new FaitError(this,ErrorLevel.ERROR,
-         "Attempt to use tainted data in a non-tainted location");
+         "Attempt to use tainted HTML data in a non-tainted location");
    
    defineMerge(HTMLTAINTED,UNHTMLTAINTED,HTMLTAINTED);
    defineMerge(MAYBE_HTMLTAINTED,HTMLTAINTED,HTMLTAINTED);
@@ -141,6 +141,14 @@ private CheckHtmlTaint()
     }
 
    return MAYBE_HTMLTAINTED;
+}
+
+
+
+@Override public IfaceSubtype.Value adjustValueForBase(IfaceSubtype.Value v,IfaceBaseType b)
+{
+   if (b.isPrimitiveType()) return UNHTMLTAINTED;
+   return v;
 }
 
 

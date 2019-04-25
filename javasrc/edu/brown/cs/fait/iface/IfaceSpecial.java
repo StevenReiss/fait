@@ -55,9 +55,12 @@ boolean getIsAsync();
 boolean getExits();
 boolean getNeverReturns();
 boolean getIgnoreVirtualCalls();
+boolean getSetFields();
+boolean isAffected();
 boolean getDontScan();
 boolean getForceScan();
-List<String> getClassesToLoad();
+Collection<String> getClassesToLoad();
+IfaceAnnotation [] getArgAnnotations(int idx);
 
 
 }	// end of interface IfaceSpecial

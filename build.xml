@@ -23,7 +23,9 @@
 	 </manifest>
 	 <fileset dir='./java' includes='**/*.class' />
 	 <fileset dir='/pro/ivy/java' includes='**/*.class' />
-	 <zipfileset src='/pro/ivy/lib/junit.jar' excludes='META-INF/*' />
+	 <fileset dir='./lib' includes='fait*.xml' />
+	 <fileset dir='./lib' includes='*.vel' />
+	 ]zipfileset src='/pro/ivy/lib/junit.jar' excludes='META-INF/*' />
 	 <zipfileset src='/pro/ivy/lib/asm5.jar' excludes='META-INF/*' />
 	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.core.commands.jar' excludes='META-INF/*' />
 	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.core.contenttype.jar' excludes='META-INF/*' />
@@ -69,65 +71,3 @@
    </target>
 
 </project>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

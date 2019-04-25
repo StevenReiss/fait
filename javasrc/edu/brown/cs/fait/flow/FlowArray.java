@@ -47,7 +47,7 @@ class FlowArray implements FlowConstants
 
 /********************************************************************************/
 /*										*/
-/*	Private St	orage							*/
+/*	Private Storage							*/
 /*										*/
 /********************************************************************************/
 
@@ -55,6 +55,7 @@ private IfaceControl		fait_control;
 private FlowQueue		flow_queue;
 
 private Map<IfaceEntity,Set<FlowLocation>> entity_map;
+private Map<IfaceEntity,Map<FlowLocation,Integer>> setter_map;
 
 
 
@@ -69,6 +70,7 @@ FlowArray(IfaceControl fc,FlowQueue fq)
    fait_control = fc;
    flow_queue = fq;
    entity_map = new HashMap<>();
+   setter_map = new HashMap<>();
 }
 
 
@@ -176,7 +178,7 @@ IfaceValue handleArrayLength(FlowLocation loc,IfaceValue arr)
 /*										*/
 /********************************************************************************/
 
-void handleArraySet(FlowLocation loc,IfaceValue arr,IfaceValue val,IfaceValue idx)
+void handleArraySet(FlowLocation loc,IfaceValue arr,IfaceValue val,IfaceValue idx,int stackref)
 {
    if (val.isBad()) return;
 
@@ -188,6 +190,7 @@ void handleArraySet(FlowLocation loc,IfaceValue arr,IfaceValue val,IfaceValue id
 
    for (IfaceEntity ce : arr.getEntities()) {
       if (ce.getDataType().isArrayType()) {
+         addReference(ce,loc,stackref);
 	 if (ce.addToArrayContents(val,idx,loc)) {
 	    noteArrayChange(ce);
 	  }
@@ -224,6 +227,27 @@ void handleArrayCopy(List<IfaceValue> args,FlowLocation loc)
 }
 
 
+Collection<IfaceAuxReference> getSetterRefs(IfaceValue arr)
+{
+   if (arr == null) return null;
+   List<IfaceAuxReference> rslt = null;
+   for (IfaceEntity ent : arr.getEntities()) {
+      if (ent.getDataType().isArrayType()) {
+         IfaceType btyp = ent.getDataType().getBaseType();
+         Map<FlowLocation,Integer> sets = setter_map.get(ent);
+         if (sets != null) {
+            if (rslt == null) rslt = new ArrayList<>();
+            for (Map.Entry<FlowLocation,Integer> set : sets.entrySet()) {
+               IfaceValue refv = fait_control.findRefStackValue(btyp,set.getValue());
+               IfaceAuxReference ref = fait_control.getAuxReference(set.getKey(),refv);
+               rslt.add(ref);
+             }
+          }
+       }
+    }
+   
+   return rslt;
+}
 
 /********************************************************************************/
 /*										*/
@@ -233,6 +257,8 @@ void handleArrayCopy(List<IfaceValue> args,FlowLocation loc)
 
 private void addReference(IfaceEntity ent,FlowLocation loc)
 {
+   if (loc == null) return;
+   
    synchronized (entity_map) {
       Set<FlowLocation> locs = entity_map.get(ent);
       if (locs == null) {
@@ -242,6 +268,23 @@ private void addReference(IfaceEntity ent,FlowLocation loc)
       locs.add(loc);
     }
 }
+
+
+
+private void addReference(IfaceEntity ent,FlowLocation loc,int stackref)
+{
+   if (loc == null || stackref < 0) return;
+   
+   synchronized (entity_map) {
+      Map<FlowLocation,Integer> locs = setter_map.get(ent);
+      if (locs == null) {
+	 locs = new HashMap<>(4);
+	 setter_map.put(ent,locs);
+       }
+      locs.put(loc,stackref);
+    }
+}
+
 
 
 
@@ -262,6 +305,49 @@ void noteArrayChange(IfaceEntity arr)
     }
 }
 
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Update methods                                                          */
+/*                                                                              */
+/********************************************************************************/
+
+void handleUpdate(IfaceUpdater upd)
+{
+   Collection<IfaceEntity> rement = upd.getEntitiesToRemove();
+   for (Iterator<Map.Entry<IfaceEntity,Set<FlowLocation>>> it = entity_map.entrySet().iterator(); it.hasNext(); ) {
+      Map.Entry<IfaceEntity,Set<FlowLocation>> ent = it.next();
+      IfaceEntity ie = ent.getKey();
+      if (rement.contains(ie)) {
+         it.remove();
+         continue;
+       }
+      int ct = 0;
+      for (Iterator<FlowLocation> it1 = ent.getValue().iterator(); it1.hasNext(); ) {
+         FlowLocation loc = it1.next();
+         if (upd.isLocationRemoved(loc)) it1.remove();
+         else ++ct;
+      }
+      if (ct == 0) it.remove();
+    }
+   
+   for (Iterator<Map.Entry<IfaceEntity,Map<FlowLocation,Integer>>> it = setter_map.entrySet().iterator(); it.hasNext(); ) {
+      Map.Entry<IfaceEntity,Map<FlowLocation,Integer>> ent = it.next();
+      IfaceEntity ie = ent.getKey();
+      if (rement.contains(ie)) {
+         it.remove();
+         continue;
+       }
+      int ct = 0;
+      for (Iterator<FlowLocation> it1 = ent.getValue().keySet().iterator(); it1.hasNext(); ) {
+         FlowLocation loc = it1.next();
+         if (upd.isLocationRemoved(loc)) it1.remove();
+         else ++ct;
+       }
+      if (ct == 0) it.remove();
+    }
+}
 
 
 

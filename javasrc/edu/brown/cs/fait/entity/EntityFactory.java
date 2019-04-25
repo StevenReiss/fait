@@ -51,7 +51,7 @@ public class EntityFactory implements EntityConstants
 /*										*/
 /********************************************************************************/
 
-private IfaceControl             fait_control;
+private IfaceControl		 fait_control;
 private Map<BitSet,EntitySet>	set_table;
 private EntitySet		empty_set;
 private Map<IfaceEntity,EntitySet> single_map;
@@ -101,45 +101,47 @@ public IfaceEntity.UserEntity createUserEntity(String id,IfaceLocation base)
 
 public IfaceEntity createFixedEntity(IfaceType dt)
 {
+   EntityBase fe = null;
    synchronized (fixed_map) {
-      EntityBase fe = fixed_map.get(dt);
-      if (fe == null) {
-	 // create prototype entity if possible
-	 if (dt.isAbstract() || dt.isInterfaceType()) fe = (EntityBase) createMutableEntity(dt);
-	 else {
-            IfacePrototype ifp = fait_control.createPrototype(dt);
-            fe = new EntityFixed(dt,false,ifp);
-            // if (ifp != null) 
-               // fe = new EntityProto(dt,ifp,null);
-            // else
-               // fe = new EntityFixed(dt,false,ifp);
-          }
-	 fixed_map.put(dt,fe);
-       }
-      return fe;
+      fe = fixed_map.get(dt);
+      if (fe != null) return fe;
     }
+   
+	 // create prototype entity if possible
+   if (dt.isAbstract() || dt.isInterfaceType()) fe = (EntityBase) createMutableEntity(dt);
+   else {
+      IfacePrototype ifp = fait_control.createPrototype(dt);
+      fe = new EntityFixed(dt,false,ifp);
+    }
+   
+   synchronized (fixed_map) {
+      EntityBase eb = fixed_map.putIfAbsent(dt,fe);
+      if (eb != null) fe = eb;
+    }
+   
+   return fe;
 }
 
 
 public IfaceEntity createMutableEntity(IfaceType dt)
 {
    if (dt.isPrimitiveType() || dt.isStringType()) return createFixedEntity(dt);
-   
+
+   EntityBase fe = null;
    synchronized (mutable_map) {
-      EntityBase fe = mutable_map.get(dt);
-      if (fe == null) {
-         IfacePrototype ifp = fait_control.createPrototype(dt);
-         fe = new EntityFixed(dt,true,ifp);
-         // if (ifp != null) { 
-            // fe = new EntityProto(dt,ifp,null);
-          // }
-	 // else {
-            // fe = new EntityFixed(dt,true,ifp);
-          // }
-         mutable_map.put(dt,fe);
-       }
-      return fe;
+      fe = mutable_map.get(dt);
+      if (fe != null) return fe;
     }
+
+   IfacePrototype ifp = fait_control.createPrototype(dt);
+   fe = new EntityFixed(dt,true,ifp);
+
+   synchronized (mutable_map) {
+      EntityBase eb = mutable_map.putIfAbsent(dt,fe);
+      if (eb != null) fe = eb;
+    }
+
+   return fe;
 }
 
 
@@ -187,7 +189,7 @@ public IfaceEntity createStringEntity(IfaceControl ctrl,String s)
    synchronized (string_map) {
       EntityBase eb = string_map.get(s);
       if (eb == null) {
-         IfaceType t = ctrl.findConstantType("java.lang.String",s);
+	 IfaceType t = ctrl.findConstantType("java.lang.String",s);
 	 eb = new EntityString(t,s);
 	 string_map.put(s,eb);
        }
@@ -207,7 +209,7 @@ public IfaceEntity createArrayEntity(IfaceControl ctrl,IfaceType base,IfaceValue
 
 public IfaceEntity createPrototypeEntity(IfaceType base,IfacePrototype from,
       IfaceLocation loc,boolean mutable)
-{ 
+{
    if (loc != null) {
       return new EntityLocal(loc,base,from);
     }
@@ -325,11 +327,11 @@ public void handleEntitySetUpdates(IfaceUpdater upd)
 	 int id = ie.getId();
 	 if (id > mxid) mxid = id;
 	 single_map.remove(ie);
-         IfaceType dt = ie.getDataType();
-         synchronized (local_map) {
-            List<EntityLocal> lcls = local_map.get(dt);
-            if (lcls != null) lcls.remove(ie);
-          }
+	 IfaceType dt = ie.getDataType();
+	 synchronized (local_map) {
+	    List<EntityLocal> lcls = local_map.get(dt);
+	    if (lcls != null) lcls.remove(ie);
+	  }
        }
     }
 
@@ -346,19 +348,20 @@ public void handleEntitySetUpdates(IfaceUpdater upd)
       Map.Entry<BitSet,EntitySet> ent = it.next();
       BitSet src = ent.getKey();
       if (src.intersects(del)) {
-         BitSet rslt = (BitSet) src.clone();
-         rslt.andNot(del);
-         EntitySet nset = set_table.get(rslt);
-         if (nset == null) {
-            nset = new EntitySet(this,rslt);
-            toadd.put(rslt,nset);
-          }
-         upd.addToEntitySetMap(ent.getValue(),nset);
-         it.remove();
+	 BitSet rslt = (BitSet) src.clone();
+	 rslt.andNot(del);
+	 EntitySet nset = set_table.get(rslt);
+	 if (nset == null) {
+	    nset = new EntitySet(this,rslt);
+	    toadd.put(rslt,nset);
+	  }
+	 upd.addToEntitySetMap(ent.getValue(),nset);
+	 it.remove();
        }
     }
    set_table.putAll(toadd);
 }
+
 
 
 
@@ -401,7 +404,7 @@ IfaceType OBJECT = null;
 boolean compatibleTypes(IfaceType t1,IfaceType t2)
 {
    Map<IfaceType,Boolean> m1;
-   
+
    if (t1 == t2) return true;
 
    synchronized (compat_map) {
@@ -422,9 +425,9 @@ boolean compatibleTypes(IfaceType t1,IfaceType t2)
 	 // else if (t1.isArrayType() && t2.isArrayType()) {
 	    // vl = Boolean.valueOf(compatibleArrayTypes(t1.getBaseType(),t2.getBaseType()));
 	  // }
-         // else if (t1.isFunctionRef() || t2.isFunctionRef()) vl = Boolean.TRUE;
+	 // else if (t1.isFunctionRef() || t2.isFunctionRef()) vl = Boolean.TRUE;
 	 // else vl = Boolean.FALSE;
-         vl = t1.isCompatibleWith(t2);
+	 vl = t1.isCompatibleWith(t2);
 	 m1.put(t2,vl);
        }
     }
@@ -442,9 +445,9 @@ boolean compatibleTypes(IfaceType t1,IfaceType t2)
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Clean up methods                                                        */
-/*                                                                              */
+/*										*/
+/*	Clean up methods							*/
+/*										*/
 /********************************************************************************/
 
 public void clearAll()
@@ -459,6 +462,112 @@ public void clearAll()
 
 
 /* end of EntityFactory.java */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

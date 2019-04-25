@@ -35,6 +35,7 @@
 
 package edu.brown.cs.fait.flow;
 
+
 import edu.brown.cs.fait.iface.*;
 import edu.brown.cs.ivy.jcode.JcodeConstants;
 
@@ -102,7 +103,9 @@ protected IfaceEntity getLocalEntity(IfaceCall call,IfaceLocation loc,IfaceType 
 {
    IfaceProgramPoint inspt = loc.getProgramPoint();
    IfaceEntity ns = call.getBaseEntity(inspt);
-
+   
+   // if doing incremental update, find prior local entity
+   
    if (ns == null) {
       tyr = tyr.getAnnotatedType(FaitAnnotation.NON_NULL);
 
@@ -169,7 +172,7 @@ protected IfaceValue getActualValue(IfaceState state,FlowLocation here,IfaceValu
       if (idx != null) {
 	 IfaceValue vrslt = flow_queue.handleArrayAccess(here,base,idx);
 	 IfaceValue nrslt = getNonNullResult(nonnull,vrslt);
-	 if (nrslt != null && nrslt != vrslt) flow_queue.handleArraySet(here,base,nrslt,idx);
+	 if (nrslt != null && nrslt != vrslt) flow_queue.handleArraySet(here,base,nrslt,idx,-1);
 	 return nrslt;
        }
       else if (ref.getRefField() != null) {
@@ -178,7 +181,7 @@ protected IfaceValue getActualValue(IfaceState state,FlowLocation here,IfaceValu
 	 IfaceValue vrslt = flow_queue.handleFieldGet(ref.getRefField(),here,
 	       state,oref,base);
 	 if (FaitLog.isTracing())
-	    FaitLog.logD1("Field Access " + ref.getRefField() + " = " + vrslt);
+	    FaitLog.logD1("Field Access " + ref.getRefField() + " of " + base + " = " + vrslt);
 	 IfaceValue nrslt = getNonNullResult(nonnull,vrslt);
 	 if (nrslt != null && nrslt != vrslt)
 	    flow_queue.handleFieldSet(ref.getRefField(),here,state,oref,nrslt,base,-1);
@@ -256,7 +259,7 @@ protected IfaceValue assignValue(IfaceState state,FlowLocation here,IfaceValue r
       flow_queue.handleFieldSet(fld,here,state,thisref,v1,base,stackref);
     }
    else if (idx != null) {
-      flow_queue.handleArraySet(here,base,v1,idx);
+      flow_queue.handleArraySet(here,base,v1,idx,stackref);
     }
    else if (slot >= 0) {
       setLocal(here,state,slot,v1,stackref);
@@ -266,14 +269,11 @@ protected IfaceValue assignValue(IfaceState state,FlowLocation here,IfaceValue r
       state.setStack(stk,v1);
     }
    else {
-      FaitLog.logE("Bad assignment");
+      FaitLog.logE("Bad assignment " + ref + " " + v + " " + stackref);
     }
 
    return v1;
 }
-
-
-
 
 
 /********************************************************************************/

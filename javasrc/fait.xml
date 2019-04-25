@@ -1,0 +1,12 @@
+<FAIT>
+
+   <METHOD NAME='java.lang.reflect.Constructor.newInstance' CONSTRUCTOR='true' ARGS='*,...'>
+      <WHEN CALLER='edu.brown.cs.fait.iface.IfaceControl.Factory.createControl' />
+       <REPLACE>
+	  edu.brown.cs.fait.control.ControlMain(Ledu/brown/cs/fait/iface/IfaceProject;)
+       </REPLACE>
+    </METHOD>
+
+   <LOAD CLASS='edu.brown.cs.fait.control.ControlMain' />
+
+</FAIT>
