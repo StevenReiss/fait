@@ -201,7 +201,7 @@ void handleReturn(IfaceCall cm,IfaceValue v0,IfaceSafetyStatus sts,IfaceState st
       IfaceType dt = v0.getDataType();
       IfaceType rt = dt.getAnnotatedType(annots);
       if (rt != dt) {
-	 dt.checkCompatibility(rt,loc,v0,stackref);
+	 // dt.checkCompatibility(rt,loc,v0,stackref);
 	 v0 = v0.changeType(rt);
        }
     }

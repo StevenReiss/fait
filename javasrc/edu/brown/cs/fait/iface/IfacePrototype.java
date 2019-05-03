@@ -40,6 +40,7 @@ import java.util.*;
 
 
 
+
 public interface IfacePrototype extends FaitConstants
 {
 
@@ -59,6 +60,7 @@ IfaceValue handleCall(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src);
 
 void setAnyValue();
 
+List<IfaceAuxReference> getSetLocations(IfaceControl ctl);
 
 
 }	// end of interface IfacePrototype

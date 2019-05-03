@@ -306,11 +306,30 @@ protected IfaceType findCommonParent(IfaceType t1,IfaceType t2)
    if (loc == null) return;
    List<IfaceValue> cnts = getContents();
    if (cnts == null) return;
+   Map<IfaceSubtype,IfaceError> errs = null;
    for (IfaceValue v0 : cnts) {
       IfaceType t0 = v0.getDataType();
       IfaceType dt0 = t0.getAnnotatedType(dt);
       if (t0 == dt0) continue;
-      if (!t0.checkCompatibility(dt0,loc,v0,stkloc)) break;
+      List<IfaceError> cerrs = t0.getCompatibilityErrors(dt0);
+      if (cerrs != null) {
+         if (errs == null) errs = new HashMap<>();
+         for (IfaceError er : cerrs) {
+            IfaceSubtype ertype = er.getSubtype();
+            IfaceError older = errs.get(ertype);
+            if (older == null || 
+                  older.getErrorLevel().ordinal() < er.getErrorLevel().ordinal()) {
+               errs.put(ertype,er);
+             }
+          }
+       }
+    }
+   if (errs != null && errs.size() > 0) {
+      for (IfaceError er : errs.values()) {
+         IfaceError er1 = er;
+         if (stkloc >= 0) er1 = new FaitError(er,stkloc);
+         loc.noteError(er1);
+       }
     }
 }
 

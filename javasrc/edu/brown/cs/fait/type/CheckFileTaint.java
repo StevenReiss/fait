@@ -96,6 +96,8 @@ private CheckFileTaint()
    
    FaitError err = new FaitError(this,ErrorLevel.ERROR,
          "Attempt to use tainted data in as a file name");
+   FaitError warn = new FaitError(this,ErrorLevel.WARNING,
+         "Possible attempt to use tainted data in as a file name");
    
    defineMerge(FILETAINTED,UNFILETAINTED,FILETAINTED);
    defineMerge(MAYBE_FILETAINTED,FILETAINTED,FILETAINTED);
@@ -105,7 +107,7 @@ private CheckFileTaint()
    defineRestrict(FILETAINTED,MAYBE_FILETAINTED,FILETAINTED);
    defineRestrict(UNFILETAINTED,FILETAINTED,UNFILETAINTED);
    defineRestrict(UNFILETAINTED,MAYBE_FILETAINTED,UNFILETAINTED);
-   defineRestrict(MAYBE_FILETAINTED,UNFILETAINTED,err);
+   defineRestrict(MAYBE_FILETAINTED,UNFILETAINTED,warn);
    defineRestrict(MAYBE_FILETAINTED,FILETAINTED,FILETAINTED);
    
    defineAttribute("FileTainted",FILETAINTED);

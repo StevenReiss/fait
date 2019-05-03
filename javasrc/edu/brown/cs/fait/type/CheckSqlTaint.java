@@ -1,34 +1,34 @@
 /********************************************************************************/
-/*                                                                              */
-/*              CheckSqlTaint.java                                              */
-/*                                                                              */
-/*      description of class                                                    */
-/*                                                                              */
+/*										*/
+/*		CheckSqlTaint.java						*/
+/*										*/
+/*	description of class							*/
+/*										*/
 /********************************************************************************/
-/*      Copyright 2013 Brown University -- Steven P. Reiss                    */
+/*	Copyright 2013 Brown University -- Steven P. Reiss		      */
 /*********************************************************************************
- *  Copyright 2013, Brown University, Providence, RI.                            *
- *                                                                               *
- *                        All Rights Reserved                                    *
- *                                                                               *
- *  Permission to use, copy, modify, and distribute this software and its        *
- *  documentation for any purpose other than its incorporation into a            *
- *  commercial product is hereby granted without fee, provided that the          *
- *  above copyright notice appear in all copies and that both that               *
- *  copyright notice and this permission notice appear in supporting             *
- *  documentation, and that the name of Brown University not be used in          *
- *  advertising or publicity pertaining to distribution of the software          *
- *  without specific, written prior permission.                                  *
- *                                                                               *
- *  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS                *
- *  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND            *
- *  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY      *
- *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY          *
- *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,              *
- *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS               *
- *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE          *
- *  OF THIS SOFTWARE.                                                            *
- *                                                                               *
+ *  Copyright 2013, Brown University, Providence, RI.				 *
+ *										 *
+ *			  All Rights Reserved					 *
+ *										 *
+ *  Permission to use, copy, modify, and distribute this software and its	 *
+ *  documentation for any purpose other than its incorporation into a		 *
+ *  commercial product is hereby granted without fee, provided that the 	 *
+ *  above copyright notice appear in all copies and that both that		 *
+ *  copyright notice and this permission notice appear in supporting		 *
+ *  documentation, and that the name of Brown University not be used in 	 *
+ *  advertising or publicity pertaining to distribution of the software 	 *
+ *  without specific, written prior permission. 				 *
+ *										 *
+ *  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS		 *
+ *  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND		 *
+ *  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY	 *
+ *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY 	 *
+ *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,		 *
+ *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS		 *
+ *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE 	 *
+ *  OF THIS SOFTWARE.								 *
+ *										 *
  ********************************************************************************/
 
 
@@ -52,9 +52,9 @@ class CheckSqlTaint extends TypeSubtype
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Private Storage                                                         */
-/*                                                                              */
+/*										*/
+/*	Private Storage 							*/
+/*										*/
 /********************************************************************************/
 
 private static CheckSqlTaint our_type = new CheckSqlTaint();
@@ -63,15 +63,15 @@ public enum TaintState implements IfaceSubtype.Value
 {
    MAYBE_SQLTAINTED, SQLTAINTED, FULLY_SQLTAINTED, UNSQLTAINTED;
 
-   @Override public IfaceSubtype getSubtype()   { return our_type; }
+   @Override public IfaceSubtype getSubtype()	{ return our_type; }
 }
 
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Static access                                                           */
-/*                                                                              */
+/*										*/
+/*	Static access								*/
+/*										*/
 /********************************************************************************/
 
 public static synchronized CheckSqlTaint getType()
@@ -84,17 +84,19 @@ public static synchronized CheckSqlTaint getType()
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Constructors                                                            */
-/*                                                                              */
+/*										*/
+/*	Constructors								*/
+/*										*/
 /********************************************************************************/
 
 private CheckSqlTaint()
 {
    super("CheckSqlTaint");
-   
+
    FaitError err = new FaitError(this,ErrorLevel.ERROR,
-         "Attempt to use tainted SQL data in a non-tainted location");
+	 "Attempt to use tainted SQL data in a non-tainted location");
+   FaitError warn = new FaitError(this,ErrorLevel.WARNING,
+	 "Possible attempt to use tainted SQL data in a non-tainted location");
    
    defineMerge(SQLTAINTED,UNSQLTAINTED,SQLTAINTED);
    defineMerge(MAYBE_SQLTAINTED,SQLTAINTED,SQLTAINTED);
@@ -104,7 +106,7 @@ private CheckSqlTaint()
    defineMerge(FULLY_SQLTAINTED,UNSQLTAINTED,FULLY_SQLTAINTED);
    defineMerge(FULLY_SQLTAINTED,UNSQLTAINTED,FULLY_SQLTAINTED);
    defineMerge(FULLY_SQLTAINTED,MAYBE_SQLTAINTED,FULLY_SQLTAINTED);
-   
+
    defineRestrict(SQLTAINTED,UNSQLTAINTED,err);
    defineRestrict(SQLTAINTED,MAYBE_SQLTAINTED,SQLTAINTED);
    defineRestrict(FULLY_SQLTAINTED,UNSQLTAINTED,err);
@@ -112,9 +114,9 @@ private CheckSqlTaint()
    defineRestrict(FULLY_SQLTAINTED,SQLTAINTED,FULLY_SQLTAINTED);
    defineRestrict(UNSQLTAINTED,SQLTAINTED,UNSQLTAINTED);
    defineRestrict(UNSQLTAINTED,MAYBE_SQLTAINTED,UNSQLTAINTED);
-   defineRestrict(MAYBE_SQLTAINTED,UNSQLTAINTED,err);
+   defineRestrict(MAYBE_SQLTAINTED,UNSQLTAINTED,warn);		
    defineRestrict(MAYBE_SQLTAINTED,SQLTAINTED,SQLTAINTED);
-   
+
    defineAttribute("SqlTainted",SQLTAINTED);
    defineAttribute("Tainted",SQLTAINTED);
    defineAttribute("SqlUntainted",UNSQLTAINTED);
@@ -123,15 +125,15 @@ private CheckSqlTaint()
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Default value methods                                                   */
-/*                                                                              */
+/*										*/
+/*	Default value methods							*/
+/*										*/
 /********************************************************************************/
 
 @Override public TaintState getDefaultValue(IfaceBaseType typ)
 {
    if (typ != null && typ.isPrimitiveType()) return UNSQLTAINTED;
-   
+
    return MAYBE_SQLTAINTED;
 }
 
@@ -158,9 +160,9 @@ private CheckSqlTaint()
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Computation methods                                                     */
-/*                                                                              */
+/*										*/
+/*	Computation methods							*/
+/*										*/
 /********************************************************************************/
 
 @Override public IfaceSubtype.Value getComputedValue(IfaceValue rslt,
@@ -172,22 +174,24 @@ private CheckSqlTaint()
    IfaceSubtype.Value s0 = t0.getValue(this);
    IfaceSubtype.Value s1 = t1.getValue(this);
    IfaceSubtype.Value s2 = t2.getValue(this);
-   
+
    switch (op) {
       case DEREFERENCE :
       case ELEMENTACCESS :
       case FIELDACCESS :
-         t1 = t2;
-         s1 = s2;
-         break;
+	 t1 = t2;
+	 s1 = s2;
+	 break;
       case ADD :
-         if (s0 == UNSQLTAINTED && s1 == UNSQLTAINTED) return UNSQLTAINTED;
-         if (s0 == MAYBE_SQLTAINTED && s1 == MAYBE_SQLTAINTED) return MAYBE_SQLTAINTED;
-         return FULLY_SQLTAINTED;
+	 if (s0 == UNSQLTAINTED && s1 == UNSQLTAINTED) return UNSQLTAINTED;
+	 if (s0 == MAYBE_SQLTAINTED && s1 == MAYBE_SQLTAINTED) return MAYBE_SQLTAINTED;
+	 if (s0 == MAYBE_SQLTAINTED && s1 == UNSQLTAINTED) return MAYBE_SQLTAINTED;
+	 if (s0 == UNSQLTAINTED && s1 == MAYBE_SQLTAINTED) return MAYBE_SQLTAINTED;
+	 return FULLY_SQLTAINTED;
       default :
-         break;
+	 break;
     }
-   
+
    if (s0 == SQLTAINTED || s1 == SQLTAINTED || s2 == SQLTAINTED) return SQLTAINTED;
    if (s0 == UNSQLTAINTED && s1 == UNSQLTAINTED) return UNSQLTAINTED;
    return s2;
@@ -199,7 +203,7 @@ private CheckSqlTaint()
       List<IfaceValue> args)
 {
    if (cm.isScanned()) return null;
-   
+
    IfaceSubtype.Value r = rslt.getDataType().getValue(this);
    if (r == SQLTAINTED) return r;
    boolean allok = true;
@@ -209,7 +213,7 @@ private CheckSqlTaint()
       else if (s1 != UNSQLTAINTED) allok = false;
     }
    if (allok) return UNSQLTAINTED;
-   
+
    return r;
 }
 
@@ -219,9 +223,9 @@ private CheckSqlTaint()
    switch (op) {
       case STARTINIT :
       case DONEINIT :
-         return UNSQLTAINTED;
+	 return UNSQLTAINTED;
       default :
-         break;
+	 break;
     }
    return super.getComputedValue(op,oval);
 }
@@ -233,12 +237,12 @@ private CheckSqlTaint()
    if (cur == FULLY_SQLTAINTED) {
       if (pred == SQLTAINTED || pred == FULLY_SQLTAINTED) return true;
     }
-   
+
    return super.isPredecessorRelevant(pred,cur);
 }
 
 
-}       // end of class CheckSqlTaint
+}	// end of class CheckSqlTaint
 
 
 

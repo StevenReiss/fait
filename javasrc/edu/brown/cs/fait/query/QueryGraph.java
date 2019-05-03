@@ -272,9 +272,11 @@ private void replaceNodeWith(Node nold,Node nnew)
 /*										*/
 /********************************************************************************/
 
-void outputXml(IvyXmlWriter xw)
+void outputXml(IvyXmlWriter xw,long time)
 {
    xw.begin("GRAPH");
+   xw.field("TIME",time);
+   xw.field("SIZE",all_nodes.size());
    for (Node n : all_nodes) {
       n.outputXml(xw);
     }

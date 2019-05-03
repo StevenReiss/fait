@@ -979,12 +979,13 @@ private class BackVisitor extends ASTVisitor {
       if (end_ref.getRefStack() == 0) {
          if (js != null && js.isFieldSymbol()) {
             IfaceField fld = getField(js);
-            if (js.isStatic()) {
-               start_ref = fait_control.findRefValue(end_ref.getDataType(),null,fld);
-             }
-            else {
+            if (!js.isStatic() && prior_state.getFieldValue(fld) != null) {
                IfaceValue thisv = getThisValue(fld.getDeclaringClass());
                start_ref = fait_control.findRefValue(end_ref.getDataType(),thisv,fld);
+             }
+            else {
+               start_ref = null;
+               addAuxRefs(fld);
              }
           }
          else if (js != null && js.isEnumSymbol()) {

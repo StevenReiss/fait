@@ -36,11 +36,15 @@
 
 package edu.brown.cs.fait.proto;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
+import edu.brown.cs.fait.iface.IfaceAuxReference;
 import edu.brown.cs.fait.iface.IfaceControl;
 import edu.brown.cs.fait.iface.IfaceEntity;
 import edu.brown.cs.fait.iface.IfaceLocation;
@@ -64,6 +68,7 @@ private Set<IfaceLocation> buffer_access;
 
 private static IfaceType  string_type;
 private static IfaceValue any_string;
+private Map<IfaceLocation,Integer> buffer_sets;
 
 
 
@@ -79,6 +84,7 @@ public ProtoStringBuilder(IfaceControl ic,IfaceType dt)
    
    buffer_value = null;
    buffer_access = new HashSet<>(2);
+   buffer_sets = new HashMap<>(4);
    
    if (any_string == null) {
       string_type = fait_control.findDataType("java.lang.String");
@@ -152,6 +158,8 @@ public IfaceValue prototype_append(IfaceMethod fm,List<IfaceValue> args,IfaceLoc
 {
    if (args.size() == 2) {
       appendValue(args.get(1),src);
+      if (!args.get(1).getDataType().isPrimitiveType())
+         addSetLocation(src,0);
     }
    else {
       markAsAny(src);
@@ -286,6 +294,31 @@ public IfaceValue prototype_trimToSize(IfaceMethod fm,List<IfaceValue> args,Ifac
 
 /********************************************************************************/
 /*                                                                              */
+/*      Query methods                                                           */
+/*                                                                              */
+/********************************************************************************/
+
+@Override public List<IfaceAuxReference> getSetLocations(IfaceControl ctl)
+{
+   if (buffer_sets == null || buffer_sets.isEmpty()) return null;
+   
+   List<IfaceAuxReference> rslt = new ArrayList<>();
+   IfaceType t0 = ctl.findDataType("java.lang.Object");
+   for (Map.Entry<IfaceLocation,Integer> ent : buffer_sets.entrySet()) {
+      IfaceLocation loc = ent.getKey();
+      int offset = ent.getValue();
+      IfaceValue rv = ctl.findRefStackValue(t0,offset);
+      IfaceAuxReference r = ctl.getAuxReference(loc,rv);
+      rslt.add(r);
+    }
+   
+   return rslt;
+}
+
+
+
+/********************************************************************************/
+/*                                                                              */
 /*      Action methods                                                          */
 /*                                                                              */
 /********************************************************************************/
@@ -337,6 +370,13 @@ private void addBufferReference(IfaceLocation loc)
        }
     }
 }
+
+
+private void addSetLocation(IfaceLocation loc,int stk)
+{
+   if (loc != null && buffer_sets != null) buffer_sets.put(loc,stk);
+}
+
 
 
 private void setBufferValue(IfaceValue v0)

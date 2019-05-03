@@ -372,6 +372,7 @@ private void addAllocation(Element xml)
 private void addLoad(Element xml)
 {
    String nm = IvyXml.getAttrString(xml,"CLASS");
+   if (nm == null) nm = IvyXml.getAttrString(xml,"NAME");
    if (nm == null) return;
    load_classes.add(nm);
 }
@@ -382,6 +383,9 @@ public IfaceSpecial getSpecial(IfaceProgramPoint pt,IfaceMethod fm)
 {
    CallSpecial cs = null;
    synchronized (special_methods) {
+      if (fm.getFullName().contains("getComponentInstance") && pt.getAstReference() != null
+        && pt.getMethod().getFullName().contains("toXML"))
+         System.err.println("CHECK HERE");
       cs = special_methods.get(fm);
       if (!special_methods.containsKey(fm)) {
          String fnm = fm.getDeclaringClass().getName() + "." + fm.getName();

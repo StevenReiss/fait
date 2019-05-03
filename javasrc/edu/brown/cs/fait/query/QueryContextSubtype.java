@@ -157,11 +157,11 @@ QueryContextSubtype(IfaceControl ctrl,IfaceValue v,IfaceSubtype.Value stv)
 
 @Override protected boolean isPriorStateRelevant(IfaceState st0) 
 {
-   IfaceValue v0 = QueryFactory.dereference(for_value,st0);
+   IfaceValue v0 = QueryFactory.dereference(fait_control,for_value,st0);
    
    if (v0 == null) return false;
    if (v0.isReference() && v0.getRefField() != null) {
-      IfaceValue v1 = fait_control.getFieldValue(st0,v0.getRefField(),null,false,null);
+      IfaceValue v1 = fait_control.getFieldValue(st0,v0.getRefField(),null,false);
       if (v1 != null) v0 = v1;
     }
    
@@ -178,7 +178,6 @@ QueryContextSubtype(IfaceControl ctrl,IfaceValue v,IfaceSubtype.Value stv)
          if (csv0 == subtype_value) return true;
          IfaceSubtype.Value csv1 = for_subtype.getMergeValue(csv0,subtype_value);
          if (csv1 == csv0) return true;
-         
        }
     }
    
@@ -204,8 +203,10 @@ QueryContextSubtype(IfaceControl ctrl,IfaceValue v,IfaceSubtype.Value stv)
    if (for_value.getRefStack() == 0 && mthd.getReturnType() != null &&
          !mthd.getReturnType().isVoidType()) {
       int ct = mthd.getNumArgs();
-      for (int i = 0; i < ct; ++i) {
+      int ct1 = (mthd.isStatic() ? 0 : 1);
+      for (int i = 0; i < ct+ct1; ++i) {
          IfaceValue vs = st0.getStack(i);
+         vs = QueryFactory.dereference(fait_control,vs,st0);
          IfaceValue vr = fait_control.findRefStackValue(vs.getDataType(),i);
          IfaceAuxReference ref = fait_control.getAuxReference(st0.getLocation(),vr);
          bfd.addAuxReference(ref);
@@ -213,11 +214,17 @@ QueryContextSubtype(IfaceControl ctrl,IfaceValue v,IfaceSubtype.Value stv)
       
       if (!mthd.isStatic()) {
          IfaceValue thisv = st0.getStack(ct);
+         if (thisv != null) thisv = QueryFactory.dereference(fait_control,thisv,st0);
          if (thisv != null) {
             for (IfaceEntity ent : thisv.getEntities()) {
                IfacePrototype proto = ent.getPrototype();
                if (proto != null) {
-                  // handle back from proto
+                  List<IfaceAuxReference> refs = proto.getSetLocations(fait_control);
+                  if (refs != null) {
+                     for (IfaceAuxReference aref : refs) {
+                        bfd.addAuxReference(aref);
+                      }
+                   }
                 }
              }
           }

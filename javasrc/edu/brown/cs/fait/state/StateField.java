@@ -129,7 +129,7 @@ IfaceValue getFieldValue(StateBase state,IfaceField fld,IfaceValue base,boolean 
    if (v0 == null) {
       // if we still don't have a value, get the global value for the field
       synchronized (field_map) {
-         anonymous_fields.add(key);
+         if (src != null) anonymous_fields.add(key);
          v0 = field_map.get(key);
          if (v0 == null) {
             v0 = fait_control.findInitialFieldValue(fld,true);
@@ -192,7 +192,7 @@ boolean setFieldValue(StateBase st,IfaceField fld,
        }
     }
 
-   synchronized(field_map) {
+   synchronized (field_map) {
       IfaceValue s1 = field_map.get(key);
       if (s1 == null) {
 	 if (!fait_control.isProjectClass(ctyp))

@@ -252,10 +252,8 @@ protected IfaceValue assignValue(IfaceState state,FlowLocation here,IfaceValue r
    int slot = ref.getRefSlot();
    int stk = ref.getRefStack();
    if (fld != null) {
-      boolean thisref = false;		// need to set
-      if (base != null && !fld.isStatic() &&
-	    base == state.getLocal(0)) thisref = true;
-
+      boolean thisref = false;	 
+      if (base != null && !fld.isStatic() && base == state.getLocal(0)) thisref = true;
       flow_queue.handleFieldSet(fld,here,state,thisref,v1,base,stackref);
     }
    else if (idx != null) {

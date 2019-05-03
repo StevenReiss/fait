@@ -373,12 +373,35 @@
 	 <assertions><enable/></assertions>
 	 <formatter type='xml' usefile='true' />
 	 <test name='edu.brown.cs.fait.server.ServerTest'
-	       methods='serverTestTimedUpdateRoller'
-	       outfile='testroller.out' />
+	       methods='serverTestSnipSnap'
+	       outfile='testsnipsnap.out' />
+      </junit>
+   </target>
+
+   <target name='trytimed' depends='compile'>
+      <junit fork='true' printsummary='on' outputtoformatters='true'>
+	 <classpath refid='fait.classpath' />
+	 <assertions><enable/></assertions>
+	 <formatter type='xml' usefile='true' />
+	 <test name='edu.brown.cs.fait.server.ServerTest'
+	       methods='serverTestTimedSnipSnap'
+	       outfile='testsnipsnap.out' />
+      </junit>
+   </target>
+
+   <target name='tryupdate' depends='compile'>
+      <junit fork='true' printsummary='on' outputtoformatters='true'>
+	 <classpath refid='fait.classpath' />
+	 <assertions><enable/></assertions>
+	 <formatter type='xml' usefile='true' />
+	 <test name='edu.brown.cs.fait.server.ServerTest'
+	       methods='serverTestTimedUpdateSnipSnap'
+	       outfile='testsnipsnap.out' />
       </junit>
    </target>
 
 </project>
+
 
 
 

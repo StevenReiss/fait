@@ -108,10 +108,10 @@ private Set<IfaceDescriptionFile> description_files;
 private Map<String,Boolean> project_packages;
 private ServerRunner	current_runner;
 private Set<String>	editable_classes;
-private List<File>      source_paths;
-private List<String>    project_classes;
-private boolean         test_built;
-private ServerFile      test_file;
+private List<File>	source_paths;
+private List<String>	project_classes;
+private boolean 	test_built;
+private ServerFile	test_file;
 
 private static final String DEFAULT_PACKAGE = "*DEFAULT*";
 
@@ -149,7 +149,7 @@ ServerProject(ServerMain sm,String name)
    if (xml != null) setupFromXml(xml);
    else setupFromIvy(name);
    project_packages.put("fait.test",true);
-   
+
    test_built = false;
    test_file = null;
 }
@@ -221,7 +221,7 @@ boolean isErrorFree()
 private void setupFromXml(Element xml)
 {
    if (IvyXml.isElement(xml,"RESULT")) xml = IvyXml.getChild(xml,"PROJECT");
-   
+
    Element ref = IvyXml.getChild(xml,"REFERENCES");
    String wsdir = IvyXml.getAttrString(xml,"WORKSPACE");
    if (wsdir != null) {
@@ -229,10 +229,10 @@ private void setupFromXml(Element xml)
       File bdir = new File(wsf,".bubbles");
       File fait = new File(bdir,"fait.xml");
       if (fait.exists() && fait.canRead()) {
-         int p = IfaceDescriptionFile.PRIORITY_BASE_PROJECT;
-         if (ref == null) p = IfaceDescriptionFile.PRIORITY_DEPENDENT_PROJECT;
-         ControlDescriptionFile dd = new ControlDescriptionFile(fait,p);
-         description_files.add(dd);
+	 int p = IfaceDescriptionFile.PRIORITY_BASE_PROJECT;
+	 if (ref == null) p = IfaceDescriptionFile.PRIORITY_DEPENDENT_PROJECT;
+	 ControlDescriptionFile dd = new ControlDescriptionFile(fait,p);
+	 description_files.add(dd);
        }
     }
    Element cp = IvyXml.getChild(xml,"CLASSPATH");
@@ -245,14 +245,14 @@ private void setupFromXml(Element xml)
 	 String sdir = IvyXml.getTextElement(rpe,"SOURCE");
 	 if (sdir != null) {
 	    File sdirf = new File(sdir);
-            source_paths.add(sdirf);
+	    source_paths.add(sdirf);
 	    File fait = new File(sdirf,"fait.xml");
 	    if (fait.exists() && fait.canRead()) {
-               int p = IfaceDescriptionFile.PRIORITY_BASE_PROJECT;
-               if (ref == null) p = IfaceDescriptionFile.PRIORITY_DEPENDENT_PROJECT;
-               ControlDescriptionFile dd = new ControlDescriptionFile(fait,p);
-               description_files.add(dd);
-             }
+	       int p = IfaceDescriptionFile.PRIORITY_BASE_PROJECT;
+	       if (ref == null) p = IfaceDescriptionFile.PRIORITY_DEPENDENT_PROJECT;
+	       ControlDescriptionFile dd = new ControlDescriptionFile(fait,p);
+	       description_files.add(dd);
+	     }
 	  }
        }
       else {
@@ -269,8 +269,8 @@ private void setupFromXml(Element xml)
        }
       if (IvyXml.getAttrBool(rpe,"SYSTEM")) continue;
       if (!class_paths.contains(bn)) {
-         class_paths.add(bn);
-         checkForDescriptionFile(bn);
+	 class_paths.add(bn);
+	 checkForDescriptionFile(bn);
        }
     }
    if (ignore != null) {
@@ -306,21 +306,21 @@ private void setupFromIvy(String name)
    for (String s : ip.getUserPackages()) {
       if (s != null) havedep = true;
     }
-   
+
    File wsf = ip.getWorkspace();
    File bdir = new File(wsf,".bubbles");
    File fait = new File(bdir,"fait.xml");
    if (fait.exists() && fait.canRead()) {
       int p = IfaceDescriptionFile.PRIORITY_BASE_PROJECT;
-      if (!havedep) p = IfaceDescriptionFile.PRIORITY_DEPENDENT_PROJECT; 
+      if (!havedep) p = IfaceDescriptionFile.PRIORITY_DEPENDENT_PROJECT;
       ControlDescriptionFile dd = new ControlDescriptionFile(fait,p);
       description_files.add(dd);
     }
-   
+
    for (String s : ip.getClassPath()) {
       if (!class_paths.contains(s)) {
-         class_paths.add(s);
-         checkForDescriptionFile(s);
+	 class_paths.add(s);
+	 checkForDescriptionFile(s);
        }
     }
 
@@ -329,10 +329,10 @@ private void setupFromIvy(String name)
       source_paths.add(sdirf);
       File faitf = new File(sdirf,"fait.xml");
       if (faitf.exists() && faitf.canRead()) {
-         int p = IfaceDescriptionFile.PRIORITY_BASE_PROJECT;
-         if (!havedep) p = IfaceDescriptionFile.PRIORITY_DEPENDENT_PROJECT; 
-         ControlDescriptionFile dd = new ControlDescriptionFile(faitf,p);
-         description_files.add(dd);
+	 int p = IfaceDescriptionFile.PRIORITY_BASE_PROJECT;
+	 if (!havedep) p = IfaceDescriptionFile.PRIORITY_DEPENDENT_PROJECT;
+	 ControlDescriptionFile dd = new ControlDescriptionFile(faitf,p);
+	 description_files.add(dd);
        }
     }
 
@@ -351,20 +351,21 @@ private void checkForDescriptionFile(String s)
    if (!f1.exists() || !f1.canRead()) return;
    if (f1.getName().endsWith(".jar")) {
       try {
-         JarFile jf = new JarFile(f1);
-         JarEntry je = jf.getJarEntry("fait.xml");
-         if (je == null) {
-            je = jf.getJarEntry("./fait.xml");
-          }
-         if (je != null) {
-            File ftemp = File.createTempFile("fait",".xml");
-            InputStream fis = jf.getInputStream(je);
-            IvyFile.copyFile(fis,ftemp);
-            ftemp.deleteOnExit();
-            ControlDescriptionFile dd = new ControlDescriptionFile(ftemp,IfaceDescriptionFile.PRIORITY_LIBRARY);
-            description_files.add(dd);
-          }
-         jf.close();
+	 JarFile jf = new JarFile(f1);
+	 JarEntry je = jf.getJarEntry("fait.xml");
+	 if (je == null) {
+	    je = jf.getJarEntry("./fait.xml");
+	  }
+	 if (je != null) {
+	    File ftemp = File.createTempFile("fait",".xml");
+	    InputStream fis = jf.getInputStream(je);
+	    IvyFile.copyFile(fis,ftemp);
+	    ftemp.deleteOnExit();
+	    ControlDescriptionFile dd = new ControlDescriptionFile(ftemp,IfaceDescriptionFile.PRIORITY_LIBRARY);
+	    description_files.add(dd);
+            FaitLog.logD("Create file " + ftemp + " for fait.xml in " + s);
+	  }
+	 jf.close();
        }
       catch (IOException e) { }
     }
@@ -419,31 +420,31 @@ boolean anyChangedFiles()
 IfaceUpdateSet compileProject()
 {
    IfaceUpdateSet rslt = null;
-   
+
    if (!test_built) {
       test_built = true;
       ServerBuildTestDriver bt = new ServerBuildTestDriver(this);
       ServerFile testf = bt.process(project_classes);
       if (testf != null) {
-         if (test_file == null) {
-            test_file = testf;
-            active_files.add(test_file);
-            changed_files.add(test_file);
-          }
-         else {
-            test_file.editFile(0,0,testf.getFileContents(),true);
-            changed_files.add(test_file);
-          }
+	 if (test_file == null) {
+	    test_file = testf;
+	    active_files.add(test_file);
+	    changed_files.add(test_file);
+	  }
+	 else {
+	    test_file.editFile(0,0,testf.getFileContents(),true);
+	    changed_files.add(test_file);
+	  }
        }
       else {
-         if (test_file != null) {
-            active_files.remove(test_file);
-            test_file = null;
-          }
+	 if (test_file != null) {
+	    active_files.remove(test_file);
+	    test_file = null;
+	  }
        }
     }
-   
-   
+
+
    List<ServerFile> newfiles = null;
    synchronized (changed_files) {
       newfiles = new ArrayList<>(changed_files);
@@ -455,9 +456,9 @@ IfaceUpdateSet compileProject()
       try {
 	 ServerFile.setCurrentProject(this);
 	 for (ServerFile sf : newfiles) {
-            FaitLog.logI("Update file " + sf.getFileName());
+	    FaitLog.logI("Update file " + sf.getFileName());
 	  }
-         
+	
 	 clearProject();
 	 getJcompProject();
 	 getEditableClasses();		// this resolves the project
@@ -491,15 +492,15 @@ synchronized void clearProject()
 public synchronized JcompProject getJcompProject()
 {
    if (base_project != null) return base_project;
-   
+
    for (ServerFile sf : active_files) {
       ASTNode an = sf.getAstRootNode();
       if (an != null) JcompAst.clearAll(an);
     }
-   
+
    JcompControl jc = ServerMain.getJcompBase();
    Collection<JcompSource> srcs = new ArrayList<>(active_files);
-   
+
    base_project = jc.getProject(getJcodeFactory(),srcs);
 
    return base_project;
@@ -602,9 +603,9 @@ private class ClassFinder extends ASTVisitor {
 /*										*/
 /********************************************************************************/
 
-public Collection<IfaceDescriptionFile> getDescriptionFiles()		
-{ 
-   return description_files; 
+public Collection<IfaceDescriptionFile> getDescriptionFiles()	
+{
+   return description_files;
 }
 
 public boolean isProjectClass(String cls)
@@ -681,10 +682,10 @@ synchronized void pauseAnalysis()
 
 
 
-void sendAborted(String rid,long analt,long compt)
+void sendAborted(String rid,long analt,long compt,long updt)
 {
    CommandArgs args = new CommandArgs("ID",rid,"ABORTED",true,"COMPILETIME",compt,
-					 "ANALYSISTIME",analt);
+					 "ANALYSISTIME",analt,"UPDATETIME",updt);
    server_main.response("ANALYSIS",args,null,null);
 }
 
@@ -697,7 +698,7 @@ void sendStarted(String rid)
 
 
 void sendAnalysis(String rid,IfaceControl ifc,ReportOption opt,long analt,long compt,
-      int nthread,boolean upd)
+      long updt,int nthread,boolean upd)
 {
    IvyXmlWriter xw = new IvyXmlWriter();
    xw.begin("DATA");
@@ -708,7 +709,7 @@ void sendAnalysis(String rid,IfaceControl ifc,ReportOption opt,long analt,long c
       case SOURCE :
       case SOURCE_STATS :
 	 outputErrors(ifc,xw,true,false);
-         outputErrors(ifc,xw,false,true);
+	 outputErrors(ifc,xw,false,true);
 	 break;
       case FULL :
       case FULL_STATS :
@@ -720,7 +721,8 @@ void sendAnalysis(String rid,IfaceControl ifc,ReportOption opt,long analt,long c
    xw.end("DATA");
 
    CommandArgs args = new CommandArgs("ID",rid,"ABORTED",false,
-	 "COMPILETIME",compt,"ANALYSISTIME",analt,"NTHREAD",nthread,"UPDATE",upd);
+	 "COMPILETIME",compt,"ANALYSISTIME",analt,"NTHREAD",nthread,
+	 "UPDATETIME",updt,"UPDATE",upd);
    server_main.response("ANALYSIS",args,xw.toString(),null);
 
    xw.close();
@@ -739,22 +741,22 @@ private void outputErrors(IfaceControl ifc,IvyXmlWriter xw,boolean editable,bool
 	 else if (!editable && ppt0.getAstReference() != null) continue;
 
 	 String file = ppt0.getSourceFile();
-         String cls = ic.getMethod().getDeclaringClass().getName();
-         if (!isProjectClass(cls)) file = null;
-         else if (file == null || !file.contains(File.separator)) {
-            file = findSourceFile(file,cls);
-          }
-         // TODO : this gives us the .class file, need to find corresponding source file
-         
-         if (erronly) {
-            boolean haveerr = false;
-            for (IfaceProgramPoint ppt : ppts) {
-               for (IfaceError ie : ic.getErrors(ppt)) {
-                  haveerr |= ie.getErrorLevel() == ErrorLevel.ERROR;
-                }
-             }
-            if (!haveerr) continue;
-          }
+	 String cls = ic.getMethod().getDeclaringClass().getName();
+	 if (!isProjectClass(cls)) file = null;
+	 else if (file == null || !file.contains(File.separator)) {
+	    file = findSourceFile(file,cls);
+	  }
+	 // TODO : this gives us the .class file, need to find corresponding source file
+	
+	 if (erronly) {
+	    boolean haveerr = false;
+	    for (IfaceProgramPoint ppt : ppts) {
+	       for (IfaceError ie : ic.getErrors(ppt)) {
+		  haveerr |= ie.getErrorLevel() == ErrorLevel.ERROR;
+		}
+	     }
+	    if (!haveerr) continue;
+	  }
 
 	 xw.begin("CALL");
 	 xw.field("METHOD",ic.getMethod().getName());
@@ -762,12 +764,12 @@ private void outputErrors(IfaceControl ifc,IvyXmlWriter xw,boolean editable,bool
 	 xw.field("SIGNATURE",ic.getMethod().getDescription());
 	 if (file != null) xw.field("FILE",file);
 	 xw.field("HASHCODE",ic.hashCode());
-         for (IfaceProgramPoint ppt : ppts) {
-            for (IfaceError ie : ic.getErrors(ppt)) {
-               if (erronly && ie.getErrorLevel() != ErrorLevel.ERROR) continue;
-               ie.outputXml(ppt,xw);
-             }
-          }
+	 for (IfaceProgramPoint ppt : ppts) {
+	    for (IfaceError ie : ic.getErrors(ppt)) {
+	       if (erronly && ie.getErrorLevel() != ErrorLevel.ERROR) continue;
+	       ie.outputXml(ppt,xw);
+	     }
+	  }
 	 xw.end("CALL");
        }
     }
@@ -775,24 +777,24 @@ private void outputErrors(IfaceControl ifc,IvyXmlWriter xw,boolean editable,bool
 
 
 
-private String findSourceFile(String file,String cls) 
+private String findSourceFile(String file,String cls)
 {
    int idx = cls.indexOf(".$");
    if (idx > 0) cls = cls.substring(0,idx);
    idx = cls.indexOf("$");
    if (idx > 0) cls = cls.substring(0,idx);
    String [] segs = cls.split("\\.");
-   
+
    for (File f : source_paths) {
       File f1 = f;
       for (int i = 0; i < segs.length; ++i) {
-         File f2 = new File(f1,segs[i]);
-         if (f2.exists() && f2.isDirectory()) f1 = f2;
-         else {
-            File f3 = new File(f1,segs[i] + ".java");
-            if (f3.exists() && f3.canRead()) return f3.getAbsolutePath();
-            else break;
-          }
+	 File f2 = new File(f1,segs[i]);
+	 if (f2.exists() && f2.isDirectory()) f1 = f2;
+	 else {
+	    File f3 = new File(f1,segs[i] + ".java");
+	    if (f3.exists() && f3.canRead()) return f3.getAbsolutePath();
+	    else break;
+	  }
        }
     }
    return null;
@@ -872,13 +874,13 @@ void handleQuery(Element qxml,IvyXmlWriter xw) throws FaitException
       if (lno >= 0 && pt.getLineNumber() != lno) continue;
       IfaceAstReference ar = pt.getAstReference();
       if (ar != null) {
-         ASTNode an = ar.getAstNode();
-         if (an == null) continue;
-         if (spos >= 0 && an.getStartPosition() != spos) continue;
+	 ASTNode an = ar.getAstNode();
+	 if (an == null) continue;
+	 if (spos >= 0 && an.getStartPosition() != spos) continue;
        }
       else if (pt.getInstruction() != null && loc > 0) {
-         int iidx = pt.getInstruction().getIndex();
-         if (iidx != loc) continue;
+	 int iidx = pt.getInstruction().getIndex();
+	 if (iidx != loc) continue;
        }
       for (IfaceError ie : call.getErrors(pt)) {
 	 if (errids.size() == 0 || errids.contains(ie.hashCode()))
@@ -908,7 +910,7 @@ void handleQuery(Element qxml,IvyXmlWriter xw) throws FaitException
 
 
 
-}       // end of class ServerProject
+}	// end of class ServerProject
 
 
 

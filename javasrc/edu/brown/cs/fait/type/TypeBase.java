@@ -182,6 +182,27 @@ TypeBase(TypeFactory fac,IfaceBaseType base,IfaceSubtype.Value [] subs)
 }
 
 
+
+
+@Override public List<IfaceError> getCompatibilityErrors(IfaceType dt) 
+{
+   if (dt == null) return null;
+   if (!base_type.isCompatibleWith(dt.getJavaType())) return null;
+   
+   List<IfaceError> erslt = null;
+   for (int i = 0; i < type_factory.getNumSubtypes(); ++i) {
+      TypeSubtype st = type_factory.getSubtype(i);
+      IfaceError er = st.checkCompatabilityWith(getValue(st),dt.getValue(st));
+      if (er != null) {
+         if (erslt == null) erslt = new ArrayList<>();
+         erslt.add(er);
+       }
+    }
+   
+   return erslt;
+}
+
+
 @Override public IfaceType getBaseType()
 {
    IfaceBaseType bt = base_type.getBaseType();

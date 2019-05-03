@@ -91,6 +91,8 @@ public void processErrorQuery(IfaceCall call,IfaceProgramPoint pt,IfaceError err
       IvyXmlWriter output)
 {
    QueryContext ctx = null;
+   
+   long start = System.currentTimeMillis();
 
    if (err.getSubtype() != null) {
       IfaceState st0 = fait_control.findStateForLocation(call,pt);
@@ -98,7 +100,7 @@ public void processErrorQuery(IfaceCall call,IfaceProgramPoint pt,IfaceError err
       if (sloc < 0) return;
       IfaceValue v0 = st0.getStack(sloc);
       if (v0 != null) {
-	 v0 = QueryFactory.dereference(v0,st0);
+	 v0 = QueryFactory.dereference(fait_control,v0,st0);
 	 IfaceValue refv = fait_control.findRefStackValue(v0.getDataType(),sloc);
 	 IfaceSubtype.Value stv = getRelevantSubtypeValue(v0,err.getSubtype());
 	 ctx = new QueryContextSubtype(fait_control,refv,stv);
@@ -117,10 +119,13 @@ public void processErrorQuery(IfaceCall call,IfaceProgramPoint pt,IfaceError err
    QueryQueueItem qitem = new QueryQueueItem(call,pt,ctx);
    QueryProcessor qp = new QueryProcessor(fait_control,qitem,node);
    qp.process();
+   
+   long time = System.currentTimeMillis() - start;
    // graph.outputXml(output);	   // for debugging -- remove when clean works
    graph.cleanGraph();
 
-   graph.outputXml(output);
+   graph.outputXml(output,time);
+   graph = null;
 }
 
 
@@ -144,8 +149,10 @@ public static IfaceAuxReference getAuxReference(IfaceLocation loc,IfaceValue ref
 /*										*/
 /********************************************************************************/
 
-static IfaceValue dereference(IfaceValue value,IfaceState st0)
+static IfaceValue dereference(IfaceControl ctrl,IfaceValue value,IfaceState st0)
 {
+   if (value == null) return null;
+   
    IfaceValue v0 = value;
    while (v0 != null && v0.isReference()) {
       if (v0.getRefStack() >= 0) {
@@ -155,7 +162,8 @@ static IfaceValue dereference(IfaceValue value,IfaceState st0)
 	 v0 = st0.getLocal(v0.getRefSlot());
        }
       else if (v0.getRefField() != null) {
-	 IfaceValue v1 = st0.getFieldValue(v0.getRefField());
+         IfaceValue v1 = ctrl.getFieldValue(st0,v0.getRefField(),null,false);
+         if (v1 == null) v1 = st0.getFieldValue(v0.getRefField());
          if (v1 == null) break;
          else v0 = v1;
        }

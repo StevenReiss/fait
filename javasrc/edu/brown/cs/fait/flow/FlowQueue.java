@@ -223,7 +223,7 @@ private void queueMethod(IfaceCall c,IfaceProgramPoint ins,IfaceCall from)
 	 FaitLog.logD1("Queue method " + c.getLogName() + " @ " + ins + " " + c.getQueueLevel());
        }
       else {
-	 FaitLog.logD1("Requeue Method " + c.getLogName() + " @ "  + " " + c.getQueueLevel());
+	 FaitLog.logD1("Requeue Method " + c.getLogName() + " @ "  + ins + " " + c.getQueueLevel());
        }
     }
 }
@@ -877,39 +877,39 @@ private static class SegmentedQueue {
       boolean chng = false;
       Set<IfaceProgramPoint> s = null;
       switch (ql) {
-	 case STATIC_INIT :
-	    s = init_queue.get(c);
-	    if (s == null) {
-	       s = constructor_queue.remove(c);
-	       if (s == null) s = normal_queue.remove(c);
-	       if (s == null) s = new HashSet<>();
-	       init_queue.put(c,s);
-	       chng = true;
-	     }
-	    break;
-	 case INIT :
-	    s = constructor_queue.get(c);
-	    if (s == null) {
-	       s = normal_queue.remove(c);
-	       if (s == null) s = new HashSet<>();
-	       constructor_queue.put(c,s);
-	       chng = true;
-	     }
-	    break;
-	 case NORMAL :
-	    s = normal_queue.get(c);
-	    if (s == null) {
-	       s = new HashSet<>();
-	       normal_queue.put(c,s);
-	       chng = true;
-	     }
-	    break;
+         case STATIC_INIT :
+            s = init_queue.get(c);
+            if (s == null) {
+               s = constructor_queue.remove(c);
+               if (s == null) s = normal_queue.remove(c);
+               if (s == null) s = new HashSet<>();
+               init_queue.put(c,s);
+               chng = true;
+             }
+            break;
+         case INIT :
+            s = constructor_queue.get(c);
+            if (s == null) {
+               s = normal_queue.remove(c);
+               if (s == null) s = new HashSet<>();
+               constructor_queue.put(c,s);
+               chng = true;
+             }
+            break;
+         case NORMAL :
+            s = normal_queue.get(c);
+            if (s == null) {
+               s = new HashSet<>();
+               normal_queue.put(c,s);
+               chng = true;
+             }
+            break;
        }
-
+   
       if (s != null && pt != null) s.add(pt);
-
+   
       if (chng) notifyAll();
-
+   
       return chng;
     }
 

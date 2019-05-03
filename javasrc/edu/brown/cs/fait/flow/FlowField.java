@@ -111,6 +111,7 @@ IfaceValue handleFieldGet(FlowLocation loc,IfaceField fld,IfaceState st,boolean 
    
    synchronized (field_map) {
       IfaceValue v0 = field_map.get(key);
+      boolean isset = (v0 != null);
       boolean nat = false;
       if (base != null) {
          if (base.isFixed() || base.isMutable()) nat = true;
@@ -131,7 +132,7 @@ IfaceValue handleFieldGet(FlowLocation loc,IfaceField fld,IfaceState st,boolean 
 	  }
        }
       
-      if (base != null) {
+      if (base != null && !isset) {
          IfaceType ft = v0.getDataType();
          IfaceType rt = ft.getComputedType(v0,FaitOperator.FIELDACCESS,base);
          if (rt != ft) {

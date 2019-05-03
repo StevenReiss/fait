@@ -259,6 +259,15 @@ public Collection<IfaceAuxReference> getAuxArrayRefs(IfaceValue arr)
    return flow_queue.getArrayRefs(arr);
 }
 
+
+public IfaceValue getFieldValue(IfaceState st0,IfaceField fld,IfaceValue base,boolean thisref)
+{
+   return flow_queue.handleFieldGet(fld,null,st0,thisref,base);
+}
+
+
+
+
 }	// end of class FlowFactory
 
 

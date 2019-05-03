@@ -97,6 +97,8 @@ private CheckHtmlTaint()
    
    FaitError err = new FaitError(this,ErrorLevel.ERROR,
          "Attempt to use tainted HTML data in a non-tainted location");
+   FaitError warn = new FaitError(this,ErrorLevel.WARNING,
+         "Possible attempt to use tainted HTML data in a non-tainted location");
    
    defineMerge(HTMLTAINTED,UNHTMLTAINTED,HTMLTAINTED);
    defineMerge(MAYBE_HTMLTAINTED,HTMLTAINTED,HTMLTAINTED);
@@ -106,7 +108,7 @@ private CheckHtmlTaint()
    defineRestrict(HTMLTAINTED,MAYBE_HTMLTAINTED,HTMLTAINTED);
    defineRestrict(UNHTMLTAINTED,HTMLTAINTED,UNHTMLTAINTED);
    defineRestrict(UNHTMLTAINTED,MAYBE_HTMLTAINTED,UNHTMLTAINTED);
-   defineRestrict(MAYBE_HTMLTAINTED,UNHTMLTAINTED,err);
+   defineRestrict(MAYBE_HTMLTAINTED,UNHTMLTAINTED,warn);
    defineRestrict(MAYBE_HTMLTAINTED,HTMLTAINTED,HTMLTAINTED);
 
    defineAttribute("HtmlTainted",HTMLTAINTED);

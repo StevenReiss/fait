@@ -295,14 +295,16 @@ public ValueBase constantString(String v)
 public ValueBase mainArgs()
 {
    if (main_value == null) {
-      IfaceType fdt = fait_control.findDataType("java.lang.String[]",FaitAnnotation.NON_NULL);
-      IfaceType sdt = fait_control.findDataType("java.lang.String",FaitAnnotation.NON_NULL);
-      IfaceEntity ssrc = fait_control.findArrayEntity(sdt,null);
-      ValueBase cv = nativeValue(sdt);
+      IfaceType stringtype = fait_control.findDataType("java.lang.String");
+      stringtype = fait_control.findConstantType(stringtype,"Hello World");
+      
+      IfaceEntity ssrc = fait_control.findArrayEntity(stringtype,null);
+      ValueBase cv = nativeValue(stringtype);
       cv = cv.forceNonNull();
       ssrc.setArrayContents(cv);
       IfaceEntitySet sset = fait_control.createSingletonSet(ssrc);
-      main_value = objectValue(fdt,sset,FaitAnnotation.NON_NULL);
+      
+      main_value = objectValue(ssrc.getDataType(),sset,FaitAnnotation.NON_NULL);
     }
 
    return main_value;

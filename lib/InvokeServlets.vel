@@ -216,7 +216,7 @@ private void processTag${tag.name}()
 #elseif ($values.get($key) == 'int' )
       t.set${key}(dummyInt());
 #elseif ($values.get($key) == 'java.lang.Object' )
-      t.set${key}(dummyObject("$key")));
+      t.set${key}(dummyObject("$key"));
 #end
 #end
 
@@ -329,7 +329,7 @@ private $form.formClass createForm${form.name}()
 #elseif ($values.get($key) == 'int' )
       form.set${key}(dummyInt());
 #elseif ($values.get($key) == 'java.lang.Object' )
-      form.set${key}(dummyObject("$key")));
+      form.set${key}(dummyObject("$key"));
 #end
 #end
 #set ( $values = $form.getProps() )
@@ -343,7 +343,7 @@ private $form.formClass createForm${form.name}()
 #elseif ($values.get($key) == 'int' )
       form.set("$key",dummyInt());
 #elseif ($values.get($key) == 'java.lang.Object' )
-      form.set${key}(dummyObject("$key")));
+      form.set${key}(dummyObject("$key"));
 #end
 #end
     }

@@ -189,7 +189,7 @@ IfaceAnnotation [] getAnnotations(IfaceProgramPoint pt);
 /********************************************************************************/
 
 IfaceState createState(int nlocal,IfaceSafetyStatus sts);
-IfaceValue getFieldValue(IfaceState st,IfaceField fld,IfaceValue base,boolean thisref,IfaceLocation src);
+IfaceValue getFieldValue(IfaceState st,IfaceField fld,IfaceValue base,boolean thisref);
 boolean setFieldValue(IfaceState st,IfaceField fld,IfaceValue v,IfaceValue base,boolean thisref,IfaceLocation src);
 IfaceState findStateForLocation(IfaceCall c,IfaceProgramPoint pt);
 IfaceState findStateForLocation(IfaceLocation loc);

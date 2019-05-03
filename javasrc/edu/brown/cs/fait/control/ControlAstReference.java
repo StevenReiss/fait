@@ -299,10 +299,12 @@ private class InstanceFinder extends ASTVisitor {
    
    @Override public void preVisit(ASTNode n) {
       IfaceAstReference ar = ast_factory.getAstReference(n,null,null);
-      IfaceMethod m0 = ar.getReferencedMethod();
-      if (m0 == find_method) {
-         ++cur_counter;
-         if (n == find_node) result_counter = cur_counter;
+      if (n.getNodeType() == find_node.getNodeType()) {
+         IfaceMethod m0 = ar.getReferencedMethod();
+         if (m0 == find_method) {
+            ++cur_counter;
+            if (n == find_node) result_counter = cur_counter;
+          }
        }
     }
    

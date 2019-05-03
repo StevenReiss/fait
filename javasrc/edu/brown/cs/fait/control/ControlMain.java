@@ -481,10 +481,9 @@ void updateEntitySets(IfaceUpdater upd)
 
 
 
-@Override public IfaceValue getFieldValue(IfaceState st,IfaceField fld,IfaceValue base,boolean thisref,
-					     IfaceLocation src)
+@Override public IfaceValue getFieldValue(IfaceState st,IfaceField fld,IfaceValue base,boolean thisref)
 {
-   return state_factory.getFieldValue(st,fld,base,thisref,src);
+   return flow_factory.getFieldValue(st,fld,base,thisref);
 }
 
 

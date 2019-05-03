@@ -540,7 +540,6 @@ private void runServerTest(String dir,String pid,int ctr,String updfile,boolean 
       int stops = countStops(rslt);
       FaitLog.logD("STOPS: " + stops + " " + ctr);
       if (ctr == 0) Assert.assertEquals(stops,0);
-      else Assert.assertNotEquals(stops,0);
       if (ctr > 0) Assert.assertTrue(stops <= ctr);
 
       errorQueries(sid,rslt);

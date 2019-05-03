@@ -245,6 +245,17 @@ protected IfaceValue returnVoid()
 
 
 
+/********************************************************************************/
+/*                                                                              */
+/*      Query methods                                                           */
+/*                                                                              */
+/********************************************************************************/
+
+@Override public List<IfaceAuxReference> getSetLocations(IfaceControl ctl) 
+{
+   return null;
+}
+
 
 }	// end of abstract class ProtoBase
 
