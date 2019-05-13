@@ -18,6 +18,7 @@ import edu.brown.cs.faitmock.annot.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.Servlet;
+import javax.servlet.http.HttpServlet;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -156,13 +157,13 @@ private void setupServlet${servlet.name}()
       HttpServletResponse response = new FaitMockServletResponse();
       FaitMockServletConfig config = new FaitMockServletConfig("$servlet.servletClass",servlet_context);
 #set ( $values = $servlet.getInitValues() )
+#set ( $services = $servlet.getServices() )
 #foreach ( $key in $values.keySet() )
       config.setInitParameter("$key","$values.get($key)");
 #end
       Servlet s = new ${servlet.servletClass}();
       servlet_context.addFaitServlet("$servlet.name",s);
       s.init(config);
-
       s.service(request,response);
       if (base_servlet == null) base_servlet = s;
 #if ($plugins.size() > 0 || $actions.size() > 0)

@@ -61,6 +61,7 @@ boolean getDontScan();
 boolean getForceScan();
 Collection<String> getClassesToLoad();
 IfaceAnnotation [] getArgAnnotations(int idx);
+InlineType getInlineType();
 
 
 }	// end of interface IfaceSpecial

@@ -75,6 +75,7 @@ private boolean         set_fields;
 private boolean         is_affected;
 private Collection<String> load_types;
 private List<When>      when_conditions;
+private InlineType      inline_type;
 
 
 
@@ -167,10 +168,12 @@ CallSpecial(IfaceControl fc,Element xml,boolean formthd)
    no_virtual = IvyXml.getAttrBool(xml,"NOVIRTUAL");
    set_fields = IvyXml.getAttrBool(xml,"SETFIELDS");
    is_affected = IvyXml.getAttrBool(xml,"AFFECTED");
+   inline_type = IvyXml.getAttrEnum(xml,"INLINE",InlineType.NORMAL);
 
-   dont_scan = !IvyXml.getAttrBool(xml,"SCAN");
-  
-
+   dont_scan = true;
+   if (inline_type != InlineType.NORMAL) dont_scan = false;
+   dont_scan = !IvyXml.getAttrBool(xml,"SCAN",!dont_scan);
+      
    callback_names = null;
    callback_args = null;
    callback_id = null;
@@ -372,6 +375,13 @@ CallSpecial(IfaceControl fc,Element xml,boolean formthd)
 @Override public boolean getForceScan()                 { return !dont_scan; }
 
 @Override public Collection<String> getClassesToLoad()        { return load_types; }
+
+@Override public InlineType getInlineType()
+{
+   if (inline_type == null || inline_type == InlineType.NORMAL) return null;
+   return inline_type;
+}
+
 
 
 /********************************************************************************/

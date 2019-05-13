@@ -384,8 +384,8 @@
 	 <assertions><enable/></assertions>
 	 <formatter type='xml' usefile='true' />
 	 <test name='edu.brown.cs.fait.server.ServerTest'
-	       methods='serverTestTimedSnipSnap'
-	       outfile='testsnipsnap.out' />
+	       methods='serverTestTimedRoller'
+	       outfile='testroller.out' />
       </junit>
    </target>
 
@@ -395,8 +395,8 @@
 	 <assertions><enable/></assertions>
 	 <formatter type='xml' usefile='true' />
 	 <test name='edu.brown.cs.fait.server.ServerTest'
-	       methods='serverTestTimedUpdateSnipSnap'
-	       outfile='testsnipsnap.out' />
+	       methods='serverTestTimedUpdateRoller'
+	       outfile='testroller.out' />
       </junit>
    </target>
 

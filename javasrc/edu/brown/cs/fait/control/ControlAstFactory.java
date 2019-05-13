@@ -723,7 +723,11 @@ private class AstMethod implements IfaceMethod {
     }
 
    @Override public IfaceProgramPoint getStart() {
-      return fait_control.getAstReference(method_symbol.getDefinitionNode());
+      ASTNode n = method_symbol.getDefinitionNode();
+      if (n == null) {
+         FaitLog.logE("No AST definition found for " + this);
+       }
+      return fait_control.getAstReference(n);
     }
 
    @Override public IfaceProgramPoint getNext(IfaceProgramPoint pt) {

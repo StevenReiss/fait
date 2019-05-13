@@ -473,20 +473,48 @@ private List<String> addActions(String cls,List<String> rslt)
 }
 
 
+private Map<String,String> addServiceMethods(String cls,Map<String,String> rslt)
+{
+   if (cls == null) return rslt;
+   File cf = class_files.get(cls);
+   if (cf == null) return rslt;
+   
+   try {
+      FileInputStream fis = new FileInputStream(cf);
+      ClassReader cr = new ClassReader(fis);
+      FindMethodVisitor fmv = new FindMethodVisitor();
+      cr.accept(fmv,ClassReader.SKIP_CODE|ClassReader.SKIP_DEBUG|ClassReader.SKIP_FRAMES);
+      fis.close();
+      rslt.putAll(fmv.getServices());
+      String sup = cr.getSuperName();
+      if (sup != null && !sup.startsWith("javax/servlet/")) {
+         sup = sup.replace("/",".");
+         addServiceMethods(sup,rslt);
+       }
+    }
+   catch (IOException e) { }
+   
+   return rslt;   
+}
+
+
 
 private static class FindMethodVisitor extends ClassVisitor {
    
    private Map<String,String> set_methods;
    private List<String> action_methods;
+   private Map<String,String> service_methods;
    
    FindMethodVisitor() {
       super(Opcodes.ASM6);
       set_methods = new HashMap<>();
       action_methods = new ArrayList<>();
+      service_methods = new HashMap<>();
     }
    
    Map<String,String> getSetters()                      { return set_methods; }
    List<String> getActions()                            { return action_methods; }
+   Map<String,String> getServices()                     { return service_methods; }
    
    @Override public MethodVisitor visitMethod(int acc,String name,String desc,String sgn,String [] exc) {
       if (Modifier.isPublic(acc)) {
@@ -498,6 +526,15 @@ private static class FindMethodVisitor extends ClassVisitor {
                String val = args[0].getClassName();
                // System.err.println("SET " + key + "->" + val);
                set_methods.put(key,val);
+             }
+          }
+         else if (ret == Type.VOID_TYPE && args.length == 2) {
+            if (name.startsWith("do")) {
+               String s = name.substring(2).toUpperCase();
+               service_methods.put(s,name);
+             }
+            else if (name.equals("service")) {
+               service_methods.put("SERVICE",name);
              }
           }
          else if (ret.getClassName().equals("org.apache.struts.action.ActionForward") && args.length == 4) {
@@ -598,24 +635,30 @@ public static class Filter {
 /*										*/
 /********************************************************************************/
 
-public static class Servlet {
+public class Servlet {
 
    String servlet_name;
    String servlet_class;
    String jsp_file;
    Map<String,String> servlet_values;
+   Map<String,String> service_methods;
 
    Servlet(Element xml) {
       servlet_name = fixName(IvyXml.getTextElement(xml,"servlet-name"));
       servlet_class = IvyXml.getTextElement(xml,"servlet-class");
       servlet_values = loadParameterMap(xml,"init-param");
       jsp_file = IvyXml.getTextElement(xml,"jsp-file");
+      service_methods = new HashMap<>();
+      if (servlet_class != null) {
+         service_methods = addServiceMethods(servlet_class,service_methods);
+       }
     }
 
    public String getName()			{ return servlet_name; }
    public String getServletClass()		{ return servlet_class; }
    public Map<String,String> getInitValues()	{ return servlet_values; }
    public String getJspFile()			{ return jsp_file; }
+   public Map<String,String> getServices()      { return service_methods; }
 
 }	// end of inner class Servlet
 

@@ -132,8 +132,10 @@ void processUpdate()
    Collection<IfaceType> utyps = update_set.getUpdatedTypes(fait_control);
    if (utyps != null) {
       for (IfaceType typ : utyps) {
-         updated_types.add(typ);
-         updated_basetypes.add(typ.getJavaType());
+         if (typ != null) {
+            updated_types.add(typ);
+            if (typ.getJavaType() != null) updated_basetypes.add(typ.getJavaType());
+          }
        }
     }
    

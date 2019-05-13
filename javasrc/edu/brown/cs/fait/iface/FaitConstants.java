@@ -70,6 +70,7 @@ enum InlineType {
    SOURCES,                             // inline based on all sources
    VALUES,                              // inline based on all values
    SPECIAL,                             // based on special type
+   NORMAL,                              // using normal rules
 }
 
 

@@ -383,9 +383,6 @@ public IfaceSpecial getSpecial(IfaceProgramPoint pt,IfaceMethod fm)
 {
    CallSpecial cs = null;
    synchronized (special_methods) {
-      if (fm.getFullName().contains("getComponentInstance") && pt.getAstReference() != null
-        && pt.getMethod().getFullName().contains("toXML"))
-         System.err.println("CHECK HERE");
       cs = special_methods.get(fm);
       if (!special_methods.containsKey(fm)) {
          String fnm = fm.getDeclaringClass().getName() + "." + fm.getName();

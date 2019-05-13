@@ -118,7 +118,7 @@ public IfaceValue prototype__constructor(IfaceMethod fm,List<IfaceValue> args,If
 	 comparator_value = args.get(1);
        }
       else if (atyp.isArrayType()) {
-         addArrayElements(args.get(1),src);
+	 addArrayElements(args.get(1),src);
        }
       else {
 	 prototype_addAll(fm,args,src);
@@ -147,7 +147,9 @@ public IfaceValue prototype_add(IfaceMethod fm,List<IfaceValue> args,IfaceLocati
     }
 
    IfaceValue ov = element_value;
-   mergeElementValue(nv);
+   mergeElementValue(nv,true);
+   
+   if (fm == null) return null;
 
    if (!fm.getReturnType().isVoidType()) {
       addElementChange(src);
@@ -180,7 +182,7 @@ public IfaceValue prototype_addAll(IfaceMethod fm,List<IfaceValue> args,IfaceLoc
 	 ProtoCollection pc = (ProtoCollection) cp;
 	 pc.addElementChange(src);
 	 if (pc.element_value != null) {
-	    mergeElementValue(pc.element_value);
+	    mergeElementValue(pc.element_value,true);
 	    canchng = true;
 	  }
        }
@@ -197,12 +199,12 @@ private void addArrayElements(IfaceValue val,IfaceLocation src)
 {
    for (IfaceEntity xe : val.getEntities()) {
       if (xe.getDataType().isArrayType()) {
-         // need to add reference here
+	 // need to add reference here
        }
     }
    IfaceValue cv = val.getArrayContents();
    if (cv != null) {
-      mergeElementValue(cv);
+      mergeElementValue(cv,true);
     }
 }
 
@@ -290,7 +292,7 @@ public IfaceValue prototype_clone(IfaceMethod fm,List<IfaceValue> args,IfaceLoca
    IfaceType dt = getDataType();
    IfaceValue av = fait_control.findAnyValue(dt);
    if (av != null) return av;
-   
+
    IfaceEntity subs = fait_control.findPrototypeEntity(dt,this,src,false);
    IfaceEntitySet cset = fait_control.createSingletonSet(subs);
    IfaceValue cv = fait_control.findObjectValue(dt,cset,FaitAnnotation.NON_NULL);
@@ -327,7 +329,7 @@ public IfaceValue prototype_contains(IfaceMethod fm,List<IfaceValue> args,IfaceL
 public IfaceValue prototype_containsAll(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
 {
    addElementChange(src);
-   
+
    return returnAny(fm);
 }
 
@@ -369,7 +371,7 @@ public synchronized IfaceValue prototype_setSize(IfaceMethod fm,List<IfaceValue>
     }
 
    IfaceValue nullv = fait_control.findNullValue();
-   mergeElementValue(nullv);
+   mergeElementValue(nullv,true);
 
    return prototype_remove(fm,args,src);
 }
@@ -389,25 +391,25 @@ public IfaceValue prototype_toArray(IfaceMethod fm,List<IfaceValue> args,IfaceLo
 
    if (!fm.getReturnType().isVoidType()) addElementChange(src);
    // addElementChange(src);
-   
+
    if (args.size() == 2) {
       cv = args.get(1);
       for (IfaceEntity ie : cv.getEntities()) {
 	 if (ie.replaceArrayContents(element_value,src)) {
-            if (FaitLog.isTracing()) 
-               FaitLog.logD1("Prototype: note entity changed " + ie + " (" + ie.hashCode() + ")");
-          }
+	    if (FaitLog.isTracing())
+	       FaitLog.logD1("Prototype: note entity changed " + ie + " (" + ie.hashCode() + ")");
+	  }
        }
     }
    else {
       synchronized (this) {
-         if (array_entity == null) {
-            IfaceType dt = fait_control.findDataType("java.lang.Object");
-            array_entity = fait_control.findArrayEntity(dt,prototype_size(fm,null,src));
-          }
-         array_entity.replaceArrayContents(element_value,src);
-         IfaceEntitySet cset = fait_control.createSingletonSet(array_entity);
-         cv = fait_control.findObjectValue(array_entity.getDataType(),cset,FaitAnnotation.NON_NULL);
+	 if (array_entity == null) {
+	    IfaceType dt = fait_control.findDataType("java.lang.Object");
+	    array_entity = fait_control.findArrayEntity(dt,prototype_size(fm,null,src));
+	  }
+	 array_entity.replaceArrayContents(element_value,src);
+	 IfaceEntitySet cset = fait_control.createSingletonSet(array_entity);
+	 cv = fait_control.findObjectValue(array_entity.getDataType(),cset,FaitAnnotation.NON_NULL);
        }
     }
 
@@ -440,7 +442,7 @@ public IfaceValue prototype_get(IfaceMethod fm,List<IfaceValue> args,IfaceLocati
    if (element_value == null) {
       element_value = fait_control.findNullValue();
     }
-   
+
    return element_value;
 }
 
@@ -592,7 +594,7 @@ public IfaceValue prototype_subList(IfaceMethod fm,List<IfaceValue> args,IfaceLo
 {
   // IfaceType dt = fait_control.findDataType("java.util.List",FaitAnnotation.NON_NULL);
    IfaceType dt = args.get(0).getDataType();
-   
+
    IfaceEntity ie = null;
    if (sublist_entity == null) sublist_entity = new HashMap<>();
    ie = sublist_entity.get(src.getProgramPoint());
@@ -703,34 +705,43 @@ synchronized public IfaceValue prototype_listIterator(IfaceMethod fm,
 /*										*/
 /********************************************************************************/
 
-synchronized void mergeElementValue(IfaceValue v)
+synchronized void mergeElementValue(IfaceValue v,boolean upd,IfaceLocation loc)
 {
-   if (v != null && v.getDataType().isVoidType()) 
-      FaitLog.logE("SET collection element void");
-   
-   if (element_value == null) setElementValue(v);
-   else if (v != null) setElementValue(element_value.mergeValue(v));
+   mergeElementValue(v,upd);
+   addElementChange(loc);
 }
 
 
-void setElementValue(IfaceValue v)
+synchronized void mergeElementValue(IfaceValue v,boolean update)
+{
+   if (v != null && v.getDataType().isVoidType()) {
+      FaitLog.logE("SET collection element void");
+      return;
+    }
+
+   if (element_value == null) setElementValue(v,update);
+   else if (v != null) setElementValue(element_value.mergeValue(v),update);
+}
+
+
+void setElementValue(IfaceValue v,boolean upd)
 {
    if (v == element_value || v == null) return;
 
    synchronized (this) {
       if (element_value == null) {
-         for (IfaceLocation loc : first_element) {
-            fait_control.queueLocation(loc);
-          }
-         first_element.clear();
+	 for (IfaceLocation loc : first_element) {
+	    fait_control.queueLocation(loc);
+	  }
+	 first_element.clear();
        }
-      
+
       element_value = v;
     }
 
    synchronized (element_change) {
       for (IfaceLocation loc : element_change) {
-         fait_control.queueLocation(loc);
+	 fait_control.queueLocation(loc);
        }
     }
 }
@@ -740,7 +751,7 @@ void addElementChange(IfaceLocation src)
 {
    if (src != null) {
       synchronized (this) {
-         element_change.add(src);
+	 element_change.add(src);
        }
     }
 }
@@ -791,12 +802,12 @@ IfaceValue getElementValue()			{ return element_value; }
    if (array_entity != null) {
       array_entity.handleUpdates(upd);
     }
-   
+
    for (Iterator<IfaceLocation> it = element_change.iterator(); it.hasNext(); ) {
       IfaceLocation loc = it.next();
       if (upd.isLocationRemoved(loc)) it.remove();
     }
-   
+
    for (Iterator<IfaceLocation> it = first_element.iterator(); it.hasNext(); ) {
       IfaceLocation loc = it.next();
       if (upd.isLocationRemoved(loc)) it.remove();
@@ -820,16 +831,16 @@ private class CollectionIter extends ProtoBase {
 
    public IfaceValue prototype_hasNext(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src) {
       synchronized (ProtoCollection.this) {
-         first_element.add(src);
-         if (element_value == null) return returnFalse();
-         return returnAny(fm);
+	 first_element.add(src);
+	 if (element_value == null) return returnFalse();
+	 return returnAny(fm);
        }
     }
 
    public IfaceValue prototype_next(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src) {
       addElementChange(src);
-      if (element_value != null && element_value.isEmptyEntitySet()) 
-         return fait_control.findAnyValue(element_value.getDataType());
+      if (element_value != null && element_value.isEmptyEntitySet())
+	 return fait_control.findAnyValue(element_value.getDataType());
       return element_value;
     }
 
@@ -852,9 +863,9 @@ private class CollectionListIter extends ProtoBase {
 
    public IfaceValue prototype_hasNext(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src) {
       synchronized (ProtoCollection.this) {
-         first_element.add(src);
-         if (element_value == null) return returnFalse();
-         return returnAny(fm);
+	 first_element.add(src);
+	 if (element_value == null) return returnFalse();
+	 return returnAny(fm);
        }
     }
 
@@ -864,8 +875,8 @@ private class CollectionListIter extends ProtoBase {
 
    public IfaceValue prototype_next(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src) {
       addElementChange(src);
-      if (element_value != null && element_value.isEmptyEntitySet()) 
-         return fait_control.findAnyValue(element_value.getDataType());
+      if (element_value != null && element_value.isEmptyEntitySet())
+	 return fait_control.findAnyValue(element_value.getDataType());
       return element_value;
     }
 
@@ -891,9 +902,9 @@ private class CollectionEnum extends ProtoBase {
 
    public IfaceValue prototype_hasMoreElements(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src) {
       synchronized (ProtoCollection.this) {
-         first_element.add(src);
-         if (element_value == null) return returnFalse();
-         return returnAny(fm);
+	 first_element.add(src);
+	 if (element_value == null) return returnFalse();
+	 return returnAny(fm);
        }
     }
 

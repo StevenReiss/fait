@@ -178,6 +178,7 @@ void setDataType(IfaceType typ)                 { proto_type = typ; }
 
 protected IfaceValue returnAny(IfaceMethod fm)
 {
+   if (fm == null) return null;
    return fait_control.findNativeValue(fm.getReturnType());
 }
 

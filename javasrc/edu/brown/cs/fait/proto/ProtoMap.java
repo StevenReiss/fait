@@ -59,6 +59,7 @@ private IfaceEntity     entry_entity;
 private IfaceEntity     map_source;
 private IfaceValue      map_value;
 private Map<IfaceProgramPoint,IfaceEntity> submap_entity;
+private Map<String,KnownValueData> known_values;
 
 private boolean         is_empty;
 
@@ -88,6 +89,8 @@ public ProtoMap(IfaceControl fc,IfaceType dt)
    map_source = fc.findPrototypeEntity(etyp,ent,null,false);
    IfaceEntitySet cset = fc.createSingletonSet(map_source);
    map_value = fc.findObjectValue(map_source.getDataType(),cset,FaitAnnotation.NON_NULL);
+   known_values = new HashMap<>();
+   known_values = null;                         // disable for now
 }
 
 
@@ -100,6 +103,8 @@ public ProtoMap(IfaceControl fc,IfaceType dt)
 
 @Override public void setAnyValue()
 {
+   removeKnownData();
+   
    key_set.setAnyValue();
    value_set.setAnyValue();
    entry_set.setAnyValue();
@@ -147,12 +152,16 @@ public IfaceValue prototype_contains(IfaceMethod fm,List<IfaceValue> args,IfaceL
 
 public IfaceValue prototype_elements(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
 {
+   removeKnownData();
+   
    return value_set.prototype_elements(fm,args,src);
 }
 
 
 public IfaceValue prototype_entrySet(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
 {
+   removeKnownData(); 
+   
    IfaceEntitySet cset = fait_control.createSingletonSet(entry_entity);
    return fait_control.findObjectValue(entry_entity.getDataType(),cset,FaitAnnotation.NON_NULL);
 }
@@ -161,6 +170,14 @@ public IfaceValue prototype_entrySet(IfaceMethod fm,List<IfaceValue> args,IfaceL
 public IfaceValue prototype_get(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
 {
    value_set.addElementChange(src);
+   
+   if (args.size() == 2) {
+      IfaceValue key = args.get(1);
+      if (key != null && key.getDataType().isStringType()) {
+         IfaceValue known = handleKnownGet(key,src);
+         if (known != null) return known;
+       }
+    }
    
    IfaceValue fv = value_set.getElementValue();
    if (fv == null) return returnNull(fm);
@@ -184,6 +201,8 @@ public IfaceValue prototype_isEmpty(IfaceMethod fm,List<IfaceValue> args,IfaceLo
    
 public IfaceValue prototype_keySet(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
 {
+   removeKnownData();
+   
    IfaceEntitySet cset = fait_control.createSingletonSet(key_entity);
    return fait_control.findObjectValue(key_entity.getDataType(),cset,FaitAnnotation.NON_NULL);
 }
@@ -191,6 +210,8 @@ public IfaceValue prototype_keySet(IfaceMethod fm,List<IfaceValue> args,IfaceLoc
 
 public IfaceValue prototype_keys(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
 {
+   removeKnownData(); 
+   
    return key_set.prototype_elements(fm,args,src);
 }
 
@@ -203,13 +224,15 @@ public synchronized IfaceValue prototype_put(IfaceMethod fm,List<IfaceValue> arg
    IfaceValue kv = args.get(1);
    IfaceValue ov = args.get(2);
    
-   List<IfaceValue> nargs = new ArrayList<IfaceValue>();
-   nargs.add(args.get(0));
-   nargs.add(kv);
-   key_set.prototype_add(fm,nargs,src);
+   IfaceValue known = handleKnownSet(kv,ov,src);
+   if (known != null) {
+      return known;
+    }
    
-   nargs.set(1,ov);
-   value_set.prototype_add(fm,nargs,src);
+   removeKnownData();
+   
+   key_set.mergeElementValue(kv,true,src);
+   value_set.mergeElementValue(ov,true,src);
    
    if (cv == null) return returnNull(fm);
    
@@ -234,6 +257,7 @@ public IfaceValue prototype_putIfAbsent(IfaceMethod fm,List<IfaceValue> args,Ifa
 public synchronized IfaceValue prototype_putAll(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
 {
    setNonEmpty();
+   removeKnownData();
    
    IfaceValue nv = args.get(1);
    boolean addany = false;
@@ -241,16 +265,16 @@ public synchronized IfaceValue prototype_putAll(IfaceMethod fm,List<IfaceValue> 
       IfacePrototype ip = ie.getPrototype();
       if (ip != null && ip instanceof ProtoMap) {
          ProtoMap pm = (ProtoMap) ip;
-         key_set.mergeElementValue(pm.key_set.getElementValue());
-         value_set.mergeElementValue(pm.value_set.getElementValue());
+         key_set.mergeElementValue(pm.key_set.getElementValue(),true);
+         value_set.mergeElementValue(pm.value_set.getElementValue(),true);
        }
       else addany = true;
     }
    
    if (addany) {
       IfaceValue cv = fait_control.findMutableValue(fait_control.findDataType("java.lang.Object"));
-      key_set.mergeElementValue(cv);
-      value_set.mergeElementValue(cv);
+      key_set.mergeElementValue(cv,true);
+      value_set.mergeElementValue(cv,true);
     }
    
    return returnAny(fm);
@@ -260,6 +284,16 @@ public synchronized IfaceValue prototype_putAll(IfaceMethod fm,List<IfaceValue> 
 public IfaceValue prototype_remove(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
 {
    key_set.prototype_remove(fm,args,src);
+   
+   if (args.size() == 2) {
+      IfaceValue key = args.get(1);
+      if (key != null && key.getDataType().isStringType()) {
+         IfaceValue known = handleKnownRemove(key,src);
+         if (known != null) return known;
+       }
+    }
+   
+   removeKnownData();
    
    IfaceValue cv = value_set.getElementValue();
    if (cv == null) return returnNull(fm);
@@ -278,6 +312,8 @@ public IfaceValue protottype_size(IfaceMethod fm,List<IfaceValue> args,IfaceLoca
 
 public IfaceValue prototype_values(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
 {
+   removeKnownData();
+   
    IfaceEntitySet cset = fait_control.createSingletonSet(value_entity);
    return fait_control.findObjectValue(value_entity.getDataType(),cset,FaitAnnotation.NON_NULL);
 }
@@ -314,6 +350,8 @@ public IfaceValue prototype_lastKey(IfaceMethod fm,List<IfaceValue> args,IfaceLo
 public IfaceValue prototype_subMap(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
 {
    IfaceType dt = fait_control.findDataType("java.util.SortedMap",FaitAnnotation.NON_NULL);
+   
+   removeKnownData();
  
    IfaceEntity subs = null;
    if (submap_entity == null) submap_entity = new HashMap<>();
@@ -354,7 +392,7 @@ public IfaceValue prototype_tailMap(IfaceMethod fm,List<IfaceValue> args,IfaceLo
 private void setNonEmpty()
 {
    if (is_empty) {
-      entry_set.setElementValue(map_value);
+      entry_set.setElementValue(map_value,true);
       is_empty = false;
     }
 }
@@ -392,6 +430,7 @@ private void setNonEmpty()
    key_set.handleUpdates(upd);
    value_set.handleUpdates(upd);
    entry_set.handleUpdates(upd);
+   updateKnownData(upd);
 }
 
 
@@ -435,6 +474,160 @@ private class MapEntry extends ProtoBase {
     }
    
 }       // end of inner class MapEntry
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Constant (Known) Value Management                                       */
+/*                                                                              */
+/********************************************************************************/
+
+private IfaceValue handleKnownSet(IfaceValue key,IfaceValue val,IfaceLocation loc)
+{
+   if (known_values == null) return null;
+   
+   synchronized (this) {
+      String s = key.getStringValue();
+      if (s == null) removeKnownData();
+      if (known_values != null) {
+         KnownValueData kvd = known_values.get(s);
+         if (kvd == null) {
+            kvd = new KnownValueData(key);
+            known_values.put(s,kvd);
+          }
+         kvd.mergeValue(val,loc);
+         key_set.mergeElementValue(key,false,loc);
+         value_set.mergeElementValue(val,false,loc);
+         return kvd.getValue();
+       }
+    }
+   
+   return null;
+}
+
+
+
+private IfaceValue handleKnownGet(IfaceValue key,IfaceLocation loc)
+{
+   if (known_values == null) return null;
+   
+   synchronized (this) {
+      String s = key.getStringValue();
+      if (s == null) return null;
+      if (known_values != null) {
+         KnownValueData kvd = known_values.get(s);
+         if (kvd == null) {
+            kvd = new KnownValueData(key);
+            known_values.put(s,kvd);
+          }
+         kvd.noteAccess(loc);
+         return kvd.getValue();
+       }
+    }
+   
+   return null;
+}
+
+
+private IfaceValue handleKnownRemove(IfaceValue key,IfaceLocation loc)
+{
+   if (known_values == null) return null;
+   
+   synchronized (this) {
+      IfaceValue nullv = fait_control.findNullValue();
+      String s = key.getStringValue();
+      if (s == null) return nullv;
+      KnownValueData kvd = known_values.get(s);
+      if (kvd != null) {
+         kvd.mergeValue(nullv,loc);
+         return kvd.getValue();
+       }
+      return nullv;
+    }
+}
+
+
+
+private void removeKnownData()
+{
+   if (known_values == null) return;
+   
+   synchronized (this) {
+      if (known_values.size() > 0) {
+         FaitLog.logD("Remove known data " + known_values.size());
+       }
+      known_values = null;
+    }
+}
+
+
+private void updateKnownData(IfaceUpdater upd)
+{
+   if (known_values == null) return;
+   
+   for (KnownValueData kvd : known_values.values()) {
+      kvd.update(upd);
+    }
+}
+
+
+
+private class KnownValueData {
+   
+   private IfaceValue key_value;
+   private IfaceValue known_value;
+   private Set<IfaceLocation> access_locations;
+   
+   KnownValueData(IfaceValue key) {
+      key_value = key;
+      known_value = null;
+      access_locations = new HashSet<>();
+    }
+   
+   synchronized void noteAccess(IfaceLocation loc) {
+      if (loc == null) return;
+      access_locations.add(loc);
+    }
+   
+   synchronized IfaceValue getValue() {
+      if (known_value == null) return fait_control.findNullValue();
+      return known_value;
+    }
+   
+   synchronized void mergeValue(IfaceValue v,IfaceLocation loc) {
+      if (known_value != v && v == null) {
+         if (known_value == null) {
+            known_value = v;
+          }
+         else {
+            IfaceValue vv = known_value.mergeValue(v);
+            if (vv == known_value) return;
+            known_value = v;
+          }
+         for (IfaceLocation iloc : access_locations) {
+            fait_control.queueLocation(iloc);
+          }
+       }
+      noteAccess(loc);
+    }
+   
+   void update(IfaceUpdater upd) {
+      if (key_value != null) {
+         IfaceValue nv = upd.getNewValue(key_value);
+         if (nv != null) key_value = nv;
+       }
+      if (known_value != null) {
+         IfaceValue nv = upd.getNewValue(known_value);
+         if (nv != null) known_value = nv;
+       }
+      for (Iterator<IfaceLocation> it = access_locations.iterator(); it.hasNext(); ) {
+         IfaceLocation loc = it.next();
+         if (upd.isLocationRemoved(loc)) it.remove();
+       }
+    }
+    
+}       // end of inner class KnownValueData
 
 
 

@@ -323,7 +323,7 @@ boolean update()
 {
    ASTNode n = ast_factory.mapAstNode(eval_node);
    if (n == null) {
-      FaitLog.logE("Unknown AST Node on match");
+      FaitLog.logE("Unknown AST Node on match: " + eval_node);
       return false;
     }
    eval_node = n;      

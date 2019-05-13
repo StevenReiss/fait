@@ -754,6 +754,10 @@ private InlineType canBeInlined(IfaceProgramPoint pt,IfaceMethod fm)
     }
    
    if (fm.isAbstract()) return InlineType.DEFAULT;
+   if (isp != null && isp.getInlineType() != null &&
+         isp.getInlineType() != InlineType.NORMAL)
+      return isp.getInlineType();
+
    if (isp != null && isp.getCallbackId() != null) return InlineType.DEFAULT;
 
    if (fait_control.isInProject(fm)) {
