@@ -45,6 +45,7 @@ import edu.brown.cs.ivy.jcode.JcodeInstruction;
 import edu.brown.cs.ivy.jcomp.JcompSymbol;
 import edu.brown.cs.ivy.jcomp.JcompType;
 import edu.brown.cs.ivy.jcomp.JcompTyper;
+import edu.brown.cs.ivy.xml.IvyXml;
 import edu.brown.cs.ivy.xml.IvyXmlWriter;
 import edu.brown.cs.fait.state.*;
 import edu.brown.cs.fait.type.TypeFactory;
@@ -55,10 +56,13 @@ import edu.brown.cs.fait.call.*;
 import edu.brown.cs.fait.flow.*;
 
 import java.io.File;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.*;
 import java.util.function.Predicate;
 
 import org.eclipse.jdt.core.dom.ASTNode;
+import org.w3c.dom.Element;
 
 
 public class ControlMain implements IfaceControl {
@@ -115,11 +119,12 @@ public ControlMain(IfaceProject ip)
    
    fait_files = new LinkedHashMap<>();
    SortedSet<IfaceDescriptionFile> files = new TreeSet<>();
-   if (getDescriptionFile() != null) {
-      files.add(new ControlDescriptionFile(getDescriptionFile(),
-            IfaceDescriptionFile.PRIORITY_BASE));
+   List<File> sysfiles = getSystemDescriptionFiles();
+   if (sysfiles != null) {
+      for (File f : sysfiles) {
+         files.add(new ControlDescriptionFile(f,IfaceDescriptionFile.PRIORITY_BASE));
+       }
     }
-   addSpecialFile(getDescriptionFile());
    if (ip.getDescriptionFiles() != null) {
       for (IfaceDescriptionFile ff : ip.getDescriptionFiles()) {
          files.add(ff);
@@ -141,20 +146,51 @@ public ControlMain(IfaceProject ip)
 /*										*/
 /********************************************************************************/
 
-@Override public File getDescriptionFile()
+@Override public List<File> getSystemDescriptionFiles()
 {
-   return new File("/research/people/spr/fait/lib/faitdata.xml");
+   List<File> rslt = new ArrayList<>();
+   File base = new File("*FAIT*");
+   
+   File f1 = new File(base,"faitdata.xml");
+   rslt.add(f1);
+   File f2 = new File(base,"faitsecurity.xml");
+   rslt.add(f2);
+   
+   return rslt;
 }
 
 
 void addSpecialFile(File f)
 {
+   Element e = null;
    if (f.exists() && f.canRead()) {
+      FaitLog.logI("Adding special file " + f);
       fait_files.put(f,f.lastModified());
-      if (call_factory.addSpecialFile(f)) {
-         safety_factory.addSpecialFile(f);
-         type_factory.addSpecialFile(f);
+      e = IvyXml.loadXmlFromFile(f);
+    }
+   else if (f.getPath().startsWith("*FAIT*")) {
+      String name = "/" + f.getName();
+      InputStream ins = this.getClass().getResourceAsStream(name);
+      if (ins != null) {
+         URL nm = this.getClass().getResource(name);
+         FaitLog.logI("Loading system resource " + nm);
+         e = IvyXml.loadXmlFromStream(ins);
        }
+      else {
+         File f1 = new File("/research/people/spr/fait/lib",name);
+         if (f1.exists() && f1.canRead()) {
+            e = IvyXml.loadXmlFromFile(f1);
+          }
+       }
+    }
+   
+   if (e != null) {
+      call_factory.addSpecialFile(e);
+      safety_factory.addSpecialFile(e);
+      type_factory.addSpecialFile(e);
+    }
+   else {
+      FaitLog.logE("Bad XML in special file " + f);
     }
 }
 
@@ -182,9 +218,11 @@ void reloadSpecialFiles()
    type_factory.clearAllSpecials();
    fait_files.clear();
    SortedSet<IfaceDescriptionFile> files = new TreeSet<>();
-   if (getDescriptionFile() != null) {
-      files.add(new ControlDescriptionFile(getDescriptionFile(),
-            IfaceDescriptionFile.PRIORITY_BASE));
+   List<File> sysfiles = getSystemDescriptionFiles();
+   if (sysfiles != null && !sysfiles.isEmpty()) {
+      for (File f : sysfiles) {
+         files.add(new ControlDescriptionFile(f,IfaceDescriptionFile.PRIORITY_BASE));
+       }
     }
    if (user_project.getDescriptionFiles() != null) {
       for (IfaceDescriptionFile ff : user_project.getDescriptionFiles()) {
@@ -258,6 +296,13 @@ IfaceType findDataType(IfaceBaseType bt,List<IfaceAnnotation> ans)
 {
    return type_factory.createType(bt,ans);
 }
+
+
+public IfaceType findCommonParent(IfaceType t1,IfaceType t2)
+{
+   return t1.getCommonParent(t2);
+}
+
 
 
 @Override public IfaceMethod findMethod(String cls,String method,String sign)
@@ -484,6 +529,12 @@ void updateEntitySets(IfaceUpdater upd)
 @Override public IfaceValue getFieldValue(IfaceState st,IfaceField fld,IfaceValue base,boolean thisref)
 {
    return flow_factory.getFieldValue(st,fld,base,thisref);
+}
+
+
+@Override public boolean canClassBeUsed(IfaceType dt)
+{
+   return flow_factory.canClassBeUsed(dt);
 }
 
 
@@ -895,10 +946,16 @@ boolean isEditableClass(IfaceBaseType dt)
 }
 
 
-
-public IfaceType findCommonParent(IfaceType t1,IfaceType t2)
+@Override public String getSourceFile(IfaceType c)
 {
-   return t1.getCommonParent(t2);
+   if (user_project == null) return null;
+   return user_project.getSourceFileForClass(c.getName());
+}
+
+
+@Override public String getSourceFile(IfaceMethod im) 
+{
+   return getSourceFile(im.getDeclaringClass());
 }
 
 
@@ -997,6 +1054,31 @@ IfaceBaseType createMethodType(IfaceType rtn,List<IfaceType> args)
 }
 
 
+@Override public List<IfaceSafetyCheck> getAllSafetyChecks()
+{
+   return safety_factory.getAllSafetyChecks();
+}
+
+
+@Override public List<IfaceSubtype> getAllSubtypes()
+{
+   return type_factory.getAllSubtypes();
+}
+
+
+@Override public String getEventForCall(IfaceMethod fm,List<IfaceValue> args,IfaceLocation loc)
+{
+   if (fm.getDeclaringClass().getName().equals("edu.brown.cs.karma.KarmaUtils")) {
+      if (fm.getName().equals("KarmaEvent")) {
+         if (args == null) return "ANY";
+	 IfaceValue v0 = args.get(0);
+	 String sv = v0.getStringValue();
+	 if (sv != null) return sv;
+       }
+    }
+   
+   return null;
+}
 
 /********************************************************************************/
 /*                                                                              */
@@ -1007,6 +1089,18 @@ IfaceBaseType createMethodType(IfaceType rtn,List<IfaceType> args)
 @Override public void processErrorQuery(IfaceCall c,IfaceProgramPoint pt,IfaceError e,IvyXmlWriter xw)
 {
    query_factory.processErrorQuery(c,pt,e,xw);
+}
+
+
+@Override public void processReflectionQuery(IvyXmlWriter xw)
+{
+   query_factory.processReflectionQuery(this,xw);
+}
+
+
+@Override public void processCriticalQuery(String ignores,IvyXmlWriter xw)
+{
+   query_factory.processCriticalQuery(this,ignores,xw);
 }
 
 

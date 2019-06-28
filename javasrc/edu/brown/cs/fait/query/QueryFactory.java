@@ -129,10 +129,17 @@ public void processErrorQuery(IfaceCall call,IfaceProgramPoint pt,IfaceError err
 }
 
 
-public void processVariableQuery(IfaceCall call,IfaceProgramPoint pt,int offset,
-      IvyXmlWriter output)
+public void processReflectionQuery(IfaceControl ctrl,IvyXmlWriter output)
 {
-   // get ASTNode for offset
+   QueryReflection qf = new QueryReflection(ctrl,output);
+   qf.processCalls();
+}
+
+
+public void processCriticalQuery(IfaceControl ctrl,String ignores,IvyXmlWriter output)
+{
+   QueryCritical qc = new QueryCritical(ctrl,ignores,output);
+   qc.process();
 }
 
 

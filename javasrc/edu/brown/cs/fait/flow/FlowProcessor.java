@@ -85,6 +85,8 @@ FlowProcessor(int nthread,IfaceControl fc,FlowQueue q)
 
 void process(ReportOption opt)
 {
+   flow_queue.resetStatistics();
+   
    for (Worker w : worker_threads) {
       w.start();
     }

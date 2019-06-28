@@ -124,7 +124,11 @@ void backFlowReturn(IfaceLocation pt,IfaceType settype);
 String getLogName();
 
 void noteScan(int fwd,int bwd);
+
+
 void outputStatistics();
+void resetStatistics();
+FaitStatistics getStatistics();
 
 
 

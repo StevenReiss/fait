@@ -1,13 +1,13 @@
 /********************************************************************************/
 /*                                                                              */
-/*              ControlSimpleProject.java                                       */
+/*              FaitStatistics.java                                             */
 /*                                                                              */
-/*      Simple project for testing and other uses                               */
+/*      Statistics inforamtion                                                  */
 /*                                                                              */
 /********************************************************************************/
-/*      Copyright 2011 Brown University -- Steven P. Reiss                    */
+/*      Copyright 2013 Brown University -- Steven P. Reiss                    */
 /*********************************************************************************
- *  Copyright 2011, Brown University, Providence, RI.                            *
+ *  Copyright 2013, Brown University, Providence, RI.                            *
  *                                                                               *
  *                        All Rights Reserved                                    *
  *                                                                               *
@@ -33,22 +33,11 @@
 
 
 
-package edu.brown.cs.fait.control;
+package edu.brown.cs.fait.iface;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import edu.brown.cs.ivy.xml.IvyXmlWriter;
 
-import edu.brown.cs.fait.iface.FaitConstants;
-import edu.brown.cs.fait.iface.IfaceDescriptionFile;
-import edu.brown.cs.fait.iface.IfaceProject;
-import edu.brown.cs.ivy.jcode.JcodeFactory;
-import edu.brown.cs.ivy.jcomp.JcompControl;
-import edu.brown.cs.ivy.jcomp.JcompProject;
-import edu.brown.cs.ivy.jcomp.JcompSource;
-import edu.brown.cs.ivy.jcomp.JcompTyper;
-
-public class ControlSimpleProject implements IfaceProject, FaitConstants
+public class FaitStatistics
 {
 
 
@@ -58,10 +47,10 @@ public class ControlSimpleProject implements IfaceProject, FaitConstants
 /*                                                                              */
 /********************************************************************************/
 
-private JcodeFactory    jcode_factory;
-private JcompProject    jcomp_project;
-private JcompTyper      jcomp_typer;
-private String          project_prefix;
+private int     num_scans;
+private int     num_forward;
+private int     num_backward;
+
 
 
 /********************************************************************************/
@@ -70,19 +59,17 @@ private String          project_prefix;
 /*                                                                              */
 /********************************************************************************/
 
-public ControlSimpleProject(String cp,String pfx)
+public FaitStatistics()
 {
-   jcode_factory = new JcodeFactory();
-   if (cp != null) {
-      jcode_factory.addToClassPath(cp);
-    }
-   JcompControl ctrl = new JcompControl(jcode_factory);
-   List<JcompSource> srcs = new ArrayList<>();
-   jcomp_project = ctrl.getProject(jcode_factory,srcs);
-   jcomp_project.resolve();
-   jcomp_typer = jcomp_project.getResolveTyper();
-   
-   project_prefix = pfx;
+   this(0,0,0);
+}
+
+
+public FaitStatistics(int scan,int fwd,int bkwd)
+{
+   num_scans = scan;
+   num_forward = fwd;
+   num_backward = bkwd;
 }
 
 
@@ -93,31 +80,65 @@ public ControlSimpleProject(String cp,String pfx)
 /*                                                                              */
 /********************************************************************************/
 
-@Override public JcompTyper getTyper()                  { return jcomp_typer; }
-@Override public JcodeFactory getJcodeFactory()         { return jcode_factory; }
-@Override public JcompProject getJcompProject()         { return jcomp_project; }
-
-
-@Override public Collection<IfaceDescriptionFile> getDescriptionFiles() { return null; }
+public int getNumScans()                { return num_scans; }
+public int getNumForward()              { return num_forward; }
+public int getNumBackward()             { return num_backward; }
 
 
 
-@Override public boolean isProjectClass(String cls) {
-   if (cls.startsWith(project_prefix)) return true;
+/********************************************************************************/
+/*                                                                              */
+/*      Update methods                                                          */
+/*                                                                              */
+/********************************************************************************/
+
+public void add(FaitStatistics fs)
+{
+   num_scans += fs.num_scans;
+   num_forward += fs.num_forward;
+   num_backward += fs.num_backward;
+}
+
+
+
+public void add(FaitStatistics fs,double fract)
+{
+   num_scans += Math.round(fs.num_scans*fract);
+   num_forward += Math.round(fs.num_forward*fract);
+   num_backward += Math.round(fs.num_backward*fract);
+}
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Output methods                                                          */
+/*                                                                              */
+/********************************************************************************/
+
+public void outputXml(String id,IvyXmlWriter xw)
+{
+   xw.begin(id);
+   xw.field("SCANS",num_scans);
+   xw.field("FORWARD",num_forward);
+   xw.field("BACKWARD",num_backward);
+   xw.end(id);
+}
+
+
+public boolean accept(double cutoff,double scancutoff)
+{
+   if (num_forward >= cutoff || num_scans >= scancutoff) return true;
+   
    return false;
 }
 
-@Override public boolean isEditableClass(String cls)    { return false; }
 
-@Override public String getSourceFileForClass(String cls)
-{
-   return null;
-}
 
-}       // end of class ControlSimpleProject
+}       // end of class FaitStatistics
 
 
 
 
-/* end of ControlSimpleProject.java */
+/* end of FaitStatistics.java */
 

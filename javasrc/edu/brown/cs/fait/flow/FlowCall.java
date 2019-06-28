@@ -238,10 +238,22 @@ private void queueReturn(IfaceValue v,IfaceCall cm,IfaceSafetyStatus sts,IfaceSt
       if (FaitLog.isTracing()) FaitLog.logD1("Queue for return " + cloc);
       flow_queue.queueMethodChange(cloc.getCall(),cloc.getProgramPoint());
     }
-
+   
+   IfaceSafetyStatus startsts = cm.getStartState().getSafetyStatus();
    for (IfaceMethod fm : cm.getMethod().getParentMethods()) {
       for (IfaceCall xcm : fait_control.getAllCalls(fm)) {
-	 handleReturn(xcm,v,sts,st0,loc,0);
+         boolean fnd = false;
+         for (IfaceCall ccm : xcm.getAlternateCalls()) {
+            IfaceSafetyStatus callsts = ccm.getStartState().getSafetyStatus();
+            if (callsts == startsts) {
+               fnd = true;
+               handleReturn(ccm,v,sts,st0,loc,0);
+               break;
+             }
+          }
+	 if (!fnd) {
+            handleReturn(xcm,v,sts,st0,loc,0);
+          }
        }
     }
 }
@@ -499,13 +511,13 @@ private IfaceValue handleSpecialCases(IfaceMethod fm,List<IfaceValue> args,FlowL
    if (fm.getName().equals("hashCode") && !fait_control.isInProject(fm)) {
       return fait_control.findAnyValue(fait_control.findDataType("int"));
     }
+   
+   String evt = fait_control.getEventForCall(fm,args,loc);
+   if (evt != null) {
+      state.updateSafetyStatus(evt,fait_control);
+    }
 
    if (fm.getDeclaringClass().getName().equals("edu.brown.cs.karma.KarmaUtils")) {
-      if (fm.getName().equals("KarmaEvent")) {
-	 IfaceValue v0 = args.get(0);
-	 String sv = v0.getStringValue();
-	 if (sv != null) state.updateSafetyStatus(sv,fait_control);
-       }
       return fait_control.findAnyValue(fm.getReturnType());
     }
 
@@ -611,23 +623,33 @@ private IfaceValue checkVirtual(IfaceMethod bm,List<IfaceValue> args,
       LinkedList<IfaceValue> nargs,IfaceValue rslt,String cbid,int varct)
 {
    IfaceMethod orig = fm;
+   IfaceSafetyStatus nsts = null;
+   
+   IfaceCall mi0 = findCall(loc,fm,nargs,getSafetyStatus(st));
+   if (mi0 != null) {
+      mi = mi0;
+    } 
    
    if (fm0 != fm) {
-      IfaceCall mi0 = findCall(loc,fm0,nargs,getSafetyStatus(st));
+      IfaceCall mi1 = findCall(loc,fm0,nargs,getSafetyStatus(st));
       synchronized (rename_map) {
-	 Set<IfaceCall> s = rename_map.get(mi0);
+	 Set<IfaceCall> s = rename_map.get(mi1);
 	 if (s == null) {
 	    s = new HashSet<IfaceCall>();
-	    rename_map.put(mi0,s);
+	    rename_map.put(mi1,s);
 	  }
 	 s.add(mi);
+         FaitLog.logD1("Add to rename map for " + mi1.getMethod().getFullName() + 
+               " " + mi1.hashCode() + " : " +
+               mi.getMethod().getFullName() + " " + mi.hashCode());
        }
       if (mi.getIsAsync()) {
 	 if (rslt == null) rslt = fait_control.findAnyValue(fait_control.findDataType("void"));
        }
-      mi = mi0;
+      mi = mi1;
     }
-
+   FaitLog.logD1("Using call " + mi.getMethod().getFullName() + " " + mi.hashCode());
+   
    if (mi.addCall(nargs,getSafetyStatus(st))) {
       if (FaitLog.isTracing()) FaitLog.logD1("Call " + mi);
       if (mi.getMethod().hasCode()) {
@@ -701,9 +723,7 @@ private IfaceValue checkVirtual(IfaceMethod bm,List<IfaceValue> args,
        }
 
       IfaceSafetyStatus sts = mi.getResultSafetyStatus();
-      if (sts != null) {
-	 st.setSafetyStatus(mi.getResultSafetyStatus());
-       }
+      if (sts != null) nsts = sts;
     }
 
 
@@ -714,7 +734,12 @@ private IfaceValue checkVirtual(IfaceMethod bm,List<IfaceValue> args,
 
    if (virt) rslt = checkVirtual(fm,nargs,loc,st,orig,rslt,cbid,varct);
 
-   return rslt;
+   if (nsts != null && nsts != st.getSafetyStatus()) {
+      FaitLog.logD1("Replace safety status with " + mi.getResultSafetyStatus());
+      st.setSafetyStatus(mi.getResultSafetyStatus());
+    }
+ 
+ return rslt;
 }
 
 
@@ -723,6 +748,8 @@ private IfaceCall findCall(FlowLocation loc,IfaceMethod tgt,List<IfaceValue> arg
 {
    if (loc == null)
       return fait_control.findCall(null,tgt,null,sts,InlineType.NONE);
+   
+   FaitLog.logD1("Find call safety state = " + sts);
 
    InlineType il = canBeInlined(loc.getProgramPoint(),tgt);
 

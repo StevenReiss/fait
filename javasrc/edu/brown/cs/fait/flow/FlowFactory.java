@@ -214,6 +214,12 @@ public void initialize(IfaceType typ)
 }
 
 
+public boolean canClassBeUsed(IfaceType dt)
+{
+   return flow_queue.canBeUsed(dt);
+}
+
+
 
 /********************************************************************************/
 /*                                                                              */

@@ -65,6 +65,8 @@ IfaceSubtype.Value getCallValue(IfaceCall cm,IfaceValue rslt,List<IfaceValue> ar
 IfaceSubtype.Value getImpliedValue(FaitOperator op,IfaceValue v0,IfaceValue v1,boolean branch);
 IfaceAnnotation getArgumentAnnotation(FaitOperator op,int opnd,IfaceValue [] vals);
 
+boolean isAnnotationRelevant(IfaceAnnotation an);
+
 boolean isPredecessorRelevant(IfaceSubtype.Value pred,IfaceSubtype.Value cur);
 
 

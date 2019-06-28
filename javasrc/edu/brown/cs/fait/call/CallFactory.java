@@ -40,7 +40,6 @@ import edu.brown.cs.ivy.xml.*;
 
 
 import java.util.*;
-import java.io.*;
 import org.w3c.dom.Element;
 
 
@@ -290,23 +289,6 @@ public void removeCalls(Collection<IfaceCall> calls)
 /*	Checks for special method treatment					*/
 /*										*/
 /********************************************************************************/
-
-public boolean addSpecialFile(File f)
-{
-   FaitLog.logI("Adding special file " + f);
-   
-   Element e = IvyXml.loadXmlFromFile(f);
-   if (e == null) {
-      FaitLog.logE("Problem loading special file " + f);
-      return false;
-    }
-   
-   addSpecialFile(e);
-   
-   return true;
-}
-
-
 
 public void addSpecialFile(Element xml)
 {

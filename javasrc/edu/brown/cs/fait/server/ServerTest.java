@@ -638,7 +638,7 @@ private Element waitForAnalysis(String id)
 	    return done_map.remove(id);
 	  }
 	 try {
-	    done_map.wait(10000);
+	    done_map.wait(1000);
 	  }
 	 catch (InterruptedException e) { }
        }
@@ -651,21 +651,21 @@ private class FaitHandler implements MintHandler {
       String cmd = args.getArgument(0);
       Element xml = msg.getXml();
       switch (cmd) {
-	 case "ANALYSIS" :
-	    if (IvyXml.getAttrBool(xml,"STARTED")) break;
-	    String rid = IvyXml.getAttrString(xml,"ID");
-	    synchronized (done_map) {
-	       done_map.put(rid,xml);
-	       done_map.notifyAll();
-	     }
-	    msg.replyTo();
-	    break;
-	 case "PING" :
-	    msg.replyTo("<PONG/>");
-	    break;
-	 default :
-	    msg.replyTo();
-	    break;
+         case "ANALYSIS" :
+            if (IvyXml.getAttrBool(xml,"STARTED")) break;
+            String rid = IvyXml.getAttrString(xml,"ID");
+            synchronized (done_map) {
+               done_map.put(rid,xml);
+               done_map.notifyAll();
+             }
+            msg.replyTo();
+            break;
+         case "PING" :
+            msg.replyTo("<PONG/>");
+            break;
+         default :
+            msg.replyTo();
+            break;
        }
     }
 

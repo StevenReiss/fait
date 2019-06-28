@@ -173,6 +173,13 @@ protected void defineDefault(Value fromstate,Value tostate)
 
 
 
+@Override public boolean isRelevant(String event)
+{
+   return (event_set.get(event) != null);
+}
+
+
+
 
 @Override public Value getInitialState()
 {

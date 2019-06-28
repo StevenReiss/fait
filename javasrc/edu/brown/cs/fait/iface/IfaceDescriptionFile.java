@@ -42,12 +42,13 @@ public interface IfaceDescriptionFile
 
 int PRIORITY_BASE = 1000;
 int PRIORITY_LIBRARY = 900;
-int PRIORITY_BASE_PROJECT = 100;
-int PRIORITY_DEPENDENT_PROJECT = 200;
+int PRIORITY_DEPENDENT_PROJECT = 200;int PRIORITY_BASE_PROJECT = 100;
+
 
 
 public File    getFile();
 public int     getPriority();
+public File    getLibrary();
 
 
 

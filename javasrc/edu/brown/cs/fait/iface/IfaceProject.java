@@ -53,7 +53,7 @@ Collection<IfaceDescriptionFile> getDescriptionFiles();
 boolean isProjectClass(String cls);
 boolean isEditableClass(String cls);
 
-
+String getSourceFileForClass(String cls);
 
 
 }	// end of interface FaitProject

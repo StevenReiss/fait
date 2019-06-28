@@ -416,6 +416,16 @@ protected  IfaceSubtype.Value adjustDefaultForPrimitive(IfaceSubtype.Value v,Ifa
 }
 
 
+@Override public boolean isAnnotationRelevant(IfaceAnnotation an) 
+{
+   if (name_map.get(an.getAnnotationName()) != null) return true;
+      
+   return false;
+}
+
+
+
+
 /********************************************************************************/
 /*                                                                              */
 /*      Combiner map                                                            */

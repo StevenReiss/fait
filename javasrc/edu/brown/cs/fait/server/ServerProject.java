@@ -65,11 +65,13 @@ import edu.brown.cs.fait.iface.IfaceUpdateSet;
 import edu.brown.cs.fait.control.ControlDescriptionFile;
 import edu.brown.cs.fait.iface.FaitException;
 import edu.brown.cs.fait.iface.FaitLog;
+import edu.brown.cs.fait.iface.FaitStatistics;
 import edu.brown.cs.fait.iface.IfaceAstReference;
 import edu.brown.cs.fait.iface.IfaceCall;
 import edu.brown.cs.fait.iface.IfaceControl;
 import edu.brown.cs.fait.iface.IfaceDescriptionFile;
 import edu.brown.cs.fait.iface.IfaceError;
+import edu.brown.cs.fait.iface.IfaceLocation;
 import edu.brown.cs.fait.iface.IfaceMethod;
 import edu.brown.cs.ivy.file.IvyFile;
 import edu.brown.cs.ivy.jcode.JcodeFactory;
@@ -222,7 +224,9 @@ private void setupFromXml(Element xml)
 {
    if (IvyXml.isElement(xml,"RESULT")) xml = IvyXml.getChild(xml,"PROJECT");
 
-   Element ref = IvyXml.getChild(xml,"REFERENCES");
+   boolean isused = false;
+   if (IvyXml.getChild(xml,"USEDBY") != null) isused = true;
+   
    String wsdir = IvyXml.getAttrString(xml,"WORKSPACE");
    if (wsdir != null) {
       File wsf = new File(wsdir);
@@ -230,7 +234,7 @@ private void setupFromXml(Element xml)
       File fait = new File(bdir,"fait.xml");
       if (fait.exists() && fait.canRead()) {
 	 int p = IfaceDescriptionFile.PRIORITY_BASE_PROJECT;
-	 if (ref == null) p = IfaceDescriptionFile.PRIORITY_DEPENDENT_PROJECT;
+	 if (isused) p = IfaceDescriptionFile.PRIORITY_DEPENDENT_PROJECT;
 	 ControlDescriptionFile dd = new ControlDescriptionFile(fait,p);
 	 description_files.add(dd);
        }
@@ -249,7 +253,7 @@ private void setupFromXml(Element xml)
 	    File fait = new File(sdirf,"fait.xml");
 	    if (fait.exists() && fait.canRead()) {
 	       int p = IfaceDescriptionFile.PRIORITY_BASE_PROJECT;
-	       if (ref == null) p = IfaceDescriptionFile.PRIORITY_DEPENDENT_PROJECT;
+	       if (isused) p = IfaceDescriptionFile.PRIORITY_DEPENDENT_PROJECT;
 	       ControlDescriptionFile dd = new ControlDescriptionFile(fait,p);
 	       description_files.add(dd);
 	     }
@@ -303,9 +307,6 @@ private void setupFromIvy(String name)
    IvyProject ip = pm.findProject(name);
    if (ip == null) return;
    boolean havedep = false;
-   for (String s : ip.getUserPackages()) {
-      if (s != null) havedep = true;
-    }
 
    File wsf = ip.getWorkspace();
    File bdir = new File(wsf,".bubbles");
@@ -361,7 +362,7 @@ private void checkForDescriptionFile(String s)
 	    InputStream fis = jf.getInputStream(je);
 	    IvyFile.copyFile(fis,ftemp);
 	    ftemp.deleteOnExit();
-	    ControlDescriptionFile dd = new ControlDescriptionFile(ftemp,IfaceDescriptionFile.PRIORITY_LIBRARY);
+	    ControlDescriptionFile dd = new ControlDescriptionFile(ftemp,f1);
 	    description_files.add(dd);
             FaitLog.logD("Create file " + ftemp + " for fait.xml in " + s);
 	  }
@@ -642,6 +643,10 @@ public boolean isEditableClass(String cls)
 }
 
 
+public String getSourceFileForClass(String cls)
+{
+   return findSourceFile(cls);
+}
 
 
 
@@ -744,7 +749,7 @@ private void outputErrors(IfaceControl ifc,IvyXmlWriter xw,boolean editable,bool
 	 String cls = ic.getMethod().getDeclaringClass().getName();
 	 if (!isProjectClass(cls)) file = null;
 	 else if (file == null || !file.contains(File.separator)) {
-	    file = findSourceFile(file,cls);
+	    file = findSourceFile(cls);
 	  }
 	 // TODO : this gives us the .class file, need to find corresponding source file
 	
@@ -760,6 +765,7 @@ private void outputErrors(IfaceControl ifc,IvyXmlWriter xw,boolean editable,bool
 
 	 xw.begin("CALL");
 	 xw.field("METHOD",ic.getMethod().getName());
+         xw.field("INPROJECT",ifc.isInProject(ic.getMethod()));
 	 xw.field("CLASS",ic.getMethod().getDeclaringClass().getName());
 	 xw.field("SIGNATURE",ic.getMethod().getDescription());
 	 if (file != null) xw.field("FILE",file);
@@ -777,7 +783,7 @@ private void outputErrors(IfaceControl ifc,IvyXmlWriter xw,boolean editable,bool
 
 
 
-private String findSourceFile(String file,String cls)
+private String findSourceFile(String cls)
 {
    int idx = cls.indexOf(".$");
    if (idx > 0) cls = cls.substring(0,idx);
@@ -900,6 +906,163 @@ void handleQuery(Element qxml,IvyXmlWriter xw) throws FaitException
       xw.end("QUERY");
     }
    xw.end("RESULTSET");
+}
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Handle Reflection queries                                               */
+/*                                                                              */
+/********************************************************************************/
+
+void handleReflection(Element xml,IvyXmlWriter xw) throws FaitException
+{
+   IfaceControl ctrl = null;
+   if (current_runner != null) {
+      ctrl = current_runner.getControl();
+    }
+   if (ctrl == null) {
+      throw new FaitException("Analysis not run");
+    }
+   
+   ctrl.processReflectionQuery(xw);
+}
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Handle determining the set of critical routines                         */
+/*                                                                              */
+/********************************************************************************/
+
+void handleFindCritical(Element xml,IvyXmlWriter xw) throws FaitException
+{
+   IfaceControl ctrl = null;
+   if (current_runner != null) {
+      ctrl = current_runner.getControl();
+    }
+   if (ctrl == null) {
+      throw new FaitException("Analysis not run");
+    }
+   
+   String ignores = IvyXml.getAttrString(xml,"IGNORES");
+   ctrl.processCriticalQuery(ignores,xw);
+}
+
+
+
+
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Handle performance queries                                              */
+/*                                                                              */
+/********************************************************************************/
+
+void handlePerformance(Element xml,IvyXmlWriter xw) throws FaitException
+{
+   double cutoff = IvyXml.getAttrDouble(xml,"CUTOFF",0);
+   double scancutoff = IvyXml.getAttrDouble(xml,"SCANCUTOFF",100.0);
+   Map<IfaceMethod,FaitStatistics> basecounts = new HashMap<>();
+   Map<IfaceMethod,FaitStatistics> totalcounts = new HashMap<>();
+   
+   IfaceControl ctrl = null;
+   if (current_runner != null) {
+      ctrl = current_runner.getControl();
+    }
+   if (ctrl == null) {
+      throw new FaitException("Analysis not run");
+    }
+   
+   FaitStatistics totals = new FaitStatistics();
+   for (IfaceCall c : ctrl.getAllCalls()) {
+      FaitStatistics stats = c.getStatistics();
+      totals.add(stats);
+    }
+   cutoff = totals.getNumForward() * cutoff / 100.0;
+   scancutoff = totals.getNumScans() * scancutoff / 100.0;
+   
+   for (IfaceCall c : ctrl.getAllCalls()) {
+      FaitStatistics stats = c.getStatistics();
+      if (stats.accept(cutoff,scancutoff)) {
+         addCounts(basecounts,c.getMethod(),stats,1);
+         addCounts(totalcounts,c.getMethod(),stats,1);
+         updateParents(c,stats,totalcounts,1.0);
+       }
+    }
+   
+   xw.begin("PERFORMANCE");
+   totals.outputXml("TOTALS",xw);
+   for (Map.Entry<IfaceMethod,FaitStatistics> ent : totalcounts.entrySet()) {
+      IfaceMethod im = ent.getKey();
+      FaitStatistics stats = ent.getValue();
+      if (!stats.accept(cutoff,scancutoff)) continue;
+      
+      xw.begin("METHOD");
+      xw.field("NAME",im.getFullName());
+      xw.field("INPROJECT",ctrl.isInProject(im));
+      xw.field("DESCRIPTION",im.getDescription());
+      xw.field("FILE",im.getFile());
+      stats.outputXml("TOTAL",xw);
+      FaitStatistics base = basecounts.get(im);
+      if (base != null) base.outputXml("BASE",xw);
+      xw.end("METHOD");
+    }
+   xw.end("PERFORMANCE");
+}
+
+
+private void updateParents(IfaceCall c,FaitStatistics stats,Map<IfaceMethod,FaitStatistics> totals,double fract)
+{
+   List<IfaceLocation> callers = getAllCallers(c);
+   for (IfaceLocation loc : callers) {
+      double nfract = fract / callers.size();
+      if (nfract < 0.0001) continue;
+      addCounts(totals,loc.getMethod(),stats,nfract);
+      updateParents(loc.getCall(),stats,totals,nfract);
+    }
+}
+
+
+
+private void addCounts(Map<IfaceMethod,FaitStatistics> cnts,IfaceMethod m,
+      FaitStatistics s,double fract)
+{
+   FaitStatistics oldstat = cnts.get(m);
+   if (oldstat == null) {
+      oldstat = new FaitStatistics();
+      cnts.put(m,oldstat);
+    }
+   oldstat.add(s,fract);
+}
+
+
+
+private List<IfaceLocation> getAllCallers(IfaceCall c)
+{
+   List<IfaceLocation> rslt = new ArrayList<>();
+   for (IfaceCall cc : c.getAlternateCalls()) {
+      for (IfaceLocation loc : cc.getCallSites()) {
+         rslt.add(loc);
+       }
+    }
+   
+   return rslt;
+}
+
+
+List<File> getBaseDescriptionFiles()
+{
+   IfaceControl ctrl = null;
+   if (current_runner != null) {
+      ctrl = current_runner.getControl();
+    }
+   if (ctrl == null) return null;
+   return ctrl.getSystemDescriptionFiles();
 }
 
 

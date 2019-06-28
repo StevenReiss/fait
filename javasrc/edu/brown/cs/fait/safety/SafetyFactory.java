@@ -35,7 +35,6 @@
 
 package edu.brown.cs.fait.safety;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -94,10 +93,6 @@ public IfaceSafetyStatus getInitialStatus()
 }
 
 
-public void addSpecialFile(File f)
-{
-   addSpecialFile(IvyXml.loadXmlFromFile(f));
-}
 
 
 public void addSpecialFile(Element xml)
@@ -126,6 +121,13 @@ public void clearAllSpecials()
 /*      Access methods                                                          */
 /*                                                                              */
 /********************************************************************************/
+
+public List<IfaceSafetyCheck> getAllSafetyChecks()
+{
+   return new ArrayList<>(all_checks);
+}
+
+
 
 List<SafetyCheck> getAllChecks()
 {

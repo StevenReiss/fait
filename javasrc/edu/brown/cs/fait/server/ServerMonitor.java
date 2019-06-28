@@ -38,14 +38,18 @@ package edu.brown.cs.fait.server;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.net.URL;
 import java.rmi.ServerException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.w3c.dom.Element;
 
+import edu.brown.cs.fait.control.ControlMain;
 import edu.brown.cs.fait.iface.FaitException;
 import edu.brown.cs.fait.iface.FaitLog;
+import edu.brown.cs.fait.iface.IfaceDescriptionFile;
 import edu.brown.cs.ivy.mint.MintArguments;
 import edu.brown.cs.ivy.mint.MintConstants;
 import edu.brown.cs.ivy.mint.MintConstants.CommandArgs;
@@ -297,6 +301,52 @@ private void handleResourceChange(Element res)
 
 
 
+private void handleResourceFiles(String sid,Element res,IvyXmlWriter xw)
+{
+   ServerSession ss = session_map.get(sid);
+   if (ss == null) return;
+   ServerProject proj = ss.getProject();
+   xw.begin("FILES");
+   for (IfaceDescriptionFile fn : proj.getDescriptionFiles()) {
+      xw.begin("FILE");
+      xw.field("NAME",fn.getFile().getAbsolutePath());
+      xw.field("PRIORITY",fn.getPriority());
+      if (fn.getPriority() == IfaceDescriptionFile.PRIORITY_BASE)
+         xw.field("BASE",true);
+      else if (fn.getPriority() == IfaceDescriptionFile.PRIORITY_BASE_PROJECT)
+         xw.field("BASE_PROJECT",true);
+      else if (fn.getPriority() == IfaceDescriptionFile.PRIORITY_DEPENDENT_PROJECT)
+         xw.field("DEPENDENT_PROJECT",true);
+      else if (fn.getPriority() == IfaceDescriptionFile.PRIORITY_LIBRARY)
+         xw.field("LIBRARY",true);
+      if (fn.getLibrary() != null) xw.field("LIBFILE",fn.getLibrary());
+      xw.end("FILE");
+    }
+   List<File> basefiles = proj.getBaseDescriptionFiles();
+   if (basefiles != null) {
+      for (File f : basefiles) {
+         xw.begin("FILE");
+         if (f.getPath().startsWith("*FAIT*")) {
+            String rnm = "/" + f.getName();
+            URL fn = ControlMain.class.getResource(rnm);
+            if (fn != null) {
+               xw.field("URL",fn);
+               xw.field("NAME",fn.getFile());
+             }
+          }
+         else
+            xw.field("NAME",f.getAbsolutePath());
+         xw.field("PRIORITY",IfaceDescriptionFile.PRIORITY_BASE);
+         xw.field("BASE",true);
+         xw.end("FILE");
+       }
+
+    }
+   xw.end("FILES");
+}
+
+
+
 /********************************************************************************/
 /*										*/
 /*	Methods to handle commands						*/
@@ -393,6 +443,62 @@ private void handleQuery(String sid,Element xml,IvyXmlWriter xw)
     }
 }
 
+
+private void handleReflection(String sid,Element xml,IvyXmlWriter xw)
+{
+   ServerSession ss = session_map.get(sid);
+   if (ss == null) return;
+   ServerProject sp = ss.getProject();
+   
+   try {
+      sp.handleReflection(xml,xw);
+    }
+   catch (FaitException e) {
+      xw.begin("FAITQUERY");
+      xw.field("FAIL",true);
+      xw.field("ERROR",e.getMessage());
+      xw.end("FAITQUERY");
+    }
+}
+
+
+
+
+private void handlePerformance(String sid,Element xml,IvyXmlWriter xw)
+{
+   ServerSession ss = session_map.get(sid);
+   if (ss == null) return;
+   ServerProject sp = ss.getProject();
+   
+   try {
+      sp.handlePerformance(xml,xw);
+    }
+   catch (FaitException e) {
+      xw.begin("FAITQUERY");
+      xw.field("FAIL",true);
+      xw.field("ERROR",e.getMessage());
+      xw.end("FAITQUERY");
+    }
+}
+
+
+
+private void handleFindCritical(String sid,Element xml,IvyXmlWriter xw)
+{
+   ServerSession ss = session_map.get(sid);
+   if (ss == null) return;
+   ServerProject sp = ss.getProject();
+   
+   try {
+      sp.handleFindCritical(xml,xw);
+    }
+   catch (FaitException e) {
+      xw.begin("FAITQUERY");
+      xw.field("FAIL",true);
+      xw.field("ERROR",e.getMessage());
+      xw.end("FAITQUERY");
+    }
+}  
 
 
 
@@ -527,7 +633,18 @@ private String processCommand(String cmd,String sid,Element e) throws ServerExce
       case "QUERY" :
          handleQuery(sid,e,xw);
          break;
-
+      case "RESOURCES" :
+         handleResourceFiles(sid,e,xw);
+         break;
+      case "REFLECTION" :
+         handleReflection(sid,e,xw);
+         break;
+      case "PERFORMANCE" :
+         handlePerformance(sid,e,xw);
+         break;
+      case "CRITICAL" :
+         handleFindCritical(sid,e,xw);
+         break;
       case "TESTEDIT" :
          String txt = IvyXml.getText(e);
          File fil = new File(IvyXml.getAttrString(e,"FILE"));

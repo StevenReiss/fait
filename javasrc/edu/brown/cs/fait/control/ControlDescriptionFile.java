@@ -55,6 +55,7 @@ public class ControlDescriptionFile implements IfaceDescriptionFile,
 private int priority_value;
 private File file_name;
 private int instance_count;
+private File library_file;
 
 private static AtomicInteger instance_counter = new AtomicInteger();
 
@@ -69,6 +70,15 @@ public ControlDescriptionFile(File f,int p)
 {
    priority_value = p;
    file_name = f;
+   library_file = null;
+   instance_count = instance_counter.incrementAndGet();
+}
+
+public ControlDescriptionFile(File f,File lib) 
+{
+   priority_value = PRIORITY_LIBRARY;
+   file_name = f;
+   library_file = lib;
    instance_count = instance_counter.incrementAndGet();
 }
 
@@ -81,6 +91,8 @@ public ControlDescriptionFile(File f,int p)
 
 @Override public File getFile()                      { return file_name; }
 @Override public int getPriority()                   { return priority_value; }
+@Override public File getLibrary()                   { return library_file; }
+
 
 
 
@@ -92,8 +104,8 @@ public ControlDescriptionFile(File f,int p)
 
 @Override public int compareTo(ControlDescriptionFile f1)
 {
-   if (priority_value < f1.priority_value) return -1;
-   if (priority_value > f1.priority_value) return 1;
+   if (priority_value < f1.priority_value) return 1;
+   if (priority_value > f1.priority_value) return -1;
    if (instance_count < f1.instance_count) return -1;
    if (instance_count > f1.instance_count) return 1;
    return 0;

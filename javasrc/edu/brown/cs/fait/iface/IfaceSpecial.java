@@ -38,6 +38,8 @@ package edu.brown.cs.fait.iface;
 
 import java.util.*;
 
+import edu.brown.cs.ivy.xml.IvyXmlWriter;
+
 
 public interface IfaceSpecial extends FaitConstants
 {
@@ -63,6 +65,7 @@ Collection<String> getClassesToLoad();
 IfaceAnnotation [] getArgAnnotations(int idx);
 InlineType getInlineType();
 
+void outputXml(IvyXmlWriter xw);
 
 }	// end of interface IfaceSpecial
 

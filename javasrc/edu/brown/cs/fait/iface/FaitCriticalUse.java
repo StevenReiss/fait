@@ -1,13 +1,13 @@
 /********************************************************************************/
 /*                                                                              */
-/*              ControlSimpleProject.java                                       */
+/*              FaitCriticalUse.java                                            */
 /*                                                                              */
-/*      Simple project for testing and other uses                               */
+/*      Information about the critical use of a method                          */
 /*                                                                              */
 /********************************************************************************/
-/*      Copyright 2011 Brown University -- Steven P. Reiss                    */
+/*      Copyright 2013 Brown University -- Steven P. Reiss                    */
 /*********************************************************************************
- *  Copyright 2011, Brown University, Providence, RI.                            *
+ *  Copyright 2013, Brown University, Providence, RI.                            *
  *                                                                               *
  *                        All Rights Reserved                                    *
  *                                                                               *
@@ -33,22 +33,14 @@
 
 
 
-package edu.brown.cs.fait.control;
+package edu.brown.cs.fait.iface;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
-import edu.brown.cs.fait.iface.FaitConstants;
-import edu.brown.cs.fait.iface.IfaceDescriptionFile;
-import edu.brown.cs.fait.iface.IfaceProject;
-import edu.brown.cs.ivy.jcode.JcodeFactory;
-import edu.brown.cs.ivy.jcomp.JcompControl;
-import edu.brown.cs.ivy.jcomp.JcompProject;
-import edu.brown.cs.ivy.jcomp.JcompSource;
-import edu.brown.cs.ivy.jcomp.JcompTyper;
+import edu.brown.cs.ivy.xml.IvyXmlWriter;
 
-public class ControlSimpleProject implements IfaceProject, FaitConstants
+public class FaitCriticalUse
 {
 
 
@@ -58,10 +50,10 @@ public class ControlSimpleProject implements IfaceProject, FaitConstants
 /*                                                                              */
 /********************************************************************************/
 
-private JcodeFactory    jcode_factory;
-private JcompProject    jcomp_project;
-private JcompTyper      jcomp_typer;
-private String          project_prefix;
+private Set<IfaceSafetyCheck>   safety_checks;
+private Set<IfaceSubtype>       subtype_checks;
+private Set<IfaceSafetyCheck>   indirect_safety_checks;
+private Set<IfaceSubtype>       indirect_subtype_checks;
 
 
 /********************************************************************************/
@@ -70,19 +62,49 @@ private String          project_prefix;
 /*                                                                              */
 /********************************************************************************/
 
-public ControlSimpleProject(String cp,String pfx)
+public FaitCriticalUse()
 {
-   jcode_factory = new JcodeFactory();
-   if (cp != null) {
-      jcode_factory.addToClassPath(cp);
+   safety_checks = new HashSet<>();
+   subtype_checks = new HashSet<>();
+   indirect_safety_checks = new HashSet<>();
+   indirect_subtype_checks = new HashSet<>();
+}
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Update methods                                                          */
+/*                                                                              */
+/********************************************************************************/
+
+public void addSafetyCheck(IfaceSafetyCheck sc)
+{
+   safety_checks.add(sc);
+}
+
+public void addSubtype(IfaceSubtype st)
+{       
+   subtype_checks.add(st);
+}
+
+
+public boolean noteCaller(FaitCriticalUse fcu)
+{
+   boolean chng = false;
+   for (IfaceSafetyCheck sc : fcu.safety_checks) {
+      if (indirect_safety_checks.add(sc)) chng = true;
     }
-   JcompControl ctrl = new JcompControl(jcode_factory);
-   List<JcompSource> srcs = new ArrayList<>();
-   jcomp_project = ctrl.getProject(jcode_factory,srcs);
-   jcomp_project.resolve();
-   jcomp_typer = jcomp_project.getResolveTyper();
+   for (IfaceSafetyCheck sc : fcu.indirect_safety_checks) {
+      if (indirect_safety_checks.add(sc)) chng = true;
+    }
+   for (IfaceSubtype st : fcu.subtype_checks) {
+      if (indirect_subtype_checks.add(st)) chng = true;
+    }
+   for (IfaceSubtype st : fcu.indirect_subtype_checks) {
+      if (indirect_subtype_checks.add(st)) chng = true;
+    }
    
-   project_prefix = pfx;
+   return chng;
 }
 
 
@@ -93,31 +115,53 @@ public ControlSimpleProject(String cp,String pfx)
 /*                                                                              */
 /********************************************************************************/
 
-@Override public JcompTyper getTyper()                  { return jcomp_typer; }
-@Override public JcodeFactory getJcodeFactory()         { return jcode_factory; }
-@Override public JcompProject getJcompProject()         { return jcomp_project; }
-
-
-@Override public Collection<IfaceDescriptionFile> getDescriptionFiles() { return null; }
-
-
-
-@Override public boolean isProjectClass(String cls) {
-   if (cls.startsWith(project_prefix)) return true;
-   return false;
-}
-
-@Override public boolean isEditableClass(String cls)    { return false; }
-
-@Override public String getSourceFileForClass(String cls)
+public boolean isCriticalUse()
 {
-   return null;
+   return safety_checks.size() > 0 || subtype_checks.size() > 0;
 }
 
-}       // end of class ControlSimpleProject
+
+/********************************************************************************/
+/*                                                                              */
+/*      Output methods                                                          */
+/*                                                                              */
+/********************************************************************************/
+
+public void outputXml(IvyXmlWriter xw)
+{
+   xw.begin("USES");
+   for (IfaceSafetyCheck sc : safety_checks) {
+      xw.begin("SAFETY");
+      xw.field("NAME",sc.getName());
+      xw.end("SAFETY");
+    }
+   for (IfaceSubtype st : subtype_checks) {
+      xw.begin("SUBTYPE");
+      xw.field("NAME",st.getName());
+      xw.end("SUBTYPE");
+   }
+   for (IfaceSafetyCheck sc : indirect_safety_checks) {
+      xw.begin("SAFETY");
+      xw.field("CALLER",true);
+      xw.field("NAME",sc.getName());
+      xw.end("SAFETY");
+    }
+   for (IfaceSubtype st : indirect_subtype_checks) {
+      xw.begin("SUBTYPE");
+      xw.field("CALLER",true);
+      xw.field("NAME",st.getName());
+      xw.end("SUBTYPE");
+    }
+   xw.end("USES");
+}
 
 
 
 
-/* end of ControlSimpleProject.java */
+}       // end of class FaitCriticalUse
+
+
+
+
+/* end of FaitCriticalUse.java */
 

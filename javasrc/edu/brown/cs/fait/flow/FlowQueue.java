@@ -378,7 +378,7 @@ void initialize(IfaceType dt)
 
 
 
-boolean canBeUsed(IfaceType dt)
+public boolean canBeUsed(IfaceType dt)
 {
    IfaceBaseType bt = dt.getJavaType();
    if (class_setup.contains(bt)) return true;
@@ -841,6 +841,16 @@ void printStatistics()
    synchronized (call_map) {
       for (IfaceCall fc : call_map.keySet()) {
 	 fc.outputStatistics();
+       }
+    }
+}
+
+
+void resetStatistics()
+{
+   synchronized (call_map) {
+      for (IfaceCall fc : call_map.keySet()) {
+	 fc.resetStatistics();
        }
     }
 }

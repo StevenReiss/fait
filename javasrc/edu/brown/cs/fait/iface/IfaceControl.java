@@ -77,7 +77,7 @@ void analyze(IfaceMethod im,int nth,ReportOption opt);
 /*										*/
 /********************************************************************************/
 
-File getDescriptionFile();
+List<File> getSystemDescriptionFiles();
 
 
 
@@ -94,8 +94,7 @@ IfaceType findDataType(String cls);
 IfaceType findConstantType(String cls,Object cnst);
 IfaceType findConstantType(IfaceType t,Object cnst);
 
-
-
+List<IfaceSubtype> getAllSubtypes();
 
 
 IfaceMethod findMethod(String cls,String method,String sign);
@@ -190,6 +189,7 @@ IfaceAnnotation [] getAnnotations(IfaceProgramPoint pt);
 
 IfaceState createState(int nlocal,IfaceSafetyStatus sts);
 IfaceValue getFieldValue(IfaceState st,IfaceField fld,IfaceValue base,boolean thisref);
+boolean canClassBeUsed(IfaceType dt);
 boolean setFieldValue(IfaceState st,IfaceField fld,IfaceValue v,IfaceValue base,boolean thisref,IfaceLocation src);
 IfaceState findStateForLocation(IfaceCall c,IfaceProgramPoint pt);
 IfaceState findStateForLocation(IfaceLocation loc);
@@ -237,6 +237,8 @@ void handleCallback(IfaceLocation frm,IfaceMethod fm,List<IfaceValue> args,Strin
 
 boolean isProjectClass(IfaceType t);
 boolean isInProject(IfaceMethod m);
+String getSourceFile(IfaceType c);
+String getSourceFile(IfaceMethod m);
 boolean isEditableClass(IfaceType t);
 
 
@@ -249,6 +251,8 @@ List<IfaceMethod> findAllMethods(IfaceType cls,String name);
 IfaceType createFunctionRefType(String typ,String nstype);
 
 IfaceSafetyStatus getInitialSafetyStatus();
+List<IfaceSafetyCheck> getAllSafetyChecks();
+String getEventForCall(IfaceMethod fm,List<IfaceValue> args,IfaceLocation from);
 
 void updateAll();
 void doUpdate(IfaceUpdateSet what);
@@ -263,6 +267,8 @@ Collection<IfaceAuxReference> getAuxRefs(IfaceField fld);
 Collection<IfaceAuxReference> getAuxArrayRefs(IfaceValue arr);
 
 void processErrorQuery(IfaceCall c,IfaceProgramPoint pt,IfaceError e,IvyXmlWriter xw);
+void processReflectionQuery(IvyXmlWriter xw);
+void processCriticalQuery(String ignores,IvyXmlWriter xw);
 
 
 

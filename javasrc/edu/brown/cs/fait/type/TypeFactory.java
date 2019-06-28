@@ -35,7 +35,6 @@
 
 package edu.brown.cs.fait.type;
 
-import java.io.File;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -69,8 +68,9 @@ public class TypeFactory implements TypeConstants, FaitConstants
 /********************************************************************************/
 
 private TypeMap type_map;
-private List<TypeSubtype> all_subtypes;
+private List<TypeSubtype> active_subtypes;
 private Set<TypeSubtype> base_subtypes;
+private Map<String,TypeSubtype> known_subtypes;
 
 
 
@@ -83,15 +83,16 @@ private Set<TypeSubtype> base_subtypes;
 public TypeFactory(IfaceControl ic)
 {
    type_map = new TypeMap();
-   all_subtypes = new ArrayList<>();
-   all_subtypes.add(CheckNullness.getType());
-   // all_subtypes.add(CheckInitialization.getType());
-   // all_subtypes.add(CheckTaint.getType());
+   active_subtypes = new ArrayList<>();
+   active_subtypes.add(CheckNullness.getType());
+   known_subtypes = new HashMap<>();
+   // active_subtypes.add(CheckInitialization.getType());
+   // active_subtypes.add(CheckTaint.getType());
    
-   base_subtypes= new HashSet<>(all_subtypes);
+   base_subtypes = new HashSet<>(active_subtypes);
    
-   for (int i = 0; i < all_subtypes.size(); ++i) {
-      TypeSubtype tst = all_subtypes.get(i);
+   for (int i = 0; i < active_subtypes.size(); ++i) {
+      TypeSubtype tst = active_subtypes.get(i);
       tst.setIndex(i);
     }
 }
@@ -158,7 +159,7 @@ public IfaceType createType(IfaceType base,Map<IfaceSubtype,IfaceSubtype.Value> 
    if (base == null) return null;
    
    Map<IfaceSubtype,IfaceSubtype.Value> nsubs = new HashMap<>();
-   for (IfaceSubtype ist : all_subtypes) {
+   for (IfaceSubtype ist : active_subtypes) {
       IfaceSubtype.Value val = subs.get(ist);
       if (val == null) {
          val = base.getValue(ist);
@@ -221,7 +222,7 @@ public IfaceType createType(IfaceBaseType base,IfaceType orig)
 public IfaceType createConstantType(IfaceBaseType base,Object cnst)
 {
    IfaceSubtype.Value [] vals = new IfaceSubtype.Value[getNumSubtypes()];
-   for (TypeSubtype st : all_subtypes) {
+   for (TypeSubtype st : active_subtypes) {
       int idx = st.getIndex();
       vals[idx] = st.getDefaultConstantValue(base,cnst);
     }
@@ -275,15 +276,22 @@ private IfaceType createActualType(IfaceBaseType base,IfaceSubtype.Value [] subs
 /*                                                                              */
 /********************************************************************************/
 
-public void addSpecialFile(File f)
-{
-   addSpecialFile(IvyXml.loadXmlFromFile(f));
-}
-
-
 public synchronized void addSpecialFile(Element xml)
 {
    for (Element selt : IvyXml.children(xml,"SUBTYPE")) {
+      String stnm = IvyXml.getAttrString(selt,"NAME");
+      boolean enable = IvyXml.getAttrBool(selt,"ENABLE",true);
+      if (stnm != null) {
+         TypeSubtype tst = known_subtypes.get(stnm);
+         if (tst != null) {
+            if (enable) {
+               addSubtype(tst,true,false);
+             }
+            else {
+               removeSubtype(tst);
+             }
+          }
+       }
       String cnm = IvyXml.getAttrString(selt,"CLASS");
       if (cnm != null) {
          if (cnm.startsWith("Check")) cnm = "edu.brown.cs.fait.type." + cnm;
@@ -291,9 +299,9 @@ public synchronized void addSpecialFile(Element xml)
             Class<?> c = Class.forName(cnm);
             Method m = c.getMethod("getType");
             TypeSubtype tst = (TypeSubtype) m.invoke(null);
-            if (!all_subtypes.contains(tst)) {
-               int ct = all_subtypes.size();
-               all_subtypes.add(tst);
+            if (!active_subtypes.contains(tst)) {
+               int ct = active_subtypes.size();
+               active_subtypes.add(tst);
                tst.setIndex(ct);
              }
             continue;
@@ -305,25 +313,59 @@ public synchronized void addSpecialFile(Element xml)
          continue;
        }
       TypeSubtypeUser tsu = new TypeSubtypeUser(selt);
-      int ct = all_subtypes.size();
-      all_subtypes.add(tsu);
-      tsu.setIndex(ct);
+      addSubtype(tsu,enable,false);
     }
 }
 
 
 public void clearAllSpecials()
 {
-   for (Iterator<TypeSubtype> it = all_subtypes.iterator(); it.hasNext(); ) {
+   for (Iterator<TypeSubtype> it = active_subtypes.iterator(); it.hasNext(); ) {
       TypeSubtype tst = it.next();
       if (!base_subtypes.contains(tst)) it.remove();
     }
-   for (int i = 0; i < all_subtypes.size(); ++i) {
-      TypeSubtype tst = all_subtypes.get(i);
+   
+   for (Iterator<TypeSubtype> it = known_subtypes.values().iterator(); it.hasNext(); ) {
+      TypeSubtype tst = it.next();
+      if (!base_subtypes.contains(tst)) it.remove();
+    }
+   
+   for (int i = 0; i < active_subtypes.size(); ++i) {
+      TypeSubtype tst = active_subtypes.get(i);
       tst.setIndex(i);
     }
 }
 
+
+
+private void addSubtype(TypeSubtype ts,boolean enable,boolean base)
+{
+   known_subtypes.put(ts.getName(),ts);
+   
+   if (enable) {
+      if (!active_subtypes.contains(ts)) {
+         int ct = active_subtypes.size();
+         active_subtypes.add(ts);
+         ts.setIndex(ct);
+       }
+    }
+   
+   if (base) {
+      base_subtypes.add(ts);
+    }
+}
+
+
+private void removeSubtype(TypeSubtype ts)
+{
+   if (!active_subtypes.contains(ts)) return;
+   
+   active_subtypes.remove(ts);
+   for (int i = 0; i < active_subtypes.size(); ++i) {
+      TypeSubtype ntst = active_subtypes.get(i);
+      ntst.setIndex(i);
+    }
+}
 
 
 /********************************************************************************/
@@ -332,9 +374,15 @@ public void clearAllSpecials()
 /*                                                                              */
 /********************************************************************************/
 
-int getNumSubtypes()            { return all_subtypes.size(); }
+public List<IfaceSubtype> getAllSubtypes()
+{
+   return new ArrayList<>(active_subtypes);
+}
 
-TypeSubtype getSubtype(int i)   { return all_subtypes.get(i); }
+
+int getNumSubtypes()            { return active_subtypes.size(); }
+
+TypeSubtype getSubtype(int i)   { return active_subtypes.get(i); }
 
 
 
@@ -354,7 +402,7 @@ private class TypeMap {
    
    @SuppressWarnings("unchecked") 
    IfaceType defineType(IfaceType t) {
-      int ct = all_subtypes.size();
+      int ct = active_subtypes.size();
       if (ct == 0) {
          IfaceType t0 = (IfaceType) base_map.putIfAbsent(t.getJavaType(),t);
          if (t0 != null) return t0;
@@ -370,7 +418,7 @@ private class TypeMap {
       
       synchronized (map) {
          for (int i = 0; i < ct-1; ++i) {
-            IfaceSubtype.Value val = t.getValue(all_subtypes.get(i));
+            IfaceSubtype.Value val = t.getValue(active_subtypes.get(i));
             Map<Object,Object> nmap = (Map<Object,Object>) map.get(val);
             if (nmap == null) {
                nmap = new HashMap<>();
@@ -378,7 +426,7 @@ private class TypeMap {
              }
             map = nmap;
           }
-         IfaceSubtype.Value val = t.getValue(all_subtypes.get(ct-1));
+         IfaceSubtype.Value val = t.getValue(active_subtypes.get(ct-1));
          IfaceType t0 = (IfaceType) map.putIfAbsent(val,t);
          if (t0 != null) return t0;
        }
@@ -387,7 +435,7 @@ private class TypeMap {
     }
    
    IfaceType findType(IfaceBaseType bt,IfaceSubtype.Value [] vals) {
-      int ct = all_subtypes.size(); 
+      int ct = active_subtypes.size(); 
       if (ct == 0) {
          return (IfaceType) base_map.get(bt);
        }
@@ -402,7 +450,7 @@ private class TypeMap {
     }
    
    IfaceType findType(IfaceBaseType bt,Map<IfaceSubtype,IfaceSubtype.Value> valmap) {
-      int ct = all_subtypes.size(); 
+      int ct = active_subtypes.size(); 
       if (ct == 0) {
          return (IfaceType) base_map.get(bt);
        }
@@ -420,10 +468,10 @@ private class TypeMap {
          int idx,Map<IfaceSubtype,IfaceSubtype.Value> valmap) {
       IfaceSubtype.Value v = null;
       if (valmap != null) {
-         v = valmap.get(all_subtypes.get(idx));
+         v = valmap.get(active_subtypes.get(idx));
        }
       if (v == null) {
-         v = all_subtypes.get(idx).getDefaultValue(bt);
+         v = active_subtypes.get(idx).getDefaultValue(bt);
        }
       return v;
     }

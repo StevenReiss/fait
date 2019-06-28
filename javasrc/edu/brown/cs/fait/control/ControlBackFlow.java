@@ -1234,7 +1234,6 @@ private void addAuxRef(int stk)
 {
    IfaceValue val = prior_state.getStack(stk);
    if (val == null) {
-      System.err.println("CHECK HERE");
       return;
     }
    IfaceValue ref = fait_control.findRefStackValue(val.getDataType(),stk);

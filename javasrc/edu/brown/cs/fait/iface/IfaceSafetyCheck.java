@@ -44,6 +44,7 @@ String getName();
 
 Value getInitialState();
 int update(String event,int from,List<IfaceError> errs);
+boolean isRelevant(String event);
 
 Value getValueForOrdinal(int i);
 

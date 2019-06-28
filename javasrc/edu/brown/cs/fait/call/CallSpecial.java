@@ -385,6 +385,52 @@ CallSpecial(IfaceControl fc,Element xml,boolean formthd)
 
 
 /********************************************************************************/
+/*                                                                              */
+/*      Output methods                                                          */
+/*                                                                              */
+/********************************************************************************/
+
+@Override public void outputXml(IvyXmlWriter xw)
+{
+   xw.begin("SPECIAL");
+   
+   if (result_type != null) xw.field("RESULTTYPE",result_type);
+   if (alt_result != null) xw.field("ALTRESULT",alt_result);
+   if (throw_types != null) {
+      StringBuffer buf = new StringBuffer();
+      for (String s : throw_types) {
+         buf.append(s);
+         buf.append(" ");
+       }
+      xw.field("THROWS",buf.toString().trim());
+    }
+   if (canbe_null) xw.field("CANBENULL",true);
+   if (is_mutable) xw.field("MUTABLE",true);
+   if (is_constructor) xw.field("CONSTRUCTOR",true);
+   if (return_arg0) xw.field("RETURNARG0",true);
+   if (replace_name != null) xw.field("REPLACE",replace_name);
+   if (!dont_scan) xw.field("SCAN",true);
+   if (async_call) xw.field("ASYNC",true);
+   if (callback_names != null) {
+      StringBuffer buf = new StringBuffer();
+      for (String s : callback_names) {
+         buf.append(s);
+         buf.append(" ");
+       }
+      xw.field("CALLBACKS",buf.toString().trim());
+    }
+   if (callback_id != null) xw.field("CALLBACKID",callback_id);
+   if (does_exit) xw.field("EXITS",true);
+   if (no_return) xw.field("NORETURN",true);
+   if (no_virtual) xw.field("NOVIRTUAL",true);
+   if (set_fields) xw.field("SETFIELDS",true);
+   if (is_affected) xw.field("AFFECTED",true);
+   if (inline_type != null) xw.field("INLINE",inline_type);
+   
+   xw.end("SPECIAL");
+}
+
+/********************************************************************************/
 /*										*/
 /*	Name standardization methods						*/
 /*										*/
