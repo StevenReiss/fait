@@ -473,9 +473,9 @@ private void runServerTest(String dir,String pid,int ctr,String updfile,boolean 
    if (timed) {
       String nthstr = System.getenv("FAIT_THREADS");
       FaitLog.logD("FAIT_THREAD = " + nthstr);
-      nthread = 4;
+      nthread = (default_threads == 1 ? 4 : default_threads);
       try {
-	 nthread = Integer.parseInt(nthstr);
+         if (nthstr != null) nthread = Integer.parseInt(nthstr);
        }
       catch (NumberFormatException e) { }
     }
@@ -896,6 +896,24 @@ private void errorQueries(String sid,Element xml)
        }
     }
 }
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Main program to run a particular test without junit                     */
+/*                                                                              */
+/********************************************************************************/
+
+public static void main(String [] args)
+{
+   ServerTest st = new ServerTest();
+   default_threads = 8;
+   st.serverTestTimedJboard();
+}
+
+
+
 
 }	// end of class ServerTest
 

@@ -290,7 +290,8 @@ IfaceBaseType getType(String name)
 IfaceBaseType getType(JcompType t)
 {
    if (t == null) return null;
-
+   t = jcomp_typer.fixJavaType(t);
+   
    AstType t1 = type_map.get(t);
    if (t1 == null || t1.getJcompType() != t) {
       t1 = new AstType(t);
@@ -336,12 +337,15 @@ private JcompType getInternalType(String name)
     }
    JcompType jt = jcomp_typer.findType(name);
    try {
-      if (jt == null) jt = jcomp_typer.findSystemType(name);
+      if (jt == null) {
+         jt = jcomp_typer.findSystemType(name);
+       }   
     }
    catch (Throwable t) {
       System.err.println("Problem with type " + name);
       throw t;
     }
+   
    return jt;
 }
 
@@ -368,7 +372,7 @@ private void updateTypes(JcompTyper typer)
    for (AstType at : type_map.values()) {
       JcompType jt = at.getJcompType();
       JcompType njt = typer.findType(jt.getName());
-      if (njt == null) njt = jcomp_typer.findSystemType(jt.getName());
+      if (njt == null) njt = typer.findSystemType(jt.getName());
       if (njt == null) continue;
       at.setJcompType(njt);
       ntypemap.put(njt,at);

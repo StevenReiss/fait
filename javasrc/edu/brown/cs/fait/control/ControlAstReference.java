@@ -421,6 +421,7 @@ boolean update()
    if (after_child != null) {
       StructuralPropertyDescriptor spd = after_child.getLocationInParent();
       xw.field("AFTER",spd.getId());
+      xw.field("AFTERSTART",after_child.getStartPosition());
     }
    if (run_status != null) {
       xw.field("STATUS",run_status.getReason());

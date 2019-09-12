@@ -444,6 +444,25 @@ private void handleQuery(String sid,Element xml,IvyXmlWriter xw)
 }
 
 
+private void handleTestCase(String sid,Element xml,IvyXmlWriter xw)
+{
+   ServerSession ss = session_map.get(sid);
+   if (ss == null) return;
+   ServerProject sp = ss.getProject();
+   
+   try {
+      Element txml = IvyXml.getChild(xml,"TESTCASE");
+      sp.handleTestCase(txml,xw);
+    }
+   catch (FaitException e) {
+      xw.begin("FAITTESTCASE");
+      xw.field("FAIL",true);
+      xw.field("ERROR",e.getMessage());
+      xw.end("FAITTESTCASE");
+    }
+}
+
+
 private void handleReflection(String sid,Element xml,IvyXmlWriter xw)
 {
    ServerSession ss = session_map.get(sid);
@@ -645,6 +664,9 @@ private String processCommand(String cmd,String sid,Element e) throws ServerExce
       case "CRITICAL" :
          handleFindCritical(sid,e,xw);
          break;
+      case "TESTCASE" :
+         handleTestCase(sid,e,xw);
+         break;
       case "TESTEDIT" :
          String txt = IvyXml.getText(e);
          File fil = new File(IvyXml.getAttrString(e,"FILE"));
@@ -671,6 +693,7 @@ private class CommandHandler implements MintHandler {
       String sid = args.getArgument(1);
       Element e = msg.getXml();
       String rslt = null;
+      
       try {
          rslt = processCommand(cmd,sid,e);
          FaitLog.logI("COMMAND RESULT: " + rslt);

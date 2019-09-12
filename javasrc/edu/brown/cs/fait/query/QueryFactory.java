@@ -123,7 +123,7 @@ public void processErrorQuery(IfaceCall call,IfaceProgramPoint pt,IfaceError err
    long time = System.currentTimeMillis() - start;
    // graph.outputXml(output);	   // for debugging -- remove when clean works
    graph.cleanGraph();
-
+   
    graph.outputXml(output,time);
    graph = null;
 }

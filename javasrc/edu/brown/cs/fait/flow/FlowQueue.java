@@ -969,20 +969,20 @@ private static class SegmentedQueue {
 
    synchronized void handleUpdate(IfaceUpdater upd) {
       for (Iterator<IfaceCall> it = init_queue.keySet().iterator(); it.hasNext(); ) {
-	 IfaceCall c = it.next();
-	 if (upd.isCallRemoved(c)) it.remove();
+         IfaceCall c = it.next();
+         if (upd.isCallRemoved(c)) it.remove();
        }
       for (Iterator<IfaceCall> it = constructor_queue.keySet().iterator(); it.hasNext(); ) {
-	 IfaceCall c = it.next();
-	 if (upd.isCallRemoved(c)) it.remove();
+         IfaceCall c = it.next();
+         if (upd.isCallRemoved(c)) it.remove();
        }
       for (Iterator<IfaceCall> it = normal_queue.keySet().iterator(); it.hasNext(); ) {
-	 IfaceCall c = it.next();
-	 if (upd.isCallRemoved(c)) it.remove();
+         IfaceCall c = it.next();
+         if (upd.isCallRemoved(c)) it.remove();
        }
       for (Iterator<IfaceCall> it = active_calls.iterator(); it.hasNext(); ) {
-	 IfaceCall c = it.next();
-	 if (upd.isCallRemoved(c)) it.remove();
+         IfaceCall c = it.next();
+         if (upd.isCallRemoved(c)) it.remove();
        }
     }
 }

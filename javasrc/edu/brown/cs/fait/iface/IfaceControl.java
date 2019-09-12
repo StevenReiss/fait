@@ -41,6 +41,7 @@ import java.lang.reflect.Constructor;
 import java.util.*;
 
 import org.eclipse.jdt.core.dom.ASTNode;
+import org.w3c.dom.Element;
 
 import edu.brown.cs.ivy.jcode.JcodeInstruction;
 import edu.brown.cs.ivy.jcomp.JcompSymbol;
@@ -269,6 +270,8 @@ Collection<IfaceAuxReference> getAuxArrayRefs(IfaceValue arr);
 void processErrorQuery(IfaceCall c,IfaceProgramPoint pt,IfaceError e,IvyXmlWriter xw);
 void processReflectionQuery(IvyXmlWriter xw);
 void processCriticalQuery(String ignores,IvyXmlWriter xw);
+
+void generateTestCase(Element path,IvyXmlWriter xw) throws FaitException;
 
 
 

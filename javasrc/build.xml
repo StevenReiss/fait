@@ -15,6 +15,7 @@
       <ant antfile="build.xml" dir="edu/brown/cs/fait/call" />
       <ant antfile="build.xml" dir="edu/brown/cs/fait/flow" />
       <ant antfile="build.xml" dir="edu/brown/cs/fait/query" />
+      <ant antfile="build.xml" dir="edu/brown/cs/fait/testgen" />
       <ant antfile="build.xml" dir="edu/brown/cs/fait/control" />
       <ant antfile="build.xml" dir="edu/brown/cs/fait/server" />
       <ant antfile="build.xml" dir="edu/brown/cs/fait/faitmock" />
@@ -40,6 +41,7 @@
 	 <package name='edu.brown.cs.fait.safety' />
 	 <package name='edu.brown.cs.fait.server' />
 	 <package name='edu.brown.cs.fait.state' />
+	 <package name='edu.brown.cs.fait.testgen' />
 	 <package name='edu.brown.cs.fait.type' />
 	 <package name='edu.brown.cs.fait.value' />
 	 <package name='edu.brown.cs.fait.faitmock' />

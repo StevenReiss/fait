@@ -727,6 +727,10 @@ synchronized void mergeElementValue(IfaceValue v,boolean update)
 void setElementValue(IfaceValue v,boolean upd)
 {
    if (v == element_value || v == null) return;
+   
+   if (FaitLog.isTracing()) {
+      FaitLog.logD1("Update collection element value = " + v);
+    }
 
    synchronized (this) {
       if (element_value == null) {

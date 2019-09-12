@@ -48,6 +48,7 @@ import edu.brown.cs.ivy.jcomp.JcompTyper;
 import edu.brown.cs.ivy.xml.IvyXml;
 import edu.brown.cs.ivy.xml.IvyXmlWriter;
 import edu.brown.cs.fait.state.*;
+import edu.brown.cs.fait.testgen.TestgenFactory;
 import edu.brown.cs.fait.type.TypeFactory;
 import edu.brown.cs.fait.proto.*;
 import edu.brown.cs.fait.query.QueryFactory;
@@ -88,6 +89,7 @@ private IfaceProject	user_project;
 private TypeFactory     type_factory;
 private SafetyFactory   safety_factory;
 private QueryFactory    query_factory;
+private TestgenFactory  testgen_factory;
 private Map<String,IfaceType> basic_types;
 private Map<File,Long>  fait_files;
 
@@ -114,6 +116,7 @@ public ControlMain(IfaceProject ip)
    call_factory = new CallFactory(this);
    safety_factory = new SafetyFactory(this);
    query_factory = new QueryFactory(this);
+   testgen_factory = new TestgenFactory(this);
    
    user_project = ip;
    
@@ -1104,6 +1107,17 @@ IfaceBaseType createMethodType(IfaceType rtn,List<IfaceType> args)
 }
 
 
+
+/********************************************************************************/
+/*                                                                              */
+/*      Test case generation                                                    */
+/*                                                                              */
+/********************************************************************************/
+
+@Override public void generateTestCase(Element path,IvyXmlWriter xw) throws FaitException
+{
+   testgen_factory.generateTestCase(path,xw);
+}
 
 /********************************************************************************/
 /*                                                                              */

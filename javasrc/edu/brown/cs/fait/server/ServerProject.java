@@ -901,6 +901,8 @@ void handleQuery(Element qxml,IvyXmlWriter xw) throws FaitException
       IfaceProgramPoint ppt = ent.getValue();
       xw.begin("QUERY");
       xw.field("METHOD",call.getMethod().getFullName());
+      xw.field("SIGNATURE",call.getMethod().getDescription());
+      xw.field("CALL",call.hashCode());
       ie.outputXml(ppt,xw);
       ctrl.processErrorQuery(call,ppt,ie,xw);
       xw.end("QUERY");
@@ -950,10 +952,6 @@ void handleFindCritical(Element xml,IvyXmlWriter xw) throws FaitException
    String ignores = IvyXml.getAttrString(xml,"IGNORES");
    ctrl.processCriticalQuery(ignores,xw);
 }
-
-
-
-
 
 
 
@@ -1054,6 +1052,36 @@ private List<IfaceLocation> getAllCallers(IfaceCall c)
    return rslt;
 }
 
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Handle test case generation                                             */
+/*                                                                              */
+/********************************************************************************/
+
+void handleTestCase(Element path,IvyXmlWriter xw) throws FaitException
+{
+   IfaceControl ctrl = null;
+   if (current_runner != null) {
+      ctrl = current_runner.getControl();
+    }
+   if (ctrl == null) {
+      throw new FaitException("Analysis not run");
+    }
+   
+   ctrl.generateTestCase(path,xw);
+}
+
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Handle description file queries                                         */
+/*                                                                              */
+/********************************************************************************/
 
 List<File> getBaseDescriptionFiles()
 {
