@@ -490,6 +490,11 @@ private void checkStartMethod(IfaceMethod im,Collection<IfaceMethod> rslt)
 
 
 
+@Override public IfaceEntity findEntityById(int id)
+{
+   return entity_factory.getEntity(id);
+}
+
 
 /********************************************************************************/
 /*										*/
@@ -1092,6 +1097,23 @@ IfaceBaseType createMethodType(IfaceType rtn,List<IfaceType> args)
 @Override public void processErrorQuery(IfaceCall c,IfaceProgramPoint pt,IfaceError e,IvyXmlWriter xw)
 {
    query_factory.processErrorQuery(c,pt,e,xw);
+}
+
+
+@Override public void processToQuery(IfaceCall c,IfaceProgramPoint pt,IfaceEntity ent,
+      IfaceSubtype styp,IfaceSubtype.Value sval,IfaceValue refval,IvyXmlWriter xw) 
+{
+   query_factory.processToQuery(c,pt,ent,styp,sval,refval,xw);
+}
+
+
+
+
+
+@Override public void processVarQuery(String method,int line,int pos,IvyXmlWriter xw)
+        throws FaitException
+{
+   query_factory.processVarQuery(method,line,pos,xw);
 }
 
 

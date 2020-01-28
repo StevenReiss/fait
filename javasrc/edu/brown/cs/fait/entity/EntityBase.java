@@ -36,11 +36,12 @@
 package edu.brown.cs.fait.entity;
 
 import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.ivy.xml.IvyXmlWriter;
 
 import java.util.*;
 
 
-class EntityBase implements IfaceEntity, EntityConstants
+abstract class EntityBase implements IfaceEntity, EntityConstants
 {
 
 
@@ -51,8 +52,6 @@ class EntityBase implements IfaceEntity, EntityConstants
 /********************************************************************************/
 
 private int		entity_id;
-private boolean 	used_in_lock;
-
 
 private static int		entity_counter = 0;
 private static List<EntityBase> all_entities = new ArrayList<EntityBase>();
@@ -71,7 +70,6 @@ protected EntityBase()
       entity_id = entity_counter++;
       all_entities.add(this);
     }
-   used_in_lock = false;
 }
 
 
@@ -86,7 +84,7 @@ protected EntityBase()
 
 @Override public IfaceType getDataType()		{ return null; }
 @Override public IfaceLocation getLocation()	        { return null; }
-@Override public boolean isUsedInLock() 		{ return used_in_lock; }
+
 @Override public UserEntity getUserEntity()		{ return null; }
 @Override public IfacePrototype getPrototype()          { return null; }
 
@@ -224,6 +222,106 @@ static void clearAll()
 {
    entity_counter = 0;
    all_entities.clear();
+}
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Output methods                                                          */
+/*                                                                              */
+/********************************************************************************/
+
+@Override public void outputXml(IvyXmlWriter xw,IfaceValue relativevalue)
+{
+   xw.begin("ENTITY");
+   xw.field("ID",entity_id);
+   if (isFixed()) xw.field("FIXED",true);
+   if (isMutable()) xw.field("MUTABLE",true);
+   if (isNative()) xw.field("NATIVE",true);
+   if (isUserEntity()) xw.field("USER",true);
+   
+   
+   outputLocalXml(xw);
+   IfaceType dt = getDataType();
+   if (dt != null) dt.outputXml(xw);
+   
+   IfaceLocation loc = getLocation();
+   if (loc != null) {
+      loc.outputXml(xw);
+    }
+   
+   if (relativevalue != null) {
+      xw.textElement("DESCRIPTION",getDescription(relativevalue));
+    }
+   
+   xw.end("ENTITY");
+}
+
+
+protected void outputLocalXml(IvyXmlWriter xw)          { }
+
+
+protected String getLocationName()
+{
+   IfaceLocation loc = getLocation();
+   if (loc == null) return null;
+   String s = loc.getMethod().getFullName();
+   int idx = s.lastIndexOf(".");
+   if (idx >= 0) idx = s.lastIndexOf(".",idx-1);
+   if (idx > 0) s = s.substring(idx+1);
+   int line = loc.getProgramPoint().getLineNumber();
+   if (line > 0) s += " @ " + line;
+   return s;
+}
+
+
+
+protected String getRelativeTypeName(IfaceValue val)
+{
+   if (val.getDataType() == getDataType()) return null;
+   String s1 = getDataType().getName();
+   String s2 = s1;
+   int idx = s1.length();
+   for ( ; ; ) {
+      int idx1 = s1.lastIndexOf(".",idx);
+      if (Character.isUpperCase(s1.charAt(idx1+1))) {
+         s2 = s1.substring(idx1+1);
+         idx = idx1-1;
+         if (idx <= 0) break;
+       }
+      else break;
+    }
+   for (IfaceSubtype st : getDataType().getSubtypes()) {
+      if (val == null || getDataType().getValue(st) != val.getDataType().getValue(st)) {
+         s2 += "@" + getDataType().getValue(st);
+       }
+    }
+   return s2;
+}
+
+
+
+
+
+
+protected String getDescription(IfaceValue val) 
+{
+   String s1 = getRelativeTypeName(val);
+   if (isFixed()) {
+      String s3 = "SYSTEM";
+      if (isMutable()) s3 += "*";
+      if (s1 != null) s3 += " " + s1;
+      return s3;
+    }
+   String s2 = getLocationName();
+   if (s1 == null && s2 == null) {
+      if (isFunctionRef()) return "FUNCTION_REF";
+      return "OBJECT";
+    }
+   if (s1 == null && s2 != null) return s2;
+   if (s1 != null && s2 == null) return s1;
+   return s1 + " " + s2;
 }
 
 

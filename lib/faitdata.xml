@@ -376,5 +376,11 @@
    <CLASS NAME='java.time.format.DateTimeFormatter' />
 
    <PACKAGE NAME='java.lang.management' />
+   <PACKAGE NAME='sun.util.cldr' />
+   <METHOD NAME='java.util.Arrays.sort' />
+   <METHOD NAME='java.util.Arrays.parallelSort' />
+   <METHOD NAME='java.util.Arrays.copyOf' CLONE='true' />
+
+   <CLASS NAME='java.util.ServiceLoader' />
 
 </FAIT>

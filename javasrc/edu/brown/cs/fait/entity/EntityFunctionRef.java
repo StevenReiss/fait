@@ -40,6 +40,7 @@ import java.util.Map;
 import edu.brown.cs.fait.iface.IfaceLocation;
 import edu.brown.cs.fait.iface.IfaceType;
 import edu.brown.cs.fait.iface.IfaceValue;
+import edu.brown.cs.ivy.xml.IvyXmlWriter;
 
 class EntityFunctionRef extends EntityLocal
 {
@@ -92,6 +93,18 @@ public String getMethodName()                           { return method_name; }
 
 public boolean isFunctionRef()                          { return true; }
 
+
+/********************************************************************************/
+/*                                                                              */
+/*      Output Methods                                                          */
+/*                                                                              */
+/********************************************************************************/
+
+@Override protected void outputLocalXml(IvyXmlWriter xw)
+{
+   xw.field("KIND","FUNCTIONREF");
+   xw.field("METHOD",method_name);
+}
 
 
 }       // end of class EntityFunctionRef

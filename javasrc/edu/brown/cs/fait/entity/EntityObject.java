@@ -36,6 +36,7 @@
 package edu.brown.cs.fait.entity;
 
 import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.ivy.xml.IvyXmlWriter;
 
 import java.util.*;
 
@@ -170,6 +171,30 @@ protected void copyFields(EntityObject toobj)
    if (proto_handler != null) return proto_handler.getArrayContents(idx);
    return array_value;
 }
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Output Methods                                                          */
+/*                                                                              */
+/********************************************************************************/
+
+@Override protected void outputLocalXml(IvyXmlWriter xw)
+{
+   xw.field("KIND","OBJECT");
+   if (proto_handler != null) xw.field("ISPROTO",true);
+   if (array_value != null) xw.field("ISARRAY",true);
+   
+   for (Map.Entry<String,IfaceValue> ent : field_map.entrySet()) {
+      xw.begin("FIELD");
+      xw.field("NAME",ent.getKey());
+      xw.text(ent.getValue().toString());
+      xw.end("FIELD");
+    }
+}
+
+
 
 
 

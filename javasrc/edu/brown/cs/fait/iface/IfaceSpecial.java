@@ -61,6 +61,7 @@ boolean getSetFields();
 boolean isAffected();
 boolean getDontScan();
 boolean getForceScan();
+boolean getIsClone();
 Collection<String> getClassesToLoad();
 IfaceAnnotation [] getArgAnnotations(int idx);
 InlineType getInlineType();

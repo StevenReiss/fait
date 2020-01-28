@@ -44,6 +44,8 @@ import edu.brown.cs.fait.iface.IfaceValue;
 
 import static edu.brown.cs.fait.type.CheckSqlTaint.TaintState.*;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 
@@ -134,6 +136,19 @@ private CheckSqlTaint()
 
    return MAYBE_SQLTAINTED;
 }
+
+
+@Override public String getDefaultValues()
+{
+   return "MAYBE_SQLTAINTED UNSQLTAINTED";
+}
+
+
+@Override public Collection<IfaceSubtype.Value> getValues()
+{
+   return Arrays.asList(TaintState.values());
+}
+
 
 
 

@@ -39,6 +39,7 @@ import java.util.List;
 
 import edu.brown.cs.fait.iface.FaitConstants.FaitOperator;
 import edu.brown.cs.fait.iface.FaitConstants.FaitTypeOperator;
+import edu.brown.cs.ivy.xml.IvyXmlWriter;
 
 public interface IfaceType
 {
@@ -97,7 +98,9 @@ IfaceType getComputedType(FaitTypeOperator op);
 IfaceTypeImplications getImpliedTypes(FaitOperator op,IfaceType tr);
 List<IfaceType> getBackTypes(FaitOperator op,IfaceValue ... v);
 List<String> getAnnotations();
+List<IfaceSubtype> getSubtypes();
 
+void outputXml(IvyXmlWriter xw);
 
 
 

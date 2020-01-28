@@ -37,6 +37,7 @@ package edu.brown.cs.fait.value;
 
 import edu.brown.cs.fait.iface.*;
 import edu.brown.cs.ivy.jcode.JcodeConstants;
+import edu.brown.cs.ivy.xml.IvyXmlWriter;
 
 
 class ValueInt extends ValueNumber implements JcodeConstants
@@ -852,6 +853,15 @@ private static boolean same(Long l0,Long l1)
 /*	Output methods								*/
 /*										*/
 /********************************************************************************/
+
+@Override protected void outputLocalXml(IvyXmlWriter xw)
+{
+   xw.field("KIND","INT");
+   if (min_value != null) xw.field("MIN",min_value);
+   if (max_value != null) xw.field("MAX",max_value);
+}
+
+
 
 @Override public String toString()
 {

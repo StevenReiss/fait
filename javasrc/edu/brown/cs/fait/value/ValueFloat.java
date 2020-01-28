@@ -36,6 +36,7 @@
 package edu.brown.cs.fait.value;
 
 import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.ivy.xml.IvyXmlWriter;
 
 
 class ValueFloat extends ValueNumber
@@ -97,7 +98,16 @@ ValueFloat(ValueFactory vf,IfaceType dt,IfaceEntitySet es)
 }
 
 
+/********************************************************************************/
+/*                                                                              */
+/*      Output methods                                                          */
+/*                                                                              */
+/********************************************************************************/
 
+@Override protected void outputLocalXml(IvyXmlWriter xw)
+{
+   xw.field("KIND","FLOAT");
+}
 
 
 

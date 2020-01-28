@@ -39,6 +39,8 @@ package edu.brown.cs.fait.iface;
 import java.util.List;
 import java.util.Map;
 
+import edu.brown.cs.ivy.xml.IvyXmlWriter;
+
 public interface IfaceEntity extends FaitConstants {
 
 int getId();
@@ -47,7 +49,7 @@ IfaceType getDataType();
 
 IfaceLocation getLocation();
 
-boolean isUsedInLock();
+
 
 
 
@@ -102,6 +104,8 @@ boolean isFunctionRef();
 
 List<IfaceValue> getContents(List<IfaceValue> rslt);
 
+
+void outputXml(IvyXmlWriter xw,IfaceValue relval);
 
 
 }	// end of interface IfaceEntity

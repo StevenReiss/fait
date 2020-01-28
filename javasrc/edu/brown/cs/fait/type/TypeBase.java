@@ -52,6 +52,7 @@ import edu.brown.cs.fait.iface.IfaceSubtype;
 import edu.brown.cs.fait.iface.IfaceType;
 import edu.brown.cs.fait.iface.IfaceTypeImplications;
 import edu.brown.cs.fait.iface.IfaceValue;
+import edu.brown.cs.ivy.xml.IvyXmlWriter;
 
 
 class TypeBase implements IfaceType, FaitConstants
@@ -383,6 +384,17 @@ TypeBase(TypeFactory fac,IfaceBaseType base,IfaceSubtype.Value [] subs)
 }
 
 
+@Override public List<IfaceSubtype> getSubtypes()
+{
+   List<IfaceSubtype> rslt = new ArrayList<>();
+   for (int i = 0; i < type_factory.getNumSubtypes(); ++i) {
+      TypeSubtype st = type_factory.getSubtype(i);
+      IfaceSubtype.Value val = getValue(st);
+      if (val != null) rslt.add(st);
+    }
+   return rslt;
+}
+
 
 /********************************************************************************/
 /*                                                                              */
@@ -504,6 +516,25 @@ public IfaceType getCallType(IfaceCall c,IfaceValue rslt,List<IfaceValue> args)
 /*      Debugging methods                                                       */
 /*                                                                              */
 /********************************************************************************/
+
+@Override public void outputXml(IvyXmlWriter xw)
+{
+   xw.begin("TYPE");
+   xw.field("BASE",getJavaType().getName());
+   for (int i = 0; i < type_factory.getNumSubtypes(); ++i) {
+      TypeSubtype st = type_factory.getSubtype(i);
+      IfaceSubtype.Value val = getValue(st);
+      if (val != null) {
+         xw.begin("SUBTYPE");
+         xw.field("NAME",st.getName());
+         xw.field("VALUE",val);
+         xw.end("SUBTYPE");
+       }
+    }
+   xw.end("TYPE");
+}
+
+
 
 @Override public String toString()
 {

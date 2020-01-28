@@ -169,6 +169,7 @@ CallBase(IfaceControl fc,IfaceMethod fm,IfaceProgramPoint pt,IfaceSafetyStatus s
       ++num_result;
     }
    else if (special_data != null) {
+      is_clone = special_data.getIsClone();
       is_arg0 = special_data.returnsArg0();
       can_exit = special_data.getExits();
       set_fields = special_data.getSetFields();
@@ -507,7 +508,7 @@ CallBase(IfaceControl fc,IfaceMethod fm,IfaceProgramPoint pt,IfaceSafetyStatus s
       else {
 	 IfaceSafetyStatus nsts = safety_result.merge(sts);
 	 if (nsts != safety_result) {
-            FaitLog.logD1("Update safety status to " + nsts + " for " + hashCode());
+	    FaitLog.logD1("Update safety status to " + nsts + " for " + hashCode());
 	    safety_result = nsts;
 	    chng = true;
 	  }
@@ -734,7 +735,7 @@ private void fixArgs(IfaceMethod fm,List<IfaceValue> args)
 @Override public void noteCallSite(IfaceLocation loc)
 {
    if (loc == null) return;
-   
+
    synchronized (call_set) {
       call_set.add(loc);
     }
@@ -997,7 +998,7 @@ private boolean removeCaller(IfaceCall src)
    IfaceSafetyStatus osts = start_state.getSafetyStatus();
 
    if (sts == osts) return this;
-   
+
    if (alternate_call != null) return alternate_call.getAlternateCall(sts,pt);
 
    CallBase cb = new CallBase(fait_control,for_method,pt,sts);
@@ -1050,7 +1051,7 @@ private boolean removeCaller(IfaceCall src)
    num_scan = 0;
    num_forward = 0;
    num_backward = 0;
-   
+
    if (alternate_call != null) {
       alternate_call.resetStatistics();
     }
@@ -1063,7 +1064,7 @@ private boolean removeCaller(IfaceCall src)
       FaitStatistics alts = alternate_call.getStatistics();
       rslt.add(alts);
     }
-   
+
    return rslt;
 }
 

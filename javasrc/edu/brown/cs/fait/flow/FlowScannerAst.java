@@ -1547,7 +1547,7 @@ private Object visit(ClassInstanceCreation v)
    JcompType rty = JcompAst.getJavaType(v.getType());
    if (v.getAnonymousClassDeclaration() != null) {
       rty = JcompAst.getJavaType(v.getAnonymousClassDeclaration());
-    }	
+    }
    // TODO: handle expression.new ...
    if (after_node == null) {
       IfaceType irty = convertType(rty);
@@ -1713,7 +1713,7 @@ private Object visit(MethodInvocation v)
 
    int act = args.size();
    if (js != null && !js.isStatic()) ++act;
-   
+
    switch (processCall(v,act)) {
       case NOT_DONE :
 	 return NO_NEXT_REPORT;
@@ -2260,7 +2260,7 @@ private IfaceValue visitBack(ThrowStatement s,IfaceValue ref)
 
 private Object visit(TryStatement s)
 {
-   if (after_node == null || after_node.getLocationInParent() == TryStatement.RESOURCES_PROPERTY) {
+   if (after_node == null || after_node.getLocationInParent() == TryStatement.RESOURCES2_PROPERTY) {
       if (after_node == null) {
 	 pushValue(fait_control.findMarkerValue(ast_where,TryState.BODY));
        }
@@ -2555,7 +2555,7 @@ private Object visit(EnhancedForStatement s)
 	 ijt = ijt.getRunTimeType();
 	 IfaceValue cnts1 = flow_queue.castValue(ijt,cnts,getHere());
 	 if (cnts1 == null || cnts1.isEmptyEntitySet()) {
-            if (callneeded) return null;
+	    if (callneeded) return null;
 	    FaitLog.logE("CAST TO EMPTY ENTITY SET " + iv + " => " + cnts1);
 	    cnts = iv.getArrayContents();
 	    cnts1 = flow_queue.castValue(ijt,cnts,getHere());
@@ -3411,7 +3411,6 @@ private IfaceField getField(JcompSymbol sym)
 {
    IfaceType fcls = convertType(sym.getClassType());
    IfaceField fld = fait_control.findField(fcls,sym.getFullName());
-   if (fld != null) return fld;
    return fld;
 }
 
@@ -3784,6 +3783,8 @@ private double getFloatValue(String sv)
    dv = Double.parseDouble(sv);
    return dv;
 }
+
+
 
 
 

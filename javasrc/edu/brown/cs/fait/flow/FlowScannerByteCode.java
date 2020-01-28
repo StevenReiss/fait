@@ -293,10 +293,13 @@ private void processInstruction(IfaceProgramPoint inspt)
       case CHECKCAST :
 	 v0 = st1.popStack();
 	 IfaceAnnotation [] annots = fait_control.getAnnotations(inspt);
-	 IfaceType casttype = jdtyp;
-	 if (annots != null) casttype = casttype.getAnnotatedType(annots);
-	 v0 = v0.restrictByType(casttype);
-	 if (v0.mustBeNull()) v0 = fait_control.findNullValue(casttype);
+	 IfaceType casttype = null;
+	 if (annots != null) casttype = jdtyp.getAnnotatedType(annots);
+	 v0 = v0.restrictByType(jdtyp);
+         if (casttype != null) {
+            v0 = v0.changeType(casttype);
+          }
+	 if (v0.mustBeNull()) v0 = fait_control.findNullValue(jdtyp);
 	 if (!v0.mustBeNull() && v0.isEmptyEntitySet()) nins = null;
 	 if (FaitLog.isTracing()) FaitLog.logD1("Cast result = " + v0);
 	 st1.pushStack(v0);

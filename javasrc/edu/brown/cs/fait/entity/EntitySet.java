@@ -36,6 +36,7 @@
 package edu.brown.cs.fait.entity;
 
 import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.ivy.xml.IvyXmlWriter;
 
 import java.util.*;
 
@@ -373,6 +374,18 @@ EntitySet handleTypeRestricts(IfaceType dt)
 /*	Debugging methods							*/
 /*										*/
 /********************************************************************************/
+
+@Override public void outputXml(IvyXmlWriter xw,IfaceValue relval)
+{
+   xw.begin("ENTITYSET");
+   xw.field("SIZE",size());
+   for (IfaceEntity ent : getEntities()) {
+      ent.outputXml(xw,relval);
+    }
+   xw.end("ENTITYSET");
+}
+
+
 
 @Override public String toString()
 {

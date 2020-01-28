@@ -51,7 +51,7 @@ public class EntityFactory implements EntityConstants
 /*										*/
 /********************************************************************************/
 
-private IfaceControl		 fait_control;
+private IfaceControl            fait_control;
 private Map<BitSet,EntitySet>	set_table;
 private EntitySet		empty_set;
 private Map<IfaceEntity,EntitySet> single_map;

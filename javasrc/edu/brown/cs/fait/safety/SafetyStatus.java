@@ -46,6 +46,7 @@ import edu.brown.cs.fait.iface.IfaceLocation;
 import edu.brown.cs.fait.iface.IfaceSafetyCheck;
 import edu.brown.cs.fait.iface.IfaceSafetyStatus;
 import edu.brown.cs.fait.iface.IfaceSafetyCheck.Value;
+import edu.brown.cs.ivy.xml.IvyXmlWriter;
 
 class SafetyStatus implements IfaceSafetyStatus
 {
@@ -177,6 +178,32 @@ SafetyStatus(SafetyFactory sf,int [] sts)
 /*      Output methods                                                          */
 /*                                                                              */
 /********************************************************************************/
+
+@Override public void outputXml(IvyXmlWriter xw)
+{
+   xw.begin("SAFETY");
+   int idx = 0;
+   for (SafetyCheck sc : for_factory.getAllChecks()) {
+      int val = cur_status[idx++];
+      if (val == 0) continue;
+      StringBuffer buf = new StringBuffer();
+      while (val != 0) {
+         int i = Integer.numberOfTrailingZeros(val);
+         Value v = sc.getValueForOrdinal(i);
+         buf.append(v.toString());
+         val ^= (1 << i);
+         if (val != 0) buf.append(",");
+       } 
+      xw.begin("CHECK");
+      xw.field("NAME",sc.getName());
+      xw.field("VALUE",buf.toString());
+      xw.end("CHECK");
+    }
+   xw.end("SAFETY");
+}
+
+
+
 
 @Override public String toString()
 {

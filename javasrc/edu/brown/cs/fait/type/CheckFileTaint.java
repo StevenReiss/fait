@@ -44,6 +44,8 @@ import edu.brown.cs.fait.iface.IfaceValue;
 
 import static edu.brown.cs.fait.type.CheckFileTaint.TaintState.*;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 class CheckFileTaint extends TypeSubtype
@@ -143,6 +145,21 @@ private CheckFileTaint()
    
    return MAYBE_FILETAINTED;
 }
+
+
+@Override public String getDefaultValues()  
+{
+   return "MAYBE_FILETAINTED UNFILETAINTED";
+}
+
+
+
+@Override public Collection<IfaceSubtype.Value> getValues()
+{
+   return Arrays.asList(TaintState.values());
+}
+
+
 
 
 

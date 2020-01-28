@@ -36,6 +36,7 @@
 package edu.brown.cs.fait.type;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -76,6 +77,7 @@ private List<InstanceCheck> default_checks;
 private List<InstanceCheck> base_checks;
 private List<PredecessorCheck> predecessor_checks;
 private List<OpCheck> operator_checks;
+private Set<UserValue> default_values;
 
 
 
@@ -93,6 +95,7 @@ TypeSubtypeUser(Element xml)
    default_constant = null;
    default_uninit = null;
    default_value = null;
+   default_values = new HashSet<>();
    
    UserValue first = null;
    for (Element velt : IvyXml.children(xml,"VALUE")) {
@@ -116,6 +119,9 @@ TypeSubtypeUser(Element xml)
    if (default_value == null) default_value = first;
    if (default_uninit == null) default_uninit = default_value;
    if (default_constant == null) default_constant = default_value;
+   default_values.add(default_value);
+   default_values.add(default_uninit);
+   default_values.add(default_constant);
    
    for (Element velt : IvyXml.children(xml,"MERGE")) {
       String fnm = IvyXml.getAttrString(velt,"VALUE");
@@ -167,6 +173,7 @@ TypeSubtypeUser(Element xml)
       if (const_checks == null) const_checks = new ArrayList<>();
       InstanceCheck ck = new InstanceCheck(cchk);
       const_checks.add(ck);
+      default_values.add(ck.getBaseValue());
     }
    
    uninit_checks = null;
@@ -174,6 +181,7 @@ TypeSubtypeUser(Element xml)
       if (uninit_checks == null) uninit_checks = new ArrayList<>();
       InstanceCheck ck = new InstanceCheck(cchk);
       uninit_checks.add(ck);
+      default_values.add(ck.getBaseValue());
     }
    
    default_checks = null;
@@ -181,6 +189,7 @@ TypeSubtypeUser(Element xml)
       if (default_checks == null) default_checks = new ArrayList<>();
       InstanceCheck ck = new InstanceCheck(cchk);
       default_checks.add(ck);
+      default_values.add(ck.getBaseValue());
     }
    
    base_checks = null;
@@ -188,6 +197,7 @@ TypeSubtypeUser(Element xml)
       if (base_checks == null) base_checks = new ArrayList<>();
       InstanceCheck ck = new InstanceCheck(cchk);
       base_checks.add(ck);
+      default_values.add(ck.getBaseValue());
     }
    
    operator_checks = null;
@@ -203,6 +213,18 @@ TypeSubtypeUser(Element xml)
       PredecessorCheck ck = new PredecessorCheck(cchk);
       predecessor_checks.add(ck);
     }
+   
+   int ct = 0;
+   Set<UserValue> igns = new HashSet<>();
+   for (Element ichk : IvyXml.children(xml,"IGNORE")) {
+      ++ct;
+      String nm = IvyXml.getAttrString(ichk,"VALUE");
+      if (nm != null) {
+         UserValue val = value_set.get(nm);
+         if (val != null) igns.add(val);
+       }
+    }
+   if (ct > 0) default_values = igns;
 }
 
 
@@ -356,6 +378,24 @@ TypeSubtypeUser(Element xml)
 }
 
 
+@Override public String getDefaultValues()
+{
+   StringBuffer buf = new StringBuffer();
+   int ct = 0;
+   for (UserValue v : default_values) {
+      if (ct++ != 0) buf.append(" ");
+      buf.append(v);
+    }
+   return buf.toString();
+}
+
+
+@Override public Collection<IfaceSubtype.Value> getValues()
+{
+   return new ArrayList<>(value_set.values());
+}
+
+
 
 /********************************************************************************/
 /*                                                                              */
@@ -403,6 +443,8 @@ private class InstanceCheck {
       result_value = value_set.get(IvyXml.getAttrString(xml,"RESULT"));
       if (result_value == null) FaitLog.logE("Unknown result value for constant definition: " + xml);
     }
+   
+   UserValue getBaseValue()                             { return result_value; }
    
    UserValue getValue(IfaceBaseType typ,Object cnst) {
       if (is_primitive) {

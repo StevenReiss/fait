@@ -127,6 +127,7 @@ IfaceEntity findArrayEntity(IfaceType base,IfaceValue size);
 IfaceEntity findPrototypeEntity(IfaceType base,IfacePrototype from,IfaceLocation src,boolean mutable);
 IfaceEntity findFunctionRefEntity(IfaceLocation loc,IfaceType typ,String method);
 IfaceEntity findFunctionRefEntity(IfaceLocation loc,IfaceType typ,Map<Object,IfaceValue> bindings);
+IfaceEntity findEntityById(int id);
 IfaceEntity findLocalEntity(IfaceLocation loc,IfaceType dt,IfacePrototype ptyp);
 
 
@@ -268,6 +269,9 @@ Collection<IfaceAuxReference> getAuxRefs(IfaceField fld);
 Collection<IfaceAuxReference> getAuxArrayRefs(IfaceValue arr);
 
 void processErrorQuery(IfaceCall c,IfaceProgramPoint pt,IfaceError e,IvyXmlWriter xw);
+void processVarQuery(String method,int line,int pos,IvyXmlWriter xw) throws FaitException;
+void processToQuery(IfaceCall c,IfaceProgramPoint pt,IfaceEntity ent,
+      IfaceSubtype styp,IfaceSubtype.Value sval,IfaceValue refval,IvyXmlWriter xw);
 void processReflectionQuery(IvyXmlWriter xw);
 void processCriticalQuery(String ignores,IvyXmlWriter xw);
 

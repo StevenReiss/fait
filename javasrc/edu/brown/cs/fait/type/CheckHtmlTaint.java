@@ -44,6 +44,8 @@ import edu.brown.cs.fait.iface.IfaceValue;
 
 import static edu.brown.cs.fait.type.CheckHtmlTaint.TaintState.*;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 
@@ -144,6 +146,23 @@ private CheckHtmlTaint()
 
    return MAYBE_HTMLTAINTED;
 }
+
+@Override public String getDefaultValues()  
+{
+   return "MAYBE_HTMLTAINTED UNHTMLTAINTED";
+}
+
+
+@Override public Collection<IfaceSubtype.Value> getValues()
+{
+   return Arrays.asList(TaintState.values());
+}
+
+
+
+
+
+
 
 
 

@@ -39,6 +39,7 @@ import edu.brown.cs.fait.iface.FaitLog;
 import edu.brown.cs.fait.iface.IfaceField;
 import edu.brown.cs.fait.iface.IfaceType;
 import edu.brown.cs.fait.iface.IfaceValue;
+import edu.brown.cs.ivy.xml.IvyXmlWriter;
 
 
 
@@ -156,6 +157,28 @@ ValueRef(ValueFactory vf,IfaceType dt,int var,IfaceValue base,IfaceField fld,Ifa
 /*      Output methods                                                          */
 /*                                                                              */
 /********************************************************************************/
+
+@Override protected void outputLocalXml(IvyXmlWriter xw)
+{
+   xw.field("KIND","REF");
+   if (variable_slot >= 0) xw.field("LOCAL",variable_slot);
+   else if (variable_slot < -1) xw.field("STACK",getRefStack());
+   else if (field_name != null) xw.field("FIELD",field_name.getFullName());
+   else if (index_value != null) {
+      Integer ct = index_value.getIndexValue();
+      if (ct != null) xw.field("INDEX",ct);
+      else xw.field("INDEXED",true);
+    }
+   if (base_value != null) {
+      xw.field("BASE",base_value.hashCode());
+      if (base_value.isReference()) {
+         if (base_value.getRefSlot() >= 0) xw.field("BASELOCAL",base_value.getRefSlot());
+         if (base_value.getRefStack() >= 0) xw.field("BASESTACK",base_value.getRefStack());
+       }
+    }
+}
+
+
 
 @Override public String toString()
 {

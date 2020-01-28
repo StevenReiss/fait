@@ -36,6 +36,7 @@
 package edu.brown.cs.fait.entity;
 
 import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.ivy.xml.IvyXmlWriter;
 
 
 
@@ -90,6 +91,14 @@ EntityUser(String id,IfaceLocation base)
 /*      Output methods                                                          */
 /*                                                                              */
 /********************************************************************************/
+
+@Override protected void outputLocalXml(IvyXmlWriter xw)
+{
+   xw.field("KIND","USER");
+   xw.field("ETYPE",entity_type);
+}
+
+
 
 @Override public String toString()
 {

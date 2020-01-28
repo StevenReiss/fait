@@ -40,6 +40,8 @@ package edu.brown.cs.fait.iface;
 
 import java.util.List;
 
+import edu.brown.cs.ivy.xml.IvyXmlWriter;
+
 
 public interface IfaceLocation extends FaitConstants {
 
@@ -50,6 +52,7 @@ boolean sameBaseLocation(IfaceLocation loc);
 void handleCallback(IfaceMethod fm,List<IfaceValue> args,String cbid);
 void noteError(IfaceError er);
 
+void outputXml(IvyXmlWriter xw);
 
 }	// end of interface FaitLocation
 

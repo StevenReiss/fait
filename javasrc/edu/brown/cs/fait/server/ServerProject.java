@@ -61,7 +61,11 @@ import org.w3c.dom.Element;
 
 import edu.brown.cs.fait.iface.IfaceProgramPoint;
 import edu.brown.cs.fait.iface.IfaceProject;
+import edu.brown.cs.fait.iface.IfaceState;
+import edu.brown.cs.fait.iface.IfaceSubtype;
+import edu.brown.cs.fait.iface.IfaceType;
 import edu.brown.cs.fait.iface.IfaceUpdateSet;
+import edu.brown.cs.fait.iface.IfaceValue;
 import edu.brown.cs.fait.control.ControlDescriptionFile;
 import edu.brown.cs.fait.iface.FaitException;
 import edu.brown.cs.fait.iface.FaitLog;
@@ -70,7 +74,9 @@ import edu.brown.cs.fait.iface.IfaceAstReference;
 import edu.brown.cs.fait.iface.IfaceCall;
 import edu.brown.cs.fait.iface.IfaceControl;
 import edu.brown.cs.fait.iface.IfaceDescriptionFile;
+import edu.brown.cs.fait.iface.IfaceEntity;
 import edu.brown.cs.fait.iface.IfaceError;
+import edu.brown.cs.fait.iface.IfaceField;
 import edu.brown.cs.fait.iface.IfaceLocation;
 import edu.brown.cs.fait.iface.IfaceMethod;
 import edu.brown.cs.ivy.file.IvyFile;
@@ -226,7 +232,7 @@ private void setupFromXml(Element xml)
 
    boolean isused = false;
    if (IvyXml.getChild(xml,"USEDBY") != null) isused = true;
-   
+
    String wsdir = IvyXml.getAttrString(xml,"WORKSPACE");
    if (wsdir != null) {
       File wsf = new File(wsdir);
@@ -364,7 +370,7 @@ private void checkForDescriptionFile(String s)
 	    ftemp.deleteOnExit();
 	    ControlDescriptionFile dd = new ControlDescriptionFile(ftemp,f1);
 	    description_files.add(dd);
-            FaitLog.logD("Create file " + ftemp + " for fait.xml in " + s);
+	    FaitLog.logD("Create file " + ftemp + " for fait.xml in " + s);
 	  }
 	 jf.close();
        }
@@ -459,7 +465,7 @@ IfaceUpdateSet compileProject()
 	 for (ServerFile sf : newfiles) {
 	    FaitLog.logI("Update file " + sf.getFileName());
 	  }
-	
+
 	 clearProject();
 	 getJcompProject();
 	 getEditableClasses();		// this resolves the project
@@ -604,7 +610,7 @@ private class ClassFinder extends ASTVisitor {
 /*										*/
 /********************************************************************************/
 
-public Collection<IfaceDescriptionFile> getDescriptionFiles()	
+public Collection<IfaceDescriptionFile> getDescriptionFiles()
 {
    return description_files;
 }
@@ -752,7 +758,7 @@ private void outputErrors(IfaceControl ifc,IvyXmlWriter xw,boolean editable,bool
 	    file = findSourceFile(cls);
 	  }
 	 // TODO : this gives us the .class file, need to find corresponding source file
-	
+
 	 if (erronly) {
 	    boolean haveerr = false;
 	    for (IfaceProgramPoint ppt : ppts) {
@@ -765,7 +771,7 @@ private void outputErrors(IfaceControl ifc,IvyXmlWriter xw,boolean editable,bool
 
 	 xw.begin("CALL");
 	 xw.field("METHOD",ic.getMethod().getName());
-         xw.field("INPROJECT",ifc.isInProject(ic.getMethod()));
+	 xw.field("INPROJECT",ifc.isInProject(ic.getMethod()));
 	 xw.field("CLASS",ic.getMethod().getDeclaringClass().getName());
 	 xw.field("SIGNATURE",ic.getMethod().getDescription());
 	 if (file != null) xw.field("FILE",file);
@@ -848,7 +854,6 @@ void handleQuery(Element qxml,IvyXmlWriter xw) throws FaitException
       mnm = mnm.substring(idx2+1);
     }
    IfaceMethod m = ctrl.findMethod(mcl,mnm,msg);
-
    IfaceCall call = null;
    for (IfaceCall c : ctrl.getAllCalls(m)) {
       for (IfaceCall c1 : c.getAlternateCalls()) {
@@ -860,7 +865,23 @@ void handleQuery(Element qxml,IvyXmlWriter xw) throws FaitException
        }
     }
    if (call == null) throw new FaitException("Call not found");
+   
+   String qtype = IvyXml.getAttrString(qxml,"QTYPE");
+   switch (qtype) {
+      case "ERROR" :
+         handleErrorQuery(ctrl,qxml,call,xw);
+         break;
+      case "TO" :
+      case "EXPLAIN" :
+         handleToQuery(ctrl,qxml,call,xw);
+         break;
+    }
+}
 
+
+private void handleErrorQuery(IfaceControl ctrl,Element qxml,IfaceCall call,IvyXmlWriter xw) 
+        throws FaitException
+{
    Set<Integer> errids = new HashSet<>();
    StringTokenizer tok = new StringTokenizer(IvyXml.getAttrString(qxml,"ERROR"));
    while (tok.hasMoreTokens()) {
@@ -912,10 +933,154 @@ void handleQuery(Element qxml,IvyXmlWriter xw) throws FaitException
 
 
 
+private void handleToQuery(IfaceControl ctrl,Element qxml,IfaceCall call,IvyXmlWriter xw)
+        throws FaitException
+{
+   int spos = IvyXml.getAttrInt(qxml,"START");
+   int loc = IvyXml.getAttrInt(qxml,"LOCATION");
+   
+   IfaceProgramPoint pt0 = call.getMethod().getStart();
+   IfaceAstReference r0 = pt0.getAstReference();
+   ASTNode an0 = getReferredNode(r0.getAstNode(),spos,loc);
+   if (an0 == null) throw new FaitException("Program point not found");
+   
+   int apos = IvyXml.getAttrInt(qxml,"AFTER");
+   int aloc = IvyXml.getAttrInt(qxml,"AFTERLOCATION");
+   ASTNode aft = null;
+   if (apos >= 0) {
+      aft = getReferredNode(r0.getAstNode(),apos,aloc);
+      if (aft == null) throw new FaitException("Program after point not found");
+    }
+   IfaceProgramPoint ppt = ctrl.getAstReference(an0,aft);
+   
+   IfaceEntity ent = null;
+   int entid = IvyXml.getAttrInt(qxml,"ENTITY");
+   if (entid >= 0) {
+      ent = ctrl.findEntityById(entid);
+      if (ent == null) throw new FaitException("Entity " + entid + " not found");
+    }
+   
+   String stn = IvyXml.getAttrString(qxml,"SUBTYPE");
+   String stv = IvyXml.getAttrString(qxml,"SUBTYPEVALUE");
+   IfaceSubtype styp = null;
+   IfaceSubtype.Value sval = null;
+   if (stn != null) {
+      for (IfaceSubtype st0 : ctrl.getAllSubtypes()) {
+         if (st0.getName().equals(stn)) {
+            styp = st0;
+            break;
+          }
+       }
+      if (styp == null) throw new FaitException("Can't find subtype " + stn);
+      for (IfaceSubtype.Value sv0 : styp.getValues()) {
+         if (sv0.toString().equals(stv)) {
+            sval = sv0;
+            break;
+          }
+       }
+      if (sval == null) throw new FaitException("Can't find subtype value " + stv);
+    }
+   
+   String vtypnm = IvyXml.getAttrString(qxml,"TYPE");
+   IfaceType vtyp = null;
+   if (vtypnm != null) vtyp = ctrl.findDataType(vtypnm);
+   
+   IfaceValue ref = null;
+   Element refxml = IvyXml.getChild(qxml,"REFERENCE");
+   int slot = IvyXml.getAttrInt(refxml,"SLOT");
+   int stk = IvyXml.getAttrInt(refxml,"STACK");
+   if (slot >= 0) {
+      ref = ctrl.findRefValue(vtyp,slot);
+    }
+   else if (stk >= 0) {
+      ref = ctrl.findRefStackValue(vtyp,stk);
+    }
+   String fldnm = IvyXml.getAttrString(refxml,"FIELD");
+   if (fldnm != null) {
+      if (ref == null) {
+         IfaceState state = ctrl.findStateForLocation(call,ppt);
+         int bid = IvyXml.getAttrInt(refxml,"BASEID");
+         for (int i = 0; ; ++i) {
+            IfaceValue sv = state.getStack(i);
+            if (sv == null) break;
+            if (sv.hashCode() == bid) {
+               ref = sv;
+               break;
+             }
+          }
+         if (ref == null) {
+            for (int i = 0; ; ++i) {
+               IfaceValue sv = state.getLocal(i);
+               if (sv == null) break;
+               if (sv.hashCode() == bid) {
+                  ref = sv;
+                  break;
+                }
+             }
+          }
+       }
+      if (ref == null) {
+         throw new FaitException("Can't find base value for field " + fldnm);
+       }
+      int idx1 = fldnm.lastIndexOf(".");
+      String cnm = fldnm.substring(0,idx1);
+      String fnm = fldnm.substring(idx1+1);
+      IfaceType ftyp = ctrl.findDataType(cnm);
+      IfaceField fld = ctrl.findField(ftyp,fnm);
+      if (fld == null) throw new FaitException("Field " + fldnm + " not found");
+      ref = ctrl.findRefValue(vtyp,ref,fld);
+    }
+   if (ref == null) throw new FaitException("Reference not found");
+   
+   xw.begin("QUERY");
+   xw.field("METHOD",call.getMethod().getFullName());
+   xw.field("SIGNATURE",call.getMethod().getDescription());
+   xw.field("ENTITY",ent.getId());
+   
+   if (styp != null) {
+      xw.field("SUBTYPE",styp.getName());
+      xw.field("SUBTYPEVALUE",sval.toString());
+    }
+   xw.field("CALL",call.hashCode());
+   ppt.outputXml(xw);
+   ctrl.processToQuery(call,ppt,ent,styp,sval,ref,xw);
+   xw.end("QUERY");
+}
+
+
+private ASTNode getReferredNode(ASTNode root,int spos,int ntyp)
+{
+   ASTNode an0 = JcompAst.findNodeAtOffset(root,spos);
+   while (an0 != null && an0.getNodeType() != ntyp) {
+      an0 = an0.getParent();
+    }
+   return an0;
+}
+
+
+void handleVarQuery(Element qxml,IvyXmlWriter xw) throws FaitException
+{
+   IfaceControl ctrl = null;
+   if (current_runner != null) {
+      ctrl = current_runner.getControl();
+    }
+   if (ctrl == null) {
+      throw new FaitException("Analysis not run");
+    }
+
+   String mnm = IvyXml.getAttrString(qxml,"METHOD");
+   int pos = IvyXml.getAttrInt(qxml,"START");
+   int line = IvyXml.getAttrInt(qxml,"LINE");
+
+   ctrl.processVarQuery(mnm,line,pos,xw);
+}
+
+
+
 /********************************************************************************/
-/*                                                                              */
-/*      Handle Reflection queries                                               */
-/*                                                                              */
+/*										*/
+/*	Handle Reflection queries						*/
+/*										*/
 /********************************************************************************/
 
 void handleReflection(Element xml,IvyXmlWriter xw) throws FaitException
@@ -927,16 +1092,16 @@ void handleReflection(Element xml,IvyXmlWriter xw) throws FaitException
    if (ctrl == null) {
       throw new FaitException("Analysis not run");
     }
-   
+
    ctrl.processReflectionQuery(xw);
 }
 
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Handle determining the set of critical routines                         */
-/*                                                                              */
+/*										*/
+/*	Handle determining the set of critical routines 			*/
+/*										*/
 /********************************************************************************/
 
 void handleFindCritical(Element xml,IvyXmlWriter xw) throws FaitException
@@ -948,7 +1113,7 @@ void handleFindCritical(Element xml,IvyXmlWriter xw) throws FaitException
    if (ctrl == null) {
       throw new FaitException("Analysis not run");
     }
-   
+
    String ignores = IvyXml.getAttrString(xml,"IGNORES");
    ctrl.processCriticalQuery(ignores,xw);
 }
@@ -956,9 +1121,9 @@ void handleFindCritical(Element xml,IvyXmlWriter xw) throws FaitException
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Handle performance queries                                              */
-/*                                                                              */
+/*										*/
+/*	Handle performance queries						*/
+/*										*/
 /********************************************************************************/
 
 void handlePerformance(Element xml,IvyXmlWriter xw) throws FaitException
@@ -967,7 +1132,7 @@ void handlePerformance(Element xml,IvyXmlWriter xw) throws FaitException
    double scancutoff = IvyXml.getAttrDouble(xml,"SCANCUTOFF",100.0);
    Map<IfaceMethod,FaitStatistics> basecounts = new HashMap<>();
    Map<IfaceMethod,FaitStatistics> totalcounts = new HashMap<>();
-   
+
    IfaceControl ctrl = null;
    if (current_runner != null) {
       ctrl = current_runner.getControl();
@@ -975,7 +1140,7 @@ void handlePerformance(Element xml,IvyXmlWriter xw) throws FaitException
    if (ctrl == null) {
       throw new FaitException("Analysis not run");
     }
-   
+
    FaitStatistics totals = new FaitStatistics();
    for (IfaceCall c : ctrl.getAllCalls()) {
       FaitStatistics stats = c.getStatistics();
@@ -983,23 +1148,23 @@ void handlePerformance(Element xml,IvyXmlWriter xw) throws FaitException
     }
    cutoff = totals.getNumForward() * cutoff / 100.0;
    scancutoff = totals.getNumScans() * scancutoff / 100.0;
-   
+
    for (IfaceCall c : ctrl.getAllCalls()) {
       FaitStatistics stats = c.getStatistics();
       if (stats.accept(cutoff,scancutoff)) {
-         addCounts(basecounts,c.getMethod(),stats,1);
-         addCounts(totalcounts,c.getMethod(),stats,1);
-         updateParents(c,stats,totalcounts,1.0);
+	 addCounts(basecounts,c.getMethod(),stats,1);
+	 addCounts(totalcounts,c.getMethod(),stats,1);
+	 updateParents(c,stats,totalcounts,1.0,new HashSet<>());
        }
     }
-   
+
    xw.begin("PERFORMANCE");
    totals.outputXml("TOTALS",xw);
    for (Map.Entry<IfaceMethod,FaitStatistics> ent : totalcounts.entrySet()) {
       IfaceMethod im = ent.getKey();
       FaitStatistics stats = ent.getValue();
       if (!stats.accept(cutoff,scancutoff)) continue;
-      
+
       xw.begin("METHOD");
       xw.field("NAME",im.getFullName());
       xw.field("INPROJECT",ctrl.isInProject(im));
@@ -1013,15 +1178,19 @@ void handlePerformance(Element xml,IvyXmlWriter xw) throws FaitException
    xw.end("PERFORMANCE");
 }
 
+		
 
-private void updateParents(IfaceCall c,FaitStatistics stats,Map<IfaceMethod,FaitStatistics> totals,double fract)
+private void updateParents(IfaceCall c,FaitStatistics stats,Map<IfaceMethod,FaitStatistics> totals,
+			      double fract,HashSet<IfaceCall> done)
 {
+   if (!done.add(c)) return;
+
    List<IfaceLocation> callers = getAllCallers(c);
    for (IfaceLocation loc : callers) {
       double nfract = fract / callers.size();
       if (nfract < 0.0001) continue;
       addCounts(totals,loc.getMethod(),stats,nfract);
-      updateParents(loc.getCall(),stats,totals,nfract);
+      updateParents(loc.getCall(),stats,totals,nfract,done);
     }
 }
 
@@ -1045,10 +1214,10 @@ private List<IfaceLocation> getAllCallers(IfaceCall c)
    List<IfaceLocation> rslt = new ArrayList<>();
    for (IfaceCall cc : c.getAlternateCalls()) {
       for (IfaceLocation loc : cc.getCallSites()) {
-         rslt.add(loc);
+	 rslt.add(loc);
        }
     }
-   
+
    return rslt;
 }
 
@@ -1056,9 +1225,9 @@ private List<IfaceLocation> getAllCallers(IfaceCall c)
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Handle test case generation                                             */
-/*                                                                              */
+/*										*/
+/*	Handle test case generation						*/
+/*										*/
 /********************************************************************************/
 
 void handleTestCase(Element path,IvyXmlWriter xw) throws FaitException
@@ -1070,7 +1239,7 @@ void handleTestCase(Element path,IvyXmlWriter xw) throws FaitException
    if (ctrl == null) {
       throw new FaitException("Analysis not run");
     }
-   
+
    ctrl.generateTestCase(path,xw);
 }
 
@@ -1078,9 +1247,9 @@ void handleTestCase(Element path,IvyXmlWriter xw) throws FaitException
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Handle description file queries                                         */
-/*                                                                              */
+/*										*/
+/*	Handle description file queries 					*/
+/*										*/
 /********************************************************************************/
 
 List<File> getBaseDescriptionFiles()

@@ -48,6 +48,7 @@ IfaceSubtype.Value getValueFor(IfaceSubtype.Attr attribute);
 IfaceSubtype.Value getMergeValue(IfaceSubtype.Value v1,IfaceSubtype.Value v2);
 IfaceSubtype.Value getRestrictValue(IfaceSubtype.Value v1,IfaceSubtype.Value v2);
 Collection<IfaceSubtype.Attr> getAttributes();
+Collection<IfaceSubtype.Value> getValues();
 
 boolean isCompatibleWith(IfaceSubtype.Value v1,IfaceSubtype.Value v2);
 IfaceError checkCompatabilityWith(IfaceSubtype.Value v1,IfaceSubtype.Value v2);
@@ -64,6 +65,8 @@ IfaceSubtype.Value getComputedValue(FaitTypeOperator op,IfaceSubtype.Value oval)
 IfaceSubtype.Value getCallValue(IfaceCall cm,IfaceValue rslt,List<IfaceValue> args);
 IfaceSubtype.Value getImpliedValue(FaitOperator op,IfaceValue v0,IfaceValue v1,boolean branch);
 IfaceAnnotation getArgumentAnnotation(FaitOperator op,int opnd,IfaceValue [] vals);
+
+String getDefaultValues();
 
 boolean isAnnotationRelevant(IfaceAnnotation an);
 

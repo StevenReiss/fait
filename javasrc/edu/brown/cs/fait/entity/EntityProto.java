@@ -36,6 +36,7 @@
 package edu.brown.cs.fait.entity;
 
 import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.ivy.xml.IvyXmlWriter;
 
 import java.util.*;
 
@@ -218,6 +219,19 @@ EntityProto(IfaceType typ,IfacePrototype from,boolean mutable)
 /*      Output methods                                                          */
 /*                                                                              */
 /********************************************************************************/
+
+@Override protected void outputLocalXml(IvyXmlWriter xw) 
+{
+   xw.field("KIND","PROTO");
+}
+
+
+
+
+
+
+
+
 
 @Override public String toString()
 {

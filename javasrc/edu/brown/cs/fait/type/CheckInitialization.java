@@ -42,6 +42,9 @@ import edu.brown.cs.fait.iface.IfaceValue;
 
 import static edu.brown.cs.fait.type.CheckInitialization.InitializationState.*;
 
+import java.util.Arrays;
+import java.util.Collection;
+
 
 public class CheckInitialization extends TypeSubtype
 {
@@ -122,6 +125,21 @@ private CheckInitialization()
 {
    return UNKNOWN;
 }
+
+
+@Override public String getDefaultValues()
+{
+   return "INITIALIZED UNKNOWN";
+}
+
+
+@Override public Collection<IfaceSubtype.Value> getValues()
+{
+   return Arrays.asList(InitializationState.values());
+}
+
+
+
 
 
 @Override public InitializationState getDefaultConstantValue(IfaceBaseType typ,Object cnst)

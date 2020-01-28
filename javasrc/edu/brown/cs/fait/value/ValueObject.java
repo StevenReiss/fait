@@ -38,6 +38,7 @@ package edu.brown.cs.fait.value;
 
 import edu.brown.cs.fait.iface.*;
 import edu.brown.cs.ivy.jcode.JcodeConstants;
+import edu.brown.cs.ivy.xml.IvyXmlWriter;
 
 import java.util.*;
 
@@ -137,7 +138,21 @@ ValueObject(ValueFactory vf,IfaceType typ,IfaceEntitySet es,IfaceAnnotation ... 
    synchronized (change_map) {
       ValueBase nv = change_map.get(dt);
       if (nv == null) {
-         nv = value_factory.objectValue(dt,getEntitySet());
+         if (getEntitySet().size() == 1) {
+            for (IfaceEntity ie : getEntitySet().getEntities()) {
+               if (ie.isFixed() && ie.isMutable()) {
+                  nv = value_factory.mutableValue(dt);
+                  break;
+                }
+               else if (ie.isFixed()) {
+                  nv = value_factory.nativeValue(dt);
+                  break;
+                }
+             }
+          }
+         if (nv == null) {
+            nv = value_factory.objectValue(dt,getEntitySet());
+          }
          change_map.put(dt,nv);
        }
       return  nv;
@@ -521,6 +536,10 @@ private IfaceType getSetType(IfaceEntitySet es)
 /*										*/
 /********************************************************************************/
 
+@Override protected void outputLocalXml(IvyXmlWriter xw)
+{
+   xw.field("KIND","OBJECT");
+}
 
 @Override public String toString()
 {

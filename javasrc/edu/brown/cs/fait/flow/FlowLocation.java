@@ -44,6 +44,7 @@ import edu.brown.cs.fait.iface.IfaceLocation;
 import edu.brown.cs.fait.iface.IfaceMethod;
 import edu.brown.cs.fait.iface.IfaceProgramPoint;
 import edu.brown.cs.fait.iface.IfaceValue;
+import edu.brown.cs.ivy.xml.IvyXmlWriter;
 
 class FlowLocation implements IfaceLocation, FlowConstants
 {
@@ -166,9 +167,22 @@ public int hashCode()
 
 /********************************************************************************/
 /*                                                                              */
-/*      Debugging methods                                                       */
+/*      Output methods                                                          */
 /*                                                                              */
 /********************************************************************************/
+
+@Override public void outputXml(IvyXmlWriter xw)
+{
+   xw.begin("LOCATION");
+   if (for_call != null) {
+      xw.field("METHOD",for_call.getMethod().getFullName());
+      xw.field("CALLID",for_call.hashCode());
+      program_point.outputXml(xw);
+    }
+   xw.end("LOCATION");
+}
+
+
 
 @Override public String toString()
 {

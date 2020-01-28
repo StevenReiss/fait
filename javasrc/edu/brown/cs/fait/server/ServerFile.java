@@ -1,34 +1,34 @@
 /********************************************************************************/
-/*                                                                              */
-/*              ServerFile.java                                                 */
-/*                                                                              */
-/*      Representation of a single editable file                                */
-/*                                                                              */
+/*										*/
+/*		ServerFile.java 						*/
+/*										*/
+/*	Representation of a single editable file				*/
+/*										*/
 /********************************************************************************/
-/*      Copyright 2011 Brown University -- Steven P. Reiss                    */
+/*	Copyright 2011 Brown University -- Steven P. Reiss		      */
 /*********************************************************************************
- *  Copyright 2011, Brown University, Providence, RI.                            *
- *                                                                               *
- *                        All Rights Reserved                                    *
- *                                                                               *
- *  Permission to use, copy, modify, and distribute this software and its        *
- *  documentation for any purpose other than its incorporation into a            *
- *  commercial product is hereby granted without fee, provided that the          *
- *  above copyright notice appear in all copies and that both that               *
- *  copyright notice and this permission notice appear in supporting             *
- *  documentation, and that the name of Brown University not be used in          *
- *  advertising or publicity pertaining to distribution of the software          *
- *  without specific, written prior permission.                                  *
- *                                                                               *
- *  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS                *
- *  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND            *
- *  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY      *
- *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY          *
- *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,              *
- *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS               *
- *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE          *
- *  OF THIS SOFTWARE.                                                            *
- *                                                                               *
+ *  Copyright 2011, Brown University, Providence, RI.				 *
+ *										 *
+ *			  All Rights Reserved					 *
+ *										 *
+ *  Permission to use, copy, modify, and distribute this software and its	 *
+ *  documentation for any purpose other than its incorporation into a		 *
+ *  commercial product is hereby granted without fee, provided that the 	 *
+ *  above copyright notice appear in all copies and that both that		 *
+ *  copyright notice and this permission notice appear in supporting		 *
+ *  documentation, and that the name of Brown University not be used in 	 *
+ *  advertising or publicity pertaining to distribution of the software 	 *
+ *  without specific, written prior permission. 				 *
+ *										 *
+ *  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS		 *
+ *  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND		 *
+ *  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY	 *
+ *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY 	 *
+ *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,		 *
+ *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS		 *
+ *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE 	 *
+ *  OF THIS SOFTWARE.								 *
+ *										 *
  ********************************************************************************/
 
 
@@ -54,31 +54,31 @@ import edu.brown.cs.ivy.jcomp.JcompAst;
 import edu.brown.cs.ivy.jcomp.JcompAstCleaner;
 import edu.brown.cs.ivy.jcomp.JcompExtendedSource;
 
-class ServerFile implements ServerConstants, JcompAstCleaner, JcompExtendedSource 
+class ServerFile implements ServerConstants, JcompAstCleaner, JcompExtendedSource
 {
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Private Storage                                                         */
-/*                                                                              */
+/*										*/
+/*	Private Storage 							*/
+/*										*/
 /********************************************************************************/
 
 private IDocument		edit_document;
 private File			for_file;
-private ASTNode                 general_root;
-private ASTNode                 project_root;
+private ASTNode 		general_root;
+private ASTNode 		project_root;
 
-private static AtomicInteger    edit_counter = new AtomicInteger();
+private static AtomicInteger	edit_counter = new AtomicInteger();
 private static ServerProject	current_project;
 
 
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Constructors                                                            */
-/*                                                                              */
+/*										*/
+/*	Constructors								*/
+/*										*/
 /********************************************************************************/
 
 ServerFile(File f,String cnts,String linesep)
@@ -100,7 +100,7 @@ ServerFile(File f,String cnts,String linesep)
 void editFile(int len,int off,String txt,boolean complete)
 {
    edit_counter.incrementAndGet();
-   
+
    if (complete) len = edit_document.getLength();
    try {
       edit_document.replace(off,len,txt);
@@ -108,7 +108,7 @@ void editFile(int len,int off,String txt,boolean complete)
    catch (BadLocationException e) {
       FaitLog.logE("Problem doing file edit",e);
     }
-   
+
    synchronized (this) {
       general_root = null;
     }
@@ -147,7 +147,7 @@ static int getEditCount()
 public ASTNode cleanupAst(ASTNode n)
 {
    cleanupAstRoot(n);
-   
+
    return n;
 }
 
@@ -166,22 +166,22 @@ ASTNode getAst()
       an = general_root;
       if (an != null) return an;
     }
-   
+
    an = buildAst();
-   
+
    synchronized (this) {
       ASTNode nan = general_root;
       if (nan != null) an = nan;
       else general_root = an;
     }
-   
+
    return an;
 }
 
 
 private ASTNode buildAst()
 {
-   ASTParser parser = ASTParser.newParser(AST.JLS8);
+   ASTParser parser = ASTParser.newParser(AST.JLS11);
    parser.setKind(ASTParser.K_COMPILATION_UNIT);
    parser.setSource(edit_document.get().toCharArray());
    Map<String,String> options = JavaCore.getOptions();
@@ -192,7 +192,7 @@ private ASTNode buildAst()
    ASTNode an = parser.createAST(null);
    JcompAst.setSource(an,this);
    cleanupAstRoot(an);
-   
+
    return an;
 }
 
@@ -203,7 +203,7 @@ void saveAst()
    FaitLog.logI("Save ast for " + for_file + " " + (an == null));
    project_root = an;
    if (for_file.getPath().contains("SecurityRequest") &&
-        !an.toString().contains("$$$")) {
+	!an.toString().contains("$$$")) {
       FaitLog.logE("Bad AST: " + an);
     }
 }
@@ -226,7 +226,7 @@ Position createPosition(int pos)
    catch (BadLocationException e) {
       return null;
     }
-   
+
    return p;
 }
 
@@ -252,7 +252,7 @@ Position createPosition(int pos)
 }
 
 
-@Override public ASTNode getAstRootNode()                
+@Override public ASTNode getAstRootNode()		
 {
    return project_root;
 }
@@ -267,9 +267,9 @@ public File getFile()
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Debugging methods                                                       */
-/*                                                                              */
+/*										*/
+/*	Debugging methods							*/
+/*										*/
 /********************************************************************************/
 
 @Override public String toString()
@@ -279,7 +279,7 @@ public File getFile()
 
 
 
-}       // end of class ServerFile
+}	// end of class ServerFile
 
 
 

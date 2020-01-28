@@ -36,6 +36,7 @@
 package edu.brown.cs.fait.entity;
 
 import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.ivy.xml.IvyXmlWriter;
 
 
 
@@ -116,6 +117,13 @@ EntityLocal(IfaceLocation where,IfaceType cls,IfacePrototype ptyp)
 /*      Output and debugging methods                                            */
 /*                                                                              */
 /********************************************************************************/
+
+@Override protected void outputLocalXml(IvyXmlWriter xw)
+{
+   xw.field("KIND","LOCAL");
+}
+
+
 
 @Override public String toString()
 {

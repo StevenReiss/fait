@@ -9,4 +9,8 @@
 
    <LOAD CLASS='edu.brown.cs.fait.control.ControlMain' />
 
+   <PACKAGE NAME='com.sun.org.apache.xerces.internal' />
+   <PACKAGE NAME='org.eclipse.jdt.internal' />
+
+
 </FAIT>

@@ -444,6 +444,25 @@ private void handleQuery(String sid,Element xml,IvyXmlWriter xw)
 }
 
 
+private void handleVarQuery(String sid,Element xml,IvyXmlWriter xw)
+{
+   ServerSession ss = session_map.get(sid);
+   if (ss == null) return;
+   ServerProject sp = ss.getProject();
+   
+   try {
+      sp.handleVarQuery(xml,xw);
+    }
+   catch (FaitException e) {
+      xw.begin("FAITQUERY");
+      xw.field("FAIL",true);
+      xw.field("ERROR",e.getMessage());
+      xw.end("FAITQUERY");
+    }
+}
+
+
+
 private void handleTestCase(String sid,Element xml,IvyXmlWriter xw)
 {
    ServerSession ss = session_map.get(sid);
@@ -663,6 +682,9 @@ private String processCommand(String cmd,String sid,Element e) throws ServerExce
          break;
       case "CRITICAL" :
          handleFindCritical(sid,e,xw);
+         break;
+      case "VARQUERY" :
+         handleVarQuery(sid,e,xw);
          break;
       case "TESTCASE" :
          handleTestCase(sid,e,xw);

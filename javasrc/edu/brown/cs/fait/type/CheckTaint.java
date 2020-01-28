@@ -44,6 +44,8 @@ import edu.brown.cs.fait.iface.IfaceValue;
 
 import static edu.brown.cs.fait.type.CheckTaint.TaintState.*;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 public class CheckTaint extends TypeSubtype
@@ -124,6 +126,19 @@ private CheckTaint()
    
    return MAYBE_TAINTED;
 }
+
+
+@Override public String getDefaultValues()
+{
+   return "MAYBE_TAINTED UNTAINTED";
+}
+
+
+@Override public Collection<IfaceSubtype.Value> getValues()
+{
+   return Arrays.asList(TaintState.values());
+}
+
 
 
 

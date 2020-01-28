@@ -417,11 +417,17 @@ boolean update()
       int idx = typ.lastIndexOf(".");
       if (idx > 0) typ = typ.substring(idx+1);
       xw.field("NODETYPE",typ);
+      xw.field("NODETYPEID",eval_node.getNodeType());
     }
    if (after_child != null) {
       StructuralPropertyDescriptor spd = after_child.getLocationInParent();
       xw.field("AFTER",spd.getId());
       xw.field("AFTERSTART",after_child.getStartPosition());
+      String typ = after_child.getClass().getName();
+      int idx = typ.lastIndexOf(".");
+      if (idx > 0) typ = typ.substring(idx+1);
+      xw.field("AFTERTYPE",typ);
+      xw.field("AFTERTYPEID",after_child.getNodeType());
     }
    if (run_status != null) {
       xw.field("STATUS",run_status.getReason());

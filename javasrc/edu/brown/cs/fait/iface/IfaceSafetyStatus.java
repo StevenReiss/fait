@@ -37,6 +37,8 @@ package edu.brown.cs.fait.iface;
 
 import java.util.Set;
 
+import edu.brown.cs.ivy.xml.IvyXmlWriter;
+
 public interface IfaceSafetyStatus extends FaitConstants
 {
 
@@ -46,6 +48,7 @@ IfaceSafetyStatus update(String event,IfaceLocation loc);
 
 Set<IfaceSafetyCheck.Value> getValue(IfaceSafetyCheck chk);
 
+void outputXml(IvyXmlWriter xw);
 
 }       // end of interface IfaceSafetyStatus
 

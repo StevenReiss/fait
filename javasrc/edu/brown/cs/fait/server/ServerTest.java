@@ -37,8 +37,10 @@ package edu.brown.cs.fait.server;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
@@ -190,7 +192,7 @@ public synchronized void serverTestS6()
 @Test
 public synchronized void serverTestFait()
 {
-   runServerTest("fait","fait",0,null);
+   runServerTest("fait","fait",4,null);
 }
 
 
@@ -222,7 +224,21 @@ public synchronized void serverTestBubbles()
 @Test
 public synchronized void serverTestJavaSecurity()
 {
-   runServerTest("javasecurity","WebServer",50,null);
+   List<VarQueryTest> vqs = new ArrayList<>();
+   List<EntityQueryTest> eqs = new ArrayList<>();  
+   
+   VarQueryTest vq1 = new VarQueryTest(79,2020,"q","edu.brown.cs.securitylab.SecurityDatabase.query(String,Object[])",
+	 "/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityDatabase.java");
+   vqs.add(vq1);  
+   VarQueryTest vq2 = new VarQueryTest(146,5516,"use_database",
+         "edu.brown.cs.securitylab.SecurityAccount.handleLoginRequest(SecurityRequest)",
+         "/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java");
+   vqs.add(vq2);
+   
+   EntityQueryTest edt = new EntityQueryTest(vq2,"98","QTYPE","TO");
+   eqs.add(edt);
+         
+   runServerTest("javasecurity","WebServer",50,null,vqs,eqs);
 }
 
 
@@ -448,7 +464,19 @@ public synchronized void serverTestTimedUpdateWebgoatBench()
 private void runServerTest(String dir,String pid,int ctr,String updfile)
 {
    try {
-      runServerTest(dir,pid,ctr,updfile,false);
+      runServerTest(dir,pid,ctr,updfile,null,null,false);
+    }
+   catch (Throwable t) {
+      FaitLog.logE("Test failed",t);
+      throw t;
+    }
+}
+
+private void runServerTest(String dir,String pid,int ctr,String updfile,
+      List<VarQueryTest> vqs,List<EntityQueryTest> eqs)
+{
+   try {
+      runServerTest(dir,pid,ctr,updfile,vqs,eqs,false);
     }
    catch (Throwable t) {
       FaitLog.logE("Test failed",t);
@@ -459,6 +487,13 @@ private void runServerTest(String dir,String pid,int ctr,String updfile)
 
 
 private void runServerTest(String dir,String pid,int ctr,String updfile,boolean timed)
+{
+   runServerTest(dir,pid,ctr,updfile,null,null,timed);
+}
+
+
+private void runServerTest(String dir,String pid,int ctr,String updfile,
+      List<VarQueryTest> vqs,List<EntityQueryTest> eqs,boolean timed)
 {
    Set<File> testfiles = new HashSet<>();
 
@@ -475,7 +510,7 @@ private void runServerTest(String dir,String pid,int ctr,String updfile,boolean 
       FaitLog.logD("FAIT_THREAD = " + nthstr);
       nthread = (default_threads == 1 ? 4 : default_threads);
       try {
-         if (nthstr != null) nthread = Integer.parseInt(nthstr);
+	 if (nthstr != null) nthread = Integer.parseInt(nthstr);
        }
       catch (NumberFormatException e) { }
     }
@@ -518,6 +553,7 @@ private void runServerTest(String dir,String pid,int ctr,String updfile,boolean 
 		  f2 = f2.getCanonicalFile();
 		}
 	       catch (IOException e) { }
+	       // if (f2.getName().contains("SecurityWebServer")) continue;
 	       if (testfiles.add(f2)) {
 		  files += "<FILE NAME='" + f2.getPath() + "'/>";
 		}
@@ -569,6 +605,18 @@ private void runServerTest(String dir,String pid,int ctr,String updfile,boolean 
 	    rslt = waitForAnalysis(rid);
 	    Assert.assertNotNull(rslt);
 	    Assert.assertEquals(stops,countStops(rslt));
+	  }
+       }
+
+      if (vqs != null) {
+	 for (VarQueryTest vq : vqs) {
+	    vq.process(sid,rid);
+	  }
+       }
+      
+      if (eqs != null) {
+	 for (EntityQueryTest eq : eqs) {
+	    eq.process(sid,rid);
 	  }
        }
     }
@@ -651,21 +699,21 @@ private class FaitHandler implements MintHandler {
       String cmd = args.getArgument(0);
       Element xml = msg.getXml();
       switch (cmd) {
-         case "ANALYSIS" :
-            if (IvyXml.getAttrBool(xml,"STARTED")) break;
-            String rid = IvyXml.getAttrString(xml,"ID");
-            synchronized (done_map) {
-               done_map.put(rid,xml);
-               done_map.notifyAll();
-             }
-            msg.replyTo();
-            break;
-         case "PING" :
-            msg.replyTo("<PONG/>");
-            break;
-         default :
-            msg.replyTo();
-            break;
+	 case "ANALYSIS" :
+	    if (IvyXml.getAttrBool(xml,"STARTED")) break;
+	    String rid = IvyXml.getAttrString(xml,"ID");
+	    synchronized (done_map) {
+	       done_map.put(rid,xml);
+	       done_map.notifyAll();
+	     }
+	    msg.replyTo();
+	    break;
+	 case "PING" :
+	    msg.replyTo("<PONG/>");
+	    break;
+	 default :
+	    msg.replyTo();
+	    break;
        }
     }
 
@@ -878,7 +926,7 @@ private void errorQueries(String sid,Element xml)
 	       lno = IvyXml.getAttrInt(pt,"LINE");
 	       loc = IvyXml.getAttrInt(pt,"LOC");
 	     }
-	
+
 	  }
 	 if (lno <= 0) continue;
 	 String mthd = IvyXml.getAttrString(call,"CLASS");
@@ -887,6 +935,7 @@ private void errorQueries(String sid,Element xml)
 	 mthd += "@" + IvyXml.getAttrString(call,"HASHCODE");
 	 CommandArgs cargs = new CommandArgs("ERROR",IvyXml.getAttrString(err,"HASHCODE"),
 	       "FILE",IvyXml.getAttrString(call,"FILE"),
+               "QTYPE","ERROR",
 	       "LINE",lno,
 	       "METHOD",mthd,
 	       "START",spos,"LOCATION",loc);
@@ -900,9 +949,158 @@ private void errorQueries(String sid,Element xml)
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Main program to run a particular test without junit                     */
-/*                                                                              */
+/*										*/
+/*	Variable query tests							*/
+/*										*/
+/********************************************************************************/
+
+private class VarQueryTest {
+
+   private int line_number;
+   private int start_offset;
+   private String token_name;
+   private String method_name;
+   private String file_name;
+   private Element query_result;
+
+   VarQueryTest(int line,int start,String tok,String meth,String file) {
+      line_number = line;
+      start_offset = start;
+      token_name = tok;
+      method_name = meth;
+      file_name = file;
+      query_result = null;
+    }
+
+   Element getQueryResult()                     { return query_result; }
+   String getFileName()                         { return file_name; }
+   String getTokenName()                        { return token_name; }
+   
+   void process(String sid,String rid) {
+      CommandArgs cargs = new CommandArgs("FILE",file_name,"LINE",line_number,
+            
+            "START",start_offset,"TOKEN",token_name,"METHOD",method_name);
+      Element xml = sendReply(sid,"VARQUERY",cargs,null);
+      System.err.println("RESULT OF VARQUERY: " + IvyXml.convertXmlToString(xml));
+      Assert.assertNotEquals(xml,null);
+      query_result = IvyXml.getChild(xml,"VALUESET");
+    }
+
+}	// end of inner class VarQueryTest
+
+
+
+
+/********************************************************************************/
+/*										*/
+/*	Entity query tests							*/
+/*										*/
+/********************************************************************************/
+
+private class EntityQueryTest {
+
+   private CommandArgs command_args;
+   private VarQueryTest var_query;
+   private String match_text;
+   
+   EntityQueryTest(VarQueryTest qtest,String txt,Object ... args) {
+      command_args = new CommandArgs();
+      for (int i = 0; i < args.length; i += 2) {
+         command_args.put((String) args[i],args[i+1]);
+       }
+      var_query = qtest;
+      match_text = txt;
+    }
+   
+   void process(String sid,String rid) {
+      Element qxml = var_query.getQueryResult();
+      Element useref = null;
+      Element useval = null;
+      Element useent = null;
+      top: for (Element refxml : IvyXml.children(qxml,"REFVALUE")) {
+         for (Element valxml : IvyXml.children(refxml,"VALUE")) {
+            Element seet = IvyXml.getChild(valxml,"ENTITYSET");
+            for (Element entxml : IvyXml.children(seet,"ENTITY")) {
+               if (checkMatch(entxml,match_text)) {
+                  useref = refxml;
+                  useval = valxml;
+                  useent = entxml;
+                  break top;
+                }
+             }
+          }
+       }
+      Assert.assertNotEquals(useref,null);
+      Assert.assertNotEquals(useval,null); 
+      Assert.assertNotEquals(useent,null);
+      
+      String cnm = IvyXml.getAttrString(useref,"CALL");
+      cnm += "@" + IvyXml.getAttrString(useref,"CALLID");
+      command_args.put("METHOD",cnm);
+      command_args.put("FILE",var_query.getFileName());
+      command_args.put("VARIABLE",var_query.getTokenName());
+      
+      Element loc = IvyXml.getChild(useref,"LOCATION");
+      Element locp = IvyXml.getChild(loc,"POINT");
+      command_args.put("LINE",IvyXml.getAttrInt(locp,"LINE"));
+      command_args.put("START",IvyXml.getAttrInt(locp,"START"));
+      command_args.put("LOCATION",IvyXml.getAttrInt(locp,"NODETYPEID"));
+      int afterstart = IvyXml.getAttrInt(locp,"AFTERSTART");
+      if (afterstart >= 0) {
+         command_args.put("AFTER",afterstart);
+         command_args.put("AFTERLOCATION",IvyXml.getAttrInt(locp,"AFTERTYPEID"));
+       }
+      
+      Element typv = IvyXml.getChild(useval,"TYPE");
+      command_args.put("TYPE",IvyXml.getAttrString(typv,"BASE"));
+      
+      command_args.put("ENTITY",IvyXml.getAttrInt(useent,"ID")); 
+      
+      if (command_args.get("QTYPE") == null) {
+         if (command_args.get("SUBTYPE") != null) command_args.put("QTYPE","EXPLAIN");
+         else command_args.put("QTYPE","TO");
+       }
+      
+      IvyXmlWriter refxw = new IvyXmlWriter();
+      Element basv = IvyXml.getChild(useref,"REFERENCE");
+      Element basv1 = IvyXml.getChild(basv,"VALUE");
+      
+      refxw.begin("REFERENCE");
+      refxw.field("BASEID",IvyXml.getAttrInt(basv1,"BASE"));
+      if (IvyXml.getAttrString(basv1,"FIELD") != null) {
+         refxw.field("FIELD",IvyXml.getAttrString(basv1,"FIELD"));
+       }
+      if (IvyXml.getAttrInt(basv1,"SLOT") >= 0) {
+         refxw.field("SLOT",IvyXml.getAttrInt(basv1,"SLOT"));
+       }
+      if (IvyXml.getAttrInt(basv1,"STACK") >= 0) {
+         refxw.field("STACK",IvyXml.getAttrInt(basv1,"STACK"));
+       }
+      refxw.end("REFERENCE");
+      
+      String refs = refxw.toString();
+      refxw.close();
+      
+      Element xml = sendReply(sid,"QUERY",command_args,refs);
+      System.err.println("RESULT OF ENTITYQUERY: " + IvyXml.convertXmlToString(xml));
+      Assert.assertNotEquals(xml,null);
+    }
+   
+   private boolean checkMatch(Element entxml,String txt) {
+      String desc = IvyXml.getTextElement(entxml,"DESCRIPTION");
+      if (desc.contains(txt)) return true;
+      return false;
+    }
+   
+}	// end of inner class EntityQueryTest
+
+
+
+
+/********************************************************************************/
+/*										*/
+/*	Main program to run a particular test without junit			*/
+/*										*/
 /********************************************************************************/
 
 public static void main(String [] args)

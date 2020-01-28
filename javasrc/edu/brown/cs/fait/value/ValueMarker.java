@@ -45,6 +45,7 @@ import edu.brown.cs.fait.iface.IfaceStackMarker;
 import edu.brown.cs.fait.iface.IfaceProgramPoint;
 import edu.brown.cs.fait.iface.IfaceType;
 import edu.brown.cs.fait.iface.IfaceValue;
+import edu.brown.cs.ivy.xml.IvyXmlWriter;
 
 @SuppressWarnings("unused") 
 class ValueMarker extends ValueBase implements IfaceStackMarker
@@ -151,6 +152,13 @@ ValueMarker(ValueFactory vf,IfaceType voidtype,IfaceProgramPoint pt,Object v)
 /*	Debugging methods							*/
 /*										*/
 /********************************************************************************/
+
+@Override protected void outputLocalXml(IvyXmlWriter xw)
+{
+   xw.field("KIND","MARKER");
+}
+
+
 
 @Override public String toString()
 {

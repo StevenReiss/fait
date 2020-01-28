@@ -93,6 +93,8 @@ private static JcompControl     jcomp_base;
 
 private ServerMain(String [] args)
 {
+   FaitLog.setup();
+   
    message_id = null;
    project_map = new HashMap<>();
    jcomp_base = new JcompControl();

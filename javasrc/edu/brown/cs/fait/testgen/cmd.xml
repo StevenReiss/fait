@@ -1,0 +1,1555 @@
+<FAIT DO='TESTCASE' SID='BSEAN_23022_244654'>
+<TESTCASE>
+  <QUERY CALL='2007365250' METHOD='edu.brown.cs.securitylab.SecurityRequest.render' SIGNATURE='(Ljava/lang/String;Ljava/util/Map&lt;Ljava/lang/String;Ljava/lang/Object;&gt;;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+    <ERROR DATA='0' HASHCODE='713487916' LEVEL='ERROR' SUBTYPE='CheckHtmlTaint'>
+      <MESSAGE>Attempt to use tainted HTML data in a non-tainted location</MESSAGE>
+      <POINT AFTER='arguments' AFTERSTART='4882' END='4890' KIND='EDIT' LINE='182' NODETYPE='MethodInvocation' START='4868'><![CDATA[doRender(cnts,context)]]></POINT>
+    </ERROR>
+    <GRAPH SIZE='212' TIME='169'>
+      <NODE CALLID='2007365250' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='1' METHOD='edu.brown.cs.securitylab.SecurityRequest.render' REASON='Attempt to use tainted HTML data in a non-tainted location' SIGNATURE='(Ljava/lang/String;Ljava/util/Map&lt;Ljava/lang/String;Ljava/lang/Object;&gt;;)Lfi/iki/elonen/NanoHTTPD$Response;' START='true'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='arguments' AFTERSTART='4882' END='4890' KIND='EDIT' LINE='182' NODETYPE='MethodInvocation' START='4868'><![CDATA[doRender(cnts,context)]]></POINT>
+	<FROM>2</FROM>
+      </NODE>
+      <NODE CALLID='2007365250' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='2' METHOD='edu.brown.cs.securitylab.SecurityRequest.render' REASON='Variable context referenced' SIGNATURE='(Ljava/lang/String;Ljava/util/Map&lt;Ljava/lang/String;Ljava/lang/Object;&gt;;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSLOT='2' REFSYM='context' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT END='4889' KIND='EDIT' LINE='182' NODETYPE='SimpleName' START='4882'><![CDATA[context]]></POINT>
+	<TO>1</TO>
+	<FROM>3</FROM>
+      </NODE>
+      <NODE CALLID='2007365250' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='3' METHOD='edu.brown.cs.securitylab.SecurityRequest.render' REASON='Start of Method render' SIGNATURE='(Ljava/lang/String;Ljava/util/Map&lt;Ljava/lang/String;Ljava/lang/Object;&gt;;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSLOT='2' REFSYM='context' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT END='5114' KIND='EDIT' LINE='168' NODETYPE='MethodDeclaration' START='4397'><![CDATA[/**
+ */
+Response render(String page,Map<String,Object> context){
+  File f=new File(template_directory,page);
+  if (!f.exists()) {
+    f=new File(template_directory,page + ".html");
+  }
+  if (!f.exists()) {
+    return NanoHTTPD.newFixedLengthResponse(Response.Status.NOT_FOUND,TEXT_MIME,"File not found");
+  }
+  try {
+    String cnts=IvyFile.loadFile(f);
+    String ren=doRender(cnts,context);
+    return NanoHTTPD.newFixedLengthResponse(Response.Status.OK,HTML_MIME,ren);
+  }
+ catch (  IOException e) {
+    return NanoHTTPD.newFixedLengthResponse(Response.Status.NOT_FOUND,TEXT_MIME,"File not found");
+  }
+}
+]]></POINT>
+	<TO>2</TO>
+	<FROM>4</FROM>
+	<FROM>6</FROM>
+	<FROM>7</FROM>
+	<FROM>8</FROM>
+	<FROM>9</FROM>
+	<FROM>10</FROM>
+	<FROM>11</FROM>
+	<FROM>12</FROM>
+	<FROM>13</FROM>
+	<FROM>14</FROM>
+	<FROM>15</FROM>
+	<FROM>16</FROM>
+	<FROM>17</FROM>
+	<FROM>18</FROM>
+	<FROM>19</FROM>
+	<FROM>20</FROM>
+	<FROM>21</FROM>
+	<FROM>22</FROM>
+	<FROM>23</FROM>
+	<FROM>24</FROM>
+	<FROM>25</FROM>
+	<FROM>26</FROM>
+	<FROM>27</FROM>
+	<FROM>28</FROM>
+	<FROM>29</FROM>
+      </NODE>
+      <NODE CALLID='528467972' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='4' METHOD='edu.brown.cs.securitylab.SecurityAccount.displayWelcomePage' REASON='Call to Method render' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='arguments' AFTERSTART='4573' END='4578' KIND='EDIT' LINE='119' NODETYPE='MethodInvocation' START='4550'><![CDATA[req.render("dashboard",user)]]></POINT>
+	<TO>3</TO>
+	<FROM>226</FROM>
+      </NODE>
+      <NODE CALLID='645709030' END='true' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecurityBenefits.class' ID='6' METHOD='edu.brown.cs.securitylab.SecurityBenefits.displayBenefits' REASON='Call to Method render' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;Z)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='82' LOC='79' OPCODE='182'>79: INVOKEVIRTUAL edu/brown/cs/securitylab/SecurityRequest.render(Ljava/lang/String;Ljava/util/Map;)Lfi/iki/elonen/NanoHTTPD$Response; (line 82)</POINT>
+	<TO>3</TO>
+      </NODE>
+      <NODE CALLID='1086771552' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecurityContributions.class' ID='7' METHOD='edu.brown.cs.securitylab.SecurityContributions.displayContributions' REASON='Call to Method render' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;Z)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='70' LOC='48' OPCODE='182'>48: INVOKEVIRTUAL edu/brown/cs/securitylab/SecurityRequest.render(Ljava/lang/String;Ljava/util/Map;)Lfi/iki/elonen/NanoHTTPD$Response; (line 70)</POINT>
+	<TO>3</TO>
+	<FROM>225</FROM>
+      </NODE>
+      <NODE CALLID='1074949549' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecurityContributions.class' ID='8' METHOD='edu.brown.cs.securitylab.SecurityContributions.handleContributionsUpdate' REASON='Call to Method render' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='106' LOC='59' OPCODE='182'>59: INVOKEVIRTUAL edu/brown/cs/securitylab/SecurityRequest.render(Ljava/lang/String;Ljava/util/Map;)Lfi/iki/elonen/NanoHTTPD$Response; (line 106)</POINT>
+	<TO>3</TO>
+	<FROM>222</FROM>
+	<FROM>223</FROM>
+	<FROM>224</FROM>
+      </NODE>
+      <NODE CALLID='1543640517' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecurityProfile.class' ID='9' METHOD='edu.brown.cs.securitylab.SecurityProfile.displayProfile' REASON='Call to Method render' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;Z)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='77' LOC='72' OPCODE='182'>72: INVOKEVIRTUAL edu/brown/cs/securitylab/SecurityRequest.render(Ljava/lang/String;Ljava/util/Map;)Lfi/iki/elonen/NanoHTTPD$Response; (line 77)</POINT>
+	<TO>3</TO>
+	<FROM>221</FROM>
+      </NODE>
+      <NODE CALLID='528343606' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecurityAllocations.class' ID='10' METHOD='edu.brown.cs.securitylab.SecurityAllocations.displayAllocations' REASON='Call to Method render' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='71' LOC='62' OPCODE='182'>62: INVOKEVIRTUAL edu/brown/cs/securitylab/SecurityRequest.render(Ljava/lang/String;Ljava/util/Map;)Lfi/iki/elonen/NanoHTTPD$Response; (line 71)</POINT>
+	<TO>3</TO>
+	<FROM>220</FROM>
+      </NODE>
+      <NODE CALLID='850279746' END='true' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecurityMemos.class' ID='11' METHOD='edu.brown.cs.securitylab.SecurityMemos.displayMemos' REASON='Call to Method render' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='86' LOC='55' OPCODE='182'>55: INVOKEVIRTUAL edu/brown/cs/securitylab/SecurityRequest.render(Ljava/lang/String;Ljava/util/Map;)Lfi/iki/elonen/NanoHTTPD$Response; (line 86)</POINT>
+	<TO>3</TO>
+      </NODE>
+      <NODE CALLID='1074949549' END='true' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecurityContributions.class' ID='12' METHOD='edu.brown.cs.securitylab.SecurityContributions.handleContributionsUpdate' REASON='Call to Method render' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='110' LOC='76' OPCODE='182'>76: INVOKEVIRTUAL edu/brown/cs/securitylab/SecurityRequest.render(Ljava/lang/String;Ljava/util/Map;)Lfi/iki/elonen/NanoHTTPD$Response; (line 110)</POINT>
+	<TO>3</TO>
+	<TO>222</TO>
+	<TO>223</TO>
+	<TO>224</TO>
+      </NODE>
+      <NODE CALLID='1581880457' END='true' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecurityProfile.class' ID='13' METHOD='edu.brown.cs.securitylab.SecurityProfile.handleProfileUpdate' REASON='Call to Method render' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='104' LOC='53' OPCODE='182'>53: INVOKEVIRTUAL edu/brown/cs/securitylab/SecurityRequest.render(Ljava/lang/String;Ljava/util/Map;)Lfi/iki/elonen/NanoHTTPD$Response; (line 104)</POINT>
+	<TO>3</TO>
+      </NODE>
+      <NODE CALLID='1117443490' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='14' METHOD='edu.brown.cs.securitylab.SecurityAccount.handleLoginRequest' REASON='Call to Method render' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='arguments' AFTERSTART='6095' END='6099' KIND='EDIT' LINE='163' NODETYPE='MethodInvocation' START='6076'><![CDATA[req.render("login",ctx)]]></POINT>
+	<TO>3</TO>
+	<FROM>218</FROM>
+      </NODE>
+      <NODE CALLID='998505938' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='15' METHOD='edu.brown.cs.securitylab.SecurityAccount.displaySignupPage' REASON='Call to Method render' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='arguments' AFTERSTART='7442' END='7446' KIND='EDIT' LINE='213' NODETYPE='MethodInvocation' START='7422'><![CDATA[req.render("signup",ctx)]]></POINT>
+	<TO>3</TO>
+	<FROM>216</FROM>
+      </NODE>
+      <NODE CALLID='1683209879' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='16' METHOD='edu.brown.cs.securitylab.SecurityAccount.handleSignup' REASON='Call to Method render' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='arguments' AFTERSTART='9572' END='9577' KIND='EDIT' LINE='278' NODETYPE='MethodInvocation' START='9549'><![CDATA[req.render("dashboard",user)]]></POINT>
+	<TO>3</TO>
+	<FROM>174</FROM>
+      </NODE>
+      <NODE CALLID='1683209879' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='17' METHOD='edu.brown.cs.securitylab.SecurityAccount.handleSignup' REASON='Call to Method render' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='arguments' AFTERSTART='8012' END='8019' KIND='EDIT' LINE='231' NODETYPE='MethodInvocation' START='7992'><![CDATA[req.render("signup",errctx)]]></POINT>
+	<TO>3</TO>
+	<FROM>172</FROM>
+      </NODE>
+      <NODE CALLID='1683209879' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='18' METHOD='edu.brown.cs.securitylab.SecurityAccount.handleSignup' REASON='Call to Method render' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='arguments' AFTERSTART='8373' END='8380' KIND='EDIT' LINE='239' NODETYPE='MethodInvocation' START='8353'><![CDATA[req.render("signup",errctx)]]></POINT>
+	<TO>3</TO>
+	<FROM>166</FROM>
+      </NODE>
+      <NODE CALLID='294464095' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='19' METHOD='edu.brown.cs.securitylab.SecurityAccount.displayWelcomePage' REASON='Call to Method render' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='arguments' AFTERSTART='4573' END='4578' KIND='EDIT' LINE='119' NODETYPE='MethodInvocation' START='4550'><![CDATA[req.render("dashboard",user)]]></POINT>
+	<TO>3</TO>
+	<FROM>164</FROM>
+      </NODE>
+      <NODE CALLID='1117443490' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='20' METHOD='edu.brown.cs.securitylab.SecurityAccount.handleLoginRequest' REASON='Call to Method render' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='arguments' AFTERSTART='5886' END='5890' KIND='EDIT' LINE='158' NODETYPE='MethodInvocation' START='5867'><![CDATA[req.render("login",ctx)]]></POINT>
+	<TO>3</TO>
+	<FROM>154</FROM>
+      </NODE>
+      <NODE CALLID='642571252' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='21' METHOD='edu.brown.cs.securitylab.SecurityAccount.displayLoginPage' REASON='Call to Method render' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='arguments' AFTERSTART='5207' END='5211' KIND='EDIT' LINE='136' NODETYPE='MethodInvocation' START='5188'><![CDATA[req.render("login",ctx)]]></POINT>
+	<TO>3</TO>
+	<FROM>152</FROM>
+      </NODE>
+      <NODE CALLID='1963268805' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='22' METHOD='edu.brown.cs.securitylab.SecurityAccount.handleLoginRequest' REASON='Call to Method render' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='arguments' AFTERSTART='5886' END='5890' KIND='EDIT' LINE='158' NODETYPE='MethodInvocation' START='5867'><![CDATA[req.render("login",ctx)]]></POINT>
+	<TO>3</TO>
+	<FROM>150</FROM>
+      </NODE>
+      <NODE CALLID='2041113408' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='23' METHOD='edu.brown.cs.securitylab.SecurityAccount.displayWelcomePage' REASON='Call to Method render' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='arguments' AFTERSTART='4573' END='4578' KIND='EDIT' LINE='119' NODETYPE='MethodInvocation' START='4550'><![CDATA[req.render("dashboard",user)]]></POINT>
+	<TO>3</TO>
+	<FROM>148</FROM>
+      </NODE>
+      <NODE CALLID='994772354' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='24' METHOD='edu.brown.cs.securitylab.SecurityAccount.handleSignup' REASON='Call to Method render' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='arguments' AFTERSTART='8373' END='8380' KIND='EDIT' LINE='239' NODETYPE='MethodInvocation' START='8353'><![CDATA[req.render("signup",errctx)]]></POINT>
+	<TO>3</TO>
+	<FROM>146</FROM>
+      </NODE>
+      <NODE CALLID='994772354' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='25' METHOD='edu.brown.cs.securitylab.SecurityAccount.handleSignup' REASON='Call to Method render' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='arguments' AFTERSTART='8012' END='8019' KIND='EDIT' LINE='231' NODETYPE='MethodInvocation' START='7992'><![CDATA[req.render("signup",errctx)]]></POINT>
+	<TO>3</TO>
+	<FROM>140</FROM>
+      </NODE>
+      <NODE CALLID='1963268805' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='26' METHOD='edu.brown.cs.securitylab.SecurityAccount.handleLoginRequest' REASON='Call to Method render' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='arguments' AFTERSTART='6095' END='6099' KIND='EDIT' LINE='163' NODETYPE='MethodInvocation' START='6076'><![CDATA[req.render("login",ctx)]]></POINT>
+	<TO>3</TO>
+	<FROM>130</FROM>
+      </NODE>
+      <NODE CALLID='2060039613' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='27' METHOD='edu.brown.cs.securitylab.SecurityAccount.displaySignupPage' REASON='Call to Method render' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='arguments' AFTERSTART='7442' END='7446' KIND='EDIT' LINE='213' NODETYPE='MethodInvocation' START='7422'><![CDATA[req.render("signup",ctx)]]></POINT>
+	<TO>3</TO>
+	<FROM>128</FROM>
+      </NODE>
+      <NODE CALLID='278983023' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='28' METHOD='edu.brown.cs.securitylab.SecurityAccount.displayLoginPage' REASON='Call to Method render' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='arguments' AFTERSTART='5207' END='5211' KIND='EDIT' LINE='136' NODETYPE='MethodInvocation' START='5188'><![CDATA[req.render("login",ctx)]]></POINT>
+	<TO>3</TO>
+	<FROM>126</FROM>
+      </NODE>
+      <NODE CALLID='994772354' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='29' METHOD='edu.brown.cs.securitylab.SecurityAccount.handleSignup' REASON='Call to Method render' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='arguments' AFTERSTART='9572' END='9577' KIND='EDIT' LINE='278' NODETYPE='MethodInvocation' START='9549'><![CDATA[req.render("dashboard",user)]]></POINT>
+	<TO>3</TO>
+	<FROM>30</FROM>
+      </NODE>
+      <NODE CALLID='994772354' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='30' METHOD='edu.brown.cs.securitylab.SecurityAccount.handleSignup' REASON='Variable user referenced' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSLOT='11' REFSYM='user' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT END='9576' KIND='EDIT' LINE='278' NODETYPE='SimpleName' START='9572'><![CDATA[user]]></POINT>
+	<TO>29</TO>
+	<TO>125</TO>
+	<FROM>32</FROM>
+	<FROM>175</FROM>
+      </NODE>
+      <NODE CALLID='994772354' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='32' METHOD='edu.brown.cs.securitylab.SecurityAccount.handleSignup' REASON='Referenced value' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='rightHandSide' AFTERSTART='9229' END='9272' KIND='EDIT' LINE='263' NODETYPE='Assignment' START='9221'><![CDATA[where=req.setUserId((Integer)user.get("userid"))]]></POINT>
+	<TO>30</TO>
+	<FROM>33</FROM>
+	<FROM>34</FROM>
+      </NODE>
+      <NODE CALLID='994772354' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='33' METHOD='edu.brown.cs.securitylab.SecurityAccount.handleSignup' REASON='Referenced value' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='arguments' AFTERSTART='9243' END='9272' KIND='EDIT' LINE='263' NODETYPE='MethodInvocation' START='9229'><![CDATA[req.setUserId((Integer)user.get("userid"))]]></POINT>
+	<TO>32</TO>
+	<FROM>123</FROM>
+      </NODE>
+      <NODE CALLID='172825918' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='34' METHOD='edu.brown.cs.securitylab.SecurityRequest.setUserId' REASON='Result of method setUserId' SIGNATURE='(I)Ljava/lang/String;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT END='4250' KIND='EDIT' LINE='144' NODETYPE='MethodDeclaration' START='3740' STATUS='RETURN'><![CDATA[String setUserId(int uid) throws SecurityException {
+  if (session_id == null) {
+    throw new SecurityException("Invalid session");
+  }
+  url_args.put("userid",Integer.toString(uid));
+  Map<String,String> gourl=session_manager.validateLogin(session_id,url_host,url_args,session_cookie,cookie_handler);
+  if (gourl == null) {
+    cookie_handler.delete(session_cookie);
+    throw new SecurityException("Invalid session");
+  }
+  String gfile=gourl.remove("FILE");
+  return gfile;
+}
+]]></POINT>
+	<TO>32</TO>
+	<FROM>35</FROM>
+      </NODE>
+      <NODE CALLID='172825918' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='35' METHOD='edu.brown.cs.securitylab.SecurityRequest.setUserId' REASON='Variable gfile referenced' SIGNATURE='(I)Ljava/lang/String;'>
+	<CONTEXT REFSLOT='3' REFSYM='gfile' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT END='4247' KIND='EDIT' LINE='159' NODETYPE='SimpleName' START='4242'><![CDATA[gfile]]></POINT>
+	<TO>34</TO>
+	<FROM>36</FROM>
+      </NODE>
+      <NODE CALLID='172825918' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='36' METHOD='edu.brown.cs.securitylab.SecurityRequest.setUserId' REASON='Referenced value' SIGNATURE='(I)Ljava/lang/String;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='initializer' AFTERSTART='4209' END='4229' KIND='EDIT' LINE='157' NODETYPE='VariableDeclarationFragment' START='4201'><![CDATA[gfile=gourl.remove("FILE")]]></POINT>
+	<TO>35</TO>
+	<FROM>37</FROM>
+      </NODE>
+      <NODE CALLID='172825918' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='37' METHOD='edu.brown.cs.securitylab.SecurityRequest.setUserId' REASON='Referenced value' SIGNATURE='(I)Ljava/lang/String;'>
+	<CONTEXT REFSTACK='1' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='arguments' AFTERSTART='4222' END='4229' KIND='EDIT' LINE='157' NODETYPE='MethodInvocation' START='4209'><![CDATA[gourl.remove("FILE")]]></POINT>
+	<TO>36</TO>
+	<FROM>38</FROM>
+      </NODE>
+      <NODE CALLID='172825918' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='38' METHOD='edu.brown.cs.securitylab.SecurityRequest.setUserId' REASON='Variable gourl referenced' SIGNATURE='(I)Ljava/lang/String;'>
+	<CONTEXT REFSLOT='2' REFSYM='gourl' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT END='4214' KIND='EDIT' LINE='157' NODETYPE='SimpleName' START='4209'><![CDATA[gourl]]></POINT>
+	<TO>37</TO>
+	<FROM>39</FROM>
+      </NODE>
+      <NODE CALLID='172825918' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='39' METHOD='edu.brown.cs.securitylab.SecurityRequest.setUserId' REASON='Referenced value' SIGNATURE='(I)Ljava/lang/String;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='initializer' AFTERSTART='3968' END='4060' KIND='EDIT' LINE='150' NODETYPE='VariableDeclarationFragment' START='3954'><![CDATA[gourl=session_manager.validateLogin(session_id,url_host,url_args,session_cookie,cookie_handler)]]></POINT>
+	<TO>38</TO>
+	<FROM>40</FROM>
+	<FROM>41</FROM>
+	<FROM>42</FROM>
+	<FROM>43</FROM>
+      </NODE>
+      <NODE CALLID='172825918' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='40' METHOD='edu.brown.cs.securitylab.SecurityRequest.setUserId' REASON='Referenced value' SIGNATURE='(I)Ljava/lang/String;'>
+	<CONTEXT REFSTACK='2' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='arguments' AFTERSTART='4045' END='4060' KIND='EDIT' LINE='151' NODETYPE='MethodInvocation' START='3968'><![CDATA[session_manager.validateLogin(session_id,url_host,url_args,session_cookie,cookie_handler)]]></POINT>
+	<TO>39</TO>
+	<TO>60</TO>
+	<TO>206</TO>
+	<FROM>117</FROM>
+	<FROM>118</FROM>
+	<FROM>119</FROM>
+      </NODE>
+      <NODE CALLID='172825918' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='41' METHOD='edu.brown.cs.securitylab.SecurityRequest.setUserId' REASON='Referenced value' SIGNATURE='(I)Ljava/lang/String;'>
+	<CONTEXT REFSTACK='3' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='arguments' AFTERSTART='4045' END='4060' KIND='EDIT' LINE='151' NODETYPE='MethodInvocation' START='3968'><![CDATA[session_manager.validateLogin(session_id,url_host,url_args,session_cookie,cookie_handler)]]></POINT>
+	<TO>39</TO>
+	<FROM>61</FROM>
+	<FROM>62</FROM>
+	<FROM>63</FROM>
+      </NODE>
+      <NODE CALLID='172825918' END='true' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='42' METHOD='edu.brown.cs.securitylab.SecurityRequest.setUserId' REASON='Referenced value' SIGNATURE='(I)Ljava/lang/String;'>
+	<CONTEXT REFSTACK='4' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='arguments' AFTERSTART='4045' END='4060' KIND='EDIT' LINE='151' NODETYPE='MethodInvocation' START='3968'><![CDATA[session_manager.validateLogin(session_id,url_host,url_args,session_cookie,cookie_handler)]]></POINT>
+	<TO>39</TO>
+	<TO>183</TO>
+	<TO>199</TO>
+	<TO>55</TO>
+	<TO>201</TO>
+      </NODE>
+      <NODE CALLID='385860841' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecuritySession.class' ID='43' METHOD='edu.brown.cs.securitylab.SecuritySession.validateLogin' REASON='Result of method validateLogin' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Ljava/util/Map;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='137' LOC='50' OPCODE='176'>50: ARETURN (line 137)</POINT>
+	<TO>39</TO>
+	<FROM>44</FROM>
+	<FROM>45</FROM>
+	<FROM>46</FROM>
+      </NODE>
+      <NODE CALLID='385860841' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecuritySession.class' ID='44' METHOD='edu.brown.cs.securitylab.SecuritySession.validateLogin' REASON='Referenced value' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Ljava/util/Map;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='130' LOC='24' OPCODE='182'>24: INVOKEVIRTUAL edu/brown/cs/securitylab/SecuritySession$Session.makeValid(Ljava/lang/String;)Ljava/util/Map; (line 130)</POINT>
+	<TO>43</TO>
+	<FROM>57</FROM>
+      </NODE>
+      <NODE CALLID='385860841' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecuritySession.class' ID='45' METHOD='edu.brown.cs.securitylab.SecuritySession.validateLogin' REASON='Referenced value' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Ljava/util/Map;'>
+	<CONTEXT REFSTACK='1' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='130' LOC='24' OPCODE='182'>24: INVOKEVIRTUAL edu/brown/cs/securitylab/SecuritySession$Session.makeValid(Ljava/lang/String;)Ljava/util/Map; (line 130)</POINT>
+	<TO>43</TO>
+	<FROM>51</FROM>
+      </NODE>
+      <NODE CALLID='2075311263' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecuritySession$Session.class' ID='46' METHOD='edu.brown.cs.securitylab.SecuritySession$Session.makeValid' REASON='Result of method makeValid' SIGNATURE='(Ljava/lang/String;)Ljava/util/Map;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='247' LOC='18' OPCODE='176'>18: ARETURN (line 247)</POINT>
+	<TO>43</TO>
+	<FROM>49</FROM>
+	<FROM>50</FROM>
+      </NODE>
+      <NODE CALLID='1645286302' END='true' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecuritySession$Session.class' ID='49' METHOD='edu.brown.cs.securitylab.SecuritySession$Session.&lt;init&gt;' REASON='Referenced value' SIGNATURE='(Ledu/brown/cs/securitylab/SecuritySession;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='208' LOC='19' OPCODE='181'>19: PUTFIELD edu/brown/cs/securitylab/SecuritySession$Session.url_args (Ljava/util/Map;) (line 208)</POINT>
+	<TO>46</TO>
+	<TO>193</TO>
+	<TO>191</TO>
+	<TO>192</TO>
+      </NODE>
+      <NODE CALLID='22777022' END='true' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecuritySession$Session.class' ID='50' METHOD='edu.brown.cs.securitylab.SecuritySession$Session.&lt;init&gt;' REASON='Referenced value' SIGNATURE='(Ledu/brown/cs/securitylab/SecuritySession;Lorg/w3c/dom/Element;)V'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='220' LOC='32' OPCODE='181'>32: PUTFIELD edu/brown/cs/securitylab/SecuritySession$Session.url_args (Ljava/util/Map;) (line 220)</POINT>
+	<TO>46</TO>
+	<TO>194</TO>
+      </NODE>
+      <NODE CALLID='385860841' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecuritySession.class' ID='51' METHOD='edu.brown.cs.securitylab.SecuritySession.validateLogin' REASON='Referenced value' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Ljava/util/Map;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='125' LOC='4' OPCODE='192'>4: CHECKCAST edu/brown/cs/securitylab/SecuritySession$Session (line 125)</POINT>
+	<TO>45</TO>
+	<FROM>52</FROM>
+	<FROM>53</FROM>
+      </NODE>
+      <NODE CALLID='385860841' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecuritySession.class' ID='52' METHOD='edu.brown.cs.securitylab.SecuritySession.validateLogin' REASON='Referenced value' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Ljava/util/Map;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='125' LOC='3' OPCODE='185'>3: INVOKEINTERFACE java/util/Map.get(Ljava/lang/Object;)Ljava/lang/Object; (line 125)</POINT>
+	<TO>51</TO>
+	<FROM>55</FROM>
+      </NODE>
+      <NODE CALLID='385860841' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecuritySession.class' ID='53' METHOD='edu.brown.cs.securitylab.SecuritySession.validateLogin' REASON='Referenced value' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Ljava/util/Map;'>
+	<CONTEXT REFSTACK='1' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='125' LOC='3' OPCODE='185'>3: INVOKEINTERFACE java/util/Map.get(Ljava/lang/Object;)Ljava/lang/Object; (line 125)</POINT>
+	<TO>51</TO>
+	<FROM>54</FROM>
+      </NODE>
+      <NODE CALLID='1465980699' END='true' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecuritySession.class' ID='54' METHOD='edu.brown.cs.securitylab.SecuritySession.&lt;init&gt;' REASON='Referenced value' SIGNATURE='()V'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='50' LOC='11' OPCODE='181'>11: PUTFIELD edu/brown/cs/securitylab/SecuritySession.session_map (Ljava/util/Map;) (line 50)</POINT>
+	<TO>53</TO>
+	<TO>198</TO>
+      </NODE>
+      <NODE CALLID='385860841' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecuritySession.class' ID='55' METHOD='edu.brown.cs.securitylab.SecuritySession.validateLogin' REASON='Start of Method validateLogin' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Ljava/util/Map;'>
+	<CONTEXT REFSLOT='1' REFSYM='sid' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='125' LOC='0' OPCODE='25'>0: ALOAD L0 (line 125)</POINT>
+	<TO>52</TO>
+	<FROM>42</FROM>
+      </NODE>
+      <NODE CALLID='385860841' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecuritySession.class' ID='57' METHOD='edu.brown.cs.securitylab.SecuritySession.validateLogin' REASON='Referenced value' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Ljava/util/Map;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='129' LOC='20' OPCODE='192'>20: CHECKCAST java/lang/String (line 129)</POINT>
+	<TO>44</TO>
+	<FROM>58</FROM>
+      </NODE>
+      <NODE CALLID='385860841' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecuritySession.class' ID='58' METHOD='edu.brown.cs.securitylab.SecuritySession.validateLogin' REASON='Referenced value' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Ljava/util/Map;'>
+	<CONTEXT REFSTACK='1' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='129' LOC='19' OPCODE='185'>19: INVOKEINTERFACE java/util/Map.get(Ljava/lang/Object;)Ljava/lang/Object; (line 129)</POINT>
+	<TO>57</TO>
+	<FROM>59</FROM>
+      </NODE>
+      <NODE CALLID='385860841' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecuritySession.class' ID='59' METHOD='edu.brown.cs.securitylab.SecuritySession.validateLogin' REASON='Start of Method validateLogin' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Ljava/util/Map;'>
+	<CONTEXT REFSLOT='3' REFSYM='args' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='125' LOC='0' OPCODE='25'>0: ALOAD L0 (line 125)</POINT>
+	<TO>58</TO>
+	<FROM>60</FROM>
+      </NODE>
+      <NODE CALLID='172825918' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='60' METHOD='edu.brown.cs.securitylab.SecurityRequest.setUserId' REASON='Call to Method validateLogin' SIGNATURE='(I)Ljava/lang/String;'>
+	<CONTEXT REFSTACK='2' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='arguments' AFTERSTART='4045' END='4060' KIND='EDIT' LINE='151' NODETYPE='MethodInvocation' START='3968'><![CDATA[session_manager.validateLogin(session_id,url_host,url_args,session_cookie,cookie_handler)]]></POINT>
+	<TO>59</TO>
+	<FROM>40</FROM>
+      </NODE>
+      <NODE CALLID='842195604' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='61' METHOD='edu.brown.cs.securitylab.SecurityRequest.&lt;init&gt;' REASON='Referenced value' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map&lt;Ljava/lang/String;Ljava/lang/String;&gt;;Lfi/iki/elonen/NanoHTTPD$CookieHandler;Ljava/lang/String;Ledu/brown/cs/securitylab/SecuritySession;)V'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='rightHandSide' AFTERSTART='2369' END='2373' KIND='EDIT' LINE='85' NODETYPE='Assignment' START='2358'><![CDATA[url_host=host]]></POINT>
+	<TO>41</TO>
+	<TO>121</TO>
+	<TO>207</TO>
+	<FROM>102</FROM>
+      </NODE>
+      <NODE CALLID='152757084' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='62' METHOD='edu.brown.cs.securitylab.SecurityRequest.&lt;init&gt;' REASON='Referenced value' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map&lt;Ljava/lang/String;Ljava/lang/String;&gt;;Lfi/iki/elonen/NanoHTTPD$CookieHandler;Ljava/lang/String;Ledu/brown/cs/securitylab/SecuritySession;)V'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='rightHandSide' AFTERSTART='2369' END='2373' KIND='EDIT' LINE='85' NODETYPE='Assignment' START='2358'><![CDATA[url_host=host]]></POINT>
+	<TO>41</TO>
+	<TO>120</TO>
+	<TO>208</TO>
+	<FROM>99</FROM>
+      </NODE>
+      <NODE CALLID='947816432' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='63' METHOD='edu.brown.cs.securitylab.SecurityRequest.&lt;init&gt;' REASON='Referenced value' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map&lt;Ljava/lang/String;Ljava/lang/String;&gt;;Lfi/iki/elonen/NanoHTTPD$CookieHandler;Ljava/lang/String;Ledu/brown/cs/securitylab/SecuritySession;)V'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='rightHandSide' AFTERSTART='2369' END='2373' KIND='EDIT' LINE='85' NODETYPE='Assignment' START='2358'><![CDATA[url_host=host]]></POINT>
+	<TO>41</TO>
+	<TO>122</TO>
+	<TO>209</TO>
+	<FROM>64</FROM>
+      </NODE>
+      <NODE CALLID='947816432' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='64' METHOD='edu.brown.cs.securitylab.SecurityRequest.&lt;init&gt;' REASON='Variable host referenced' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map&lt;Ljava/lang/String;Ljava/lang/String;&gt;;Lfi/iki/elonen/NanoHTTPD$CookieHandler;Ljava/lang/String;Ledu/brown/cs/securitylab/SecuritySession;)V'>
+	<CONTEXT REFSLOT='3' REFSYM='host' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT END='2373' KIND='EDIT' LINE='85' NODETYPE='SimpleName' START='2369'><![CDATA[host]]></POINT>
+	<TO>63</TO>
+	<FROM>65</FROM>
+      </NODE>
+      <NODE CALLID='947816432' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='65' METHOD='edu.brown.cs.securitylab.SecurityRequest.&lt;init&gt;' REASON='Start of Method &lt;init&gt;' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map&lt;Ljava/lang/String;Ljava/lang/String;&gt;;Lfi/iki/elonen/NanoHTTPD$CookieHandler;Ljava/lang/String;Ledu/brown/cs/securitylab/SecuritySession;)V'>
+	<CONTEXT REFSLOT='3' REFSYM='host' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT END='2411' KIND='EDIT' LINE='71' NODETYPE='MethodDeclaration' START='1869'><![CDATA[/**
+ */
+SecurityRequest(String method,String file,String host,Map<String,String> args,NanoHTTPD.CookieHandler cookies,String sessioncookie,SecuritySession sess){
+  session_id=cookies.read(sessioncookie);
+  if (session_id == null)   session_id=args.get("USID");
+  session_manager=sess;
+  cookie_handler=cookies;
+  session_cookie=sessioncookie;
+  url_method=method;
+  url_file=file;
+  url_host=host;
+  url_args=new HashMap<>(args);
+}
+]]></POINT>
+	<TO>64</TO>
+	<FROM>66</FROM>
+	<FROM>67</FROM>
+      </NODE>
+      <NODE CALLID='696966405' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecurityWebServer.class' ID='66' METHOD='edu.brown.cs.securitylab.SecurityWebServer.getResponse' REASON='Call to Method &lt;init&gt;' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='4' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='144' LOC='20' OPCODE='183'>20: INVOKESPECIAL edu/brown/cs/securitylab/SecurityRequest.&lt;init&gt;(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lfi/iki/elonen/NanoHTTPD$CookieHandler;Ljava/lang/String;Ledu/brown/cs/securitylab/SecuritySession;)V (line 144)</POINT>
+	<TO>65</TO>
+	<TO>105</TO>
+	<FROM>85</FROM>
+      </NODE>
+      <NODE CALLID='1888032659' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecurityWebServer.class' ID='67' METHOD='edu.brown.cs.securitylab.SecurityWebServer.getResponse' REASON='Call to Method &lt;init&gt;' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='4' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='144' LOC='20' OPCODE='183'>20: INVOKESPECIAL edu/brown/cs/securitylab/SecurityRequest.&lt;init&gt;(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lfi/iki/elonen/NanoHTTPD$CookieHandler;Ljava/lang/String;Ledu/brown/cs/securitylab/SecuritySession;)V (line 144)</POINT>
+	<TO>65</TO>
+	<TO>101</TO>
+	<TO>106</TO>
+	<FROM>68</FROM>
+      </NODE>
+      <NODE CALLID='1888032659' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecurityWebServer.class' ID='68' METHOD='edu.brown.cs.securitylab.SecurityWebServer.getResponse' REASON='Start of Method getResponse' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSLOT='3' REFSYM='host' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='142' LOC='0' OPCODE='178'>0: GETSTATIC edu/brown/cs/securitylab/SecurityWebServer.$assertionsDisabled (Z) (line 142)</POINT>
+	<TO>67</TO>
+	<FROM>69</FROM>
+      </NODE>
+      <NODE CALLID='1338940462' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecurityWebServer.class' ID='69' METHOD='edu.brown.cs.securitylab.SecurityWebServer.access$1' REASON='Call to Method getResponse' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityWebServer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='2' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='139' LOC='6' OPCODE='183'>6: INVOKESPECIAL edu/brown/cs/securitylab/SecurityWebServer.getResponse(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Lfi/iki/elonen/NanoHTTPD$Response; (line 139)</POINT>
+	<TO>68</TO>
+	<TO>87</TO>
+	<TO>110</TO>
+	<FROM>70</FROM>
+      </NODE>
+      <NODE CALLID='1338940462' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecurityWebServer.class' ID='70' METHOD='edu.brown.cs.securitylab.SecurityWebServer.access$1' REASON='Start of Method access$1' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityWebServer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSLOT='3' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='139' LOC='0' OPCODE='25'>0: ALOAD L0 (line 139)</POINT>
+	<TO>69</TO>
+	<FROM>71</FROM>
+	<FROM>72</FROM>
+      </NODE>
+      <NODE CALLID='962965799' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecurityWebServer$HttpServer.class' ID='71' METHOD='edu.brown.cs.securitylab.SecurityWebServer$HttpServer.serve' REASON='Call to Method access$1' SIGNATURE='(Lfi/iki/elonen/NanoHTTPD$IHTTPSession;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='2' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='296' LOC='73' OPCODE='184'>73: INVOKESTATIC edu/brown/cs/securitylab/SecurityWebServer.access$1(Ledu/brown/cs/securitylab/SecurityWebServer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Lfi/iki/elonen/NanoHTTPD$Response; (line 296)</POINT>
+	<TO>70</TO>
+	<TO>91</TO>
+	<TO>115</TO>
+	<FROM>79</FROM>
+      </NODE>
+      <NODE CALLID='231534356' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecurityWebServer$HttpServer.class' ID='72' METHOD='edu.brown.cs.securitylab.SecurityWebServer$HttpServer.serve' REASON='Call to Method access$1' SIGNATURE='(Lfi/iki/elonen/NanoHTTPD$IHTTPSession;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='2' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='296' LOC='73' OPCODE='184'>73: INVOKESTATIC edu/brown/cs/securitylab/SecurityWebServer.access$1(Ledu/brown/cs/securitylab/SecurityWebServer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Lfi/iki/elonen/NanoHTTPD$Response; (line 296)</POINT>
+	<TO>70</TO>
+	<TO>90</TO>
+	<TO>92</TO>
+	<TO>112</TO>
+	<TO>114</TO>
+	<TO>116</TO>
+	<FROM>73</FROM>
+      </NODE>
+      <NODE CALLID='231534356' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecurityWebServer$HttpServer.class' ID='73' METHOD='edu.brown.cs.securitylab.SecurityWebServer$HttpServer.serve' REASON='Referenced value' SIGNATURE='(Lfi/iki/elonen/NanoHTTPD$IHTTPSession;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='294' LOC='61' OPCODE='192'>61: CHECKCAST java/lang/String (line 294)</POINT>
+	<TO>72</TO>
+	<FROM>74</FROM>
+      </NODE>
+      <NODE CALLID='231534356' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecurityWebServer$HttpServer.class' ID='74' METHOD='edu.brown.cs.securitylab.SecurityWebServer$HttpServer.serve' REASON='Referenced value' SIGNATURE='(Lfi/iki/elonen/NanoHTTPD$IHTTPSession;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='1' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='294' LOC='60' OPCODE='185'>60: INVOKEINTERFACE java/util/Map.get(Ljava/lang/Object;)Ljava/lang/Object; (line 294)</POINT>
+	<TO>73</TO>
+	<FROM>75</FROM>
+      </NODE>
+      <NODE CALLID='225979711' FILE='/research/people/spr/javasecurity/lib/nanohttpd.jar' ID='75' METHOD='fi.iki.elonen.NanoHTTPD$HTTPSession.getHeaders' REASON='Result of method getHeaders' SIGNATURE='()Ljava/util/Map;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='880' LOC='2' OPCODE='176'>2: ARETURN (line 880)</POINT>
+	<TO>74</TO>
+	<FROM>78</FROM>
+      </NODE>
+      <NODE CALLID='1960254120' END='true' FILE='/research/people/spr/javasecurity/lib/nanohttpd.jar' ID='78' METHOD='fi.iki.elonen.NanoHTTPD$HTTPSession.&lt;init&gt;' REASON='Referenced value' SIGNATURE='(Lfi/iki/elonen/NanoHTTPD;Lfi/iki/elonen/NanoHTTPD$TempFileManager;Ljava/io/InputStream;Ljava/io/OutputStream;Ljava/net/InetAddress;)V'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='524' LOC='35' OPCODE='181'>35: PUTFIELD fi/iki/elonen/NanoHTTPD$HTTPSession.headers (Ljava/util/Map;) (line 524)</POINT>
+	<TO>75</TO>
+	<TO>84</TO>
+	<TO>98</TO>
+	<TO>82</TO>
+	<TO>96</TO>
+	<TO>83</TO>
+	<TO>97</TO>
+      </NODE>
+      <NODE CALLID='962965799' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecurityWebServer$HttpServer.class' ID='79' METHOD='edu.brown.cs.securitylab.SecurityWebServer$HttpServer.serve' REASON='Referenced value' SIGNATURE='(Lfi/iki/elonen/NanoHTTPD$IHTTPSession;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='294' LOC='61' OPCODE='192'>61: CHECKCAST java/lang/String (line 294)</POINT>
+	<TO>71</TO>
+	<FROM>80</FROM>
+      </NODE>
+      <NODE CALLID='962965799' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecurityWebServer$HttpServer.class' ID='80' METHOD='edu.brown.cs.securitylab.SecurityWebServer$HttpServer.serve' REASON='Referenced value' SIGNATURE='(Lfi/iki/elonen/NanoHTTPD$IHTTPSession;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='1' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='294' LOC='60' OPCODE='185'>60: INVOKEINTERFACE java/util/Map.get(Ljava/lang/Object;)Ljava/lang/Object; (line 294)</POINT>
+	<TO>79</TO>
+	<FROM>81</FROM>
+      </NODE>
+      <NODE CALLID='1420695356' FILE='/research/people/spr/javasecurity/lib/nanohttpd.jar' ID='81' METHOD='fi.iki.elonen.NanoHTTPD$HTTPSession.getHeaders' REASON='Result of method getHeaders' SIGNATURE='()Ljava/util/Map;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='880' LOC='2' OPCODE='176'>2: ARETURN (line 880)</POINT>
+	<TO>80</TO>
+	<FROM>82</FROM>
+	<FROM>83</FROM>
+	<FROM>84</FROM>
+      </NODE>
+      <NODE CALLID='1164063853' FILE='/research/people/spr/javasecurity/lib/nanohttpd.jar' ID='82' METHOD='fi.iki.elonen.NanoHTTPD$HTTPSession.&lt;init&gt;' REASON='Referenced value' SIGNATURE='(Lfi/iki/elonen/NanoHTTPD;Lfi/iki/elonen/NanoHTTPD$TempFileManager;Ljava/io/InputStream;Ljava/io/OutputStream;Ljava/net/InetAddress;)V'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='524' LOC='35' OPCODE='181'>35: PUTFIELD fi/iki/elonen/NanoHTTPD$HTTPSession.headers (Ljava/util/Map;) (line 524)</POINT>
+	<TO>81</TO>
+	<FROM>78</FROM>
+      </NODE>
+      <NODE CALLID='996730565' FILE='/research/people/spr/javasecurity/lib/nanohttpd.jar' ID='83' METHOD='fi.iki.elonen.NanoHTTPD$HTTPSession.&lt;init&gt;' REASON='Referenced value' SIGNATURE='(Lfi/iki/elonen/NanoHTTPD;Lfi/iki/elonen/NanoHTTPD$TempFileManager;Ljava/io/InputStream;Ljava/io/OutputStream;Ljava/net/InetAddress;)V'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='524' LOC='35' OPCODE='181'>35: PUTFIELD fi/iki/elonen/NanoHTTPD$HTTPSession.headers (Ljava/util/Map;) (line 524)</POINT>
+	<TO>81</TO>
+	<FROM>78</FROM>
+      </NODE>
+      <NODE CALLID='1960254120' FILE='/research/people/spr/javasecurity/lib/nanohttpd.jar' ID='84' METHOD='fi.iki.elonen.NanoHTTPD$HTTPSession.&lt;init&gt;' REASON='Referenced value' SIGNATURE='(Lfi/iki/elonen/NanoHTTPD;Lfi/iki/elonen/NanoHTTPD$TempFileManager;Ljava/io/InputStream;Ljava/io/OutputStream;Ljava/net/InetAddress;)V'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='524' LOC='35' OPCODE='181'>35: PUTFIELD fi/iki/elonen/NanoHTTPD$HTTPSession.headers (Ljava/util/Map;) (line 524)</POINT>
+	<TO>81</TO>
+	<FROM>78</FROM>
+      </NODE>
+      <NODE CALLID='696966405' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecurityWebServer.class' ID='85' METHOD='edu.brown.cs.securitylab.SecurityWebServer.getResponse' REASON='Start of Method getResponse' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSLOT='3' REFSYM='host' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='142' LOC='0' OPCODE='178'>0: GETSTATIC edu/brown/cs/securitylab/SecurityWebServer.$assertionsDisabled (Z) (line 142)</POINT>
+	<TO>66</TO>
+	<FROM>86</FROM>
+	<FROM>87</FROM>
+      </NODE>
+      <NODE CALLID='1323317779' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecurityWebServer.class' ID='86' METHOD='edu.brown.cs.securitylab.SecurityWebServer.access$1' REASON='Call to Method getResponse' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityWebServer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='2' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='139' LOC='6' OPCODE='183'>6: INVOKESPECIAL edu/brown/cs/securitylab/SecurityWebServer.getResponse(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Lfi/iki/elonen/NanoHTTPD$Response; (line 139)</POINT>
+	<TO>85</TO>
+	<TO>109</TO>
+	<FROM>88</FROM>
+      </NODE>
+      <NODE CALLID='1338940462' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecurityWebServer.class' ID='87' METHOD='edu.brown.cs.securitylab.SecurityWebServer.access$1' REASON='Call to Method getResponse' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityWebServer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='2' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='139' LOC='6' OPCODE='183'>6: INVOKESPECIAL edu/brown/cs/securitylab/SecurityWebServer.getResponse(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Lfi/iki/elonen/NanoHTTPD$Response; (line 139)</POINT>
+	<TO>85</TO>
+	<FROM>69</FROM>
+      </NODE>
+      <NODE CALLID='1323317779' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecurityWebServer.class' ID='88' METHOD='edu.brown.cs.securitylab.SecurityWebServer.access$1' REASON='Start of Method access$1' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityWebServer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSLOT='3' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='139' LOC='0' OPCODE='25'>0: ALOAD L0 (line 139)</POINT>
+	<TO>86</TO>
+	<FROM>89</FROM>
+	<FROM>90</FROM>
+	<FROM>91</FROM>
+	<FROM>92</FROM>
+      </NODE>
+      <NODE CALLID='1003873912' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecurityWebServer$HttpServer.class' ID='89' METHOD='edu.brown.cs.securitylab.SecurityWebServer$HttpServer.serve' REASON='Call to Method access$1' SIGNATURE='(Lfi/iki/elonen/NanoHTTPD$IHTTPSession;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='2' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='296' LOC='73' OPCODE='184'>73: INVOKESTATIC edu/brown/cs/securitylab/SecurityWebServer.access$1(Ledu/brown/cs/securitylab/SecurityWebServer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Lfi/iki/elonen/NanoHTTPD$Response; (line 296)</POINT>
+	<TO>88</TO>
+	<TO>113</TO>
+	<FROM>93</FROM>
+      </NODE>
+      <NODE CALLID='231534356' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecurityWebServer$HttpServer.class' ID='90' METHOD='edu.brown.cs.securitylab.SecurityWebServer$HttpServer.serve' REASON='Call to Method access$1' SIGNATURE='(Lfi/iki/elonen/NanoHTTPD$IHTTPSession;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='2' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='296' LOC='73' OPCODE='184'>73: INVOKESTATIC edu/brown/cs/securitylab/SecurityWebServer.access$1(Ledu/brown/cs/securitylab/SecurityWebServer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Lfi/iki/elonen/NanoHTTPD$Response; (line 296)</POINT>
+	<TO>88</TO>
+	<FROM>72</FROM>
+      </NODE>
+      <NODE CALLID='962965799' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecurityWebServer$HttpServer.class' ID='91' METHOD='edu.brown.cs.securitylab.SecurityWebServer$HttpServer.serve' REASON='Call to Method access$1' SIGNATURE='(Lfi/iki/elonen/NanoHTTPD$IHTTPSession;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='2' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='296' LOC='73' OPCODE='184'>73: INVOKESTATIC edu/brown/cs/securitylab/SecurityWebServer.access$1(Ledu/brown/cs/securitylab/SecurityWebServer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Lfi/iki/elonen/NanoHTTPD$Response; (line 296)</POINT>
+	<TO>88</TO>
+	<FROM>71</FROM>
+      </NODE>
+      <NODE CALLID='231534356' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecurityWebServer$HttpServer.class' ID='92' METHOD='edu.brown.cs.securitylab.SecurityWebServer$HttpServer.serve' REASON='Call to Method access$1' SIGNATURE='(Lfi/iki/elonen/NanoHTTPD$IHTTPSession;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='2' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='296' LOC='73' OPCODE='184'>73: INVOKESTATIC edu/brown/cs/securitylab/SecurityWebServer.access$1(Ledu/brown/cs/securitylab/SecurityWebServer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Lfi/iki/elonen/NanoHTTPD$Response; (line 296)</POINT>
+	<TO>88</TO>
+	<FROM>72</FROM>
+      </NODE>
+      <NODE CALLID='1003873912' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecurityWebServer$HttpServer.class' ID='93' METHOD='edu.brown.cs.securitylab.SecurityWebServer$HttpServer.serve' REASON='Referenced value' SIGNATURE='(Lfi/iki/elonen/NanoHTTPD$IHTTPSession;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='294' LOC='61' OPCODE='192'>61: CHECKCAST java/lang/String (line 294)</POINT>
+	<TO>89</TO>
+	<FROM>94</FROM>
+      </NODE>
+      <NODE CALLID='1003873912' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecurityWebServer$HttpServer.class' ID='94' METHOD='edu.brown.cs.securitylab.SecurityWebServer$HttpServer.serve' REASON='Referenced value' SIGNATURE='(Lfi/iki/elonen/NanoHTTPD$IHTTPSession;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='1' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='294' LOC='60' OPCODE='185'>60: INVOKEINTERFACE java/util/Map.get(Ljava/lang/Object;)Ljava/lang/Object; (line 294)</POINT>
+	<TO>93</TO>
+	<FROM>95</FROM>
+      </NODE>
+      <NODE CALLID='1014265415' FILE='/research/people/spr/javasecurity/lib/nanohttpd.jar' ID='95' METHOD='fi.iki.elonen.NanoHTTPD$HTTPSession.getHeaders' REASON='Result of method getHeaders' SIGNATURE='()Ljava/util/Map;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='880' LOC='2' OPCODE='176'>2: ARETURN (line 880)</POINT>
+	<TO>94</TO>
+	<FROM>96</FROM>
+	<FROM>97</FROM>
+	<FROM>98</FROM>
+      </NODE>
+      <NODE CALLID='1164063853' FILE='/research/people/spr/javasecurity/lib/nanohttpd.jar' ID='96' METHOD='fi.iki.elonen.NanoHTTPD$HTTPSession.&lt;init&gt;' REASON='Referenced value' SIGNATURE='(Lfi/iki/elonen/NanoHTTPD;Lfi/iki/elonen/NanoHTTPD$TempFileManager;Ljava/io/InputStream;Ljava/io/OutputStream;Ljava/net/InetAddress;)V'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='524' LOC='35' OPCODE='181'>35: PUTFIELD fi/iki/elonen/NanoHTTPD$HTTPSession.headers (Ljava/util/Map;) (line 524)</POINT>
+	<TO>95</TO>
+	<FROM>78</FROM>
+      </NODE>
+      <NODE CALLID='996730565' FILE='/research/people/spr/javasecurity/lib/nanohttpd.jar' ID='97' METHOD='fi.iki.elonen.NanoHTTPD$HTTPSession.&lt;init&gt;' REASON='Referenced value' SIGNATURE='(Lfi/iki/elonen/NanoHTTPD;Lfi/iki/elonen/NanoHTTPD$TempFileManager;Ljava/io/InputStream;Ljava/io/OutputStream;Ljava/net/InetAddress;)V'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='524' LOC='35' OPCODE='181'>35: PUTFIELD fi/iki/elonen/NanoHTTPD$HTTPSession.headers (Ljava/util/Map;) (line 524)</POINT>
+	<TO>95</TO>
+	<FROM>78</FROM>
+      </NODE>
+      <NODE CALLID='1960254120' FILE='/research/people/spr/javasecurity/lib/nanohttpd.jar' ID='98' METHOD='fi.iki.elonen.NanoHTTPD$HTTPSession.&lt;init&gt;' REASON='Referenced value' SIGNATURE='(Lfi/iki/elonen/NanoHTTPD;Lfi/iki/elonen/NanoHTTPD$TempFileManager;Ljava/io/InputStream;Ljava/io/OutputStream;Ljava/net/InetAddress;)V'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='524' LOC='35' OPCODE='181'>35: PUTFIELD fi/iki/elonen/NanoHTTPD$HTTPSession.headers (Ljava/util/Map;) (line 524)</POINT>
+	<TO>95</TO>
+	<FROM>78</FROM>
+      </NODE>
+      <NODE CALLID='152757084' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='99' METHOD='edu.brown.cs.securitylab.SecurityRequest.&lt;init&gt;' REASON='Variable host referenced' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map&lt;Ljava/lang/String;Ljava/lang/String;&gt;;Lfi/iki/elonen/NanoHTTPD$CookieHandler;Ljava/lang/String;Ledu/brown/cs/securitylab/SecuritySession;)V'>
+	<CONTEXT REFSLOT='3' REFSYM='host' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT END='2373' KIND='EDIT' LINE='85' NODETYPE='SimpleName' START='2369'><![CDATA[host]]></POINT>
+	<TO>62</TO>
+	<FROM>100</FROM>
+      </NODE>
+      <NODE CALLID='152757084' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='100' METHOD='edu.brown.cs.securitylab.SecurityRequest.&lt;init&gt;' REASON='Start of Method &lt;init&gt;' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map&lt;Ljava/lang/String;Ljava/lang/String;&gt;;Lfi/iki/elonen/NanoHTTPD$CookieHandler;Ljava/lang/String;Ledu/brown/cs/securitylab/SecuritySession;)V'>
+	<CONTEXT REFSLOT='3' REFSYM='host' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT END='2411' KIND='EDIT' LINE='71' NODETYPE='MethodDeclaration' START='1869'><![CDATA[/**
+ */
+SecurityRequest(String method,String file,String host,Map<String,String> args,NanoHTTPD.CookieHandler cookies,String sessioncookie,SecuritySession sess){
+  session_id=cookies.read(sessioncookie);
+  if (session_id == null)   session_id=args.get("USID");
+  session_manager=sess;
+  cookie_handler=cookies;
+  session_cookie=sessioncookie;
+  url_method=method;
+  url_file=file;
+  url_host=host;
+  url_args=new HashMap<>(args);
+}
+]]></POINT>
+	<TO>99</TO>
+	<FROM>101</FROM>
+      </NODE>
+      <NODE CALLID='1888032659' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecurityWebServer.class' ID='101' METHOD='edu.brown.cs.securitylab.SecurityWebServer.getResponse' REASON='Call to Method &lt;init&gt;' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='4' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='144' LOC='20' OPCODE='183'>20: INVOKESPECIAL edu/brown/cs/securitylab/SecurityRequest.&lt;init&gt;(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lfi/iki/elonen/NanoHTTPD$CookieHandler;Ljava/lang/String;Ledu/brown/cs/securitylab/SecuritySession;)V (line 144)</POINT>
+	<TO>100</TO>
+	<FROM>67</FROM>
+      </NODE>
+      <NODE CALLID='842195604' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='102' METHOD='edu.brown.cs.securitylab.SecurityRequest.&lt;init&gt;' REASON='Variable host referenced' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map&lt;Ljava/lang/String;Ljava/lang/String;&gt;;Lfi/iki/elonen/NanoHTTPD$CookieHandler;Ljava/lang/String;Ledu/brown/cs/securitylab/SecuritySession;)V'>
+	<CONTEXT REFSLOT='3' REFSYM='host' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT END='2373' KIND='EDIT' LINE='85' NODETYPE='SimpleName' START='2369'><![CDATA[host]]></POINT>
+	<TO>61</TO>
+	<FROM>103</FROM>
+      </NODE>
+      <NODE CALLID='842195604' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='103' METHOD='edu.brown.cs.securitylab.SecurityRequest.&lt;init&gt;' REASON='Start of Method &lt;init&gt;' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map&lt;Ljava/lang/String;Ljava/lang/String;&gt;;Lfi/iki/elonen/NanoHTTPD$CookieHandler;Ljava/lang/String;Ledu/brown/cs/securitylab/SecuritySession;)V'>
+	<CONTEXT REFSLOT='3' REFSYM='host' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT END='2411' KIND='EDIT' LINE='71' NODETYPE='MethodDeclaration' START='1869'><![CDATA[/**
+ */
+SecurityRequest(String method,String file,String host,Map<String,String> args,NanoHTTPD.CookieHandler cookies,String sessioncookie,SecuritySession sess){
+  session_id=cookies.read(sessioncookie);
+  if (session_id == null)   session_id=args.get("USID");
+  session_manager=sess;
+  cookie_handler=cookies;
+  session_cookie=sessioncookie;
+  url_method=method;
+  url_file=file;
+  url_host=host;
+  url_args=new HashMap<>(args);
+}
+]]></POINT>
+	<TO>102</TO>
+	<FROM>104</FROM>
+	<FROM>105</FROM>
+	<FROM>106</FROM>
+      </NODE>
+      <NODE CALLID='1734992423' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecurityWebServer.class' ID='104' METHOD='edu.brown.cs.securitylab.SecurityWebServer.getResponse' REASON='Call to Method &lt;init&gt;' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='4' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='144' LOC='20' OPCODE='183'>20: INVOKESPECIAL edu/brown/cs/securitylab/SecurityRequest.&lt;init&gt;(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lfi/iki/elonen/NanoHTTPD$CookieHandler;Ljava/lang/String;Ledu/brown/cs/securitylab/SecuritySession;)V (line 144)</POINT>
+	<TO>103</TO>
+	<FROM>107</FROM>
+      </NODE>
+      <NODE CALLID='696966405' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecurityWebServer.class' ID='105' METHOD='edu.brown.cs.securitylab.SecurityWebServer.getResponse' REASON='Call to Method &lt;init&gt;' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='4' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='144' LOC='20' OPCODE='183'>20: INVOKESPECIAL edu/brown/cs/securitylab/SecurityRequest.&lt;init&gt;(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lfi/iki/elonen/NanoHTTPD$CookieHandler;Ljava/lang/String;Ledu/brown/cs/securitylab/SecuritySession;)V (line 144)</POINT>
+	<TO>103</TO>
+	<FROM>66</FROM>
+      </NODE>
+      <NODE CALLID='1888032659' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecurityWebServer.class' ID='106' METHOD='edu.brown.cs.securitylab.SecurityWebServer.getResponse' REASON='Call to Method &lt;init&gt;' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='4' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='144' LOC='20' OPCODE='183'>20: INVOKESPECIAL edu/brown/cs/securitylab/SecurityRequest.&lt;init&gt;(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lfi/iki/elonen/NanoHTTPD$CookieHandler;Ljava/lang/String;Ledu/brown/cs/securitylab/SecuritySession;)V (line 144)</POINT>
+	<TO>103</TO>
+	<FROM>67</FROM>
+      </NODE>
+      <NODE CALLID='1734992423' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecurityWebServer.class' ID='107' METHOD='edu.brown.cs.securitylab.SecurityWebServer.getResponse' REASON='Start of Method getResponse' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSLOT='3' REFSYM='host' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='142' LOC='0' OPCODE='178'>0: GETSTATIC edu/brown/cs/securitylab/SecurityWebServer.$assertionsDisabled (Z) (line 142)</POINT>
+	<TO>104</TO>
+	<FROM>108</FROM>
+	<FROM>109</FROM>
+	<FROM>110</FROM>
+      </NODE>
+      <NODE CALLID='1526523061' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecurityWebServer.class' ID='108' METHOD='edu.brown.cs.securitylab.SecurityWebServer.access$1' REASON='Call to Method getResponse' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityWebServer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='2' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='139' LOC='6' OPCODE='183'>6: INVOKESPECIAL edu/brown/cs/securitylab/SecurityWebServer.getResponse(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Lfi/iki/elonen/NanoHTTPD$Response; (line 139)</POINT>
+	<TO>107</TO>
+	<FROM>111</FROM>
+      </NODE>
+      <NODE CALLID='1323317779' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecurityWebServer.class' ID='109' METHOD='edu.brown.cs.securitylab.SecurityWebServer.access$1' REASON='Call to Method getResponse' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityWebServer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='2' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='139' LOC='6' OPCODE='183'>6: INVOKESPECIAL edu/brown/cs/securitylab/SecurityWebServer.getResponse(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Lfi/iki/elonen/NanoHTTPD$Response; (line 139)</POINT>
+	<TO>107</TO>
+	<FROM>86</FROM>
+      </NODE>
+      <NODE CALLID='1338940462' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecurityWebServer.class' ID='110' METHOD='edu.brown.cs.securitylab.SecurityWebServer.access$1' REASON='Call to Method getResponse' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityWebServer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='2' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='139' LOC='6' OPCODE='183'>6: INVOKESPECIAL edu/brown/cs/securitylab/SecurityWebServer.getResponse(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Lfi/iki/elonen/NanoHTTPD$Response; (line 139)</POINT>
+	<TO>107</TO>
+	<FROM>69</FROM>
+      </NODE>
+      <NODE CALLID='1526523061' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecurityWebServer.class' ID='111' METHOD='edu.brown.cs.securitylab.SecurityWebServer.access$1' REASON='Start of Method access$1' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityWebServer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSLOT='3' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='139' LOC='0' OPCODE='25'>0: ALOAD L0 (line 139)</POINT>
+	<TO>108</TO>
+	<FROM>112</FROM>
+	<FROM>113</FROM>
+	<FROM>114</FROM>
+	<FROM>115</FROM>
+	<FROM>116</FROM>
+      </NODE>
+      <NODE CALLID='231534356' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecurityWebServer$HttpServer.class' ID='112' METHOD='edu.brown.cs.securitylab.SecurityWebServer$HttpServer.serve' REASON='Call to Method access$1' SIGNATURE='(Lfi/iki/elonen/NanoHTTPD$IHTTPSession;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='2' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='296' LOC='73' OPCODE='184'>73: INVOKESTATIC edu/brown/cs/securitylab/SecurityWebServer.access$1(Ledu/brown/cs/securitylab/SecurityWebServer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Lfi/iki/elonen/NanoHTTPD$Response; (line 296)</POINT>
+	<TO>111</TO>
+	<FROM>72</FROM>
+      </NODE>
+      <NODE CALLID='1003873912' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecurityWebServer$HttpServer.class' ID='113' METHOD='edu.brown.cs.securitylab.SecurityWebServer$HttpServer.serve' REASON='Call to Method access$1' SIGNATURE='(Lfi/iki/elonen/NanoHTTPD$IHTTPSession;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='2' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='296' LOC='73' OPCODE='184'>73: INVOKESTATIC edu/brown/cs/securitylab/SecurityWebServer.access$1(Ledu/brown/cs/securitylab/SecurityWebServer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Lfi/iki/elonen/NanoHTTPD$Response; (line 296)</POINT>
+	<TO>111</TO>
+	<FROM>89</FROM>
+      </NODE>
+      <NODE CALLID='231534356' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecurityWebServer$HttpServer.class' ID='114' METHOD='edu.brown.cs.securitylab.SecurityWebServer$HttpServer.serve' REASON='Call to Method access$1' SIGNATURE='(Lfi/iki/elonen/NanoHTTPD$IHTTPSession;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='2' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='296' LOC='73' OPCODE='184'>73: INVOKESTATIC edu/brown/cs/securitylab/SecurityWebServer.access$1(Ledu/brown/cs/securitylab/SecurityWebServer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Lfi/iki/elonen/NanoHTTPD$Response; (line 296)</POINT>
+	<TO>111</TO>
+	<FROM>72</FROM>
+      </NODE>
+      <NODE CALLID='962965799' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecurityWebServer$HttpServer.class' ID='115' METHOD='edu.brown.cs.securitylab.SecurityWebServer$HttpServer.serve' REASON='Call to Method access$1' SIGNATURE='(Lfi/iki/elonen/NanoHTTPD$IHTTPSession;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='2' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='296' LOC='73' OPCODE='184'>73: INVOKESTATIC edu/brown/cs/securitylab/SecurityWebServer.access$1(Ledu/brown/cs/securitylab/SecurityWebServer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Lfi/iki/elonen/NanoHTTPD$Response; (line 296)</POINT>
+	<TO>111</TO>
+	<FROM>71</FROM>
+      </NODE>
+      <NODE CALLID='231534356' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecurityWebServer$HttpServer.class' ID='116' METHOD='edu.brown.cs.securitylab.SecurityWebServer$HttpServer.serve' REASON='Call to Method access$1' SIGNATURE='(Lfi/iki/elonen/NanoHTTPD$IHTTPSession;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='2' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='296' LOC='73' OPCODE='184'>73: INVOKESTATIC edu/brown/cs/securitylab/SecurityWebServer.access$1(Ledu/brown/cs/securitylab/SecurityWebServer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Lfi/iki/elonen/NanoHTTPD$Response; (line 296)</POINT>
+	<TO>111</TO>
+	<FROM>72</FROM>
+      </NODE>
+      <NODE CALLID='947816432' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='117' METHOD='edu.brown.cs.securitylab.SecurityRequest.&lt;init&gt;' REASON='Referenced value' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map&lt;Ljava/lang/String;Ljava/lang/String;&gt;;Lfi/iki/elonen/NanoHTTPD$CookieHandler;Ljava/lang/String;Ledu/brown/cs/securitylab/SecuritySession;)V'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='rightHandSide' AFTERSTART='2389' END='2408' KIND='EDIT' LINE='86' NODETYPE='Assignment' START='2378'><![CDATA[url_args=new HashMap<>(args)]]></POINT>
+	<TO>40</TO>
+	<TO>137</TO>
+	<TO>161</TO>
+	<TO>210</TO>
+	<FROM>122</FROM>
+      </NODE>
+      <NODE CALLID='842195604' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='118' METHOD='edu.brown.cs.securitylab.SecurityRequest.&lt;init&gt;' REASON='Referenced value' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map&lt;Ljava/lang/String;Ljava/lang/String;&gt;;Lfi/iki/elonen/NanoHTTPD$CookieHandler;Ljava/lang/String;Ledu/brown/cs/securitylab/SecuritySession;)V'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='rightHandSide' AFTERSTART='2389' END='2408' KIND='EDIT' LINE='86' NODETYPE='Assignment' START='2378'><![CDATA[url_args=new HashMap<>(args)]]></POINT>
+	<TO>40</TO>
+	<TO>138</TO>
+	<TO>162</TO>
+	<TO>211</TO>
+	<FROM>121</FROM>
+      </NODE>
+      <NODE CALLID='152757084' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='119' METHOD='edu.brown.cs.securitylab.SecurityRequest.&lt;init&gt;' REASON='Referenced value' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map&lt;Ljava/lang/String;Ljava/lang/String;&gt;;Lfi/iki/elonen/NanoHTTPD$CookieHandler;Ljava/lang/String;Ledu/brown/cs/securitylab/SecuritySession;)V'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='rightHandSide' AFTERSTART='2389' END='2408' KIND='EDIT' LINE='86' NODETYPE='Assignment' START='2378'><![CDATA[url_args=new HashMap<>(args)]]></POINT>
+	<TO>40</TO>
+	<TO>139</TO>
+	<TO>163</TO>
+	<TO>212</TO>
+	<FROM>120</FROM>
+      </NODE>
+      <NODE CALLID='152757084' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='120' METHOD='edu.brown.cs.securitylab.SecurityRequest.&lt;init&gt;' REASON='Referenced value' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map&lt;Ljava/lang/String;Ljava/lang/String;&gt;;Lfi/iki/elonen/NanoHTTPD$CookieHandler;Ljava/lang/String;Ledu/brown/cs/securitylab/SecuritySession;)V'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='rightHandSide' AFTERSTART='2369' END='2373' KIND='EDIT' LINE='85' NODETYPE='Assignment' START='2358'><![CDATA[url_host=host]]></POINT>
+	<TO>119</TO>
+	<FROM>62</FROM>
+      </NODE>
+      <NODE CALLID='842195604' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='121' METHOD='edu.brown.cs.securitylab.SecurityRequest.&lt;init&gt;' REASON='Referenced value' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map&lt;Ljava/lang/String;Ljava/lang/String;&gt;;Lfi/iki/elonen/NanoHTTPD$CookieHandler;Ljava/lang/String;Ledu/brown/cs/securitylab/SecuritySession;)V'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='rightHandSide' AFTERSTART='2369' END='2373' KIND='EDIT' LINE='85' NODETYPE='Assignment' START='2358'><![CDATA[url_host=host]]></POINT>
+	<TO>118</TO>
+	<FROM>61</FROM>
+      </NODE>
+      <NODE CALLID='947816432' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='122' METHOD='edu.brown.cs.securitylab.SecurityRequest.&lt;init&gt;' REASON='Referenced value' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map&lt;Ljava/lang/String;Ljava/lang/String;&gt;;Lfi/iki/elonen/NanoHTTPD$CookieHandler;Ljava/lang/String;Ledu/brown/cs/securitylab/SecuritySession;)V'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='rightHandSide' AFTERSTART='2369' END='2373' KIND='EDIT' LINE='85' NODETYPE='Assignment' START='2358'><![CDATA[url_host=host]]></POINT>
+	<TO>117</TO>
+	<FROM>63</FROM>
+      </NODE>
+      <NODE CALLID='994772354' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='123' METHOD='edu.brown.cs.securitylab.SecurityAccount.handleSignup' REASON='Referenced value' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='1' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='arguments' AFTERSTART='9262' END='9271' KIND='EDIT' LINE='263' NODETYPE='MethodInvocation' START='9253'><![CDATA[user.get("userid")]]></POINT>
+	<TO>33</TO>
+	<FROM>124</FROM>
+      </NODE>
+      <NODE CALLID='994772354' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='124' METHOD='edu.brown.cs.securitylab.SecurityAccount.handleSignup' REASON='Variable user referenced' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSLOT='11' REFSYM='user' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT END='9257' KIND='EDIT' LINE='263' NODETYPE='SimpleName' START='9253'><![CDATA[user]]></POINT>
+	<TO>123</TO>
+	<FROM>125</FROM>
+      </NODE>
+      <NODE CALLID='994772354' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='125' METHOD='edu.brown.cs.securitylab.SecurityAccount.handleSignup' REASON='Control Flow Merge' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSLOT='11' REFSYM='user' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT END='9257' KIND='EDIT' LINE='263' NODETYPE='SimpleName' START='9253'><![CDATA[user]]></POINT>
+	<TO>124</TO>
+	<FROM>30</FROM>
+      </NODE>
+      <NODE CALLID='278983023' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='126' METHOD='edu.brown.cs.securitylab.SecurityAccount.displayLoginPage' REASON='Variable ctx referenced' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSLOT='2' REFSYM='ctx' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT END='5210' KIND='EDIT' LINE='136' NODETYPE='SimpleName' START='5207'><![CDATA[ctx]]></POINT>
+	<TO>28</TO>
+	<FROM>153</FROM>
+      </NODE>
+      <NODE CALLID='2060039613' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='128' METHOD='edu.brown.cs.securitylab.SecurityAccount.displaySignupPage' REASON='Variable ctx referenced' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSLOT='2' REFSYM='ctx' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT END='7445' KIND='EDIT' LINE='213' NODETYPE='SimpleName' START='7442'><![CDATA[ctx]]></POINT>
+	<TO>27</TO>
+	<FROM>129</FROM>
+      </NODE>
+      <NODE CALLID='2060039613' END='true' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='129' METHOD='edu.brown.cs.securitylab.SecurityAccount.displaySignupPage' REASON='Referenced value' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='initializer' AFTERSTART='7194' END='7209' KIND='EDIT' LINE='205' NODETYPE='VariableDeclarationFragment' START='7188'><![CDATA[ctx=new HashMap<>()]]></POINT>
+	<TO>128</TO>
+	<TO>216</TO>
+      </NODE>
+      <NODE CALLID='1963268805' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='130' METHOD='edu.brown.cs.securitylab.SecurityAccount.handleLoginRequest' REASON='Variable ctx referenced' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSLOT='6' REFSYM='ctx' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT END='6098' KIND='EDIT' LINE='163' NODETYPE='SimpleName' START='6095'><![CDATA[ctx]]></POINT>
+	<TO>26</TO>
+	<TO>151</TO>
+	<FROM>131</FROM>
+	<FROM>156</FROM>
+      </NODE>
+      <NODE CALLID='1963268805' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='131' METHOD='edu.brown.cs.securitylab.SecurityAccount.handleLoginRequest' REASON='Referenced value' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='arguments' AFTERSTART='5739' END='5748' KIND='EDIT' LINE='153' NODETYPE='MethodInvocation' START='5720'><![CDATA[ctx.put("username",username)]]></POINT>
+	<TO>130</TO>
+	<FROM>133</FROM>
+      </NODE>
+      <NODE CALLID='1963268805' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='133' METHOD='edu.brown.cs.securitylab.SecurityAccount.handleLoginRequest' REASON='Variable username referenced' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSLOT='2' REFSYM='username' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT END='5747' KIND='EDIT' LINE='153' NODETYPE='SimpleName' START='5739'><![CDATA[username]]></POINT>
+	<TO>131</TO>
+	<FROM>134</FROM>
+      </NODE>
+      <NODE CALLID='1963268805' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='134' METHOD='edu.brown.cs.securitylab.SecurityAccount.handleLoginRequest' REASON='Referenced value' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='initializer' AFTERSTART='5335' END='5354' KIND='EDIT' LINE='143' NODETYPE='VariableDeclarationFragment' START='5324'><![CDATA[username=req.get("username")]]></POINT>
+	<TO>133</TO>
+	<FROM>135</FROM>
+      </NODE>
+      <NODE CALLID='122686551' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='135' METHOD='edu.brown.cs.securitylab.SecurityRequest.get' REASON='Result of method get' SIGNATURE='(Ljava/lang/String;)Ljava/lang/String;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT END='2819' KIND='EDIT' LINE='99' NODETYPE='MethodDeclaration' START='2763' STATUS='RETURN'><![CDATA[String get(String what){
+  return url_args.get(what);
+}
+]]></POINT>
+	<TO>134</TO>
+	<TO>145</TO>
+	<FROM>136</FROM>
+      </NODE>
+      <NODE CALLID='122686551' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='136' METHOD='edu.brown.cs.securitylab.SecurityRequest.get' REASON='Referenced value' SIGNATURE='(Ljava/lang/String;)Ljava/lang/String;'>
+	<CONTEXT REFSTACK='1' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='arguments' AFTERSTART='2811' END='2816' KIND='EDIT' LINE='99' NODETYPE='MethodInvocation' START='2798'><![CDATA[url_args.get(what)]]></POINT>
+	<TO>135</TO>
+	<FROM>137</FROM>
+	<FROM>138</FROM>
+	<FROM>139</FROM>
+      </NODE>
+      <NODE CALLID='947816432' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='137' METHOD='edu.brown.cs.securitylab.SecurityRequest.&lt;init&gt;' REASON='Referenced value' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map&lt;Ljava/lang/String;Ljava/lang/String;&gt;;Lfi/iki/elonen/NanoHTTPD$CookieHandler;Ljava/lang/String;Ledu/brown/cs/securitylab/SecuritySession;)V'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='rightHandSide' AFTERSTART='2389' END='2408' KIND='EDIT' LINE='86' NODETYPE='Assignment' START='2378'><![CDATA[url_args=new HashMap<>(args)]]></POINT>
+	<TO>136</TO>
+	<FROM>117</FROM>
+      </NODE>
+      <NODE CALLID='842195604' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='138' METHOD='edu.brown.cs.securitylab.SecurityRequest.&lt;init&gt;' REASON='Referenced value' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map&lt;Ljava/lang/String;Ljava/lang/String;&gt;;Lfi/iki/elonen/NanoHTTPD$CookieHandler;Ljava/lang/String;Ledu/brown/cs/securitylab/SecuritySession;)V'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='rightHandSide' AFTERSTART='2389' END='2408' KIND='EDIT' LINE='86' NODETYPE='Assignment' START='2378'><![CDATA[url_args=new HashMap<>(args)]]></POINT>
+	<TO>136</TO>
+	<FROM>118</FROM>
+      </NODE>
+      <NODE CALLID='152757084' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='139' METHOD='edu.brown.cs.securitylab.SecurityRequest.&lt;init&gt;' REASON='Referenced value' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map&lt;Ljava/lang/String;Ljava/lang/String;&gt;;Lfi/iki/elonen/NanoHTTPD$CookieHandler;Ljava/lang/String;Ledu/brown/cs/securitylab/SecuritySession;)V'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='rightHandSide' AFTERSTART='2389' END='2408' KIND='EDIT' LINE='86' NODETYPE='Assignment' START='2378'><![CDATA[url_args=new HashMap<>(args)]]></POINT>
+	<TO>136</TO>
+	<FROM>119</FROM>
+      </NODE>
+      <NODE CALLID='994772354' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='140' METHOD='edu.brown.cs.securitylab.SecurityAccount.handleSignup' REASON='Variable errctx referenced' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSLOT='8' REFSYM='errctx' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT END='8018' KIND='EDIT' LINE='231' NODETYPE='SimpleName' START='8012'><![CDATA[errctx]]></POINT>
+	<TO>25</TO>
+	<TO>147</TO>
+	<FROM>141</FROM>
+	<FROM>142</FROM>
+      </NODE>
+      <NODE CALLID='994772354' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='141' METHOD='edu.brown.cs.securitylab.SecurityAccount.handleSignup' REASON='Referenced value' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='arguments' AFTERSTART='7883' END='7889' KIND='EDIT' LINE='228' NODETYPE='MethodInvocation' START='7864'><![CDATA[errctx.put("email",email)]]></POINT>
+	<TO>140</TO>
+	<FROM>143</FROM>
+      </NODE>
+      <NODE CALLID='994772354' END='true' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='142' METHOD='edu.brown.cs.securitylab.SecurityAccount.handleSignup' REASON='Referenced value' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='initializer' AFTERSTART='7776' END='7791' KIND='EDIT' LINE='226' NODETYPE='VariableDeclarationFragment' START='7767'><![CDATA[errctx=new HashMap<>()]]></POINT>
+	<TO>140</TO>
+	<TO>166</TO>
+      </NODE>
+      <NODE CALLID='994772354' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='143' METHOD='edu.brown.cs.securitylab.SecurityAccount.handleSignup' REASON='Variable email referenced' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSLOT='2' REFSYM='email' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT END='7888' KIND='EDIT' LINE='228' NODETYPE='SimpleName' START='7883'><![CDATA[email]]></POINT>
+	<TO>141</TO>
+	<FROM>144</FROM>
+      </NODE>
+      <NODE CALLID='994772354' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='144' METHOD='edu.brown.cs.securitylab.SecurityAccount.handleSignup' REASON='Referenced value' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='initializer' AFTERSTART='7515' END='7531' KIND='EDIT' LINE='219' NODETYPE='VariableDeclarationFragment' START='7507'><![CDATA[email=req.get("email")]]></POINT>
+	<TO>143</TO>
+	<FROM>145</FROM>
+      </NODE>
+      <NODE CALLID='122686551' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='145' METHOD='edu.brown.cs.securitylab.SecurityRequest.get' REASON='Result of method get' SIGNATURE='(Ljava/lang/String;)Ljava/lang/String;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT END='2819' KIND='EDIT' LINE='99' NODETYPE='MethodDeclaration' START='2763' STATUS='RETURN'><![CDATA[String get(String what){
+  return url_args.get(what);
+}
+]]></POINT>
+	<TO>144</TO>
+	<FROM>135</FROM>
+      </NODE>
+      <NODE CALLID='994772354' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='146' METHOD='edu.brown.cs.securitylab.SecurityAccount.handleSignup' REASON='Variable errctx referenced' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSLOT='8' REFSYM='errctx' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT END='8379' KIND='EDIT' LINE='239' NODETYPE='SimpleName' START='8373'><![CDATA[errctx]]></POINT>
+	<TO>24</TO>
+	<FROM>147</FROM>
+      </NODE>
+      <NODE CALLID='994772354' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='147' METHOD='edu.brown.cs.securitylab.SecurityAccount.handleSignup' REASON='Control Flow Merge' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSLOT='8' REFSYM='errctx' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='expression' AFTERSTART='7902' END='8026' KIND='EDIT' LINE='230' NODETYPE='IfStatement' START='7898'><![CDATA[if (!validateSignup(username,firstname,lastname,password,verify,email,errctx)) {
+  return req.render("signup",errctx);
+}
+]]></POINT>
+	<TO>146</TO>
+	<FROM>140</FROM>
+      </NODE>
+      <NODE CALLID='2041113408' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='148' METHOD='edu.brown.cs.securitylab.SecurityAccount.displayWelcomePage' REASON='Variable user referenced' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSLOT='5' REFSYM='user' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT END='4577' KIND='EDIT' LINE='119' NODETYPE='SimpleName' START='4573'><![CDATA[user]]></POINT>
+	<TO>23</TO>
+	<FROM>149</FROM>
+      </NODE>
+      <NODE CALLID='2041113408' END='true' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='149' METHOD='edu.brown.cs.securitylab.SecurityAccount.displayWelcomePage' REASON='Referenced value' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='initializer' AFTERSTART='4529' END='4538' KIND='EDIT' LINE='118' NODETYPE='VariableDeclarationFragment' START='4522'><![CDATA[user=rs.get(0)]]></POINT>
+	<TO>148</TO>
+	<TO>226</TO>
+	<TO>164</TO>
+      </NODE>
+      <NODE CALLID='1963268805' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='150' METHOD='edu.brown.cs.securitylab.SecurityAccount.handleLoginRequest' REASON='Variable ctx referenced' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSLOT='6' REFSYM='ctx' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT END='5889' KIND='EDIT' LINE='158' NODETYPE='SimpleName' START='5886'><![CDATA[ctx]]></POINT>
+	<TO>22</TO>
+	<FROM>151</FROM>
+      </NODE>
+      <NODE CALLID='1963268805' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='151' METHOD='edu.brown.cs.securitylab.SecurityAccount.handleLoginRequest' REASON='Control Flow Merge' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSLOT='6' REFSYM='ctx' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='expression' AFTERSTART='5788' END='5897' KIND='EDIT' LINE='156' NODETYPE='IfStatement' START='5784'><![CDATA[if (rs.size() != 1) {
+  ctx.put("loginError","Invalid username");
+  return req.render("login",ctx);
+}
+]]></POINT>
+	<TO>150</TO>
+	<FROM>130</FROM>
+      </NODE>
+      <NODE CALLID='642571252' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='152' METHOD='edu.brown.cs.securitylab.SecurityAccount.displayLoginPage' REASON='Variable ctx referenced' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSLOT='2' REFSYM='ctx' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT END='5210' KIND='EDIT' LINE='136' NODETYPE='SimpleName' START='5207'><![CDATA[ctx]]></POINT>
+	<TO>21</TO>
+	<FROM>153</FROM>
+      </NODE>
+      <NODE CALLID='642571252' END='true' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='153' METHOD='edu.brown.cs.securitylab.SecurityAccount.displayLoginPage' REASON='Referenced value' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='initializer' AFTERSTART='5078' END='5093' KIND='EDIT' LINE='132' NODETYPE='VariableDeclarationFragment' START='5072'><![CDATA[ctx=new HashMap<>()]]></POINT>
+	<TO>152</TO>
+	<TO>126</TO>
+      </NODE>
+      <NODE CALLID='1117443490' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='154' METHOD='edu.brown.cs.securitylab.SecurityAccount.handleLoginRequest' REASON='Variable ctx referenced' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSLOT='6' REFSYM='ctx' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT END='5889' KIND='EDIT' LINE='158' NODETYPE='SimpleName' START='5886'><![CDATA[ctx]]></POINT>
+	<TO>20</TO>
+	<TO>219</TO>
+	<FROM>155</FROM>
+	<FROM>156</FROM>
+      </NODE>
+      <NODE CALLID='1117443490' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='155' METHOD='edu.brown.cs.securitylab.SecurityAccount.handleLoginRequest' REASON='Referenced value' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='arguments' AFTERSTART='5739' END='5748' KIND='EDIT' LINE='153' NODETYPE='MethodInvocation' START='5720'><![CDATA[ctx.put("username",username)]]></POINT>
+	<TO>154</TO>
+	<FROM>157</FROM>
+      </NODE>
+      <NODE CALLID='1117443490' END='true' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='156' METHOD='edu.brown.cs.securitylab.SecurityAccount.handleLoginRequest' REASON='Referenced value' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='initializer' AFTERSTART='5655' END='5670' KIND='EDIT' LINE='151' NODETYPE='VariableDeclarationFragment' START='5649'><![CDATA[ctx=new HashMap<>()]]></POINT>
+	<TO>154</TO>
+	<TO>130</TO>
+      </NODE>
+      <NODE CALLID='1117443490' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='157' METHOD='edu.brown.cs.securitylab.SecurityAccount.handleLoginRequest' REASON='Variable username referenced' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSLOT='2' REFSYM='username' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT END='5747' KIND='EDIT' LINE='153' NODETYPE='SimpleName' START='5739'><![CDATA[username]]></POINT>
+	<TO>155</TO>
+	<FROM>158</FROM>
+      </NODE>
+      <NODE CALLID='1117443490' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='158' METHOD='edu.brown.cs.securitylab.SecurityAccount.handleLoginRequest' REASON='Referenced value' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='initializer' AFTERSTART='5335' END='5354' KIND='EDIT' LINE='143' NODETYPE='VariableDeclarationFragment' START='5324'><![CDATA[username=req.get("username")]]></POINT>
+	<TO>157</TO>
+	<FROM>159</FROM>
+      </NODE>
+      <NODE CALLID='968121458' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='159' METHOD='edu.brown.cs.securitylab.SecurityRequest.get' REASON='Result of method get' SIGNATURE='(Ljava/lang/String;)Ljava/lang/String;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT END='2819' KIND='EDIT' LINE='99' NODETYPE='MethodDeclaration' START='2763' STATUS='RETURN'><![CDATA[String get(String what){
+  return url_args.get(what);
+}
+]]></POINT>
+	<TO>158</TO>
+	<TO>171</TO>
+	<FROM>160</FROM>
+      </NODE>
+      <NODE CALLID='968121458' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='160' METHOD='edu.brown.cs.securitylab.SecurityRequest.get' REASON='Referenced value' SIGNATURE='(Ljava/lang/String;)Ljava/lang/String;'>
+	<CONTEXT REFSTACK='1' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='arguments' AFTERSTART='2811' END='2816' KIND='EDIT' LINE='99' NODETYPE='MethodInvocation' START='2798'><![CDATA[url_args.get(what)]]></POINT>
+	<TO>159</TO>
+	<FROM>161</FROM>
+	<FROM>162</FROM>
+	<FROM>163</FROM>
+      </NODE>
+      <NODE CALLID='947816432' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='161' METHOD='edu.brown.cs.securitylab.SecurityRequest.&lt;init&gt;' REASON='Referenced value' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map&lt;Ljava/lang/String;Ljava/lang/String;&gt;;Lfi/iki/elonen/NanoHTTPD$CookieHandler;Ljava/lang/String;Ledu/brown/cs/securitylab/SecuritySession;)V'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='rightHandSide' AFTERSTART='2389' END='2408' KIND='EDIT' LINE='86' NODETYPE='Assignment' START='2378'><![CDATA[url_args=new HashMap<>(args)]]></POINT>
+	<TO>160</TO>
+	<FROM>117</FROM>
+      </NODE>
+      <NODE CALLID='842195604' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='162' METHOD='edu.brown.cs.securitylab.SecurityRequest.&lt;init&gt;' REASON='Referenced value' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map&lt;Ljava/lang/String;Ljava/lang/String;&gt;;Lfi/iki/elonen/NanoHTTPD$CookieHandler;Ljava/lang/String;Ledu/brown/cs/securitylab/SecuritySession;)V'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='rightHandSide' AFTERSTART='2389' END='2408' KIND='EDIT' LINE='86' NODETYPE='Assignment' START='2378'><![CDATA[url_args=new HashMap<>(args)]]></POINT>
+	<TO>160</TO>
+	<FROM>118</FROM>
+      </NODE>
+      <NODE CALLID='152757084' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='163' METHOD='edu.brown.cs.securitylab.SecurityRequest.&lt;init&gt;' REASON='Referenced value' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map&lt;Ljava/lang/String;Ljava/lang/String;&gt;;Lfi/iki/elonen/NanoHTTPD$CookieHandler;Ljava/lang/String;Ledu/brown/cs/securitylab/SecuritySession;)V'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='rightHandSide' AFTERSTART='2389' END='2408' KIND='EDIT' LINE='86' NODETYPE='Assignment' START='2378'><![CDATA[url_args=new HashMap<>(args)]]></POINT>
+	<TO>160</TO>
+	<FROM>119</FROM>
+      </NODE>
+      <NODE CALLID='294464095' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='164' METHOD='edu.brown.cs.securitylab.SecurityAccount.displayWelcomePage' REASON='Variable user referenced' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSLOT='5' REFSYM='user' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT END='4577' KIND='EDIT' LINE='119' NODETYPE='SimpleName' START='4573'><![CDATA[user]]></POINT>
+	<TO>19</TO>
+	<FROM>149</FROM>
+      </NODE>
+      <NODE CALLID='1683209879' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='166' METHOD='edu.brown.cs.securitylab.SecurityAccount.handleSignup' REASON='Variable errctx referenced' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSLOT='8' REFSYM='errctx' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT END='8379' KIND='EDIT' LINE='239' NODETYPE='SimpleName' START='8373'><![CDATA[errctx]]></POINT>
+	<TO>18</TO>
+	<TO>173</TO>
+	<FROM>167</FROM>
+	<FROM>142</FROM>
+      </NODE>
+      <NODE CALLID='1683209879' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='167' METHOD='edu.brown.cs.securitylab.SecurityAccount.handleSignup' REASON='Referenced value' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='arguments' AFTERSTART='7883' END='7889' KIND='EDIT' LINE='228' NODETYPE='MethodInvocation' START='7864'><![CDATA[errctx.put("email",email)]]></POINT>
+	<TO>166</TO>
+	<FROM>169</FROM>
+      </NODE>
+      <NODE CALLID='1683209879' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='169' METHOD='edu.brown.cs.securitylab.SecurityAccount.handleSignup' REASON='Variable email referenced' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSLOT='2' REFSYM='email' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT END='7888' KIND='EDIT' LINE='228' NODETYPE='SimpleName' START='7883'><![CDATA[email]]></POINT>
+	<TO>167</TO>
+	<FROM>170</FROM>
+      </NODE>
+      <NODE CALLID='1683209879' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='170' METHOD='edu.brown.cs.securitylab.SecurityAccount.handleSignup' REASON='Referenced value' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='initializer' AFTERSTART='7515' END='7531' KIND='EDIT' LINE='219' NODETYPE='VariableDeclarationFragment' START='7507'><![CDATA[email=req.get("email")]]></POINT>
+	<TO>169</TO>
+	<FROM>171</FROM>
+      </NODE>
+      <NODE CALLID='968121458' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='171' METHOD='edu.brown.cs.securitylab.SecurityRequest.get' REASON='Result of method get' SIGNATURE='(Ljava/lang/String;)Ljava/lang/String;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT END='2819' KIND='EDIT' LINE='99' NODETYPE='MethodDeclaration' START='2763' STATUS='RETURN'><![CDATA[String get(String what){
+  return url_args.get(what);
+}
+]]></POINT>
+	<TO>170</TO>
+	<FROM>159</FROM>
+      </NODE>
+      <NODE CALLID='1683209879' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='172' METHOD='edu.brown.cs.securitylab.SecurityAccount.handleSignup' REASON='Variable errctx referenced' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSLOT='8' REFSYM='errctx' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT END='8018' KIND='EDIT' LINE='231' NODETYPE='SimpleName' START='8012'><![CDATA[errctx]]></POINT>
+	<TO>17</TO>
+	<FROM>173</FROM>
+      </NODE>
+      <NODE CALLID='1683209879' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='173' METHOD='edu.brown.cs.securitylab.SecurityAccount.handleSignup' REASON='Control Flow Merge' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSLOT='8' REFSYM='errctx' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='expression' AFTERSTART='7902' END='8026' KIND='EDIT' LINE='230' NODETYPE='IfStatement' START='7898'><![CDATA[if (!validateSignup(username,firstname,lastname,password,verify,email,errctx)) {
+  return req.render("signup",errctx);
+}
+]]></POINT>
+	<TO>172</TO>
+	<FROM>166</FROM>
+      </NODE>
+      <NODE CALLID='1683209879' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='174' METHOD='edu.brown.cs.securitylab.SecurityAccount.handleSignup' REASON='Variable user referenced' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSLOT='11' REFSYM='user' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT END='9576' KIND='EDIT' LINE='278' NODETYPE='SimpleName' START='9572'><![CDATA[user]]></POINT>
+	<TO>16</TO>
+	<TO>215</TO>
+	<FROM>175</FROM>
+	<FROM>176</FROM>
+      </NODE>
+      <NODE CALLID='1683209879' END='true' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='175' METHOD='edu.brown.cs.securitylab.SecurityAccount.handleSignup' REASON='Referenced value' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='initializer' AFTERSTART='9166' END='9175' KIND='EDIT' LINE='259' NODETYPE='VariableDeclarationFragment' START='9159'><![CDATA[user=rs.get(0)]]></POINT>
+	<TO>174</TO>
+	<TO>30</TO>
+      </NODE>
+      <NODE CALLID='1683209879' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='176' METHOD='edu.brown.cs.securitylab.SecurityAccount.handleSignup' REASON='Referenced value' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='rightHandSide' AFTERSTART='9229' END='9272' KIND='EDIT' LINE='263' NODETYPE='Assignment' START='9221'><![CDATA[where=req.setUserId((Integer)user.get("userid"))]]></POINT>
+	<TO>174</TO>
+	<FROM>177</FROM>
+	<FROM>178</FROM>
+      </NODE>
+      <NODE CALLID='1683209879' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='177' METHOD='edu.brown.cs.securitylab.SecurityAccount.handleSignup' REASON='Referenced value' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='arguments' AFTERSTART='9243' END='9272' KIND='EDIT' LINE='263' NODETYPE='MethodInvocation' START='9229'><![CDATA[req.setUserId((Integer)user.get("userid"))]]></POINT>
+	<TO>176</TO>
+	<FROM>213</FROM>
+      </NODE>
+      <NODE CALLID='1812595628' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='178' METHOD='edu.brown.cs.securitylab.SecurityRequest.setUserId' REASON='Result of method setUserId' SIGNATURE='(I)Ljava/lang/String;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT END='4250' KIND='EDIT' LINE='144' NODETYPE='MethodDeclaration' START='3740' STATUS='RETURN'><![CDATA[String setUserId(int uid) throws SecurityException {
+  if (session_id == null) {
+    throw new SecurityException("Invalid session");
+  }
+  url_args.put("userid",Integer.toString(uid));
+  Map<String,String> gourl=session_manager.validateLogin(session_id,url_host,url_args,session_cookie,cookie_handler);
+  if (gourl == null) {
+    cookie_handler.delete(session_cookie);
+    throw new SecurityException("Invalid session");
+  }
+  String gfile=gourl.remove("FILE");
+  return gfile;
+}
+]]></POINT>
+	<TO>176</TO>
+	<FROM>179</FROM>
+      </NODE>
+      <NODE CALLID='1812595628' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='179' METHOD='edu.brown.cs.securitylab.SecurityRequest.setUserId' REASON='Variable gfile referenced' SIGNATURE='(I)Ljava/lang/String;'>
+	<CONTEXT REFSLOT='3' REFSYM='gfile' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT END='4247' KIND='EDIT' LINE='159' NODETYPE='SimpleName' START='4242'><![CDATA[gfile]]></POINT>
+	<TO>178</TO>
+	<FROM>180</FROM>
+      </NODE>
+      <NODE CALLID='1812595628' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='180' METHOD='edu.brown.cs.securitylab.SecurityRequest.setUserId' REASON='Referenced value' SIGNATURE='(I)Ljava/lang/String;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='initializer' AFTERSTART='4209' END='4229' KIND='EDIT' LINE='157' NODETYPE='VariableDeclarationFragment' START='4201'><![CDATA[gfile=gourl.remove("FILE")]]></POINT>
+	<TO>179</TO>
+	<FROM>181</FROM>
+      </NODE>
+      <NODE CALLID='1812595628' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='181' METHOD='edu.brown.cs.securitylab.SecurityRequest.setUserId' REASON='Referenced value' SIGNATURE='(I)Ljava/lang/String;'>
+	<CONTEXT REFSTACK='1' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='arguments' AFTERSTART='4222' END='4229' KIND='EDIT' LINE='157' NODETYPE='MethodInvocation' START='4209'><![CDATA[gourl.remove("FILE")]]></POINT>
+	<TO>180</TO>
+	<FROM>182</FROM>
+      </NODE>
+      <NODE CALLID='1812595628' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='182' METHOD='edu.brown.cs.securitylab.SecurityRequest.setUserId' REASON='Variable gourl referenced' SIGNATURE='(I)Ljava/lang/String;'>
+	<CONTEXT REFSLOT='2' REFSYM='gourl' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT END='4214' KIND='EDIT' LINE='157' NODETYPE='SimpleName' START='4209'><![CDATA[gourl]]></POINT>
+	<TO>181</TO>
+	<FROM>183</FROM>
+      </NODE>
+      <NODE CALLID='1812595628' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='183' METHOD='edu.brown.cs.securitylab.SecurityRequest.setUserId' REASON='Referenced value' SIGNATURE='(I)Ljava/lang/String;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='initializer' AFTERSTART='3968' END='4060' KIND='EDIT' LINE='150' NODETYPE='VariableDeclarationFragment' START='3954'><![CDATA[gourl=session_manager.validateLogin(session_id,url_host,url_args,session_cookie,cookie_handler)]]></POINT>
+	<TO>182</TO>
+	<FROM>184</FROM>
+	<FROM>185</FROM>
+	<FROM>187</FROM>
+	<FROM>42</FROM>
+      </NODE>
+      <NODE CALLID='1812595628' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='184' METHOD='edu.brown.cs.securitylab.SecurityRequest.setUserId' REASON='Referenced value' SIGNATURE='(I)Ljava/lang/String;'>
+	<CONTEXT REFSTACK='2' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='arguments' AFTERSTART='4045' END='4060' KIND='EDIT' LINE='151' NODETYPE='MethodInvocation' START='3968'><![CDATA[session_manager.validateLogin(session_id,url_host,url_args,session_cookie,cookie_handler)]]></POINT>
+	<TO>183</TO>
+	<TO>205</TO>
+	<FROM>210</FROM>
+	<FROM>211</FROM>
+	<FROM>212</FROM>
+      </NODE>
+      <NODE CALLID='1812595628' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='185' METHOD='edu.brown.cs.securitylab.SecurityRequest.setUserId' REASON='Referenced value' SIGNATURE='(I)Ljava/lang/String;'>
+	<CONTEXT REFSTACK='3' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='arguments' AFTERSTART='4045' END='4060' KIND='EDIT' LINE='151' NODETYPE='MethodInvocation' START='3968'><![CDATA[session_manager.validateLogin(session_id,url_host,url_args,session_cookie,cookie_handler)]]></POINT>
+	<TO>183</TO>
+	<FROM>207</FROM>
+	<FROM>208</FROM>
+	<FROM>209</FROM>
+      </NODE>
+      <NODE CALLID='794156735' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecuritySession.class' ID='187' METHOD='edu.brown.cs.securitylab.SecuritySession.validateLogin' REASON='Result of method validateLogin' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Ljava/util/Map;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='137' LOC='50' OPCODE='176'>50: ARETURN (line 137)</POINT>
+	<TO>183</TO>
+	<FROM>188</FROM>
+	<FROM>189</FROM>
+	<FROM>190</FROM>
+      </NODE>
+      <NODE CALLID='794156735' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecuritySession.class' ID='188' METHOD='edu.brown.cs.securitylab.SecuritySession.validateLogin' REASON='Referenced value' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Ljava/util/Map;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='130' LOC='24' OPCODE='182'>24: INVOKEVIRTUAL edu/brown/cs/securitylab/SecuritySession$Session.makeValid(Ljava/lang/String;)Ljava/util/Map; (line 130)</POINT>
+	<TO>187</TO>
+	<FROM>202</FROM>
+      </NODE>
+      <NODE CALLID='794156735' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecuritySession.class' ID='189' METHOD='edu.brown.cs.securitylab.SecuritySession.validateLogin' REASON='Referenced value' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Ljava/util/Map;'>
+	<CONTEXT REFSTACK='1' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='130' LOC='24' OPCODE='182'>24: INVOKEVIRTUAL edu/brown/cs/securitylab/SecuritySession$Session.makeValid(Ljava/lang/String;)Ljava/util/Map; (line 130)</POINT>
+	<TO>187</TO>
+	<FROM>195</FROM>
+      </NODE>
+      <NODE CALLID='2006411034' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecuritySession$Session.class' ID='190' METHOD='edu.brown.cs.securitylab.SecuritySession$Session.makeValid' REASON='Result of method makeValid' SIGNATURE='(Ljava/lang/String;)Ljava/util/Map;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='247' LOC='18' OPCODE='176'>18: ARETURN (line 247)</POINT>
+	<TO>187</TO>
+	<FROM>191</FROM>
+	<FROM>192</FROM>
+	<FROM>193</FROM>
+	<FROM>194</FROM>
+      </NODE>
+      <NODE CALLID='1358852717' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecuritySession$Session.class' ID='191' METHOD='edu.brown.cs.securitylab.SecuritySession$Session.&lt;init&gt;' REASON='Referenced value' SIGNATURE='(Ledu/brown/cs/securitylab/SecuritySession;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='208' LOC='19' OPCODE='181'>19: PUTFIELD edu/brown/cs/securitylab/SecuritySession$Session.url_args (Ljava/util/Map;) (line 208)</POINT>
+	<TO>190</TO>
+	<FROM>49</FROM>
+      </NODE>
+      <NODE CALLID='2110000877' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecuritySession$Session.class' ID='192' METHOD='edu.brown.cs.securitylab.SecuritySession$Session.&lt;init&gt;' REASON='Referenced value' SIGNATURE='(Ledu/brown/cs/securitylab/SecuritySession;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='208' LOC='19' OPCODE='181'>19: PUTFIELD edu/brown/cs/securitylab/SecuritySession$Session.url_args (Ljava/util/Map;) (line 208)</POINT>
+	<TO>190</TO>
+	<FROM>49</FROM>
+      </NODE>
+      <NODE CALLID='1645286302' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecuritySession$Session.class' ID='193' METHOD='edu.brown.cs.securitylab.SecuritySession$Session.&lt;init&gt;' REASON='Referenced value' SIGNATURE='(Ledu/brown/cs/securitylab/SecuritySession;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='208' LOC='19' OPCODE='181'>19: PUTFIELD edu/brown/cs/securitylab/SecuritySession$Session.url_args (Ljava/util/Map;) (line 208)</POINT>
+	<TO>190</TO>
+	<FROM>49</FROM>
+      </NODE>
+      <NODE CALLID='22777022' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecuritySession$Session.class' ID='194' METHOD='edu.brown.cs.securitylab.SecuritySession$Session.&lt;init&gt;' REASON='Referenced value' SIGNATURE='(Ledu/brown/cs/securitylab/SecuritySession;Lorg/w3c/dom/Element;)V'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='220' LOC='32' OPCODE='181'>32: PUTFIELD edu/brown/cs/securitylab/SecuritySession$Session.url_args (Ljava/util/Map;) (line 220)</POINT>
+	<TO>190</TO>
+	<FROM>50</FROM>
+      </NODE>
+      <NODE CALLID='794156735' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecuritySession.class' ID='195' METHOD='edu.brown.cs.securitylab.SecuritySession.validateLogin' REASON='Referenced value' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Ljava/util/Map;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='125' LOC='4' OPCODE='192'>4: CHECKCAST edu/brown/cs/securitylab/SecuritySession$Session (line 125)</POINT>
+	<TO>189</TO>
+	<FROM>196</FROM>
+	<FROM>197</FROM>
+      </NODE>
+      <NODE CALLID='794156735' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecuritySession.class' ID='196' METHOD='edu.brown.cs.securitylab.SecuritySession.validateLogin' REASON='Referenced value' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Ljava/util/Map;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='125' LOC='3' OPCODE='185'>3: INVOKEINTERFACE java/util/Map.get(Ljava/lang/Object;)Ljava/lang/Object; (line 125)</POINT>
+	<TO>195</TO>
+	<FROM>199</FROM>
+      </NODE>
+      <NODE CALLID='794156735' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecuritySession.class' ID='197' METHOD='edu.brown.cs.securitylab.SecuritySession.validateLogin' REASON='Referenced value' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Ljava/util/Map;'>
+	<CONTEXT REFSTACK='1' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='125' LOC='3' OPCODE='185'>3: INVOKEINTERFACE java/util/Map.get(Ljava/lang/Object;)Ljava/lang/Object; (line 125)</POINT>
+	<TO>195</TO>
+	<FROM>198</FROM>
+      </NODE>
+      <NODE CALLID='1465980699' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecuritySession.class' ID='198' METHOD='edu.brown.cs.securitylab.SecuritySession.&lt;init&gt;' REASON='Referenced value' SIGNATURE='()V'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='50' LOC='11' OPCODE='181'>11: PUTFIELD edu/brown/cs/securitylab/SecuritySession.session_map (Ljava/util/Map;) (line 50)</POINT>
+	<TO>197</TO>
+	<FROM>54</FROM>
+      </NODE>
+      <NODE CALLID='794156735' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecuritySession.class' ID='199' METHOD='edu.brown.cs.securitylab.SecuritySession.validateLogin' REASON='Start of Method validateLogin' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Ljava/util/Map;'>
+	<CONTEXT REFSLOT='1' REFSYM='sid' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='125' LOC='0' OPCODE='25'>0: ALOAD L0 (line 125)</POINT>
+	<TO>196</TO>
+	<FROM>201</FROM>
+	<FROM>42</FROM>
+      </NODE>
+      <NODE CALLID='172825918' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='201' METHOD='edu.brown.cs.securitylab.SecurityRequest.setUserId' REASON='Call to Method validateLogin' SIGNATURE='(I)Ljava/lang/String;'>
+	<CONTEXT REFSTACK='4' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='arguments' AFTERSTART='4045' END='4060' KIND='EDIT' LINE='151' NODETYPE='MethodInvocation' START='3968'><![CDATA[session_manager.validateLogin(session_id,url_host,url_args,session_cookie,cookie_handler)]]></POINT>
+	<TO>199</TO>
+	<FROM>42</FROM>
+      </NODE>
+      <NODE CALLID='794156735' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecuritySession.class' ID='202' METHOD='edu.brown.cs.securitylab.SecuritySession.validateLogin' REASON='Referenced value' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Ljava/util/Map;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='129' LOC='20' OPCODE='192'>20: CHECKCAST java/lang/String (line 129)</POINT>
+	<TO>188</TO>
+	<FROM>203</FROM>
+      </NODE>
+      <NODE CALLID='794156735' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecuritySession.class' ID='203' METHOD='edu.brown.cs.securitylab.SecuritySession.validateLogin' REASON='Referenced value' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Ljava/util/Map;'>
+	<CONTEXT REFSTACK='1' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='129' LOC='19' OPCODE='185'>19: INVOKEINTERFACE java/util/Map.get(Ljava/lang/Object;)Ljava/lang/Object; (line 129)</POINT>
+	<TO>202</TO>
+	<FROM>204</FROM>
+      </NODE>
+      <NODE CALLID='794156735' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecuritySession.class' ID='204' METHOD='edu.brown.cs.securitylab.SecuritySession.validateLogin' REASON='Start of Method validateLogin' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lfi/iki/elonen/NanoHTTPD$CookieHandler;)Ljava/util/Map;'>
+	<CONTEXT REFSLOT='3' REFSYM='args' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='125' LOC='0' OPCODE='25'>0: ALOAD L0 (line 125)</POINT>
+	<TO>203</TO>
+	<FROM>205</FROM>
+	<FROM>206</FROM>
+      </NODE>
+      <NODE CALLID='1812595628' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='205' METHOD='edu.brown.cs.securitylab.SecurityRequest.setUserId' REASON='Call to Method validateLogin' SIGNATURE='(I)Ljava/lang/String;'>
+	<CONTEXT REFSTACK='2' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='arguments' AFTERSTART='4045' END='4060' KIND='EDIT' LINE='151' NODETYPE='MethodInvocation' START='3968'><![CDATA[session_manager.validateLogin(session_id,url_host,url_args,session_cookie,cookie_handler)]]></POINT>
+	<TO>204</TO>
+	<FROM>184</FROM>
+      </NODE>
+      <NODE CALLID='172825918' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='206' METHOD='edu.brown.cs.securitylab.SecurityRequest.setUserId' REASON='Call to Method validateLogin' SIGNATURE='(I)Ljava/lang/String;'>
+	<CONTEXT REFSTACK='2' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='arguments' AFTERSTART='4045' END='4060' KIND='EDIT' LINE='151' NODETYPE='MethodInvocation' START='3968'><![CDATA[session_manager.validateLogin(session_id,url_host,url_args,session_cookie,cookie_handler)]]></POINT>
+	<TO>204</TO>
+	<FROM>40</FROM>
+      </NODE>
+      <NODE CALLID='842195604' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='207' METHOD='edu.brown.cs.securitylab.SecurityRequest.&lt;init&gt;' REASON='Referenced value' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map&lt;Ljava/lang/String;Ljava/lang/String;&gt;;Lfi/iki/elonen/NanoHTTPD$CookieHandler;Ljava/lang/String;Ledu/brown/cs/securitylab/SecuritySession;)V'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='rightHandSide' AFTERSTART='2369' END='2373' KIND='EDIT' LINE='85' NODETYPE='Assignment' START='2358'><![CDATA[url_host=host]]></POINT>
+	<TO>185</TO>
+	<FROM>61</FROM>
+      </NODE>
+      <NODE CALLID='152757084' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='208' METHOD='edu.brown.cs.securitylab.SecurityRequest.&lt;init&gt;' REASON='Referenced value' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map&lt;Ljava/lang/String;Ljava/lang/String;&gt;;Lfi/iki/elonen/NanoHTTPD$CookieHandler;Ljava/lang/String;Ledu/brown/cs/securitylab/SecuritySession;)V'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='rightHandSide' AFTERSTART='2369' END='2373' KIND='EDIT' LINE='85' NODETYPE='Assignment' START='2358'><![CDATA[url_host=host]]></POINT>
+	<TO>185</TO>
+	<FROM>62</FROM>
+      </NODE>
+      <NODE CALLID='947816432' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='209' METHOD='edu.brown.cs.securitylab.SecurityRequest.&lt;init&gt;' REASON='Referenced value' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map&lt;Ljava/lang/String;Ljava/lang/String;&gt;;Lfi/iki/elonen/NanoHTTPD$CookieHandler;Ljava/lang/String;Ledu/brown/cs/securitylab/SecuritySession;)V'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='rightHandSide' AFTERSTART='2369' END='2373' KIND='EDIT' LINE='85' NODETYPE='Assignment' START='2358'><![CDATA[url_host=host]]></POINT>
+	<TO>185</TO>
+	<FROM>63</FROM>
+      </NODE>
+      <NODE CALLID='947816432' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='210' METHOD='edu.brown.cs.securitylab.SecurityRequest.&lt;init&gt;' REASON='Referenced value' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map&lt;Ljava/lang/String;Ljava/lang/String;&gt;;Lfi/iki/elonen/NanoHTTPD$CookieHandler;Ljava/lang/String;Ledu/brown/cs/securitylab/SecuritySession;)V'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='rightHandSide' AFTERSTART='2389' END='2408' KIND='EDIT' LINE='86' NODETYPE='Assignment' START='2378'><![CDATA[url_args=new HashMap<>(args)]]></POINT>
+	<TO>184</TO>
+	<FROM>117</FROM>
+      </NODE>
+      <NODE CALLID='842195604' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='211' METHOD='edu.brown.cs.securitylab.SecurityRequest.&lt;init&gt;' REASON='Referenced value' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map&lt;Ljava/lang/String;Ljava/lang/String;&gt;;Lfi/iki/elonen/NanoHTTPD$CookieHandler;Ljava/lang/String;Ledu/brown/cs/securitylab/SecuritySession;)V'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='rightHandSide' AFTERSTART='2389' END='2408' KIND='EDIT' LINE='86' NODETYPE='Assignment' START='2378'><![CDATA[url_args=new HashMap<>(args)]]></POINT>
+	<TO>184</TO>
+	<FROM>118</FROM>
+      </NODE>
+      <NODE CALLID='152757084' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' ID='212' METHOD='edu.brown.cs.securitylab.SecurityRequest.&lt;init&gt;' REASON='Referenced value' SIGNATURE='(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map&lt;Ljava/lang/String;Ljava/lang/String;&gt;;Lfi/iki/elonen/NanoHTTPD$CookieHandler;Ljava/lang/String;Ledu/brown/cs/securitylab/SecuritySession;)V'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='rightHandSide' AFTERSTART='2389' END='2408' KIND='EDIT' LINE='86' NODETYPE='Assignment' START='2378'><![CDATA[url_args=new HashMap<>(args)]]></POINT>
+	<TO>184</TO>
+	<FROM>119</FROM>
+      </NODE>
+      <NODE CALLID='1683209879' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='213' METHOD='edu.brown.cs.securitylab.SecurityAccount.handleSignup' REASON='Referenced value' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='1' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='arguments' AFTERSTART='9262' END='9271' KIND='EDIT' LINE='263' NODETYPE='MethodInvocation' START='9253'><![CDATA[user.get("userid")]]></POINT>
+	<TO>177</TO>
+	<FROM>214</FROM>
+      </NODE>
+      <NODE CALLID='1683209879' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='214' METHOD='edu.brown.cs.securitylab.SecurityAccount.handleSignup' REASON='Variable user referenced' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSLOT='11' REFSYM='user' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT END='9257' KIND='EDIT' LINE='263' NODETYPE='SimpleName' START='9253'><![CDATA[user]]></POINT>
+	<TO>213</TO>
+	<FROM>215</FROM>
+      </NODE>
+      <NODE CALLID='1683209879' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='215' METHOD='edu.brown.cs.securitylab.SecurityAccount.handleSignup' REASON='Control Flow Merge' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSLOT='11' REFSYM='user' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT END='9257' KIND='EDIT' LINE='263' NODETYPE='SimpleName' START='9253'><![CDATA[user]]></POINT>
+	<TO>214</TO>
+	<FROM>174</FROM>
+      </NODE>
+      <NODE CALLID='998505938' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='216' METHOD='edu.brown.cs.securitylab.SecurityAccount.displaySignupPage' REASON='Variable ctx referenced' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSLOT='2' REFSYM='ctx' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT END='7445' KIND='EDIT' LINE='213' NODETYPE='SimpleName' START='7442'><![CDATA[ctx]]></POINT>
+	<TO>15</TO>
+	<FROM>129</FROM>
+      </NODE>
+      <NODE CALLID='1117443490' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='218' METHOD='edu.brown.cs.securitylab.SecurityAccount.handleLoginRequest' REASON='Variable ctx referenced' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSLOT='6' REFSYM='ctx' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT END='6098' KIND='EDIT' LINE='163' NODETYPE='SimpleName' START='6095'><![CDATA[ctx]]></POINT>
+	<TO>14</TO>
+	<FROM>219</FROM>
+      </NODE>
+      <NODE CALLID='1117443490' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='219' METHOD='edu.brown.cs.securitylab.SecurityAccount.handleLoginRequest' REASON='Control Flow Merge' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSLOT='6' REFSYM='ctx' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT AFTER='expression' AFTERSTART='5788' END='5897' KIND='EDIT' LINE='156' NODETYPE='IfStatement' START='5784'><![CDATA[if (rs.size() != 1) {
+  ctx.put("loginError","Invalid username");
+  return req.render("login",ctx);
+}
+]]></POINT>
+	<TO>218</TO>
+	<FROM>154</FROM>
+      </NODE>
+      <NODE CALLID='528343606' END='true' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecurityAllocations.class' ID='220' METHOD='edu.brown.cs.securitylab.SecurityAllocations.displayAllocations' REASON='Referenced value' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='70' LOC='57' OPCODE='192'>57: CHECKCAST java/util/Map (line 70)</POINT>
+	<TO>10</TO>
+      </NODE>
+      <NODE CALLID='1543640517' END='true' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecurityProfile.class' ID='221' METHOD='edu.brown.cs.securitylab.SecurityProfile.displayProfile' REASON='Referenced value' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;Z)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='74' LOC='53' OPCODE='192'>53: CHECKCAST java/util/Map (line 74)</POINT>
+	<TO>9</TO>
+      </NODE>
+      <NODE CALLID='1074949549' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecurityContributions.class' ID='222' METHOD='edu.brown.cs.securitylab.SecurityContributions.handleContributionsUpdate' REASON='Control Flow Merge' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSLOT='6' REFSYM='scopes' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='104' LOC='46' OPCODE='155'>46: IFLT 51 (line 104)</POINT>
+	<TO>8</TO>
+	<FROM>12</FROM>
+      </NODE>
+      <NODE CALLID='1074949549' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecurityContributions.class' ID='223' METHOD='edu.brown.cs.securitylab.SecurityContributions.handleContributionsUpdate' REASON='Control Flow Merge' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSLOT='6' REFSYM='scopes' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='104' LOC='48' OPCODE='155'>48: IFLT 51 (line 104)</POINT>
+	<TO>8</TO>
+	<FROM>12</FROM>
+      </NODE>
+      <NODE CALLID='1074949549' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecurityContributions.class' ID='224' METHOD='edu.brown.cs.securitylab.SecurityContributions.handleContributionsUpdate' REASON='Control Flow Merge' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSLOT='6' REFSYM='scopes' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='104' LOC='50' OPCODE='156'>50: IFGE 61 (line 104)</POINT>
+	<TO>8</TO>
+	<FROM>12</FROM>
+      </NODE>
+      <NODE CALLID='1086771552' END='true' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecurityContributions.class' ID='225' METHOD='edu.brown.cs.securitylab.SecurityContributions.displayContributions' REASON='Referenced value' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;Z)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSTACK='0' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT KIND='BINARY' LINE='68' LOC='35' OPCODE='192'>35: CHECKCAST java/util/Map (line 68)</POINT>
+	<TO>7</TO>
+      </NODE>
+      <NODE CALLID='528467972' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityAccount.java' ID='226' METHOD='edu.brown.cs.securitylab.SecurityAccount.displayWelcomePage' REASON='Variable user referenced' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;)Lfi/iki/elonen/NanoHTTPD$Response;'>
+	<CONTEXT REFSLOT='5' REFSYM='user' SUBTYPE='CheckHtmlTaint' VALUE='MAYBE_HTMLTAINTED' />
+	<POINT END='4577' KIND='EDIT' LINE='119' NODETYPE='SimpleName' START='4573'><![CDATA[user]]></POINT>
+	<TO>4</TO>
+	<FROM>149</FROM>
+      </NODE>
+    </GRAPH>
+  </QUERY>
+  <PATH>
+    <NODE ID='1' REASON='Attempt to use tainted HTML data in a non-tainted location' CALLID='2007365250' METHOD='edu.brown.cs.securitylab.SecurityRequest.render' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' SIGNATURE='(Ljava/lang/String;Ljava/util/Map&lt;Ljava/lang/String;Ljava/lang/Object;&gt;;)Lfi/iki/elonen/NanoHTTPD$Response;' START='true' END='false'>
+      <POINT START='4868' END='4890' AFTER='' AFTERSTART='-1' LOC='-1' LINE='182'>doRender(cnts,context)</POINT>
+    </NODE>
+    <NODE ID='2' REASON='Variable context referenced' CALLID='2007365250' METHOD='edu.brown.cs.securitylab.SecurityRequest.render' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' SIGNATURE='(Ljava/lang/String;Ljava/util/Map&lt;Ljava/lang/String;Ljava/lang/Object;&gt;;)Lfi/iki/elonen/NanoHTTPD$Response;' START='false' END='false'>
+      <POINT START='4882' END='4889' AFTER='' AFTERSTART='-1' LOC='-1' LINE='182'>context</POINT>
+    </NODE>
+    <NODE ID='3' REASON='Start of Method render' CALLID='2007365250' METHOD='edu.brown.cs.securitylab.SecurityRequest.render' FILE='/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityRequest.java' SIGNATURE='(Ljava/lang/String;Ljava/util/Map&lt;Ljava/lang/String;Ljava/lang/Object;&gt;;)Lfi/iki/elonen/NanoHTTPD$Response;' START='false' END='false'>
+      <POINT START='4397' END='5114' AFTER='' AFTERSTART='-1' LOC='-1' LINE='168'>/**
+ */
+Response render(String page,Map&lt;String,Object&gt; context){
+  File f=new File(template_directory,page);
+  if (!f.exists()) {
+    f=new File(template_directory,page + &quot;.html&quot;);
+  }
+  if (!f.exists()) {
+    return NanoHTTPD.newFixedLengthResponse(Response.Status.NOT_FOUND,TEXT_MIME,&quot;File not found&quot;);
+  }
+  try {
+    String cnts=IvyFile.loadFile(f);
+    String ren=doRender(cnts,context);
+    return NanoHTTPD.newFixedLengthResponse(Response.Status.OK,HTML_MIME,ren);
+  }
+ catch (  IOException e) {
+    return NanoHTTPD.newFixedLengthResponse(Response.Status.NOT_FOUND,TEXT_MIME,&quot;File not found&quot;);
+  }
+}
+</POINT>
+    </NODE>
+    <NODE ID='6' REASON='Call to Method render' CALLID='645709030' METHOD='edu.brown.cs.securitylab.SecurityBenefits.displayBenefits' FILE='/gpfs/main/home/spr/Eclipse/javasecurity/WebServer/bin/edu/brown/cs/securitylab/SecurityBenefits.class' SIGNATURE='(Ledu/brown/cs/securitylab/SecurityRequest;Z)Lfi/iki/elonen/NanoHTTPD$Response;' START='false' END='true'>
+      <POINT START='-1' END='-1' AFTER='' AFTERSTART='-1' LOC='79' LINE='82'>79: INVOKEVIRTUAL edu/brown/cs/securitylab/SecurityRequest.render(Ljava/lang/String;Ljava/util/Map;)Lfi/iki/elonen/NanoHTTPD$Response; (line 82)</POINT>
+    </NODE>
+  </PATH>
+</FAIT>
+

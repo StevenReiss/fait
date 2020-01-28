@@ -41,6 +41,8 @@ package edu.brown.cs.fait.iface;
 
 import java.util.List;
 
+import edu.brown.cs.ivy.xml.IvyXmlWriter;
+
 public interface IfaceValue extends FaitConstants {
 
 
@@ -114,6 +116,8 @@ int getRefStack();
 IfaceValue getRefBase();
 IfaceField getRefField();
 IfaceValue getRefIndex();
+
+void outputXml(IvyXmlWriter xw);
 
 void checkContentCompatibility(IfaceType dt,IfaceLocation loc,int stkloc);
 

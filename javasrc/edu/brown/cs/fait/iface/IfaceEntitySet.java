@@ -39,6 +39,7 @@
 
 package edu.brown.cs.fait.iface;
 
+import edu.brown.cs.ivy.xml.IvyXmlWriter;
 
 public interface IfaceEntitySet extends FaitConstants {
 
@@ -59,7 +60,7 @@ IfaceEntitySet addToSet(IfaceEntitySet es);
 
 IfaceEntitySet getModelSet();
 
-
+void outputXml(IvyXmlWriter xw,IfaceValue relval);
 
 }	// end of interface IfaceEntitySet
 

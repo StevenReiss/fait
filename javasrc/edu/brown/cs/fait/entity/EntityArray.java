@@ -40,6 +40,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.ivy.xml.IvyXmlWriter;
 
 
 
@@ -229,6 +230,13 @@ EntityArray(IfaceControl ctrl,IfaceType cls,IfaceValue size)
 /*	Output methods								*/
 /*										*/
 /********************************************************************************/
+
+@Override protected void outputLocalXml(IvyXmlWriter xw)
+{
+   xw.field("KIND","ARRAY");
+}
+
+
 
 @Override public String toString()
 {

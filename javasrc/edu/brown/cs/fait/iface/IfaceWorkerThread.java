@@ -35,13 +35,12 @@
 
 package edu.brown.cs.fait.iface;
 
+import edu.brown.cs.ivy.file.IvyLog;
 
-
-public interface IfaceWorkerThread
+public interface IfaceWorkerThread extends IvyLog.LoggerThread
 {
-
-int getWorkerId();
-
+   int getWorkerId();
+   default int getLogId()       { return getWorkerId(); }
 
 }       // end of interface IfaceWorkerThread
 

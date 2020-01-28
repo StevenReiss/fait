@@ -87,6 +87,12 @@ QueryContextSubtype(IfaceControl ctrl,IfaceValue v,IfaceSubtype.Value stv)
 }
 
 
+/********************************************************************************/
+/*                                                                              */
+/*      Handle auxilliary references                                            */
+/*                                                                              */
+/********************************************************************************/
+
 @Override protected QueryContext newReference(IfaceValue newref)
 {
    if (newref == for_value) return this;
@@ -142,7 +148,6 @@ QueryContextSubtype(IfaceControl ctrl,IfaceValue v,IfaceSubtype.Value stv)
 
 @Override protected boolean isEndState(IfaceState st0)
 {
-   
    return false;
 }
 

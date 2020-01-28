@@ -44,6 +44,9 @@ import edu.brown.cs.fait.iface.IfaceValue;
 
 import static edu.brown.cs.fait.type.CheckNullness.NullState.*;
 
+import java.util.Arrays;
+import java.util.Collection;
+
 
 public class CheckNullness extends TypeSubtype
 {
@@ -142,6 +145,19 @@ private CheckNullness()
    if (typ != null && typ.isPrimitiveType()) return NON_NULL;
    return CAN_BE_NULL;
 }
+
+
+@Override public String getDefaultValues()
+{
+   return "NON_NULL DEREFED";
+}
+
+
+@Override public Collection<IfaceSubtype.Value> getValues()
+{
+   return Arrays.asList(NullState.values());
+}
+
 
 
 

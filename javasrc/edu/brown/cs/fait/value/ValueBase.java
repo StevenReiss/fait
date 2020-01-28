@@ -37,6 +37,7 @@ package edu.brown.cs.fait.value;
 
 import edu.brown.cs.fait.iface.*;
 import edu.brown.cs.fait.type.CheckNullness;
+import edu.brown.cs.ivy.xml.IvyXmlWriter;
 
 import java.util.*;
 
@@ -351,6 +352,24 @@ protected IfaceType findCommonParent(IfaceType t1,IfaceType t2)
 /*	Output methods								*/
 /*										*/
 /********************************************************************************/
+
+@Override public void outputXml(IvyXmlWriter xw)
+{
+   xw.begin("VALUE");
+   xw.field("HASHID",hashCode());
+   outputLocalXml(xw);
+   data_type.outputXml(xw);
+   if (entity_set != null) {
+      entity_set.outputXml(xw,this);
+    }
+   xw.end("VALUE");
+}
+
+
+abstract protected void outputLocalXml(IvyXmlWriter xw);
+
+
+
 
 @Override public String toString()
 {

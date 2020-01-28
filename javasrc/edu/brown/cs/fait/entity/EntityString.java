@@ -36,7 +36,9 @@
 package edu.brown.cs.fait.entity;
 
 import edu.brown.cs.fait.iface.IfaceType;
+import edu.brown.cs.fait.iface.IfaceValue;
 import edu.brown.cs.ivy.xml.IvyXml;
+import edu.brown.cs.ivy.xml.IvyXmlWriter;
 
 
 class EntityString extends EntityObject
@@ -73,6 +75,28 @@ EntityString(IfaceType styp,String s)
 /*	Output methods								*/
 /*										*/
 /********************************************************************************/
+
+@Override protected void outputLocalXml(IvyXmlWriter xw)
+{
+   xw.field("KIND","STRING");
+   if (constant_value != null) {
+      xw.textElement("VALUE",IvyXml.xmlSanitize(constant_value));
+    }
+}
+
+@Override protected String getDescription(IfaceValue val)
+{
+   String s = "STRING";
+   if (constant_value != null) {
+      s = constant_value.replace("\n","\\n");
+      s = s.replace("\t","\\t");
+      if (s.length() >= 48+3) s = s.substring(0,48) + "...";
+      s = "\"" + s + "\"";
+    }
+   return s;
+}
+
+
 
 @Override public String toString()
 {

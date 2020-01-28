@@ -37,6 +37,7 @@ package edu.brown.cs.fait.query;
 
 import java.util.List;
 
+import edu.brown.cs.fait.iface.FaitException;
 import edu.brown.cs.fait.iface.IfaceAstReference;
 import edu.brown.cs.fait.iface.IfaceAstStatus;
 import edu.brown.cs.fait.iface.IfaceAuxReference;
@@ -120,14 +121,48 @@ public void processErrorQuery(IfaceCall call,IfaceProgramPoint pt,IfaceError err
    QueryProcessor qp = new QueryProcessor(fait_control,qitem,node);
    qp.process();
    
-   long time = System.currentTimeMillis() - start;
-   // graph.outputXml(output);	   // for debugging -- remove when clean works
    graph.cleanGraph();
    
+   long time = System.currentTimeMillis() - start;
    graph.outputXml(output,time);
    graph = null;
 }
 
+
+
+public void processToQuery(IfaceCall call,IfaceProgramPoint pt,IfaceEntity ent,
+      IfaceSubtype styp,IfaceSubtype.Value sval,IfaceValue refval,IvyXmlWriter xw) 
+{
+   long start = System.currentTimeMillis();
+   
+   QueryContext ctx = null;
+   if (styp != null && sval != null) {
+      ctx = new QueryContextSubtype(fait_control,refval,sval);
+    }
+   else {
+      ctx = new QueryContextEntity(fait_control,refval,ent);
+    }
+   
+   QueryGraph graph = new QueryGraph();
+   QueryNode node = graph.addStartNode(call,pt,ctx,"Starting From");
+   QueryQueueItem qitem = new QueryQueueItem(call,pt,ctx);
+   QueryProcessor qp = new QueryProcessor(fait_control,qitem,node);
+   qp.process();
+   
+   graph.cleanGraph();
+   
+   long time = System.currentTimeMillis() - start;
+   graph.outputXml(xw,time);
+   graph = null;
+}
+
+
+public void processVarQuery(String method,int line,int pos,IvyXmlWriter output)
+        throws FaitException
+{
+   QueryVarQuery vq = new QueryVarQuery(fait_control,method,line,pos,output);
+   vq.process();
+}
 
 public void processReflectionQuery(IfaceControl ctrl,IvyXmlWriter output)
 {

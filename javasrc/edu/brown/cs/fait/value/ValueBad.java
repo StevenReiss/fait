@@ -36,6 +36,7 @@
 package edu.brown.cs.fait.value;
 
 import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.ivy.xml.IvyXmlWriter;
 
 
 class ValueBad extends ValueBase
@@ -69,6 +70,19 @@ ValueBad(ValueFactory vf,IfaceType voidtype)
 
 
 @Override public boolean isBad()                                        { return true; }
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Output methods                                                          */
+/*                                                                              */
+/********************************************************************************/
+
+@Override protected void outputLocalXml(IvyXmlWriter xw)
+{
+   xw.field("KIND","BAD");
+}
 
 
 
