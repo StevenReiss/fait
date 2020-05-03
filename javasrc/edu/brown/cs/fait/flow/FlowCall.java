@@ -103,6 +103,9 @@ CallReturn handleCall(FlowLocation loc,IfaceState st0,FlowQueueInstance wq,int v
        }
       return CallReturn.NOT_DONE;
     }
+   // if (dbgmthd.getFullName().contains("ThreadPoolExecutor.execute") && loc.toString().contains("cose")) {
+      // System.err.println("CHECK HERE");
+    // }
    
    LinkedList<IfaceValue> args = getCallArguments(loc,st0,varct,dbgmthd);
    if (args == null) {
@@ -635,7 +638,7 @@ private IfaceValue checkVirtual(IfaceMethod bm,List<IfaceValue> args,
       synchronized (rename_map) {
 	 Set<IfaceCall> s = rename_map.get(mi1);
 	 if (s == null) {
-	    s = new HashSet<IfaceCall>();
+	    s = new HashSet<>();
 	    rename_map.put(mi1,s);
 	  }
 	 s.add(mi);
@@ -678,6 +681,7 @@ private IfaceValue checkVirtual(IfaceMethod bm,List<IfaceValue> args,
 	  }
          if (mi.isSetFields(true)) {
             IfaceType dt = prslt.getDataType();
+            if (fm.isConstructor()) dt = fm.getDeclaringClass();
             Map<String,IfaceType> fd = dt.getJavaType().getFieldData();
             for (Map.Entry<String,IfaceType> ent : fd.entrySet()) {
                 IfaceValue fval = fait_control.findMutableValue(ent.getValue());

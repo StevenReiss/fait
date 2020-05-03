@@ -93,17 +93,19 @@ final void computeNext(QueryProcessor qp,QueryQueueItem qqi,IfaceState cur,Query
    FaitLog.logD("Compute Next: " + " " + localDisplayContext() + " " +
 	 qqi.getProgramPoint() + " " + qqi.getCall().getMethod() + " (" + node.getId() + ")");
 
+   if (cur == null) return;
+
    IfaceCall call = qqi.getCall();
    IfaceProgramPoint pt = qqi.getProgramPoint();
 
    if (cur.isStartOfMethod()) {
       // need to handle case where we initiated the call -- go to call site rather than
       // all call sites
-      node.getGraph().markAsEndNode(node);      // allow this to be a starting point
+      node.getGraph().markAsEndNode(node);	// allow this to be a starting point
       QueryContext priorctx = getPriorContextForCall(call,pt);
       if (priorctx == null) {
-         return;
-       }      
+	 return;
+       }
       QueryGraph graph = node.getGraph();
       node = graph.addNode(call,pt,this,"Start of Method " + call.getMethod().getName(),node);
       for (IfaceCall call0 : call.getAlternateCalls()) {

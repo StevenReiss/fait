@@ -672,6 +672,38 @@ private void processInstruction(IfaceProgramPoint inspt)
 	 IfaceMethod fm = inspt.getReferencedMethod();
 	 st1 = handleAccess(here,st1);
 	 if (st1 == null) break;
+         if (fm.isNative() && fm.isVarArgs()) {
+            boolean poly = false;
+            List<IfaceAnnotation> retannots = fm.getReturnAnnotations();
+            if (retannots != null) {
+               for (IfaceAnnotation an : retannots) {
+                  if (an.getAnnotationName().contains("PolymorphicSignature")) poly = true;
+                }
+             }
+            if (poly) {
+               int act = inspt.getNumArgs();
+               int narg = fm.getNumArgs();
+               IfaceType arrtyp = fm.getArgType(narg-1);
+               IfaceType btyp = arrtyp.getBaseType();
+               int sz = act-narg+1;
+               IfaceType ityp = fait_control.findDataType("int");
+               IfaceValue szv = fait_control.findConstantValue(ityp,sz);
+               IfaceValue rslt = flow_queue.handleNewArraySet(here,btyp,1,szv); 
+               int stk = 0;
+               for (int i = sz-1; i >= 0; --i) {
+                  IfaceValue iv = st1.popStack();
+                  if (iv.getDataType().isPrimitiveType() && !btyp.isPrimitiveType()) {
+                     IfaceType rt = iv.getDataType().getBaseType();
+                     iv = fait_control.findAnyValue(rt);
+                   }
+                  IfaceValue idxv = fait_control.findConstantValue(ityp,i);
+                  flow_queue.handleArraySet(here,rslt,iv,idxv,stk);
+                  ++stk;
+                }
+               rslt = rslt.forceNonNull();
+               st1.pushStack(rslt);
+             }
+          }
 	 switch (flow_queue.handleCall(here,st1,work_queue,-1)) {
 	    case NOT_DONE :
 	       if (FaitLog.isTracing()) FaitLog.logD1("Unknown RETURN value for " + fm);
@@ -1254,7 +1286,10 @@ private IfaceState handleAccess(FlowLocation loc,IfaceState st)
 	 IfaceMethod mthd = ins.getReferencedMethod();
 	 if (mthd == null) return st;
 	 if (mthd.isStatic() || mthd.isConstructor()) return st;
-	 act = mthd.getNumArgs();
+      	 act = mthd.getNumArgs();
+         if (mthd.isNative() && mthd.isVarArgs()) {
+            act = ins.getNumArgs();
+          }
 	 break;
       default :
 	 return st;

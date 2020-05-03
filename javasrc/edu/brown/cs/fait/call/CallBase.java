@@ -558,7 +558,6 @@ private void addReturnStates(IfaceState st)
    if (nm == null)
       return Collections.singletonMap(for_method,args);
 
-   IfaceMethod nfm = null;
    Map<IfaceMethod,List<IfaceValue>> rslt = new HashMap<>();
 
    String desc = "(";
@@ -595,6 +594,7 @@ private void addReturnStates(IfaceState st)
 
       int idx = nm.lastIndexOf(".");
       if (idx > 0) {
+         IfaceMethod nfm = null;
 	 String cls = nm.substring(0,idx);
 	 String mnm = nm.substring(idx+1);
 	 if (adesc != null) nfm = fait_control.findMethod(cls,mnm,adesc);
@@ -606,23 +606,33 @@ private void addReturnStates(IfaceState st)
 	       if (nfm != null && !nfm.isStatic()) nfm = null;
 	     }
 	  }
+         if (nfm != null && !nfm.isNative() && !nfm.isAbstract()) {
+            List<IfaceValue> nargs = special_data.getCallbackArgs(args,newval);
+            if (nargs == null) nargs = args;
+            rslt.put(nfm,nargs);
+          }
        }
       else {
 	 List<IfaceValue> nargs = special_data.getCallbackArgs(args,newval);
 	 IfaceValue v0 = args.get(0);
 	 if (nargs != null) v0 = nargs.get(0);
-	 IfaceType dt = v0.getDataType();
-	 while (dt != null) {
-	    if (adesc != null) nfm = fait_control.findMethod(dt.getName(),nm,adesc);
-	    else nfm = fait_control.findMethod(dt.getName(),nm,desc);
-	    if (nfm != null) break;
-	    dt = dt.getSuperType();
-	  }
-       }
-      if (nfm != null && !nfm.isNative() && !nfm.isAbstract()) {
-	 List<IfaceValue> nargs = special_data.getCallbackArgs(args,newval);
-	 if (nargs == null) nargs = args;
-	 rslt.put(nfm,nargs);
+         else nargs = args;
+         Set<IfaceMethod> done = new HashSet<>();
+         for (IfaceEntity ent : v0.getEntities()) {
+            IfaceMethod nfm = null;
+            IfaceType dt = ent.getDataType();
+            while (dt != null) {
+               if (adesc != null) nfm = fait_control.findMethod(dt.getName(),nm,adesc);
+               else nfm = fait_control.findMethod(dt.getName(),nm,desc);
+               if (nfm != null) break;
+               dt = dt.getSuperType();
+             }
+            if (nfm != null && !nfm.isNative() && !nfm.isAbstract()) {
+               if (done.add(nfm)) {
+                  rslt.put(nfm,nargs);
+                }
+             }
+          }
        }
     }
 

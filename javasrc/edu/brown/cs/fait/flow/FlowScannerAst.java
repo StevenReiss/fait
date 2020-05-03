@@ -2272,10 +2272,12 @@ private Object visit(TryStatement s)
     }
    else if (after_node == s.getFinally()) {
       Set<Object> oset = popMarker(s);
+      ASTNode par = s.getParent();
       for (Object o : oset) {
 	 if (o instanceof IfaceAstStatus) {
 	    IfaceAstStatus sts = (IfaceAstStatus) o;
-	    IfaceAstReference nar = fait_control.getAstReference(s,sts);
+	    // IfaceAstReference nar = fait_control.getAstReference(s,sts);
+            IfaceAstReference nar = fait_control.getAstReference(par,sts);
 	    FlowLocation nloc = new FlowLocation(flow_queue,work_queue.getCall(),nar);
 	    work_queue.mergeState(cur_state,nloc);
 	  }

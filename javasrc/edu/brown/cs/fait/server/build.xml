@@ -109,6 +109,17 @@
       </junit>
    </target>
 
+   <target name='tests6' depends='compile'>
+      <junit fork='true' printsummary='on' outputtoformatters='true'>
+	 <classpath refid='fait.classpath' />
+	 <assertions><enable/></assertions>
+	 <formatter type='xml' usefile='true' />
+	 <test name='edu.brown.cs.fait.server.ServerTest'
+	       methods='serverTestS6'
+	       outfile='tests6.out' />
+      </junit>
+   </target>
+
    <target name='testfait' depends='compile'>
       <junit fork='true' printsummary='on' outputtoformatters='true'>
 	 <classpath refid='fait.classpath' />

@@ -138,8 +138,7 @@
    <METHOD NAME="java.awt.Component.addComponentListener" CBID="awt" CALLBACK="componentHidden componentMoved componentResized componentShown" CBARGS="1" />
    <METHOD NAME="java.awt.Container.addContainerListener" CBID="awt" CALLBACK="componentAdded componentRemoved" CBARGS="1" />
    <METHOD NAME="java.awt.dnd.DragGestureRecognizer.addDragGestureListener" CBID="awt" CALLBACK="dragGestureRecognized" CBARGS="1" />
-   <METHOD NAME="java.awt.dnd.DragSourceContext.addDragSourceListener" CBID="awt" CALLBACK="dragDropEnd dragEnter dragExit dragOver dropActionChanged" CBARGS="1" />
-   <METHOD NAME="java.awt.dnd.DragSource.addDragSourceListener" CBID="awt" CALLBACK="dragDropEnd dragEnter dragExit dragOver dropActionChanged" CBARGS="1" />
+   <METHOD NAME="java.awt.dnd.DragSourceContext.addDragSourceListener" CBID="awt" CALLBACK="dragDropEnd dragEnter dragExit dragOver dropActionChanged" CBARGS="1" /> <METHOD NAME="java.awt.dnd.DragSource.addDragSourceListener" CBID="awt" CALLBACK="dragDropEnd dragEnter dragExit dragOver dropActionChanged" CBARGS="1" />
    <METHOD NAME="java.awt.dnd.DragSource.addDragSourceMotionListener" CBID="awt" CALLBACK="dragMouseMoved" CBARGS="1" />
    <METHOD NAME="java.awt.dnd.DropTarget.addDropTargetListener" CBID="awt" CALLBACK="dragEnter dragExit dragOver drop dropActionChanged" CBARGS="1" />
    <METHOD NAME="java.awt.List$AccessibleAWTList$AccessibleAWTListChild.addFocusListener" CBID="awt" CALLBACK="focusGained focusLost" CBARGS="1" />
@@ -354,9 +353,11 @@
    </METHOD>
 
    <CLASS NAME='java.util.concurrent.ThreadPoolExecutor' />
-   <METHOD NAME="java.util.concurrent.ThreadPoolExecutor.execute" REPLACE="run"
-	  CBARGS='1'
+   <METHOD NAME="java.util.concurrent.ThreadPoolExecutor.execute"
+	  REPLACE="run()"
+	  ARGS='1'
 	  ASYNC="true" RETURN="void" />
+   <METHOD NAME='java.util.concurrent.FutureTask.awaitDone' />
 
    <CLASS NAME='java.lang.Runtime.Version' />
 

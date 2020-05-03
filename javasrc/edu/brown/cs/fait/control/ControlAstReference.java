@@ -150,6 +150,14 @@ ControlAstReference(ControlAstFactory af,ASTNode n,ASTNode c,IfaceAstStatus sts)
 }
 
 
+@Override public int getNumArgs()
+{
+   IfaceMethod im = getReferencedMethod();
+   if (im == null) return -1;
+   return im.getNumArgs();
+}
+
+
 @Override public IfaceMethod getCalledMethod() 
 {
    if (eval_node instanceof MethodInvocation) {

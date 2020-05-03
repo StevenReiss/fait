@@ -90,6 +90,11 @@ QueryVarQuery(IfaceControl ctrl,String method,int line,int pos,IvyXmlWriter xw)
    idx = method.lastIndexOf(".");
    method_name = method.substring(idx+1);
    class_name = method.substring(0,idx);
+   int idx1 = class_name.lastIndexOf(".");
+   String cnm = class_name;
+   if (idx1 > 0) cnm = class_name.substring(idx+1);
+   if (cnm.equals(method_name)) method_name = "<init>";
+   
    xml_writer = xw;
 }
 
@@ -119,7 +124,13 @@ void process() throws FaitException
        }
     }
    if (mbody == null) {
-      FaitLog.logE("Can't find method body for var query");
+      FaitLog.logE("Can't find method body for var query for " + method_name);
+      for (IfaceMethod im : for_control.findAllMethods(typ,method_name)) {
+         FaitLog.logE("\tConsider " + im + " " + start_pos);
+         if (im.getStart().getAstReference() == null) continue;
+         ASTNode mb = im.getStart().getAstReference().getAstNode();
+         FaitLog.logE("\tAST at " + mb.getStartPosition() + " " + mb.getLength());
+       }
       return;
     }   
    ASTNode child = JcompAst.findNodeAtOffset(mbody,start_pos);

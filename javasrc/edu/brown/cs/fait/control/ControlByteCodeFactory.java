@@ -665,6 +665,11 @@ private class InsPoint implements IfaceProgramPoint {
       return ControlByteCodeFactory.this.getMethod(m);
     }
    
+   
+   @Override public int getNumArgs() {
+      return for_instruction.getNumArgs();
+   }
+   
    @Override public IfaceMethod getCalledMethod() {
       switch (for_instruction.getOpcode()) {
          case INVOKEINTERFACE :

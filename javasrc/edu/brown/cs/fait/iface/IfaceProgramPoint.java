@@ -48,6 +48,7 @@ IfaceAstReference getAstReference();
 boolean isByteCode();
 
 IfaceMethod getReferencedMethod();
+int getNumArgs();
 IfaceMethod getCalledMethod();
 IfaceField getReferencedField();
 IfaceType getReferencedType();

@@ -617,7 +617,7 @@ void handleFieldSet(FlowLocation loc,IfaceState st,boolean thisref,
    IfaceField fld = loc.getProgramPoint().getReferencedField();
 
    if (fld == null) return;
-
+   
    field_control.handleFieldSet(loc,fld,st,thisref,v0,base,stackref);
 }
 

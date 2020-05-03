@@ -347,7 +347,7 @@ CallSpecial(IfaceControl fc,Element xml,boolean formthd)
    return callback_names;
 }
 
-@Override public String getCallbackId() 
+@Override public String getCallbackId()
 { return callback_id; }
 
 @Override public List<IfaceValue> getCallbackArgs(List<IfaceValue> args,IfaceValue newval)
@@ -433,6 +433,9 @@ CallSpecial(IfaceControl fc,Element xml,boolean formthd)
 
    xw.end("SPECIAL");
 }
+
+
+
 
 /********************************************************************************/
 /*										*/
