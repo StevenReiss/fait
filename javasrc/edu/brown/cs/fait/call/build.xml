@@ -1,7 +1,7 @@
 <project name='fait.call' default='compile'>
 
    <property file='../../../../../../build.properties' />
-   <property name='PRO' value='/research' />
+   <property name='PRO' value='/research/people/spr' />
    <available file="${PRO}/ivy" type="dir" property="ivy.present" />
    <property name='IVYBIN' value='${PRO}/ivy/java' />
    <property name='FAIT' value='/research/people/spr/fait' />

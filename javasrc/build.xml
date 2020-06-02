@@ -1,7 +1,8 @@
 <project name='fait' default='all' >
 
+   <property file='../build.properties' />
    <property name='PRO' value='/research' />
-   <property name='IVYBIN' value='/research/ivy/java' />
+   <property name='IVYBIN' value='${PRO}/ivy/java' />
    <property name='FAIT' value='/research/people/spr/fait' />
 
    <target name='all'>
@@ -30,7 +31,7 @@
 
 
    <target name='doc'>
-      <javadoc sourcepathref='jdocsrc' classpathref='bubbles.classpath' destdir='${PRO}/bubbles/doc'>
+      <javadoc sourcepathref='jdocsrc' classpathref='fait.classpath' destdir='${PRO}/fait/doc'>
 	 <package name='edu.brown.cs.fait.call' />
 	 <package name='edu.brown.cs.fait.control' />
 	 <package name='edu.brown.cs.fait.entity' />

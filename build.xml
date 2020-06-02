@@ -1,14 +1,29 @@
 <project name='fait' default='bubbles'>
 
-   <property name='UPRO' value='/research/people/spr' />
-   <property name='PRO' value='/pro' />
+   <property name='PRO' value='/research/people/spr' />
    <property name='BUBBLESLIB' value='${PRO}/bubbles/lib' />
+   <property name='ECLIPSELIB' value='${PRO}/ivy/lib/eclipsejar' />
 
-   <target name='all'>
+   <available file="./build.properties" type='file' property='setup.done' />
+   <path id='setuppath'>
+      <pathelement location='..' />
+   </path>
+   <path id='faitpath'>
+      <pathelement location='.' />
+   </path>
+   <property name='setupfile' refid='setuppath' />
+   <property name='faitfile' refid='faitpath' />
+   <target name='setup' unless='setup.done'>
+      <echo file='./build.properties' message="PRO=${setupfile}${line.separator}" />
+      <echo file='./build.properties' message='FAIT=${faitfile}${line.separator}' append='true' />
+      <mkdir dir='./java/edu/brown/cs/fait' />
+   </target>
+
+   <target name='all' depends='setup'>
       <ant antfile="build.xml" dir="javasrc" />
-      <ant antfile="build.xml" dir='${UPRO}/fredit' />
-      <ant antfile="build.xml" dir='${UPRO}/faitbb' />
-      <ant antfile='build.xml' dir='${UPRO}/karma' />
+      <ant antfile="build.xml" dir='${PRO}/fredit' />
+      <ant antfile="build.xml" dir='${PRO}/faitbb' />
+      <ant antfile='build.xml' dir='${PRO}/karma' />
    </target>
 
    <path id='jdocsrc'>
@@ -26,42 +41,42 @@
 	 <manifest>
 	 </manifest>
 	 <fileset dir='./java' includes='**/*.class' />
-cd	 <fileset dir='/pro/ivy/java' includes='**/*.class' />
+cd	 <fileset dir='${PRO}/ivy/java' includes='**/*.class' />
 	 <fileset dir='./lib' includes='fait*.xml' />
 	 <fileset dir='./lib' includes='*.vel' />
-	 <zipfileset src='/pro/ivy/lib/junit.jar' excludes='META-INF/*' />
-	 <zipfileset src='/pro/ivy/lib/asm5.jar' excludes='META-INF/*' />
-	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.core.commands.jar' excludes='META-INF/*' />
-	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.core.contenttype.jar' excludes='META-INF/*' />
-	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.core.filebuffers.jar' excludes='META-INF/*' />
-	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.core.filesystem.jar' excludes='META-INF/*' />
-	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.core.jobs.jar' excludes='META-INF/*' />
-	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.core.net.jar' excludes='META-INF/*' />
-	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.core.resources.jar' excludes='META-INF/*' />
-	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.core.runtime.jar' excludes='META-INF/*' />
-	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.debug.core.jar' excludes='META-INF/*' />
-	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.debug.ui.jar' excludes='META-INF/*' />
-	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.equinox.app.jar' excludes='META-INF/*' />
-	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.equinox.common.jar' excludes='META-INF/*' />
-	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.equinox.preferences.jar' excludes='META-INF/*' />
-	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.equinox.registry.jar' excludes='META-INF/*' />
-	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.jdt.core.jar' excludes='META-INF/*' />
-	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.jdt.core.manipulation.jar' excludes='META-INF/*' />
-	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.jdt.debug.jdi.jar' excludes='META-INF/*' />
-	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.jdt.debug.jdimodel.jar' excludes='META-INF/*' />
-	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.jdt.ui.jar' excludes='META-INF/*' />
-	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.jface.jar' excludes='META-INF/*' />
-	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.jface.text.jar' excludes='META-INF/*' />
-	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.ltk.core.refactoring.jar' excludes='META-INF/*' />
-	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.osgi.jar' excludes='META-INF/*' />
-	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.osgi.services.jar' excludes='META-INF/*' />
-	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.osgi.util.jar' excludes='META-INF/*' />
-	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.search.jar' excludes='META-INF/*' />
-	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.swt.gtk.linux.x86_64.jar' excludes='META-INF/*' />
-	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.swt.jar' excludes='META-INF/*' />
-	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.text.jar' excludes='META-INF/*' />
-	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.ui.ide.jar' excludes='META-INF/*' />
-	 <zipfileset src='/pro/ivy/lib/eclipsejar/org.eclipse.ui.workbench.jar' excludes='META-INF/*' />
+	 <zipfileset src='${PRO}/ivy/lib/junit.jar' excludes='META-INF/*' />
+	 <zipfileset src='${PRO}/ivy/lib/asm5.jar' excludes='META-INF/*' />
+	 <zipfileset src='${ECLIPSELIB}/org.eclipse.core.commands.jar' excludes='META-INF/*' />
+	 <zipfileset src='${ECLIPSELIB}/org.eclipse.core.contenttype.jar' excludes='META-INF/*' />
+	 <zipfileset src='${ECLIPSELIB}/org.eclipse.core.filebuffers.jar' excludes='META-INF/*' />
+	 <zipfileset src='${ECLIPSELIB}/org.eclipse.core.filesystem.jar' excludes='META-INF/*' />
+	 <zipfileset src='${ECLIPSELIB}/org.eclipse.core.jobs.jar' excludes='META-INF/*' />
+	 <zipfileset src='${ECLIPSELIB}/org.eclipse.core.net.jar' excludes='META-INF/*' />
+	 <zipfileset src='${ECLIPSELIB}/org.eclipse.core.resources.jar' excludes='META-INF/*' />
+	 <zipfileset src='${ECLIPSELIB}/org.eclipse.core.runtime.jar' excludes='META-INF/*' />
+	 <zipfileset src='${ECLIPSELIB}/org.eclipse.debug.core.jar' excludes='META-INF/*' />
+	 <zipfileset src='${ECLIPSELIB}/org.eclipse.debug.ui.jar' excludes='META-INF/*' />
+	 <zipfileset src='${ECLIPSELIB}/org.eclipse.equinox.app.jar' excludes='META-INF/*' />
+	 <zipfileset src='${ECLIPSELIB}/org.eclipse.equinox.common.jar' excludes='META-INF/*' />
+	 <zipfileset src='${ECLIPSELIB}/org.eclipse.equinox.preferences.jar' excludes='META-INF/*' />
+	 <zipfileset src='${ECLIPSELIB}/org.eclipse.equinox.registry.jar' excludes='META-INF/*' />
+	 <zipfileset src='${ECLIPSELIB}/org.eclipse.jdt.core.jar' excludes='META-INF/*' />
+	 <zipfileset src='${ECLIPSELIB}/org.eclipse.jdt.core.manipulation.jar' excludes='META-INF/*' />
+	 <zipfileset src='${ECLIPSELIB}/org.eclipse.jdt.debug.jdi.jar' excludes='META-INF/*' />
+	 <zipfileset src='${ECLIPSELIB}/org.eclipse.jdt.debug.jdimodel.jar' excludes='META-INF/*' />
+	 <zipfileset src='${ECLIPSELIB}/org.eclipse.jdt.ui.jar' excludes='META-INF/*' />
+	 <zipfileset src='${ECLIPSELIB}/org.eclipse.jface.jar' excludes='META-INF/*' />
+	 <zipfileset src='${ECLIPSELIB}/org.eclipse.jface.text.jar' excludes='META-INF/*' />
+	 <zipfileset src='${ECLIPSELIB}/org.eclipse.ltk.core.refactoring.jar' excludes='META-INF/*' />
+	 <zipfileset src='${ECLIPSELIB}/org.eclipse.osgi.jar' excludes='META-INF/*' />
+	 <zipfileset src='${ECLIPSELIB}/org.eclipse.osgi.services.jar' excludes='META-INF/*' />
+	 <zipfileset src='${ECLIPSELIB}/org.eclipse.osgi.util.jar' excludes='META-INF/*' />
+	 <zipfileset src='${ECLIPSELIB}/org.eclipse.search.jar' excludes='META-INF/*' />
+	 <zipfileset src='${ECLIPSELIB}/org.eclipse.swt.gtk.linux.x86_64.jar' excludes='META-INF/*' />
+	 <zipfileset src='${ECLIPSELIB}/org.eclipse.swt.jar' excludes='META-INF/*' />
+	 <zipfileset src='${ECLIPSELIB}/org.eclipse.text.jar' excludes='META-INF/*' />
+	 <zipfileset src='${ECLIPSELIB}/org.eclipse.ui.ide.jar' excludes='META-INF/*' />
+	 <zipfileset src='${ECLIPSELIB}/org.eclipse.ui.workbench.jar' excludes='META-INF/*' />
       </jar>
    </target>
 
@@ -73,13 +88,13 @@ cd	 <fileset dir='/pro/ivy/java' includes='**/*.class' />
 	    <attribute name="Bubbles-depends" value='' />
 	 </manifest>
 	 <fileset dir='./java' includes='**/*.class' />
-	 <fileset dir='${UPRO}/fredit/java' includes='**/*.class' />
-	 <fileset dir='${UPRO}/faitbb/java' includes='**/*.class' />
+	 <fileset dir='${PRO}/fredit/java' includes='**/*.class' />
+	 <fileset dir='${PRO}/faitbb/java' includes='**/*.class' />
 	 <fileset dir='./lib' includes='fait*.xml' />
 	 <fileset dir='./lib' includes='*.vel' />
 	 <fileset dir='./lib' includes='Bsean.props' />
 	 <fileset dir='./lib' includes='karma.jar' />
-	 <fileset dir='${UPRO}/faitbb' includes='faitbb.palette' />
+	 <fileset dir='${PRO}/faitbb' includes='faitbb.palette' />
       </jar>
      <copy file='fait.jar' tofile='${PRO}/bubbles/dropins/fait.jar' verbose='true' />
      <copy file='fait.jar' tofile='${PRO}/bubbles/dropins.export/fait.jar' verbose='true' />

@@ -39,7 +39,7 @@
       <java classname='edu.brown.cs.fait.faitmock.FaitMockCreator'>
 	 <classpath refid='test.classpath' />
 	 <arg value='-o' />
-	 <arg value='/research/people/spr/fait/faitmock/src/mocktest.out' />
+	 <arg value='${FAIT}/faitmock/src/mocktest.out' />
 	 <arg value="-d" />
 	 <arg value='/research/people/spr/pebble/pebble-web' />
 	 <arg value="-d" />
