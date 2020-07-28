@@ -1,8 +1,6 @@
 <project name='fait' default='bubbles'>
 
-   <property name='PRO' value='/research/people/spr' />
-   <property name='BUBBLESLIB' value='${PRO}/bubbles/lib' />
-   <property name='ECLIPSELIB' value='${PRO}/ivy/lib/eclipsejar' />
+   <property file='build.properties' />
 
    <available file="./build.properties" type='file' property='setup.done' />
    <path id='setuppath'>
@@ -17,7 +15,12 @@
       <echo file='./build.properties' message="PRO=${setupfile}${line.separator}" />
       <echo file='./build.properties' message='FAIT=${faitfile}${line.separator}' append='true' />
       <mkdir dir='./java/edu/brown/cs/fait' />
+      <property name='PRO' value='${setupfile}' />
+      <property name='FAIT' value='${faitfile}' />
    </target>
+
+   <property name='BUBBLESLIB' value='${PRO}/bubbles/lib' />
+   <property name='ECLIPSELIB' value='${PRO}/ivy/lib/eclipsejar' />
 
    <target name='all' depends='setup'>
       <ant antfile="build.xml" dir="javasrc" />
@@ -41,7 +44,7 @@
 	 <manifest>
 	 </manifest>
 	 <fileset dir='./java' includes='**/*.class' />
-cd	 <fileset dir='${PRO}/ivy/java' includes='**/*.class' />
+	 <fileset dir='${PRO}/ivy/java' includes='**/*.class' />
 	 <fileset dir='./lib' includes='fait*.xml' />
 	 <fileset dir='./lib' includes='*.vel' />
 	 <zipfileset src='${PRO}/ivy/lib/junit.jar' excludes='META-INF/*' />
