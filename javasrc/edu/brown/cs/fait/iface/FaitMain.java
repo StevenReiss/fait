@@ -53,10 +53,11 @@ public static void main(String [] args)
    try {
       Class<?> maincls = Class.forName(clsnm);
       Method m = maincls.getMethod("main",args.getClass());
-      m.invoke(null,(Object []) args);
+      m.invoke(null,new Object[] {args} );
     }
    catch (Throwable e) {
       System.err.println("Can't start FAIT: " + e);
+      e.printStackTrace();
     }
    // ServerMain.main(args);
 }
