@@ -57,6 +57,7 @@ public static void main(String [] args)
     }
    catch (Throwable e) {
       System.err.println("Can't start FAIT: " + e);
+      e.printStackTrace();
     }
    // ServerMain.main(args);
 }
