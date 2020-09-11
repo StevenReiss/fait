@@ -41,7 +41,7 @@
 	 <manifest>
 	 </manifest>
 	 <fileset dir='./java' includes='**/*.class' />
-cd	 <fileset dir='${PRO}/ivy/java' includes='**/*.class' />
+	 <fileset dir='${PRO}/ivy/java' includes='**/*.class' />
 	 <fileset dir='./lib' includes='fait*.xml' />
 	 <fileset dir='./lib' includes='*.vel' />
 	 <zipfileset src='${PRO}/ivy/lib/junit.jar' excludes='META-INF/*' />
@@ -85,6 +85,7 @@ cd	 <fileset dir='${PRO}/ivy/java' includes='**/*.class' />
 	 <manifest>
 	    <attribute name="Bubbles-start" value='edu.brown.cs.faitbb.bsean.BseanFactory' />
 	    <attribute name="Bubbles-palette" value='faitbb.palette' />
+	    <attribute name="Bubbles-resource" value='Bsean.props' />
 	    <attribute name="Bubbles-depends" value='' />
 	 </manifest>
 	 <fileset dir='./java' includes='**/*.class' />
