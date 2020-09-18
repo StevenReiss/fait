@@ -128,6 +128,10 @@
 
    <METHOD NAME="java.rmi.Naming.lookup" RETURN="java.lang.Object" MUTABLE="true" />
 
+   <METHOD NAME="javax.swing.JComponent.setVisible" CBID="awt" CALLBACK="paint" CBARGS='THIS,*java.awt.Graphics' />
+   <METHOD NAME="java.awt.Component.setVisible" CBID="awt" CALLBACK="paint" CBARGS='THIS,*java.awt.Graphics' />
+   <METHOD NAME="java.awt.Window.setVisible" CBID="awt" CALLBACK="paint" CBARGS='THIS,*java.awt.Graphics' />
+
    <METHOD NAME="java.awt.List.addActionListener" CBID="awt" CALLBACK="actionPerformed" CBARGS="1" />
    <METHOD NAME="java.awt.TextField.addActionListener" CBID="awt" CALLBACK="actionPerformed" CBARGS="1" />
    <METHOD NAME="java.awt.Button.addActionListener" CBID="awt" CALLBACK="actionPerformed" CBARGS="1" />
