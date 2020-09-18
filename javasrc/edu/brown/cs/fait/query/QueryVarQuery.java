@@ -1,34 +1,34 @@
 /********************************************************************************/
-/*                                                                              */
-/*              QueryVarQuery.java                                              */
-/*                                                                              */
-/*      Handle variable queries                                                 */
-/*                                                                              */
+/*										*/
+/*		QueryVarQuery.java						*/
+/*										*/
+/*	Handle variable queries 						*/
+/*										*/
 /********************************************************************************/
-/*      Copyright 2013 Brown University -- Steven P. Reiss                    */
+/*	Copyright 2013 Brown University -- Steven P. Reiss		      */
 /*********************************************************************************
- *  Copyright 2013, Brown University, Providence, RI.                            *
- *                                                                               *
- *                        All Rights Reserved                                    *
- *                                                                               *
- *  Permission to use, copy, modify, and distribute this software and its        *
- *  documentation for any purpose other than its incorporation into a            *
- *  commercial product is hereby granted without fee, provided that the          *
- *  above copyright notice appear in all copies and that both that               *
- *  copyright notice and this permission notice appear in supporting             *
- *  documentation, and that the name of Brown University not be used in          *
- *  advertising or publicity pertaining to distribution of the software          *
- *  without specific, written prior permission.                                  *
- *                                                                               *
- *  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS                *
- *  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND            *
- *  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY      *
- *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY          *
- *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,              *
- *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS               *
- *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE          *
- *  OF THIS SOFTWARE.                                                            *
- *                                                                               *
+ *  Copyright 2013, Brown University, Providence, RI.				 *
+ *										 *
+ *			  All Rights Reserved					 *
+ *										 *
+ *  Permission to use, copy, modify, and distribute this software and its	 *
+ *  documentation for any purpose other than its incorporation into a		 *
+ *  commercial product is hereby granted without fee, provided that the 	 *
+ *  above copyright notice appear in all copies and that both that		 *
+ *  copyright notice and this permission notice appear in supporting		 *
+ *  documentation, and that the name of Brown University not be used in 	 *
+ *  advertising or publicity pertaining to distribution of the software 	 *
+ *  without specific, written prior permission. 				 *
+ *										 *
+ *  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS		 *
+ *  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND		 *
+ *  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY	 *
+ *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY 	 *
+ *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,		 *
+ *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS		 *
+ *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE 	 *
+ *  OF THIS SOFTWARE.								 *
+ *										 *
  ********************************************************************************/
 
 
@@ -58,24 +58,24 @@ class QueryVarQuery implements QueryConstants
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Private Storage                                                         */
-/*                                                                              */
+/*										*/
+/*	Private Storage 							*/
+/*										*/
 /********************************************************************************/
 
 private IfaceControl for_control;
-private String  class_name;
-private String  method_name;
-private int     start_pos;
-private int     line_number;
+private String	class_name;
+private String	method_name;
+private int	start_pos;
+private int	line_number;
 private IvyXmlWriter xml_writer;
 
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Constructors                                                            */
-/*                                                                              */
+/*										*/
+/*	Constructors								*/
+/*										*/
 /********************************************************************************/
 
 QueryVarQuery(IfaceControl ctrl,String method,int line,int pos,IvyXmlWriter xw)
@@ -92,18 +92,18 @@ QueryVarQuery(IfaceControl ctrl,String method,int line,int pos,IvyXmlWriter xw)
    class_name = method.substring(0,idx);
    int idx1 = class_name.lastIndexOf(".");
    String cnm = class_name;
-   if (idx1 > 0) cnm = class_name.substring(idx+1);
+   if (idx1 > 0) cnm = class_name.substring(idx1+1);
    if (cnm.equals(method_name)) method_name = "<init>";
-   
+
    xml_writer = xw;
 }
 
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Processing methods                                                      */
-/*                                                                              */
+/*										*/
+/*	Processing methods							*/
+/*										*/
 /********************************************************************************/
 
 void process() throws FaitException
@@ -116,72 +116,72 @@ void process() throws FaitException
       if (im.getStart().getAstReference() == null) continue;
       ASTNode mb = im.getStart().getAstReference().getAstNode();
       if (start_pos >= mb.getStartPosition() &&
-            start_pos <= mb.getStartPosition() + mb.getLength()) {
-         calls.addAll(for_control.getAllCalls(im));
-         mbody = mb;
-         method = im;
-         break;
+	    start_pos <= mb.getStartPosition() + mb.getLength()) {
+	 calls.addAll(for_control.getAllCalls(im));
+	 mbody = mb;
+	 method = im;
+	 break;
        }
     }
    if (mbody == null) {
       FaitLog.logE("Can't find method body for var query for " + method_name);
       for (IfaceMethod im : for_control.findAllMethods(typ,method_name)) {
-         FaitLog.logE("\tConsider " + im + " " + start_pos);
-         if (im.getStart().getAstReference() == null) continue;
-         ASTNode mb = im.getStart().getAstReference().getAstNode();
-         FaitLog.logE("\tAST at " + mb.getStartPosition() + " " + mb.getLength());
+	 FaitLog.logE("\tConsider " + im + " " + start_pos);
+	 if (im.getStart().getAstReference() == null) continue;
+	 ASTNode mb = im.getStart().getAstReference().getAstNode();
+	 FaitLog.logE("\tAST at " + mb.getStartPosition() + " " + mb.getLength());
        }
       return;
-    }   
+    }
    ASTNode child = JcompAst.findNodeAtOffset(mbody,start_pos);
    if (child == null) {
       FaitLog.logE("Can't find child node from " + start_pos + " " + mbody);
       return;
     }
-   
+
    QueryVarReference qvr = new QueryVarReference(for_control,method,child);
    IfaceAstReference astr = qvr.getAstReference();
    if (astr == null) {
       FaitLog.logE("Can't find ast reference for " + child);
       return;
     }
-   
+
    xml_writer.begin("VALUESET");
    xml_writer.field("LINE",line_number);
    xml_writer.field("METHOD",method_name);
    xml_writer.field("CLASS",class_name);
-   
+
    for (IfaceCall ic : calls) {
       for (IfaceCall ic1 : ic.getAlternateCalls()) {
-         IfaceState st0 = for_control.findStateForLocation(ic1,astr);
-         if (st0 == null) {
-            continue;
-          }
-         IfaceValue refval = qvr.getRefValue();
-         if (refval != null) {
-            xml_writer.begin("REFVALUE");
-            xml_writer.field("CALL",ic1.getMethod().getFullName() + ic1.getMethod().getDescription());
-            xml_writer.field("CALLID",ic1.hashCode());
-            if (st0.getSafetyStatus() != null) st0.getSafetyStatus().outputXml(xml_writer);
-            xml_writer.begin("REFERENCE");
-            refval.outputXml(xml_writer);
-            xml_writer.end("REFERENCE");
-            st0.getLocation().outputXml(xml_writer);
-            IfaceValue v0 = QueryFactory.dereference(for_control,refval,st0);
-            if (v0 != null) v0.outputXml(xml_writer);
-            xml_writer.end("REFVALUE");
-          }
+	 IfaceState st0 = for_control.findStateForLocation(ic1,astr);
+	 if (st0 == null) {
+	    continue;
+	  }
+	 IfaceValue refval = qvr.getRefValue();
+	 if (refval != null) {
+	    xml_writer.begin("REFVALUE");
+	    xml_writer.field("CALL",ic1.getMethod().getFullName() + ic1.getMethod().getDescription());
+	    xml_writer.field("CALLID",ic1.hashCode());
+	    if (st0.getSafetyStatus() != null) st0.getSafetyStatus().outputXml(xml_writer);
+	    xml_writer.begin("REFERENCE");
+	    refval.outputXml(xml_writer);
+	    xml_writer.end("REFERENCE");
+	    st0.getLocation().outputXml(xml_writer);
+	    IfaceValue v0 = QueryFactory.dereference(for_control,refval,st0);
+	    if (v0 != null) v0.outputXml(xml_writer);
+	    xml_writer.end("REFVALUE");
+	  }
        }
     }
-   
+
    for (IfaceSubtype st : for_control.getAllSubtypes()) {
       xml_writer.begin("SUBTYPE");
       xml_writer.field("NAME",st.getName());
       String s = st.getDefaultValues();
-      if (s != null) xml_writer.field("DEFAULTS",s); 
+      if (s != null) xml_writer.field("DEFAULTS",s);
       xml_writer.end("SUBTYPE");
     }
-   
+
    xml_writer.end("VALUESET");
 }
 
@@ -200,7 +200,7 @@ void process() throws FaitException
 
 
 
-}       // end of class QueryVarQuery
+}	// end of class QueryVarQuery
 
 
 
