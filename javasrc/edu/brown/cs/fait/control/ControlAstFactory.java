@@ -785,7 +785,7 @@ private class AstMethod implements IfaceMethod {
       if (local_map != null) return;
       LocalVisitor lv = new LocalVisitor();
       if (method_symbol.getDefinitionNode() != null) {
-	 method_symbol.getDefinitionNode().accept(lv);
+         method_symbol.getDefinitionNode().accept(lv);
        }
       local_count = lv.getLocalCount();
       local_map = lv.getLocalMap();

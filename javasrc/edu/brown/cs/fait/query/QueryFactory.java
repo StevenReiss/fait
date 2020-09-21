@@ -157,10 +157,10 @@ public void processToQuery(IfaceCall call,IfaceProgramPoint pt,IfaceEntity ent,
 }
 
 
-public void processVarQuery(String method,int line,int pos,IvyXmlWriter output)
+public void processVarQuery(String method,int line,int pos,String var,IvyXmlWriter output)
         throws FaitException
 {
-   QueryVarQuery vq = new QueryVarQuery(fait_control,method,line,pos,output);
+   QueryVarQuery vq = new QueryVarQuery(fait_control,method,line,pos,var,output);
    vq.process();
 }
 

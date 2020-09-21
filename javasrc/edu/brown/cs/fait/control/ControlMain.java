@@ -1110,10 +1110,10 @@ IfaceBaseType createMethodType(IfaceType rtn,List<IfaceType> args)
 
 
 
-@Override public void processVarQuery(String method,int line,int pos,IvyXmlWriter xw)
+@Override public void processVarQuery(String method,int line,int pos,String var,IvyXmlWriter xw)
         throws FaitException
 {
-   query_factory.processVarQuery(method,line,pos,xw);
+   query_factory.processVarQuery(method,line,pos,var,xw);
 }
 
 

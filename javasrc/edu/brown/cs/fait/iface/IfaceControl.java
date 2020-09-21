@@ -269,7 +269,7 @@ Collection<IfaceAuxReference> getAuxRefs(IfaceField fld);
 Collection<IfaceAuxReference> getAuxArrayRefs(IfaceValue arr);
 
 void processErrorQuery(IfaceCall c,IfaceProgramPoint pt,IfaceError e,IvyXmlWriter xw);
-void processVarQuery(String method,int line,int pos,IvyXmlWriter xw) throws FaitException;
+void processVarQuery(String method,int line,int pos,String var,IvyXmlWriter xw) throws FaitException;
 void processToQuery(IfaceCall c,IfaceProgramPoint pt,IfaceEntity ent,
       IfaceSubtype styp,IfaceSubtype.Value sval,IfaceValue refval,IvyXmlWriter xw);
 void processReflectionQuery(IvyXmlWriter xw);

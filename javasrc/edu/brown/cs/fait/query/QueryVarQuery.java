@@ -39,18 +39,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.jdt.core.dom.ASTNode;
+import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.eclipse.jdt.core.dom.Expression;
 
 import edu.brown.cs.fait.iface.FaitException;
 import edu.brown.cs.fait.iface.FaitLog;
 import edu.brown.cs.fait.iface.IfaceAstReference;
 import edu.brown.cs.fait.iface.IfaceCall;
 import edu.brown.cs.fait.iface.IfaceControl;
+import edu.brown.cs.fait.iface.IfaceField;
 import edu.brown.cs.fait.iface.IfaceMethod;
 import edu.brown.cs.fait.iface.IfaceState;
 import edu.brown.cs.fait.iface.IfaceSubtype;
 import edu.brown.cs.fait.iface.IfaceType;
 import edu.brown.cs.fait.iface.IfaceValue;
 import edu.brown.cs.ivy.jcomp.JcompAst;
+import edu.brown.cs.ivy.jcomp.JcompScope;
+import edu.brown.cs.ivy.jcomp.JcompSymbol;
 import edu.brown.cs.ivy.xml.IvyXmlWriter;
 
 class QueryVarQuery implements QueryConstants
@@ -66,6 +71,7 @@ class QueryVarQuery implements QueryConstants
 private IfaceControl for_control;
 private String	class_name;
 private String	method_name;
+private String  variable_name;
 private int	start_pos;
 private int	line_number;
 private IvyXmlWriter xml_writer;
@@ -78,11 +84,12 @@ private IvyXmlWriter xml_writer;
 /*										*/
 /********************************************************************************/
 
-QueryVarQuery(IfaceControl ctrl,String method,int line,int pos,IvyXmlWriter xw)
+QueryVarQuery(IfaceControl ctrl,String method,int line,int pos,String var,IvyXmlWriter xw)
 {
    for_control = ctrl;
    line_number = line;
    start_pos = pos;
+   variable_name = var;
    int idx = method.indexOf("(");
    if (idx > 0) {
       method = method.substring(0,idx);
@@ -108,6 +115,7 @@ QueryVarQuery(IfaceControl ctrl,String method,int line,int pos,IvyXmlWriter xw)
 
 void process() throws FaitException
 {
+   int lpos = start_pos;
    ASTNode mbody = null;
    IfaceMethod method = null;
    List<IfaceCall> calls = new ArrayList<>();
@@ -115,8 +123,12 @@ void process() throws FaitException
    for (IfaceMethod im : for_control.findAllMethods(typ,method_name)) {
       if (im.getStart().getAstReference() == null) continue;
       ASTNode mb = im.getStart().getAstReference().getAstNode();
-      if (start_pos >= mb.getStartPosition() &&
-	    start_pos <= mb.getStartPosition() + mb.getLength()) {
+      if (start_pos <= 0) {
+         CompilationUnit cu = (CompilationUnit) mb.getRoot();
+         lpos = cu.getPosition(line_number,1);
+       }
+      if (lpos >= mb.getStartPosition() &&
+	    lpos <= mb.getStartPosition() + mb.getLength()) {
 	 calls.addAll(for_control.getAllCalls(im));
 	 mbody = mb;
 	 method = im;
@@ -133,19 +145,39 @@ void process() throws FaitException
        }
       return;
     }
-   ASTNode child = JcompAst.findNodeAtOffset(mbody,start_pos);
-   if (child == null) {
-      FaitLog.logE("Can't find child node from " + start_pos + " " + mbody);
+   
+   IfaceValue refval = null;
+   IfaceAstReference astr = null;
+   
+   if (start_pos > 0) {
+      ASTNode child = JcompAst.findNodeAtOffset(mbody,start_pos);
+      if (child == null) {
+         FaitLog.logE("Can't find child node from " + start_pos + " " + mbody);
+         return;
+       }
+      QueryVarReference qvr = new QueryVarReference(for_control,method,child);
+      astr = qvr.getAstReference();
+      if (astr == null) {
+         FaitLog.logE("Can't find ast reference for " + child);
+         return;
+       }
+      refval = qvr.getRefValue();
+    }
+   else if (variable_name != null && lpos > 0) {
+      ASTNode child = JcompAst.findNodeAtOffset(mbody,lpos);
+      ASTNode after = null;
+      while (child instanceof Expression) {
+         after = child;
+         child = child.getParent();
+       }
+      astr = for_control.getAstReference(child,after);
+      refval = findReferenceForName(variable_name,method,mbody,astr,child);
+    }
+   if (refval == null) {
+      FaitLog.logE("Can't find reference value");
       return;
     }
-
-   QueryVarReference qvr = new QueryVarReference(for_control,method,child);
-   IfaceAstReference astr = qvr.getAstReference();
-   if (astr == null) {
-      FaitLog.logE("Can't find ast reference for " + child);
-      return;
-    }
-
+   
    xml_writer.begin("VALUESET");
    xml_writer.field("LINE",line_number);
    xml_writer.field("METHOD",method_name);
@@ -157,7 +189,6 @@ void process() throws FaitException
 	 if (st0 == null) {
 	    continue;
 	  }
-	 IfaceValue refval = qvr.getRefValue();
 	 if (refval != null) {
 	    xml_writer.begin("REFVALUE");
 	    xml_writer.field("CALL",ic1.getMethod().getFullName() + ic1.getMethod().getDescription());
@@ -189,13 +220,49 @@ void process() throws FaitException
 
 
 
+/********************************************************************************/
+/*                                                                              */
+/*      Handle mapping variable name to reference                               */
+/*                                                                              */
+/********************************************************************************/
 
-
-
-
-
-
-
+IfaceValue findReferenceForName(String name,IfaceMethod mthd,ASTNode method,
+      IfaceAstReference ppt,ASTNode loc)
+{
+   IfaceValue rslt = null;
+   String name1 = name.replace("?",".");
+   int idx = name1.lastIndexOf(".");
+   if (idx >= 0) {
+      String base = name1.substring(0,idx);
+      String field = name1.substring(idx+1);
+      IfaceValue basevalue = findReferenceForName(base,mthd,method,ppt,loc); 
+      if (basevalue == null) return null;
+      IfaceField fld = for_control.findField(basevalue.getDataType(),field);
+      rslt = for_control.findRefValue(fld.getType(),basevalue,fld);
+    }
+   else {
+      int slot = -1;
+      if (name.equals("this") || name.startsWith("this$")) {
+         slot = mthd.getLocalOffset(name);
+       }
+      else {
+         JcompScope curscp = null;
+         for (ASTNode n = loc; n != null; n = n.getParent()) {
+            curscp = JcompAst.getJavaScope(n);
+            if (curscp != null) break;
+          }
+         if (curscp == null) return null;
+         JcompSymbol sym = curscp.lookupVariable(name);
+         if (sym == null) return null;
+         slot = mthd.getLocalOffset(sym);
+       }
+      if (slot < 0) return null;
+      IfaceType ltyp = mthd.getLocalType(slot,ppt);
+      rslt = for_control.findRefValue(ltyp,slot);
+    }
+   
+   return rslt;
+}
 
 
 

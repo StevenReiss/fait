@@ -1071,8 +1071,9 @@ void handleVarQuery(Element qxml,IvyXmlWriter xw) throws FaitException
    String mnm = IvyXml.getAttrString(qxml,"METHOD");
    int pos = IvyXml.getAttrInt(qxml,"START");
    int line = IvyXml.getAttrInt(qxml,"LINE");
+   String var = IvyXml.getAttrString(qxml,"TOKEN");
 
-   ctrl.processVarQuery(mnm,line,pos,xw);
+   ctrl.processVarQuery(mnm,line,pos,var,xw);
 }
 
 
