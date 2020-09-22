@@ -125,6 +125,7 @@ void process() throws FaitException
       ASTNode mb = im.getStart().getAstReference().getAstNode();
       if (start_pos <= 0) {
          CompilationUnit cu = (CompilationUnit) mb.getRoot();
+         // want to get position after spaces at start of line
          lpos = cu.getPosition(line_number,1);
        }
       if (lpos >= mb.getStartPosition() &&
@@ -164,7 +165,7 @@ void process() throws FaitException
       refval = qvr.getRefValue();
     }
    else if (variable_name != null && lpos > 0) {
-      ASTNode child = JcompAst.findNodeAtOffset(mbody,lpos);
+      ASTNode child = JcompAst.findNodeAtLine(mbody,line_number);
       ASTNode after = null;
       while (child instanceof Expression) {
          after = child;
@@ -242,8 +243,10 @@ IfaceValue findReferenceForName(String name,IfaceMethod mthd,ASTNode method,
     }
    else {
       int slot = -1;
+      IfaceType ltyp = null;
       if (name.equals("this") || name.startsWith("this$")) {
          slot = mthd.getLocalOffset(name);
+         ltyp = mthd.getDeclaringClass();
        }
       else {
          JcompScope curscp = null;
@@ -255,9 +258,9 @@ IfaceValue findReferenceForName(String name,IfaceMethod mthd,ASTNode method,
          JcompSymbol sym = curscp.lookupVariable(name);
          if (sym == null) return null;
          slot = mthd.getLocalOffset(sym);
+         ltyp = mthd.getLocalType(slot,ppt);
        }
-      if (slot < 0) return null;
-      IfaceType ltyp = mthd.getLocalType(slot,ppt);
+      if (slot < 0 || ltyp == null) return null;
       rslt = for_control.findRefValue(ltyp,slot);
     }
    
