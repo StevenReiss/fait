@@ -125,7 +125,6 @@ void process() throws FaitException
       ASTNode mb = im.getStart().getAstReference().getAstNode();
       if (start_pos <= 0) {
          CompilationUnit cu = (CompilationUnit) mb.getRoot();
-         // want to get position after spaces at start of line
          lpos = cu.getPosition(line_number,1);
        }
       if (lpos >= mb.getStartPosition() &&
@@ -137,7 +136,8 @@ void process() throws FaitException
        }
     }
    if (mbody == null) {
-      FaitLog.logE("Can't find method body for var query for " + method_name);
+      FaitLog.logE("Can't find method body for var query for " + method_name + " in " + typ + " " +
+        typ.isEditable());
       for (IfaceMethod im : for_control.findAllMethods(typ,method_name)) {
 	 FaitLog.logE("\tConsider " + im + " " + start_pos);
 	 if (im.getStart().getAstReference() == null) continue;

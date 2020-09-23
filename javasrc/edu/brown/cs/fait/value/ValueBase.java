@@ -358,7 +358,7 @@ protected IfaceType findCommonParent(IfaceType t1,IfaceType t2)
    xw.begin("VALUE");
    xw.field("HASHID",hashCode());
    outputLocalXml(xw);
-   data_type.outputXml(xw);
+   if (data_type != null) data_type.outputXml(xw);
    if (entity_set != null) {
       entity_set.outputXml(xw,this);
     }

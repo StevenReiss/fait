@@ -181,6 +181,7 @@ void addSpecialFile(File f)
        }
       else {
          File f1 = new File("/research/people/spr/fait/lib",name);
+         if (!f1.exists()) f1 = new File("/pro/fait/lib",name);
          if (f1.exists() && f1.canRead()) {
             e = IvyXml.loadXmlFromFile(f1);
           }
