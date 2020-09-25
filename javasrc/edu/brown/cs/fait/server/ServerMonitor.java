@@ -373,21 +373,22 @@ private void handleRemove(String sid) throws ServerException
 
 
 
-private void handleAddFile(String sid,Element xml)
+private void handleAddFile(String sid,Element xml,IvyXmlWriter xw)
 {
    ServerSession ss = session_map.get(sid);
    if (ss == null) return;
    ServerProject sp = ss.getProject();
 
+   boolean upd = false;
    for (Element e : IvyXml.children(xml,"FILE")) {
       String file = IvyXml.getAttrString(e,"NAME");
       ServerFile sf = server_control.getFileManager().openFile(new File(file));
       if (sf != null) {
-         sp.addFile(sf);
+         upd |= sp.addFile(sf);
        }   
     }
-
-   // sp.getJcompProject().resolve();
+   
+   xw.field("ADDED",upd);
 }
 
 
@@ -434,6 +435,25 @@ private void handleQuery(String sid,Element xml,IvyXmlWriter xw)
    
    try {
       sp.handleQuery(xml,xw);
+    }
+   catch (FaitException e) {
+      xw.begin("FAITQUERY");
+      xw.field("FAIL",true);
+      xw.field("ERROR",e.getMessage());
+      xw.end("FAITQUERY");
+    }
+}
+
+
+
+private void handleFlowQuery(String sid,Element xml,IvyXmlWriter xw)
+{
+   ServerSession ss = session_map.get(sid);
+   if (ss == null) return;
+   ServerProject sp = ss.getProject();
+   
+   try {
+      sp.handleFlowQuery(xml,xw);
     }
    catch (FaitException e) {
       xw.begin("FAITQUERY");
@@ -663,11 +683,14 @@ private String processCommand(String cmd,String sid,Element e) throws ServerExce
 	 handleRemove(sid);
 	 break;
       case "ADDFILE" :
-	 handleAddFile(sid,e);
+	 handleAddFile(sid,e,xw);
 	 break;
       case "ANALYZE" :
 	 handleAnalyze(sid,e,xw);
 	 break;
+      case "FLOWQUERY" :
+         handleFlowQuery(sid,e,xw);
+         break;
       case "QUERY" :
          handleQuery(sid,e,xw);
          break;

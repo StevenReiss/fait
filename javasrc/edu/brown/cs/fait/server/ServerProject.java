@@ -186,13 +186,16 @@ void addProject(String pnm)
 /*										*/
 /********************************************************************************/
 
-void addFile(ServerFile sf)
+boolean addFile(ServerFile sf)
 {
-   if (sf == null) return;
-
-   if (active_files.add(sf)) {
+   boolean added = false;
+   
+   if (sf != null && active_files.add(sf)) {
       noteFileChanged(sf,false);
+      added = true;
     }
+   
+   return added;
 }
 
 
@@ -875,6 +878,8 @@ void handleQuery(Element qxml,IvyXmlWriter xw) throws FaitException
       case "EXPLAIN" :
          handleToQuery(ctrl,qxml,call,xw);
          break;
+      case "VALUE" :
+         break;
     }
 }
 
@@ -985,10 +990,41 @@ private void handleToQuery(IfaceControl ctrl,Element qxml,IfaceCall call,IvyXmlW
    IfaceType vtyp = null;
    if (vtypnm != null) vtyp = ctrl.findDataType(vtypnm);
    
-   IfaceValue ref = null;
    Element refxml = IvyXml.getChild(qxml,"REFERENCE");
-   int slot = IvyXml.getAttrInt(refxml,"SLOT");
+   IfaceValue ref = getReference(ctrl,call,vtyp,ppt,refxml);
+   if (ref == null) throw new FaitException("Reference not found");
+   
+   xw.begin("QUERY");
+   xw.field("METHOD",call.getMethod().getFullName());
+   xw.field("SIGNATURE",call.getMethod().getDescription());
+   xw.field("ENTITY",ent.getId());
+   
+   if (styp != null) {
+      xw.field("SUBTYPE",styp.getName());
+      xw.field("SUBTYPEVALUE",sval.toString());
+    }
+   xw.field("CALL",call.hashCode());
+   ppt.outputXml(xw);
+   ctrl.processToQuery(call,ppt,ent,styp,sval,ref,xw);
+   xw.end("QUERY");
+}
+
+
+
+private IfaceValue getReference(IfaceControl ctrl,IfaceCall call,IfaceType vtyp,
+      IfaceProgramPoint ppt,Element refxml) throws FaitException
+{
+   IfaceValue ref = null;
+   if (vtyp == null) {
+      Element telt = IvyXml.getChild(refxml,"TYPE");
+      String vtypnm = IvyXml.getAttrString(telt,"BASE");
+      if (vtypnm != null) vtyp = ctrl.findDataType(vtypnm);
+    }
+   
+   int slot = IvyXml.getAttrInt(refxml,"LOCAL");
+   if (slot < 0) slot = IvyXml.getAttrInt(refxml,"BASELOCAL");
    int stk = IvyXml.getAttrInt(refxml,"STACK");
+   if (stk < 0) stk = IvyXml.getAttrInt(refxml,"BASESTACK");
    if (slot >= 0) {
       ref = ctrl.findRefValue(vtyp,slot);
     }
@@ -1030,21 +1066,7 @@ private void handleToQuery(IfaceControl ctrl,Element qxml,IfaceCall call,IvyXmlW
       if (fld == null) throw new FaitException("Field " + fldnm + " not found");
       ref = ctrl.findRefValue(vtyp,ref,fld);
     }
-   if (ref == null) throw new FaitException("Reference not found");
-   
-   xw.begin("QUERY");
-   xw.field("METHOD",call.getMethod().getFullName());
-   xw.field("SIGNATURE",call.getMethod().getDescription());
-   xw.field("ENTITY",ent.getId());
-   
-   if (styp != null) {
-      xw.field("SUBTYPE",styp.getName());
-      xw.field("SUBTYPEVALUE",sval.toString());
-    }
-   xw.field("CALL",call.hashCode());
-   ppt.outputXml(xw);
-   ctrl.processToQuery(call,ppt,ent,styp,sval,ref,xw);
-   xw.end("QUERY");
+   return ref;
 }
 
 
@@ -1076,6 +1098,88 @@ void handleVarQuery(Element qxml,IvyXmlWriter xw) throws FaitException
    ctrl.processVarQuery(mnm,line,pos,var,xw);
 }
 
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Handle queries for ROSE                                                 */
+/*                                                                              */
+/********************************************************************************/
+
+void handleFlowQuery(Element qxml,IvyXmlWriter xw) throws FaitException
+{
+   IfaceControl ctrl = null;
+   if (current_runner != null) {
+      ctrl = current_runner.getControl();
+    }
+   if (ctrl == null) {
+      throw new FaitException("Analysis not run");
+    }
+   
+   String mnm = IvyXml.getAttrString(qxml,"METHOD");
+   String msg = null;
+   String mcl = null;
+   int idx1 = mnm.indexOf("(");
+   if (idx1 > 0) {
+      msg = mnm.substring(idx1);
+      mnm = mnm.substring(0,idx1);
+    }
+   int idx2 = mnm.lastIndexOf(".");
+   if (idx2 > 0) {
+      mcl = mnm.substring(0,idx2);
+      mnm = mnm.substring(idx2+1);
+    }
+   
+   Map<Integer,Element> calls = new HashMap<>();
+   for (Element loc : IvyXml.children(qxml,"LOCATION")) {
+      int cid = IvyXml.getAttrInt(loc,"CALLID"); 
+      if (cid != -1) {
+         Element ploc = IvyXml.getChild(loc,"POINT");
+         calls.put(cid,ploc);
+       }
+    }
+   
+   IfaceMethod m = ctrl.findMethod(mcl,mnm,msg);
+   for (IfaceCall c : ctrl.getAllCalls(m)) {
+      for (IfaceCall c1 : c.getAlternateCalls()) {
+         Element loc = calls.get(c1.hashCode());
+         if (loc != null) {
+            handleFlowQueryForCall(ctrl,qxml,c1,loc,xw);
+          }
+       }
+    }
+}
+
+
+
+private void handleFlowQueryForCall(IfaceControl ctrl,Element qxml,IfaceCall call,
+      Element loc,IvyXmlWriter xw) throws FaitException
+{
+   int spos = IvyXml.getAttrInt(loc,"START");
+   int ltyp = IvyXml.getAttrInt(loc,"NODETYPEID");
+   IfaceProgramPoint pt0 = call.getMethod().getStart();
+   IfaceAstReference r0 = pt0.getAstReference();
+   ASTNode an0 = getReferredNode(r0.getAstNode(),spos,ltyp);
+   int apos = IvyXml.getAttrInt(loc,"AFTERSTART");
+   int atyp = IvyXml.getAttrInt(loc,"AFTERTYPEID");
+   ASTNode aft = null;
+   if (apos >= 0) {
+      aft = getReferredNode(r0.getAstNode(),apos,atyp);
+    }
+   IfaceProgramPoint ppt = ctrl.getAstReference(an0,aft);
+   
+   Element refxml = IvyXml.getChild(qxml,"VALUE");
+   IfaceValue ref = getReference(ctrl,call,null,ppt,refxml);
+   
+   xw.begin("QUERY");
+   xw.field("METHOD",call.getMethod().getFullName());
+   xw.field("SIGNATURE",call.getMethod().getDescription());
+   xw.field("CALL",call.hashCode());
+   ppt.outputXml(xw);
+   ref.outputXml(xw);
+   // process query
+   xw.end("QUERY");
+}
 
 
 /********************************************************************************/
