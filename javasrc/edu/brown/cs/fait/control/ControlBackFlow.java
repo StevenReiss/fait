@@ -35,6 +35,7 @@
 
 package edu.brown.cs.fait.control;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -169,10 +170,10 @@ class ControlBackFlow implements IfaceBackFlow, FaitConstants, JcodeConstants
 private IfaceControl    fait_control;
 private IfaceState      prior_state;
 private IfaceState      end_state;
-private IfaceValue      end_ref;
+private List<IfaceValue> end_refs;
 private IfaceProgramPoint execute_point;
 
-private IfaceValue      start_ref;
+private List<IfaceValue> start_refs;
 private Collection<IfaceAuxReference> aux_refs;
 
 
@@ -188,10 +189,30 @@ ControlBackFlow(IfaceControl fc,IfaceState endstate,IfaceState priorstate,IfaceV
    fait_control = fc;
    prior_state = priorstate;
    end_state = endstate;
-   end_ref = endref;
+   end_refs = new ArrayList<>();
+   if (endref != null) end_refs.add(endref);
    execute_point = prior_state.getLocation().getProgramPoint();
-   
-   start_ref = null;
+   start_refs = null;
+}
+
+
+
+ControlBackFlow(IfaceControl fc,IfaceState endstate,IfaceState priorstate,Collection<IfaceAuxReference> refs)
+{
+   this(fc,endstate,priorstate,null,refs);
+}
+
+
+ControlBackFlow(IfaceControl fc,IfaceState endstate,IfaceState priorstate,Collection<IfaceValue> endrefs,
+      Collection<IfaceAuxReference> refs)
+{
+   fait_control = fc;
+   prior_state = priorstate;
+   end_state = endstate;
+   end_refs = new ArrayList<>();
+   if (endrefs != null) end_refs.addAll(endrefs);
+   execute_point = prior_state.getLocation().getProgramPoint();
+   start_refs = null;
 }
 
 
@@ -203,12 +224,16 @@ ControlBackFlow(IfaceControl fc,IfaceState endstate,IfaceState priorstate,IfaceV
 /*                                                                              */
 /********************************************************************************/
 
-@Override public IfaceValue getStartReference()         { return start_ref; }
+@Override public IfaceValue getStartReference()
+{
+   if (start_refs == null) return null;
+   if (start_refs.isEmpty()) return null;
+   return start_refs.get(0);
+}
 
-@Override public Collection<IfaceAuxReference> getAuxRefs()   { return aux_refs; }
+@Override public Collection<IfaceValue> getStartReferences()    { return start_refs; }
 
-
-
+@Override public Collection<IfaceAuxReference> getAuxRefs()     { return aux_refs; }
 
 
 
@@ -221,12 +246,19 @@ ControlBackFlow(IfaceControl fc,IfaceState endstate,IfaceState priorstate,IfaceV
 
 void computeBackFlow()
 {
-   if (execute_point == null || end_ref == null) return;
+   if (execute_point == null || end_refs == null || end_refs.isEmpty()) return;
    
-   if (execute_point.getAstReference() != null) 
-      computeAstBackFlow();
-   else
-      computeByteCodeBackFlow();
+   for (IfaceValue eref : end_refs) {
+      IfaceValue sref = null;
+      if (execute_point.getAstReference() != null) 
+         sref = computeAstBackFlow(eref);
+      else
+         sref = computeByteCodeBackFlow(eref);
+      if (sref != null) {
+         if (start_refs == null) start_refs = new ArrayList<>();
+         start_refs.add(sref);
+       }
+    }
 }
 
 
@@ -237,17 +269,19 @@ void computeBackFlow()
 /*                                                                              */
 /********************************************************************************/
 
-void computeByteCodeBackFlow()
+IfaceValue computeByteCodeBackFlow(IfaceValue eref)
 {
    JcodeInstruction ins = execute_point.getInstruction();
-   int stk = end_ref.getRefStack();
-   int var = end_ref.getRefSlot();
-   IfaceField reffld = end_ref.getRefField();
-   IfaceType settype = end_ref.getDataType();
+   IfaceValue sref = null;
+   
+   int stk = eref.getRefStack();
+   int var = eref.getRefSlot();
+   IfaceField reffld = eref.getRefField();
+   IfaceType settype = eref.getDataType();
    
    if (FaitLog.isTracing()) {
-      FaitLog.logD("Work BACK on " + ins + " " + end_ref + " " + var + " " + stk + " " + 
-            end_ref.getRefField());
+      FaitLog.logD("Work BACK on " + ins + " " + eref + " " + var + " " + stk + " " + 
+            eref.getRefField());
     }
    
    IfaceValue v0,v1;
@@ -259,9 +293,9 @@ void computeByteCodeBackFlow()
       case LLOAD : case LLOAD_0 : case LLOAD_1 : case LLOAD_2 : case LLOAD_3 :
       case ALOAD : case ALOAD_0 : case ALOAD_1 : case ALOAD_2 : case ALOAD_3 :
 	 if (stk == 0) {
-	    start_ref = fait_control.findRefValue(settype,ins.getLocalVariable());
+	    sref = fait_control.findRefValue(settype,ins.getLocalVariable());
 	  }
-	 else pushOne();
+	 else sref = adjustRef(eref,0,1);
 	 break;
       case ASTORE : case ASTORE_0 : case ASTORE_1 : case ASTORE_2 : case ASTORE_3 :
       case DSTORE : case DSTORE_0 : case DSTORE_1 : case DSTORE_2 : case DSTORE_3 :
@@ -269,52 +303,52 @@ void computeByteCodeBackFlow()
       case ISTORE : case ISTORE_0 : case ISTORE_1 : case ISTORE_2 : case ISTORE_3 :
       case LSTORE : case LSTORE_0 : case LSTORE_1 : case LSTORE_2 : case LSTORE_3 :
 	 if (var == ins.getLocalVariable()) {
-	    start_ref = fait_control.findRefStackValue(settype,0);
+	    sref = fait_control.findRefStackValue(settype,0);
 	  }
-	 else popOne();
+	 else sref = adjustRef(eref,1,0);
 	 break;
       case DUP :
 	 if (stk == 0 || stk == 1) {
-	    start_ref = fait_control.findRefStackValue(settype,0);
+	    sref = fait_control.findRefStackValue(settype,0);
 	  }
-	 else start_ref = adjustRef(end_ref,1,2);
+	 else sref = adjustRef(eref,1,2);
 	 break;
       case DUP_X1 :
 	 if (stk == 2) {
-	    start_ref = fait_control.findRefStackValue(settype,0);
+	    sref = fait_control.findRefStackValue(settype,0);
 	  }
 	 else if (stk == 0 || stk == 1) {
-	    start_ref = end_ref;
+	    sref = eref;
 	  }
-	 else start_ref = adjustRef(end_ref,2,3);
+	 else sref = adjustRef(eref,2,3);
 	 break;
       case DUP_X2 :
 	 // need to take category 2 values into account
 	 if (stk == 3) {
-	    start_ref = fait_control.findRefStackValue(settype,0);
+	    sref = fait_control.findRefStackValue(settype,0);
 	  }
 	 else if (stk == 0 || stk == 1 || stk == 2) {
-	    start_ref = end_ref;
+	    sref = eref;
 	  }
-	 else start_ref = adjustRef(end_ref,3,4);
+	 else sref = adjustRef(eref,3,4);
 	 break;
       case DUP2 :
 	 v0 = prior_state.getStack(0);
 	 if (v0.isCategory2()) {
 	    if (stk == 0 || stk == 1) {
-	       start_ref = fait_control.findRefStackValue(settype,0);
+	       sref = fait_control.findRefStackValue(settype,0);
 	     }
-	    else start_ref = adjustRef(end_ref,1,2);
+	    else sref = adjustRef(eref,1,2);
 	  }
 	 else {
 	    if (stk == 0 || stk == 2) {
-	       start_ref = fait_control.findRefStackValue(settype,0);
+	       sref = fait_control.findRefStackValue(settype,0);
 	     }
 	    else if (stk == 1 || stk == 3) {
-	       start_ref = fait_control.findRefStackValue(settype,1);
+	       sref = fait_control.findRefStackValue(settype,1);
 	     }
 	    else {
-	       start_ref = adjustRef(end_ref,2,4);
+	       sref = adjustRef(eref,2,4);
 	     }
 	  }
 	 break;
@@ -322,24 +356,24 @@ void computeByteCodeBackFlow()
 	 v0 = prior_state.getStack(0);
 	 if (v0.isCategory2()) {
 	    if (stk == 2) {
-	       start_ref = fait_control.findRefStackValue(settype,0);
+	       sref = fait_control.findRefStackValue(settype,0);
 	     }
 	    else if (stk == 0 || stk == 1) {
-	       start_ref = end_ref;
+	       sref = eref;
 	     }
-	    else start_ref = adjustRef(end_ref,2,3);
+	    else sref = adjustRef(eref,2,3);
 	  }
 	 else {
 	    if (stk == 3) {
-	       start_ref = fait_control.findRefStackValue(settype,0);
+	       sref = fait_control.findRefStackValue(settype,0);
 	     }
 	    else if (stk == 4) {
-	       start_ref = fait_control.findRefStackValue(settype,1);
+	       sref = fait_control.findRefStackValue(settype,1);
 	     }
 	    else if (stk == 0 || stk == 1 || stk == 2) {
-	       start_ref = end_ref;
+	       sref = eref;
 	     }
-	    else start_ref = adjustRef(end_ref,3,5);
+	    else sref = adjustRef(eref,3,5);
 	  }
 	 break;
       case DUP2_X2 :
@@ -348,67 +382,67 @@ void computeByteCodeBackFlow()
 	    v1 = prior_state.getStack(1);
 	    if (v1.isCategory2()) {
 	       if (stk == 2) {
-		  start_ref = fait_control.findRefStackValue(settype,0);
+		  sref = fait_control.findRefStackValue(settype,0);
 		}
 	       else if (stk == 0 || stk == 1) {
-		  start_ref = end_ref;
+		  sref = eref;
 		}
-	       else start_ref = adjustRef(end_ref,2,3);
+	       else sref = adjustRef(eref,2,3);
 	     }
 	    else {
 	       if (stk == 3) {
-		  start_ref = fait_control.findRefStackValue(settype,0);
+		  sref = fait_control.findRefStackValue(settype,0);
 		}
 	       else if (stk == 0 || stk == 1 || stk == 2) {
-		  start_ref = end_ref;
+		  sref = eref;
 		}
-	       else start_ref = adjustRef(end_ref,3,4);
+	       else sref = adjustRef(eref,3,4);
 	     }
 	  }
 	 else {
 	    v1 = prior_state.getStack(2);
 	    if (v1.isCategory2()) {
 	       if (stk == 3) {
-		  start_ref = fait_control.findRefStackValue(settype,0);
+		  sref = fait_control.findRefStackValue(settype,0);
 		}
 	       else if (stk == 4) {
-		  start_ref = fait_control.findRefStackValue(settype,1);
+		  sref = fait_control.findRefStackValue(settype,1);
 		}
-	       else if (stk == 0 || stk == 1 || stk == 2) start_ref = end_ref;
-	       else start_ref = adjustRef(end_ref,3,5);
+	       else if (stk == 0 || stk == 1 || stk == 2) sref = eref;
+	       else sref = adjustRef(eref,3,5);
 	     }
 	    else {
 	       if (stk == 4) {
-		  start_ref = fait_control.findRefStackValue(settype,0);
+		  sref = fait_control.findRefStackValue(settype,0);
 		}
 	       else if (stk == 5) {
-		  start_ref = fait_control.findRefStackValue(settype,1);
+		  sref = fait_control.findRefStackValue(settype,1);
 		}
 	       else if (stk == 0 || stk == 1 || stk == 2 || stk == 3) {
-		  start_ref = end_ref;
+		  sref = eref;
 		}
-	       else start_ref = adjustRef(end_ref,4,6);
+	       else sref = adjustRef(eref,4,6);
 	     }
 	  }
 	 break;
       case MONITORENTER :
       case MONITOREXIT :
       case POP :
-	 popOne();
+	 sref = adjustRef(eref,1,0);
 	 break;
       case POP2 :
 	 v0 = prior_state.getStack(0);
-	 if (v0.isCategory2()) start_ref = adjustRef(end_ref,0,1);
-	 else start_ref = adjustRef(end_ref,0,2);
+	 if (v0.isCategory2()) sref = adjustRef(eref,0,1);
+	 else sref = adjustRef(eref,0,2);
 	 break;
       case SWAP :
 	 if (stk == 0) {
-	    start_ref = fait_control.findRefStackValue(settype,1);
+	    sref = fait_control.findRefStackValue(settype,1);
 	  }
 	 else if (stk == 1) {
-	    start_ref = fait_control.findRefStackValue(settype,0);
+	    sref = fait_control.findRefStackValue(settype,0);
 	  }
-	 else start_ref = adjustRef(end_ref,2,2);
+	 else sref = adjustRef(eref,2,2);
 	 break;
          
 /* ARITHMETIC INSTRUCTIONS */
@@ -426,9 +460,9 @@ void computeByteCodeBackFlow()
 	 if (stk == 0) {
             addAuxRef(0);
             addAuxRef(1);
-	    start_ref = null;
+	    sref = null;
 	  }
-	 else start_ref = adjustRef(end_ref,2,1);
+	 else sref = adjustRef(eref,2,1);
 	 break;
       case BIPUSH :
       case SIPUSH :
@@ -446,7 +480,7 @@ void computeByteCodeBackFlow()
       case LDC :
       case LDC_W :
       case LDC2_W :
-	 pushOne();
+         sref = adjustRef(eref,0,1);
 	 break;
       case D2F : case FNEG : case I2F : case L2F :
       case D2I : case F2I : case L2I : case INEG :
@@ -455,57 +489,57 @@ void computeByteCodeBackFlow()
       case I2B : case I2C : case I2S :
       case INSTANCEOF :
       case CHECKCAST :
-	 if (end_ref.getRefStack() == 0) {
+	 if (eref.getRefStack() == 0) {
             addAuxRef(0);
-	    start_ref = null;
+	    sref = null;
 	  }
-	 else start_ref = adjustRef(end_ref,1,1);
+	 else sref = adjustRef(eref,1,1);
 	 break;
       case IINC :
 	 if (var == ins.getLocalVariable()) {
             addAuxVarRef(ins.getLocalVariable());
-            start_ref = null;
+            sref = null;
           }
 	 break;
       case NOP :
-	 noChange();
+	 sref = eref;
 	 break;
          
 /* BRANCH INSTRUCTIONS */
       case GOTO :
       case GOTO_W :
-	 noChange();
+	 sref = eref;
          break;
       case IF_ACMPEQ : case IF_ACMPNE :
       case IF_ICMPEQ : case IF_ICMPNE :
       case IF_ICMPLT : case IF_ICMPGE : case IF_ICMPGT : case IF_ICMPLE :
-	 start_ref = adjustRef(end_ref,2,0);
+	 sref = adjustRef(eref,2,0);
 	 break;
       case IFEQ : case IFNE : case IFLT : case IFGE : case IFGT : case IFLE :
       case IFNONNULL : case IFNULL :
-	 start_ref = adjustRef(end_ref,1,0);
+	 sref = adjustRef(eref,1,0);
 	 break;
       case LOOKUPSWITCH :
       case TABLESWITCH :
-	 popOne();
+	 sref = adjustRef(eref,1,0);
 	 break;
          
 /* SUBROUTINE CALLS */
       case JSR : case JSR_W :
-	 pushOne();
+	 sref = adjustRef(eref,0,1);
 	 break;
       case RET :
-	 noChange();
+	 sref = eref;
 	 break;
          
 /* CALL INSTRUCTIONS */
       case ARETURN :
       case DRETURN : case FRETURN : case IRETURN : case LRETURN :
       case ATHROW :
-	 popOne();
+	 sref = adjustRef(eref,1,0);
 	 break;
       case RETURN :
-	 noChange();
+	 sref = eref;
 	 break;
       case INVOKEINTERFACE :
       case INVOKESPECIAL :
@@ -515,16 +549,16 @@ void computeByteCodeBackFlow()
 	 int act = fm.getNumArgs();
 	 if (!fm.isStatic()) act += 1;
 	 if (fm.getReturnType() == null || fm.getReturnType().isVoidType()) {
-	    start_ref = adjustRef(end_ref,act,0);
+	    sref = adjustRef(eref,act,0);
 	  }
-	 else if (end_ref.getRefStack() == 0) {
-	    start_ref = null;
+	 else if (eref.getRefStack() == 0) {
+	    sref = null;
 	  }
 	 else if (reffld != null) {
             addAuxRefs(reffld);
-            start_ref = null;
+            sref = null;
           }
-	 else start_ref = adjustRef(end_ref,act,1);
+	 else sref = adjustRef(eref,act,1);
 	 break;
       case INVOKEDYNAMIC :
          int narg = 0;
@@ -535,9 +569,9 @@ void computeByteCodeBackFlow()
           }
          if (stk == 0) {
             for (int i = 0; i < narg; ++i) addAuxRef(i);
-            start_ref = null;
+            sref = null;
           }
-         else start_ref = adjustRef(end_ref,narg,1);
+         else sref = adjustRef(eref,narg,1);
 	 break;
          
 /* ARRAY PROCESSING INSTRUCTIONS */
@@ -546,27 +580,27 @@ void computeByteCodeBackFlow()
       case IALOAD : case LALOAD : case SALOAD :
 	 if (stk == 0) {
             addAuxArrayRefs(prior_state.getStack(1));
-	    start_ref = null;
+	    sref = null;
 	  }
-	 else start_ref = adjustRef(end_ref,2,1);
+	 else sref = adjustRef(eref,2,1);
 	 break;
       case AASTORE :
       case BASTORE : case CASTORE : case DASTORE : case FASTORE :
       case IASTORE : case LASTORE : case SASTORE :
-	 start_ref = adjustRef(end_ref,3,0);
+	 sref = adjustRef(eref,3,0);
 	 break;
       case ANEWARRAY :
       case NEWARRAY :
-	 start_ref = adjustRef(end_ref,1,1);
+	 sref = adjustRef(eref,1,1);
 	 break;
       case MULTIANEWARRAY :
-	 start_ref = adjustRef(end_ref,ins.getIntValue(),1);
+	 sref = adjustRef(eref,ins.getIntValue(),1);
 	 break;
       case ARRAYLENGTH :
          if (stk == 0) {
             addAuxArrayRefs(prior_state.getStack(0));
           }
-	 start_ref = adjustRef(end_ref,1,1);
+	 sref = adjustRef(eref,1,1);
 	 break;
          
 /* FIELD INSTRUCTIONS */
@@ -575,33 +609,35 @@ void computeByteCodeBackFlow()
             IfaceField fld = execute_point.getReferencedField();
             IfaceValue vobj = prior_state.getStack(0);
             if (prior_state.getFieldValue(fld) != null && vobj == prior_state.getLocal(0)) {
-               start_ref = fait_control.findRefValue(settype,prior_state.getStack(0),fld);
+               sref = fait_control.findRefValue(settype,prior_state.getStack(0),fld);
              }
             else {
                addAuxRefs(fld);
-               start_ref = null;
+               sref = null;
              }
 	  }
-	 else start_ref = adjustRef(end_ref,1,1);
+	 else sref = adjustRef(eref,1,1);
 	 break;
       case GETSTATIC :
 	 if (stk == 0) {
             addAuxRefs(execute_point.getReferencedField());
-            start_ref = null;
+            sref = null;
 	  }
-	 else start_ref = adjustRef(end_ref,0,1);
+	 else sref = adjustRef(eref,0,1);
 	 break;
       case PUTFIELD :
-	 start_ref = adjustRef(end_ref,2,0);
+	 sref = adjustRef(eref,2,0);
 	 break;
       case PUTSTATIC :
-	 start_ref = adjustRef(end_ref,1,0);
+	 sref = adjustRef(eref,1,0);
 	 break;
          
       default :
 	 FaitLog.logE("FAIT: Opcode " + ins.getOpcode() + " not found");
 	 break;
     }
+   
+   return sref;
 }
 
 
@@ -616,31 +652,39 @@ void computeByteCodeBackFlow()
 /*                                                                              */
 /********************************************************************************/
 
-void computeAstBackFlow()
+private IfaceValue computeAstBackFlow(IfaceValue eref)
 {
    IfaceAstReference astref = execute_point.getAstReference();
    ASTNode n = astref.getAstNode();
    
-   BackVisitor bv = new BackVisitor();
+   BackVisitor bv = new BackVisitor(eref);
    n.accept(bv);
+   
+   return bv.getStartRef();
 }
 
 
 private class BackVisitor extends ASTVisitor {
    
+   private IfaceValue end_ref;
+   private IfaceValue start_back_ref;
    private ASTNode after_node;
    
-   BackVisitor() {
+   BackVisitor(IfaceValue eref) {
+      end_ref = eref;
+      start_back_ref = null;
       after_node = execute_point.getAstReference().getAfterChild();
     }
    
+   IfaceValue getStartRef()                     { return start_back_ref; }
+   
    @Override public boolean visit(ArrayAccess v) {
-      if (after_node == null || after_node == v.getArray()) start_ref = end_ref;
+      if (after_node == null || after_node == v.getArray()) start_back_ref = end_ref;
       else if (end_ref.getRefStack() == 0) {
          addAuxArrayRefs(prior_state.getStack(1));
-         start_ref = null;
+         start_back_ref = null;
        }
-      else start_ref = adjustRef(end_ref,2,1);
+      else start_back_ref = adjustRef(end_ref,2,1);
       return false;
     } 
    
@@ -650,11 +694,11 @@ private class BackVisitor extends ASTVisitor {
       else {
          List<?> dims = v.dimensions();
          int idx = dims.indexOf(after_node);
-         if (idx < dims.size()-1) start_ref = end_ref;
+         if (idx < dims.size()-1) start_back_ref = end_ref;
          else {
             int ct = (v.getInitializer() != null ? 1 : 0);
             ct += dims.size();
-            start_ref = adjustRef(end_ref,ct,1);
+            start_back_ref = adjustRef(end_ref,ct,1);
           }
        }
       return false;
@@ -665,7 +709,7 @@ private class BackVisitor extends ASTVisitor {
       int idx = 0;
       if (after_node != null) idx = exprs.indexOf(after_node) + 1;
       if (idx < exprs.size()) noChange();
-      else start_ref = adjustRef(end_ref,exprs.size(),1);
+      else start_back_ref = adjustRef(end_ref,exprs.size(),1);
       
       return false;
     }
@@ -689,7 +733,7 @@ private class BackVisitor extends ASTVisitor {
             noBack();
           }
          else {
-            start_ref = adjustRef(end_ref,2,1);
+            start_back_ref = adjustRef(end_ref,2,1);
           }
          if (v.getOperator() != Assignment.Operator.ASSIGN) {
             if (asgval.getRefSlot() >= 0) {
@@ -708,7 +752,7 @@ private class BackVisitor extends ASTVisitor {
       else if (end_ref.getRefStack() == 0) {
          JcompSymbol js = JcompAst.getDefinition(cc.getException().getName());
          int slot = getSlot(js);
-         start_ref = fait_control.findRefValue(end_ref.getDataType(),slot);
+         start_back_ref = fait_control.findRefValue(end_ref.getDataType(),slot);
        }
       else {
          popOne();
@@ -724,12 +768,12 @@ private class BackVisitor extends ASTVisitor {
        }
       else if (after_node == null) {
          int ct = (rty.needsOuterClass() ? 3 : 2);
-         start_ref = adjustRef(end_ref,ct,0);
+         start_back_ref = adjustRef(end_ref,ct,0);
        }
       else {
          int idx = args.indexOf(after_node)+1;
          if (idx < args.size()) noChange();
-         else start_ref = adjustRef(end_ref,args.size()+1,0);
+         else start_back_ref = adjustRef(end_ref,args.size()+1,0);
        }
       return false;
     }
@@ -750,20 +794,20 @@ private class BackVisitor extends ASTVisitor {
       JcompType rty = rtn.getClassType();
       if (after_node == null) {
          int ct = (rty.needsOuterClass() ? 2 : 1);
-         start_ref = adjustRef(end_ref,0,ct);
+         start_back_ref = adjustRef(end_ref,0,ct);
        }
       else {
          List<?> args = v.arguments();
          int idx = args.indexOf(after_node) + 1;
          if (idx < args.size()) noChange();
-         else start_ref = null;
+         else start_back_ref = null;
        }
       return false;
     }
    
    @Override public boolean visit(CreationReference v) {
       if (v == execute_point.getMethod().getStart().getAstReference()) {
-         start_ref = null;
+         start_back_ref = null;
        }
       else pushOne();
       return false;
@@ -778,7 +822,7 @@ private class BackVisitor extends ASTVisitor {
    @Override public boolean visit(EnhancedForStatement s) {
       if (after_node != null && after_node == s.getExpression()) {
          int slot = getSlot(JcompAst.getDefinition(s.getParameter().getName()));
-         if (end_ref.getRefSlot() == slot) start_ref = null;
+         if (end_ref.getRefSlot() == slot) start_back_ref = null;
          else popOne();
        }
       else noChange();
@@ -787,7 +831,7 @@ private class BackVisitor extends ASTVisitor {
    
    @Override public boolean visit(ExpressionMethodReference v) {
       if (v == execute_point.getMethod().getStart().getAstReference()) {
-         start_ref = null;
+         start_back_ref = null;
        }
       else {
          JcompSymbol js = JcompAst.getReference(v);
@@ -803,7 +847,7 @@ private class BackVisitor extends ASTVisitor {
          if (!js.isStatic() && after_node != null && after_node == v.getExpression()) {
             ct = 1;
           }
-         start_ref = adjustRef(end_ref,ct,1);
+         start_back_ref = adjustRef(end_ref,ct,1);
        }
       return false;
     }
@@ -821,14 +865,14 @@ private class BackVisitor extends ASTVisitor {
          IfaceField fld = getField(sym);
          if (prior_state.getStack(0) == prior_state.getLocal(0) && 
                !execute_point.getMethod().isStatic() && prior_state.getFieldValue(fld) != null) {
-            start_ref = fait_control.findRefValue(end_ref.getDataType(),prior_state.getStack(0),fld);
+            start_back_ref = fait_control.findRefValue(end_ref.getDataType(),prior_state.getStack(0),fld);
           }
          else {
-            start_ref = null;
+            start_back_ref = null;
             addAuxRefs(fld);
           }
        }
-      else start_ref = adjustRef(end_ref,1,1);
+      else start_back_ref = adjustRef(end_ref,1,1);
       return false;
     }
    
@@ -852,29 +896,29 @@ private class BackVisitor extends ASTVisitor {
       if (after_node == null) noChange();
       else if (after_node == v.getLeftOperand()) return noChange();
       else if (end_ref.getRefStack() == 0) {
-         start_ref = null;
+         start_back_ref = null;
          addAuxRef(0);
          addAuxRef(1);
        }
-      else start_ref = adjustRef(end_ref,2,1);
+      else start_back_ref = adjustRef(end_ref,2,1);
       return false;
     }
    
    @Override public boolean visit(InstanceofExpression v) {
       if (after_node == null) noChange();
       else if (end_ref.getRefStack() == 0) {
-         start_ref = null;
+         start_back_ref = null;
          addAuxRef(0);
        }
       else {
-         start_ref = adjustRef(end_ref,1,1);
+         start_back_ref = adjustRef(end_ref,1,1);
        }
       return false;
     }
    
    @Override public boolean visit(LambdaExpression v) {
       if (v == execute_point.getMethod().getStart().getAstReference()) {
-         start_ref = null;
+         start_back_ref = null;
        }
       else pushOne();
       return false;
@@ -896,20 +940,20 @@ private class BackVisitor extends ASTVisitor {
       List<?> args = v.arguments();
       int idx = args.indexOf(after_node)+1;
       if (idx < args.size()) {
-         if (dref != 0) start_ref = adjustRef(end_ref,0,dref);
+         if (dref != 0) start_back_ref = adjustRef(end_ref,0,dref);
          else noChange();
        }
       else {
          int ret = (js.getType().getBaseType().isVoidType() ? 0 : 1);
          if (js.isConstructorSymbol()) ret = 0;
          if (end_ref.getRefStack() == 0 && ret == 1) {
-            start_ref = null;
+            start_back_ref = null;
           }
-         else if (end_ref.getRefStack() < 0 && end_ref.getRefSlot() < 0) start_ref = null;
+         else if (end_ref.getRefStack() < 0 && end_ref.getRefSlot() < 0) start_back_ref = null;
          else {
             int sz = args.size();
             if (!js.isStatic()) sz += 1;
-            start_ref = adjustRef(end_ref,sz,ret);
+            start_back_ref = adjustRef(end_ref,sz,ret);
           }
        }
       return false;
@@ -919,14 +963,14 @@ private class BackVisitor extends ASTVisitor {
       if (after_node == null) return noChange();
       IfaceValue v1 = prior_state.getStack(0);
       if (end_ref.getRefSlot() == v1.getRefSlot() && v1.getRefSlot() > 0) {
-         start_ref = null;
+         start_back_ref = null;
          addAuxVarRef(v1.getRefSlot());
        }
       else if (end_ref.getRefStack() == 0) {
-         start_ref = null;
+         start_back_ref = null;
          addAuxRef(0);
        }
-      else start_ref = adjustRef(end_ref,1,1);
+      else start_back_ref = adjustRef(end_ref,1,1);
       return false;
     }
    
@@ -936,13 +980,13 @@ private class BackVisitor extends ASTVisitor {
       if (v1 == null) return noBack();
       if (end_ref.getRefSlot() == v1.getRefSlot() && v1.getRefSlot() > 0) {
          addAuxVarRef(v1.getRefSlot());
-         start_ref = null;
+         start_back_ref = null;
        }
       else if (end_ref.getRefStack() == 0) {
          addAuxRef(0);
-         start_ref = null;
+         start_back_ref = null;
        }
-      else start_ref = adjustRef(end_ref,1,1);
+      else start_back_ref = adjustRef(end_ref,1,1);
       return false;
     }
    
@@ -953,20 +997,20 @@ private class BackVisitor extends ASTVisitor {
          if (end_ref.getRefStack() == 0) {
             IfaceValue v0 = prior_state.getStack(0);
             IfaceField fld = getField(sym);
-            if (fld == null) start_ref = null;
-            else start_ref = fait_control.findRefValue(end_ref.getDataType(),v0,fld);
+            if (fld == null) start_back_ref = null;
+            else start_back_ref = fait_control.findRefValue(end_ref.getDataType(),v0,fld);
           }
-         else start_ref =  adjustRef(end_ref,1,1);
+         else start_back_ref =  adjustRef(end_ref,1,1);
        }
       else if (after_node == v.getQualifier() && sym == null) {
-         start_ref = adjustRef(end_ref,1,1);
+         start_back_ref = adjustRef(end_ref,1,1);
        }
-      else start_ref = end_ref;
+      else start_back_ref = end_ref;
       return false;
     }
    
    @Override public boolean visit(ReturnStatement s) {
-      if (after_node == null && s.getExpression() != null) start_ref = end_ref;
+      if (after_node == null && s.getExpression() != null) start_back_ref = end_ref;
       else if (s.getExpression() != null && end_ref.getRefStack() == 0) {
         noChange();
        }
@@ -981,73 +1025,73 @@ private class BackVisitor extends ASTVisitor {
             IfaceField fld = getField(js);
             if (!js.isStatic() && prior_state.getFieldValue(fld) != null) {
                IfaceValue thisv = getThisValue(fld.getDeclaringClass());
-               start_ref = fait_control.findRefValue(end_ref.getDataType(),thisv,fld);
+               start_back_ref = fait_control.findRefValue(end_ref.getDataType(),thisv,fld);
              }
             else {
-               start_ref = null;
+               start_back_ref = null;
                addAuxRefs(fld);
              }
           }
          else if (js != null && js.isEnumSymbol()) {
-            start_ref = null;
+            start_back_ref = null;
           }
          else {
             int slot = getSlot(js);
             addAuxVarRef(slot);
-            start_ref = null;
+            start_back_ref = null;
           }
        }
-      else start_ref = adjustRef(end_ref,0,1);
+      else start_back_ref = adjustRef(end_ref,0,1);
       return false;
     }
    
    @Override public boolean visit(SingleVariableDeclaration n) {
-      if (after_node == null && n.getInitializer() != null) start_ref = end_ref;
-      else if (n.getInitializer() != null) start_ref = adjustRef(end_ref,1,0);
-      else start_ref = end_ref;
+      if (after_node == null && n.getInitializer() != null) start_back_ref = end_ref;
+      else if (n.getInitializer() != null) start_back_ref = adjustRef(end_ref,1,0);
+      else start_back_ref = end_ref;
       return false;
     }
    
    @Override public boolean visit(SuperMethodReference v) {
       if (v == execute_point.getMethod().getStart().getAstReference()) {
-         start_ref = null;
+         start_back_ref = null;
        }
-      else start_ref = adjustRef(end_ref,0,1);
+      else start_back_ref = adjustRef(end_ref,0,1);
       return false;
     }
    
    @Override public boolean visit(SwitchStatement s) {
       if (after_node != null && after_node == s.getExpression()) {
-         start_ref =  adjustRef(end_ref,1,0);
+         start_back_ref =  adjustRef(end_ref,1,0);
        }
-      else start_ref = end_ref;
+      else start_back_ref = end_ref;
       return false;
     }
    
    @Override public boolean visit(SynchronizedStatement s) {
-      if (after_node == null) start_ref = end_ref;
+      if (after_node == null) start_back_ref = end_ref;
       else if (after_node == s.getExpression()) {
-         start_ref = adjustRef(end_ref,0,1);
+         start_back_ref = adjustRef(end_ref,0,1);
        }
-      else start_ref = adjustRef(end_ref,1,0);
+      else start_back_ref = adjustRef(end_ref,1,0);
       return false;
     }
    
    @Override public boolean visit(ThrowStatement s) {
-      if (after_node == null) start_ref = end_ref;
-      else start_ref = adjustRef(end_ref,1,0);
+      if (after_node == null) start_back_ref = end_ref;
+      else start_back_ref = adjustRef(end_ref,1,0);
       return false;
     }
    
    @Override public boolean visit(TryStatement s) {
       if (after_node == null) {
-         start_ref =  adjustRef(end_ref,0,1);
+         start_back_ref =  adjustRef(end_ref,0,1);
        }
       else if (after_node == s.getFinally()) {
-         start_ref = adjustRef(end_ref,1,0);
+         start_back_ref = adjustRef(end_ref,1,0);
        }
       else {
-         start_ref = end_ref;   
+         start_back_ref = end_ref;   
          IfaceValue v = prior_state.getStack(0);
          if (v instanceof IfaceStackMarker) {
             IfaceStackMarker mkr = (IfaceStackMarker) v;
@@ -1055,7 +1099,7 @@ private class BackVisitor extends ASTVisitor {
             if (vals.contains(TryState.BODY) ||
                   vals.contains(TryState.CATCH)) {
                Block b = s.getFinally();
-               if (b != null) start_ref = adjustRef(end_ref,0,1);
+               if (b != null) start_back_ref = adjustRef(end_ref,0,1);
              }
           }
        }
@@ -1065,24 +1109,24 @@ private class BackVisitor extends ASTVisitor {
   @Override public boolean visit(VariableDeclarationFragment v) {
       if (after_node != null && after_node == v.getInitializer()) {
          JcompSymbol sym = JcompAst.getDefinition(v);
-         start_ref = adjustRef(end_ref,1,0);
+         start_back_ref = adjustRef(end_ref,1,0);
          if (sym != null) {
             int defslot = end_state.getLocation().getMethod().getLocalOffset(sym);
             if (defslot == end_ref.getRefSlot()) {
                addAuxRef(0);
-               start_ref = null;
+               start_back_ref = null;
              }
           }
        }
-      else start_ref = end_ref;
+      else start_back_ref = end_ref;
       return false;
     }
    
    @Override public boolean visit(WhileStatement s) {
       if (after_node == s.getExpression()) {
-         start_ref = adjustRef(end_ref,1,0);
+         start_back_ref = adjustRef(end_ref,1,0);
        }
-      else start_ref = end_ref;
+      else start_back_ref = end_ref;
       return false;
     }
    
@@ -1178,6 +1222,23 @@ private class BackVisitor extends ASTVisitor {
        }
       return thisv;
     }
+  
+   private boolean noBack() {
+      start_back_ref = null;
+      return false;
+    }
+   private boolean noChange() {
+      start_back_ref = end_ref;
+      return false;
+    }
+   private boolean pushOne() {
+      start_back_ref = adjustRef(end_ref,0,1);
+      return false;
+    }
+   private boolean popOne() {
+      start_back_ref = adjustRef(end_ref,1,0);
+      return false;
+    }
    
 }       // end of inner class BackVisitor
 
@@ -1202,32 +1263,6 @@ protected IfaceValue adjustRef(IfaceValue ref,int pop,int push)
 }
 
 
-private boolean noBack() 
-{
-   start_ref = null;
-   return false;
-}
-
-
-private boolean noChange() 
-{
-   start_ref = end_ref;
-   return false;
-}
-
-
-private boolean pushOne() 
-{
-   start_ref = adjustRef(end_ref,0,1);
-   return false;
-}
-
-
-private boolean popOne()
-{
-   start_ref = adjustRef(end_ref,1,0);
-   return false;
-}
 
 
 private void addAuxRef(int stk)

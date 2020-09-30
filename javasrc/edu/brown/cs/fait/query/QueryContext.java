@@ -198,8 +198,8 @@ private void handleFlowFrom(IfaceState backfrom,IfaceState st0,QueryProcessor qp
     }
    else if (priorctx != null) {
       List<QueryContext> nctxs = priorctx.getTransitionContext(st0);
-      if (nctxs.size() > 0) {
-	 for (QueryContext ctx : priorctx.getTransitionContext(st0)) {
+      if (nctxs != null && nctxs.size() > 0) {
+	 for (QueryContext ctx : nctxs) {
 	    QueryGraph graph = node.getGraph();
 	    IfaceLocation ploc = st0.getLocation();
 	    QueryNode nn = graph.addNode(ploc.getCall(),ploc.getProgramPoint(),ctx,
@@ -270,7 +270,11 @@ protected abstract QueryContext getPriorContextForCall(IfaceCall c,IfaceProgramP
 
 protected abstract QueryBackFlowData getPriorStateContext(IfaceState backfrom,IfaceState backto);
 
-protected abstract boolean isEndState(IfaceState state);
+protected boolean isEndState(IfaceState state)
+{
+   return false;
+}
+
    // we are a given point inside a method.  Get the state by undoing the computation
    //	 at the location provided by state
    // return null if we know this state is irrelevant
@@ -293,13 +297,19 @@ protected abstract boolean isPriorStateRelevant(IfaceState st0);
    // return true if the state st0 is relevant to the given context
 
 
-protected abstract boolean isReturnRelevant(IfaceState st0,IfaceCall call);
+protected boolean isReturnRelevant(IfaceState st0,IfaceCall call)
+{
+   return true;
+}
    // return true if the return should be investigated
 
 protected abstract void addRelevantArgs(IfaceState st0,QueryBackFlowData bfd);
 
 
-protected abstract boolean handleInternalCall(IfaceState st0,QueryBackFlowData bfd,QueryNode n);
+protected boolean handleInternalCall(IfaceState st0,QueryBackFlowData bfd,QueryNode n)
+{
+   return false;
+}
 
 
 

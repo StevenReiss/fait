@@ -1170,6 +1170,9 @@ private void handleFlowQueryForCall(IfaceControl ctrl,Element qxml,IfaceCall cal
    
    Element refxml = IvyXml.getChild(qxml,"VALUE");
    IfaceValue ref = getReference(ctrl,call,null,ppt,refxml);
+   String strval = IvyXml.getAttrString(qxml,"CURRENT");
+   IfaceType valtyp = ref.getDataType();
+   IfaceValue curval = getCurrentValue(ctrl,strval,valtyp);
    
    xw.begin("QUERY");
    xw.field("METHOD",call.getMethod().getFullName());
@@ -1177,8 +1180,40 @@ private void handleFlowQueryForCall(IfaceControl ctrl,Element qxml,IfaceCall cal
    xw.field("CALL",call.hashCode());
    ppt.outputXml(xw);
    ref.outputXml(xw);
-   // process query
+   ctrl.processFlowQuery(call,ppt,ref,curval,xw);
    xw.end("QUERY");
+}
+
+
+
+private IfaceValue getCurrentValue(IfaceControl ctrl,String vstr,IfaceType typ)
+{
+   if (vstr == null) return null;
+   if (typ == null || typ.isVoidType()) return null;
+   if (typ.isIntType()) {
+      try {
+         long i = Long.parseLong(vstr);
+         return ctrl.findRangeValue(typ,i,i);
+       }
+      catch (NumberFormatException e) { }
+    }
+   else if (typ.isStringType()) {
+      
+    }
+   else if (typ.isPrimitiveType()) ;
+   else {
+      if (vstr.equals("null")) {
+         return ctrl.findNullValue(typ);
+       }
+      else {
+         // might want to get type from vstr
+         IfaceValue v = ctrl.findAnyValue(typ);
+         v = v.forceNonNull();
+         return v;
+       }
+    }
+   
+   return null;
 }
 
 

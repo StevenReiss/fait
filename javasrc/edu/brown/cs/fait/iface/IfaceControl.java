@@ -264,6 +264,7 @@ Collection<String> getDefaultClasses();
 void clearAll();
 
 IfaceBackFlow getBackFlow(IfaceState backfrom,IfaceState backto,IfaceValue endref);
+IfaceBackFlow getBackFlow(IfaceState from,IfaceState to,Collection<IfaceAuxReference> refs);
 IfaceAuxReference getAuxReference(IfaceLocation loc,IfaceValue ref);
 Collection<IfaceAuxReference> getAuxRefs(IfaceField fld);
 Collection<IfaceAuxReference> getAuxArrayRefs(IfaceValue arr);
@@ -272,6 +273,8 @@ void processErrorQuery(IfaceCall c,IfaceProgramPoint pt,IfaceError e,IvyXmlWrite
 void processVarQuery(String method,int line,int pos,String var,IvyXmlWriter xw) throws FaitException;
 void processToQuery(IfaceCall c,IfaceProgramPoint pt,IfaceEntity ent,
       IfaceSubtype styp,IfaceSubtype.Value sval,IfaceValue refval,IvyXmlWriter xw);
+void processFlowQuery(IfaceCall c,IfaceProgramPoint pt,IfaceValue refval,
+      IfaceValue val,IvyXmlWriter xw);
 void processReflectionQuery(IvyXmlWriter xw);
 void processCriticalQuery(String ignores,IvyXmlWriter xw);
 

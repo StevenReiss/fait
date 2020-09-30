@@ -157,6 +157,28 @@ public void processToQuery(IfaceCall call,IfaceProgramPoint pt,IfaceEntity ent,
 }
 
 
+
+public void processFlowQuery(IfaceCall call,IfaceProgramPoint pt,IfaceValue refval,
+      IfaceValue val,IvyXmlWriter xw)
+{
+   long start = System.currentTimeMillis();
+   
+   QueryContext ctx = new QueryContextRose(fait_control,refval,val);
+   
+   QueryGraph graph = new QueryGraph();
+   QueryNode node = graph.addStartNode(call,pt,ctx,"Starting From");
+   QueryQueueItem qitem = new QueryQueueItem(call,pt,ctx);
+   QueryProcessor qp = new QueryProcessor(fait_control,qitem,node);
+   qp.process();
+   
+   graph.cleanGraph();
+   
+   long time = System.currentTimeMillis() - start;
+   graph.outputXml(xw,time);
+   graph = null;
+}
+
+
 public void processVarQuery(String method,int line,int pos,String var,IvyXmlWriter output)
         throws FaitException
 {

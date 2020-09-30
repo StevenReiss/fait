@@ -41,6 +41,7 @@ public interface IfaceBackFlow
 {
 
 IfaceValue getStartReference();
+Collection<IfaceValue> getStartReferences();
 
 Collection<IfaceAuxReference> getAuxRefs();
 

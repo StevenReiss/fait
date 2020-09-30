@@ -141,10 +141,7 @@ QueryContextEntity(IfaceControl fc,IfaceValue v,IfaceEntity ent)
 
 
 
-@Override protected boolean isEndState(IfaceState st)
-{
-   return false;
-}
+
 
 
 
@@ -180,12 +177,7 @@ QueryContextEntity(IfaceControl fc,IfaceValue v,IfaceEntity ent)
 
 
 
-@Override protected boolean isReturnRelevant(IfaceState st0,IfaceCall call)
-{
-   // return true if the return should be investigated
-   
-   return true;
-}
+
 
 
 
@@ -243,10 +235,7 @@ QueryContextEntity(IfaceControl fc,IfaceValue v,IfaceEntity ent)
 
 
 
-@Override protected boolean handleInternalCall(IfaceState st0,QueryBackFlowData bfd,QueryNode n)
-{
-   return false;
-}
+
 
 
 

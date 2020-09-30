@@ -1107,6 +1107,12 @@ IfaceBaseType createMethodType(IfaceType rtn,List<IfaceType> args)
    query_factory.processToQuery(c,pt,ent,styp,sval,refval,xw);
 }
 
+@Override public void processFlowQuery(IfaceCall c,IfaceProgramPoint pt,IfaceValue refval,
+      IfaceValue val,IvyXmlWriter xw)
+{
+   query_factory.processFlowQuery(c,pt,refval,val,xw);
+}
+
 
 
 
@@ -1184,6 +1190,13 @@ IfaceBaseType createMethodType(IfaceType rtn,List<IfaceType> args)
    ControlBackFlow cbf = new ControlBackFlow(this,backfrom,backto,endref);
    cbf.computeBackFlow();
    return cbf;
+}
+
+
+@Override public IfaceBackFlow getBackFlow(IfaceState from,IfaceState to,
+      Collection<IfaceAuxReference>  refs)
+{
+   return new ControlBackFlow(this,from,to,refs);
 }
 
 

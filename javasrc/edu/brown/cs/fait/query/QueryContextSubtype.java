@@ -146,10 +146,7 @@ QueryContextSubtype(IfaceControl ctrl,IfaceValue v,IfaceSubtype.Value stv)
 }
 
 
-@Override protected boolean isEndState(IfaceState st0)
-{
-   return false;
-}
+
 
 
 @Override protected QueryContext getReturnContext(IfaceCall call)
@@ -189,13 +186,6 @@ QueryContextSubtype(IfaceControl ctrl,IfaceValue v,IfaceSubtype.Value stv)
    return false;
 }
 
-
-@Override protected boolean isReturnRelevant(IfaceState st0,IfaceCall call)
-{
-   // return true if the return should be investigated
-   
-   return true;
-}
 
 
 
@@ -251,10 +241,6 @@ QueryContextSubtype(IfaceControl ctrl,IfaceValue v,IfaceSubtype.Value stv)
 
 
 
-@Override protected boolean handleInternalCall(IfaceState st0,QueryBackFlowData bfd,QueryNode n)
-{
-   return false;
-}
 
 /********************************************************************************/
 /*                                                                              */
