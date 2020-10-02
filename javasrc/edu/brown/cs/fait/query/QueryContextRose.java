@@ -55,6 +55,8 @@ class QueryContextRose extends QueryContext implements QueryConstants
 
 private Map<IfaceValue,Integer>         priority_map;
 private Map<IfaceValue,IfaceValue>      known_values;
+private IfaceValue                      base_reference;
+private IfaceValue                      base_value;
 
 
 /********************************************************************************/
@@ -66,6 +68,8 @@ private Map<IfaceValue,IfaceValue>      known_values;
 QueryContextRose(IfaceControl ctrl,IfaceValue var,IfaceValue val)
 {
    super(ctrl);
+   base_reference = var;
+   base_value = val;
    priority_map = new HashMap<>();
    known_values = new HashMap<>();
    if (var != null) {
@@ -75,9 +79,11 @@ QueryContextRose(IfaceControl ctrl,IfaceValue var,IfaceValue val)
 }
 
 
-QueryContextRose(IfaceControl ctrl,Map<IfaceValue,Integer> pmap,Map<IfaceValue,IfaceValue> kmap)
+private QueryContextRose(QueryContextRose ctx,Map<IfaceValue,Integer> pmap,Map<IfaceValue,IfaceValue> kmap)
 {
-   super(ctrl);
+   super(ctx.fait_control);
+   base_reference = ctx.base_reference;
+   base_value = ctx.base_value;
    priority_map = pmap;
    known_values = kmap;
 }
@@ -123,7 +129,7 @@ QueryContextRose(IfaceControl ctrl,Map<IfaceValue,Integer> pmap,Map<IfaceValue,I
    
    QueryContextRose nctx = null;
    if (npmap.equals(priority_map)) nctx = this;
-   else if (!npmap.isEmpty()) nctx = new QueryContextRose(fait_control,npmap,kpmap);
+   else if (!npmap.isEmpty()) nctx = new QueryContextRose(this,npmap,kpmap);
    
    if (auxrefs.isEmpty()) auxrefs = null;
    IfaceBackFlow bf = fait_control.getBackFlow(backfrom,backto,auxrefs);
@@ -156,7 +162,7 @@ QueryContextRose(IfaceControl ctrl,Map<IfaceValue,Integer> pmap,Map<IfaceValue,I
     }
 
    if (npmap.isEmpty()) return null;
-   return new QueryContextRose(fait_control,npmap,nvmap);
+   return new QueryContextRose(this,npmap,nvmap);
 }
 
 
@@ -182,7 +188,7 @@ QueryContextRose(IfaceControl ctrl,Map<IfaceValue,Integer> pmap,Map<IfaceValue,I
    
    if (!useret || npmap.isEmpty()) return null;
    
-   return new QueryContextRose(fait_control,npmap,nvmap);
+   return new QueryContextRose(this,npmap,nvmap);
 }
 
 
@@ -279,6 +285,20 @@ QueryContextRose(IfaceControl ctrl,Map<IfaceValue,Integer> pmap,Map<IfaceValue,I
     }
    
    return true;
+}
+
+
+@Override protected String addToGraph(QueryContext priorctx,IfaceState state)
+{
+   QueryContextRose prior = (QueryContextRose) priorctx;
+   for (Map.Entry<IfaceValue,Integer> ent : prior.priority_map.entrySet()) {
+      IfaceValue ref = ent.getKey();
+      Integer opri = priority_map.get(ref);
+      if (opri == null) return "Value Computed";
+      else if (opri != ent.getValue()) return "Value Changed";
+    }
+   
+   return null;
 }
 
 

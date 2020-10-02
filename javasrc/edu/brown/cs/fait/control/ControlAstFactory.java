@@ -486,22 +486,33 @@ private class AstType implements IfaceBaseType {
 
    @Override public List<IfaceBaseType> getChildTypes() {
       List<IfaceBaseType> rslt = new ArrayList<>();
+      boolean concrete = false;
       for ( ; ; ) {
-	 try {
-	    Collection<String> typs = jcomp_type.getChildTypes();
-	    if (typs != null) {
-	       for (String jtnm : typs) {
-		  JcompType jt = jcomp_typer.findType(jtnm);
-		  if (jt != null) rslt.add(getType(jt));
-		}
-	     }
-	    break;
-	  }
-	 catch (ConcurrentModificationException e) {
-	    rslt.clear();
-	  }
+         concrete = false;
+         try {
+            Collection<String> typs = jcomp_type.getChildTypes();
+            if (typs != null) {
+               for (String jtnm : typs) {
+                  JcompType jt = jcomp_typer.findType(jtnm);
+                  if (jt != null) {
+                     if (!jt.isInterfaceType() && !jt.isAbstract()) concrete = true;
+                     rslt.add(getType(jt));
+                     
+                   }
+                }
+             }
+            if (!concrete) {
+               // TODO: look for concrete subtypes here -- return list of JcompType from JcompType
+               //          if list is non-empty, do getType(jt) to create BaseType
+               //          this should add to the getChildTypes set
+             }
+            break;
+          }
+         catch (ConcurrentModificationException e) {
+            rslt.clear();
+          }
        }
-
+   
       return rslt;
     }
 
@@ -717,7 +728,7 @@ private class AstMethod implements IfaceMethod {
 
    @Override public Collection<IfaceMethod> getChildMethods() {
       if (child_methods == null) {
-	child_methods = fait_control.findChildMethods(getDeclaringClass(),getName(),getDescription(),false,null);
+        child_methods = fait_control.findChildMethods(getDeclaringClass(),getName(),getDescription(),false,null);
        }
       return child_methods;
     }

@@ -35,6 +35,7 @@
 
 package edu.brown.cs.fait.query;
 
+import java.util.Collection;
 import java.util.List;
 
 import edu.brown.cs.fait.iface.FaitException;
@@ -45,6 +46,7 @@ import edu.brown.cs.fait.iface.IfaceCall;
 import edu.brown.cs.fait.iface.IfaceControl;
 import edu.brown.cs.fait.iface.IfaceEntity;
 import edu.brown.cs.fait.iface.IfaceError;
+import edu.brown.cs.fait.iface.IfaceField;
 import edu.brown.cs.fait.iface.IfaceLocation;
 import edu.brown.cs.fait.iface.IfaceProgramPoint;
 import edu.brown.cs.fait.iface.IfaceSafetyCheck;
@@ -169,6 +171,18 @@ public void processFlowQuery(IfaceCall call,IfaceProgramPoint pt,IfaceValue refv
    QueryNode node = graph.addStartNode(call,pt,ctx,"Starting From");
    QueryQueueItem qitem = new QueryQueueItem(call,pt,ctx);
    QueryProcessor qp = new QueryProcessor(fait_control,qitem,node);
+   IfaceField fld = refval.getRefField();
+   if (fld != null) {
+      IfaceValue base = refval.getRefBase();
+      IfaceState st0 = fait_control.findStateForLocation(call,pt);
+      IfaceValue v = st0.getFieldValue(fld);
+      if (base == null || base.getRefSlot() != 0) v = null;
+      if (v == null) {
+         Collection<IfaceAuxReference> fldrefs = fait_control.getAuxRefs(fld);
+         ctx.handleInitialReferences(fldrefs,qp,node,st0);
+       }
+    }
+   
    qp.process();
    
    graph.cleanGraph();

@@ -35,6 +35,7 @@
 
 package edu.brown.cs.fait.query;
 
+import java.util.Collection;
 import java.util.List;
 
 import edu.brown.cs.fait.iface.FaitLog;
@@ -168,6 +169,13 @@ private void handleFlowFrom(IfaceState backfrom,IfaceState st0,QueryProcessor qp
    if (priorctx == null && !islinked) node.getGraph().markAsEndNode(node);
 
    if (priorctx != null && priorctx.isPriorStateRelevant(st0)) {
+      String reason = addToGraph(priorctx,st0);
+      if (reason != null) {
+         QueryGraph graph = node.getGraph();
+         IfaceLocation ploc = st0.getLocation();
+         node = graph.addNode(ploc.getCall(),ploc.getProgramPoint(),priorctx,
+               reason,node);
+       }
       QueryQueueItem nqqi = new QueryQueueItem(st0.getLocation(),priorctx);
       qp.addItem(nqqi,node);
     }
@@ -217,6 +225,15 @@ private void handleFlowFrom(IfaceState backfrom,IfaceState st0,QueryProcessor qp
        }
     }
    // STILL need to handle flows based on exceptions
+}
+
+
+final void handleInitialReferences(Collection<IfaceAuxReference> refs,QueryProcessor qp,
+      QueryNode nd,IfaceState st0)
+{
+   for (IfaceAuxReference ref : refs) {
+      handleAuxReference(ref,qp,nd,st0);
+    }
 }
 
 
@@ -312,6 +329,10 @@ protected boolean handleInternalCall(IfaceState st0,QueryBackFlowData bfd,QueryN
 }
 
 
+protected String addToGraph(QueryContext ctx,IfaceState st0)
+{
+   return null;
+}
 
 
 /********************************************************************************/
