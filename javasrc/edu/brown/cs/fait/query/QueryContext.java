@@ -93,8 +93,10 @@ final void computeNext(QueryProcessor qp,QueryQueueItem qqi,IfaceState cur,Query
 {
    FaitLog.logD("Compute Next: " + " " + localDisplayContext() + " " +
 	 qqi.getProgramPoint() + " " + qqi.getCall().getMethod() + " (" + node.getId() + ")");
+   FaitLog.logD("Next Info: " + cur + " " + qqi.getCall().hashCode());
 
-   if (cur == null) return;
+   if (cur == null)
+      return;
 
    IfaceCall call = qqi.getCall();
    IfaceProgramPoint pt = qqi.getProgramPoint();
@@ -124,6 +126,7 @@ final void computeNext(QueryProcessor qp,QueryQueueItem qqi,IfaceState cur,Query
    else {
       for (int i = 0; i < cur.getNumPriorStates(); ++i) {
 	 IfaceState st0 = cur.getPriorState(i);
+         FaitLog.logD("PRIOR STATE " + i + " " + st0);
 	 handleFlowFrom(cur,st0,qp,node);
        }
     }

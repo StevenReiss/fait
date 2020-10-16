@@ -824,6 +824,7 @@ private void removeMethodCall(IfaceLocation loc,IfaceCall c)
    for (IfaceEntity ie : entity_map.values()) {
       upd.addEntityToRemove(ie);
     }
+   entity_map.clear();
 
    // next find all items called from here and remove this as a caller
    // if we were the only caller, then remove that call as well
@@ -833,6 +834,7 @@ private void removeMethodCall(IfaceLocation loc,IfaceCall c)
 	 if (cb.removeCaller(this)) upd.removeCall(cb);
        }
     }
+   method_map.clear();
 
    // finally remove this call from any call site for it and requeue
    // that call to be evaluated.  Ignore if the call site will also

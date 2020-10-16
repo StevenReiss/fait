@@ -44,7 +44,10 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.eclipse.jdt.core.dom.ASTNode;
+
 import edu.brown.cs.fait.iface.FaitLog;
+import edu.brown.cs.fait.iface.IfaceAstReference;
 import edu.brown.cs.fait.iface.IfaceCall;
 import edu.brown.cs.fait.iface.IfaceProgramPoint;
 import edu.brown.cs.ivy.xml.IvyXmlWriter;
@@ -392,6 +395,33 @@ private class Node implements QueryNode {
       for (Arc a : from_arcs) {
          xw.textElement("FROM",a.getFromNode().getId());
        }
+      
+      IfaceAstReference where = at_point.getAstReference();
+      if (where != null) {
+         xw.begin("LOCATION");
+         xw.field("FILE",for_call.getMethod().getFile());
+         ASTNode node = where.getAstNode();
+         xw.field("OFFSET",node.getStartPosition());
+         xw.field("LENGTH",node.getLength());
+         xw.field("TYPE","Function");
+         xw.begin("ITEM");
+         xw.field("NAME",where.getMethod().getName());
+         xw.field("QNAME",where.getMethod().getFullName());
+         xw.field("TYPE","Function");
+         ASTNode n = where.getMethod().getStart().getAstReference().getAstNode();
+         xw.field("STARTOFFSET",n.getStartPosition());
+         xw.field("LENGTH",n.getLength());
+         String key = where.getMethod().getFullName();
+         key += where.getMethod().getDescription();
+         xw.field("HANDLE",key);
+         xw.end("ITEM");
+         xw.end("LOCATION");
+       }
+      else {
+         // would like to get information here so we don't have to 
+         // preload all project files
+       }
+      
       xw.end("NODE");
     }
 

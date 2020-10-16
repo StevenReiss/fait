@@ -725,8 +725,14 @@ private class BackVisitor extends ASTVisitor {
       else {
          IfaceValue asgval = prior_state.getStack(1);
          if (asgval.getRefSlot() == end_ref.getRefSlot()) {
-            addAuxRef(0);
-            noBack();
+            if (v.getOperator() == Assignment.Operator.ASSIGN) {
+               IfaceValue pval = prior_state.getStack(0);
+               start_back_ref = fait_control.findRefStackValue(pval.getDataType(),0);
+             }
+            else {
+               addAuxRef(0);
+               noBack();
+             }
           }
          else if (asgval.getRefField() == end_ref.getRefField()) {
             addAuxRef(0);
@@ -763,17 +769,18 @@ private class BackVisitor extends ASTVisitor {
    @Override public boolean visit(ClassInstanceCreation v) {
       List<?> args = v.arguments();
       JcompType rty = JcompAst.getJavaType(v.getType());
-      if (after_node == null && args.size() == 0) {
-         pushOne();
+      int ct = (rty.needsOuterClass() ? 2 : 1);
+      
+      if (after_node == null) {
+         start_back_ref = adjustRef(end_ref,0,ct+1);
        }
-      else if (after_node == null) {
-         int ct = (rty.needsOuterClass() ? 3 : 2);
-         start_back_ref = adjustRef(end_ref,ct,0);
+      else if (after_node == v.getExpression()) {
+         noChange();
        }
       else {
          int idx = args.indexOf(after_node)+1;
          if (idx < args.size()) noChange();
-         else start_back_ref = adjustRef(end_ref,args.size()+1,0);
+         else start_back_ref = adjustRef(end_ref,args.size()+ct,0);
        }
       return false;
     }
@@ -792,15 +799,21 @@ private class BackVisitor extends ASTVisitor {
    @Override public boolean visit(ConstructorInvocation v) {
       JcompSymbol rtn = JcompAst.getReference(v);
       JcompType rty = rtn.getClassType();
+      int ct = (rty.needsOuterClass() ? 2 : 1);
       if (after_node == null) {
-         int ct = (rty.needsOuterClass() ? 2 : 1);
          start_back_ref = adjustRef(end_ref,0,ct);
        }
       else {
          List<?> args = v.arguments();
          int idx = args.indexOf(after_node) + 1;
          if (idx < args.size()) noChange();
-         else start_back_ref = null;
+         else {
+            if (end_ref.getRefStack() < 0 && end_ref.getRefSlot() < 0) start_back_ref = null;
+            else {
+               int sz = args.size() + ct;
+               start_back_ref = adjustRef(end_ref,sz,0);
+             }
+          }
        }
       return false;
     }
@@ -938,7 +951,8 @@ private class BackVisitor extends ASTVisitor {
        }
       
       List<?> args = v.arguments();
-      int idx = args.indexOf(after_node)+1;
+      int idx = 0;
+      if (after_node != null) idx = args.indexOf(after_node)+1;
       if (idx < args.size()) {
          if (dref != 0) start_back_ref = adjustRef(end_ref,0,dref);
          else noChange();

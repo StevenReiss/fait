@@ -92,6 +92,10 @@ void process()
       QueryQueueItem qqi = query_queue.poll();
       if (qqi == null) break;
       IfaceState st0 = fait_control.findStateForLocation(qqi.getCall(),qqi.getProgramPoint());
+      if (st0 == null) {
+         FaitLog.logD("NO PRIOR STATE: " + qqi.getCall().hashCode());
+         st0 = fait_control.findStateForLocation(qqi.getCall(),qqi.getProgramPoint());
+       }
       QueryNode node = known_items.get(qqi);
       qqi.getContext().computeNext(this,qqi,st0,node);
     }

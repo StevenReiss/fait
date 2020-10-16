@@ -175,7 +175,7 @@ private QueryContextRose(QueryContextRose ctx,Map<IfaceValue,Integer> pmap,Map<I
    Map<IfaceValue,IfaceValue> nvmap = new HashMap<>();
    boolean useret = false;
    for (IfaceValue ref : priority_map.keySet()) {
-      int slot = ref.getRefSlot();
+      int slot = ref.getRefStack();
       if (slot > 0) continue;           // ignore stack other than return value
       else if (slot == 0) {
          useret = true;
@@ -325,7 +325,26 @@ private QueryContextRose(QueryContextRose ctx,Map<IfaceValue,Integer> pmap,Map<I
 
 @Override protected String localDisplayContext()
 {
-   return "";
+   StringBuffer buf = new StringBuffer();
+   buf.append("[");
+   for (Map.Entry<IfaceValue,Integer> ent : priority_map.entrySet()) {
+      IfaceValue refval = ent.getKey();
+      String ref = "?";
+      if (refval.getRefSlot() >= 0) ref = "v" + refval.getRefSlot();
+      else if (refval.getRefStack() >= 0) ref = "s" + refval.getRefStack();
+      else if (refval.getRefField() != null) ref = refval.getRefField().toString();
+      buf.append(ref);
+      buf.append(":");
+      buf.append(ent.getValue());
+      IfaceValue actval = known_values.get(refval);
+      if (actval != null) {
+         buf.append("=");
+         buf.append(actval);
+       }
+      buf.append(",");
+    }
+   buf.append("]");
+   return buf.toString();
 }
 
 
