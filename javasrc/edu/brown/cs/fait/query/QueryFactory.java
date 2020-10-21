@@ -165,7 +165,7 @@ public void processFlowQuery(IfaceCall call,IfaceProgramPoint pt,IfaceValue refv
 {
    long start = System.currentTimeMillis();
    
-   QueryContext ctx = new QueryContextRose(fait_control,refval,val);
+   QueryContext ctx = new QueryContextRose(fait_control,refval,val,0);
    
    QueryGraph graph = new QueryGraph();
    QueryNode node = graph.addStartNode(call,pt,ctx,"Starting From");

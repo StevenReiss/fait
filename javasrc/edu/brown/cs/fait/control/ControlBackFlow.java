@@ -172,6 +172,7 @@ private IfaceState      prior_state;
 private IfaceState      end_state;
 private List<IfaceValue> end_refs;
 private IfaceProgramPoint execute_point;
+private boolean         note_conditions;
 
 private List<IfaceValue> start_refs;
 private Collection<IfaceAuxReference> aux_refs;
@@ -193,6 +194,7 @@ ControlBackFlow(IfaceControl fc,IfaceState endstate,IfaceState priorstate,IfaceV
    if (endref != null) end_refs.add(endref);
    execute_point = prior_state.getLocation().getProgramPoint();
    start_refs = null;
+   note_conditions = false;
 }
 
 
@@ -213,6 +215,7 @@ ControlBackFlow(IfaceControl fc,IfaceState endstate,IfaceState priorstate,Collec
    if (endrefs != null) end_refs.addAll(endrefs);
    execute_point = prior_state.getLocation().getProgramPoint();
    start_refs = null;
+   note_conditions = false;
 }
 
 
@@ -246,7 +249,15 @@ ControlBackFlow(IfaceControl fc,IfaceState endstate,IfaceState priorstate,Collec
 
 void computeBackFlow()
 {
+   computeBackFlow(false);
+}
+
+
+void computeBackFlow(boolean conds)
+{
    if (execute_point == null || end_refs == null || end_refs.isEmpty()) return;
+   
+   note_conditions = conds;
    
    for (IfaceValue eref : end_refs) {
       IfaceValue sref = null;
@@ -514,14 +525,24 @@ IfaceValue computeByteCodeBackFlow(IfaceValue eref)
       case IF_ICMPEQ : case IF_ICMPNE :
       case IF_ICMPLT : case IF_ICMPGE : case IF_ICMPGT : case IF_ICMPLE :
 	 sref = adjustRef(eref,2,0);
+         if (note_conditions) {
+            addAuxRef(0);
+            addAuxRef(1);
+          }
 	 break;
       case IFEQ : case IFNE : case IFLT : case IFGE : case IFGT : case IFLE :
       case IFNONNULL : case IFNULL :
 	 sref = adjustRef(eref,1,0);
+         if (note_conditions) {
+            addAuxRef(0);
+          }
 	 break;
       case LOOKUPSWITCH :
       case TABLESWITCH :
 	 sref = adjustRef(eref,1,0);
+         if (note_conditions) {
+            addAuxRef(0);
+          }
 	 break;
          
 /* SUBROUTINE CALLS */
@@ -789,6 +810,7 @@ private class BackVisitor extends ASTVisitor {
       if (after_node == null) noChange();
       else if (after_node == v.getExpression()) {
          popOne();
+         if (note_conditions) addAuxRef(0);
        }
       else {
          noChange();
@@ -828,7 +850,10 @@ private class BackVisitor extends ASTVisitor {
    
    @Override public boolean visit(DoStatement s) {
       if (after_node == null || after_node == s.getBody()) noChange();
-      else popOne();
+      else {
+         popOne();
+         if (note_conditions) addAuxRef(0);
+       }     
       return false;
     }
    
@@ -891,6 +916,7 @@ private class BackVisitor extends ASTVisitor {
    
    @Override public boolean visit(ForStatement s) {
       if (after_node != null && after_node == s.getExpression()) {
+         if (note_conditions) addAuxRef(0);
          popOne();
        }
       else noChange();
@@ -899,6 +925,7 @@ private class BackVisitor extends ASTVisitor {
    
    @Override public boolean visit(IfStatement s) {
       if (after_node != null && after_node == s.getExpression()) {
+         if (note_conditions) addAuxRef(0);
          popOne();
        }
       else noChange();
@@ -1077,6 +1104,7 @@ private class BackVisitor extends ASTVisitor {
    @Override public boolean visit(SwitchStatement s) {
       if (after_node != null && after_node == s.getExpression()) {
          start_back_ref =  adjustRef(end_ref,1,0);
+         if (note_conditions) addAuxRef(0);
        }
       else start_back_ref = end_ref;
       return false;
@@ -1139,6 +1167,7 @@ private class BackVisitor extends ASTVisitor {
    @Override public boolean visit(WhileStatement s) {
       if (after_node == s.getExpression()) {
          start_back_ref = adjustRef(end_ref,1,0);
+         if (note_conditions) addAuxRef(0);
        }
       else start_back_ref = end_ref;
       return false;

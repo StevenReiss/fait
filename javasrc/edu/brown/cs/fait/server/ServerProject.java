@@ -1130,19 +1130,37 @@ void handleFlowQuery(Element qxml,IvyXmlWriter xw) throws FaitException
       mnm = mnm.substring(idx2+1);
     }
    
-   Map<Integer,Element> calls = new HashMap<>();
-   for (Element loc : IvyXml.children(qxml,"LOCATION")) {
-      int cid = IvyXml.getAttrInt(loc,"CALLID"); 
-      if (cid != -1) {
-         Element ploc = IvyXml.getChild(loc,"POINT");
-         calls.put(cid,ploc);
-       }
+   String qtyp = IvyXml.getAttrString(qxml,"QTYPE");
+   
+   Map<Integer,Element> calls = null;
+   Element vloc = null;
+ 
+   switch (qtyp) {
+      case "EXPRESSION" :
+         calls = null;
+         vloc = IvyXml.getChild(qxml,"EXPRESSION");
+         break;
+      case "VARIABLE" :
+         calls = new HashMap<>();
+         for (Element loc : IvyXml.children(qxml,"LOCATION")) {
+            int cid = IvyXml.getAttrInt(loc,"CALLID"); 
+            if (cid != -1) {
+               Element ploc = IvyXml.getChild(loc,"POINT");
+               calls.put(cid,ploc);
+             }
+          }
+         break;
+      case "LOCATION" :
+         calls = null;
+         vloc = IvyXml.getChild(qxml,"LOCATION");
+         break;
     }
    
    IfaceMethod m = ctrl.findMethod(mcl,mnm,msg);
    for (IfaceCall c : ctrl.getAllCalls(m)) {
       for (IfaceCall c1 : c.getAlternateCalls()) {
-         Element loc = calls.get(c1.hashCode());
+         Element loc = vloc;
+         if (loc == null) loc = calls.get(c1.hashCode());
          if (loc != null) {
             handleFlowQueryForCall(ctrl,qxml,c1,loc,xw);
           }
@@ -1168,8 +1186,26 @@ private void handleFlowQueryForCall(IfaceControl ctrl,Element qxml,IfaceCall cal
     }
    IfaceProgramPoint ppt = ctrl.getAstReference(an0,aft);
    
-   Element refxml = IvyXml.getChild(qxml,"VALUE");
-   IfaceValue ref = getReference(ctrl,call,null,ppt,refxml);
+   IfaceValue ref = null;
+   if (IvyXml.isElement(loc,"EXPRESSION")) {
+      IfaceState st0 = ctrl.findStateForLocation(call,ppt);
+      if (st0 == null) return;
+      ref = st0.getStack(0);
+    }
+   else {
+      Element refxml = IvyXml.getChild(qxml,"VALUE");
+      if (refxml != null) {
+         ref = getReference(ctrl,call,null,ppt,refxml);
+       }
+      else {
+         // create dummy local reference
+         IfaceMethod m = call.getMethod();
+         int sz = m.getLocalSize();
+         IfaceType t0 = ctrl.findDataType("int");
+         ref = ctrl.findRefValue(t0,sz+10);
+       }
+    }
+   
    String strval = IvyXml.getAttrString(qxml,"CURRENT");
    IfaceType valtyp = ref.getDataType();
    IfaceValue curval = getCurrentValue(ctrl,strval,valtyp);

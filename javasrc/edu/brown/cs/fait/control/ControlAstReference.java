@@ -431,6 +431,7 @@ boolean update()
       StructuralPropertyDescriptor spd = after_child.getLocationInParent();
       xw.field("AFTER",spd.getId());
       xw.field("AFTERSTART",after_child.getStartPosition());
+      xw.field("AFTEREND",after_child.getStartPosition() + after_child.getLength());
       String typ = after_child.getClass().getName();
       int idx = typ.lastIndexOf(".");
       if (idx > 0) typ = typ.substring(idx+1);

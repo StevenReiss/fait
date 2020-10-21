@@ -57,6 +57,8 @@ private Map<IfaceValue,Integer>         priority_map;
 private Map<IfaceValue,IfaceValue>      known_values;
 private IfaceValue                      base_reference;
 private IfaceValue                      base_value;
+private int                             use_conditions;
+
 
 
 /********************************************************************************/
@@ -65,7 +67,7 @@ private IfaceValue                      base_value;
 /*                                                                              */
 /********************************************************************************/
 
-QueryContextRose(IfaceControl ctrl,IfaceValue var,IfaceValue val)
+QueryContextRose(IfaceControl ctrl,IfaceValue var,IfaceValue val,int conds)
 {
    super(ctrl);
    base_reference = var;
@@ -76,6 +78,7 @@ QueryContextRose(IfaceControl ctrl,IfaceValue var,IfaceValue val)
       priority_map.put(var,10);
       if (val != null) known_values.put(var,val);
     }
+   use_conditions = conds;
 }
 
 
@@ -86,6 +89,7 @@ private QueryContextRose(QueryContextRose ctx,Map<IfaceValue,Integer> pmap,Map<I
    base_value = ctx.base_value;
    priority_map = pmap;
    known_values = kmap;
+   use_conditions = ctx.use_conditions;
 }
 
 
@@ -162,7 +166,10 @@ private QueryContextRose(QueryContextRose ctx,Map<IfaceValue,Integer> pmap,Map<I
     }
 
    if (npmap.isEmpty()) return null;
-   return new QueryContextRose(this,npmap,nvmap);
+   QueryContextRose newctx = new QueryContextRose(this,npmap,nvmap);
+   newctx.use_conditions = Math.max(0,use_conditions-1);
+   
+   return newctx;
 }
 
 
@@ -188,7 +195,9 @@ private QueryContextRose(QueryContextRose ctx,Map<IfaceValue,Integer> pmap,Map<I
    
    if (!useret || npmap.isEmpty()) return null;
    
-   return new QueryContextRose(this,npmap,nvmap);
+   QueryContextRose newctx = new QueryContextRose(this,npmap,nvmap);
+   newctx.use_conditions = Math.max(0,use_conditions-1);
+   return newctx;
 }
 
 
@@ -253,8 +262,6 @@ private QueryContextRose(QueryContextRose ctx,Map<IfaceValue,Integer> pmap,Map<I
 
 @Override protected List<QueryContext> getTransitionContext(IfaceState arg0)
 {
-   // method body goes here
-   
    return null;
 }
 
