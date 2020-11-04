@@ -1138,7 +1138,7 @@ void handleFlowQuery(Element qxml,IvyXmlWriter xw) throws FaitException
    switch (qtyp) {
       case "EXPRESSION" :
          calls = null;
-         vloc = IvyXml.getChild(qxml,"EXPRESSION");
+         vloc = IvyXml.getChild(qxml,"EXPR");
          break;
       case "VARIABLE" :
          calls = new HashMap<>();
@@ -1160,7 +1160,7 @@ void handleFlowQuery(Element qxml,IvyXmlWriter xw) throws FaitException
    for (IfaceCall c : ctrl.getAllCalls(m)) {
       for (IfaceCall c1 : c.getAlternateCalls()) {
          Element loc = vloc;
-         if (loc == null) loc = calls.get(c1.hashCode());
+         if (loc == null &&  calls != null) loc = calls.get(c1.hashCode());
          if (loc != null) {
             handleFlowQueryForCall(ctrl,qxml,c1,loc,xw);
           }
@@ -1187,7 +1187,7 @@ private void handleFlowQueryForCall(IfaceControl ctrl,Element qxml,IfaceCall cal
    IfaceProgramPoint ppt = ctrl.getAstReference(an0,aft);
    
    IfaceValue ref = null;
-   if (IvyXml.isElement(loc,"EXPRESSION")) {
+   if (IvyXml.isElement(loc,"EXPR")) {
       IfaceState st0 = ctrl.findStateForLocation(call,ppt);
       if (st0 == null) return;
       ref = st0.getStack(0);
@@ -1205,6 +1205,8 @@ private void handleFlowQueryForCall(IfaceControl ctrl,Element qxml,IfaceCall cal
          ref = ctrl.findRefValue(t0,sz+10);
        }
     }
+   
+   if (ref == null) return;
    
    String strval = IvyXml.getAttrString(qxml,"CURRENT");
    IfaceType valtyp = ref.getDataType();
