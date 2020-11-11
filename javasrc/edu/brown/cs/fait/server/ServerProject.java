@@ -1186,6 +1186,24 @@ private void handleFlowQueryForCall(IfaceControl ctrl,Element qxml,IfaceCall cal
     }
    IfaceProgramPoint ppt = ctrl.getAstReference(an0,aft);
    
+   List<IfaceMethod> stack = null;
+   Element selt = IvyXml.getChild(qxml,"STACK");
+   if (selt != null) {
+      stack = new ArrayList<>();
+      for (Element felt : IvyXml.children(selt,"FRAME")) {
+         String cnm = IvyXml.getAttrString(felt,"CLASS");
+         String mnm = IvyXml.getAttrString(felt,"METHOD");
+         String msg = IvyXml.getAttrString(felt,"SIGNATURE");
+         IfaceMethod im = ctrl.findMethod(cnm,mnm,msg);
+         if (im == null && cnm.contains("$")) continue;
+         if (im == null && cnm.contains(".junit.")) continue;
+         if (im == null && cnm.contains(".junit4.")) continue;
+         if (im == null) stack = null;
+         if (stack != null) stack.add(im);
+       }
+      if (stack != null && stack.isEmpty()) stack = null;
+    }
+   
    IfaceValue ref = null;
    if (IvyXml.isElement(loc,"EXPR")) {
       IfaceState st0 = ctrl.findStateForLocation(call,ppt);
@@ -1211,15 +1229,8 @@ private void handleFlowQueryForCall(IfaceControl ctrl,Element qxml,IfaceCall cal
    String strval = IvyXml.getAttrString(qxml,"CURRENT");
    IfaceType valtyp = ref.getDataType();
    IfaceValue curval = getCurrentValue(ctrl,strval,valtyp);
-   
-   xw.begin("QUERY");
-   xw.field("METHOD",call.getMethod().getFullName());
-   xw.field("SIGNATURE",call.getMethod().getDescription());
-   xw.field("CALL",call.hashCode());
-   ppt.outputXml(xw);
-   ref.outputXml(xw);
-   ctrl.processFlowQuery(call,ppt,ref,curval,xw);
-   xw.end("QUERY");
+  
+   ctrl.processFlowQuery(call,ppt,ref,curval,stack,xw);
 }
 
 

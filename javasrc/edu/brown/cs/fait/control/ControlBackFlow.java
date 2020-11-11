@@ -141,6 +141,7 @@ import org.eclipse.jdt.core.dom.WildcardType;
 import edu.brown.cs.fait.iface.FaitConstants;
 import edu.brown.cs.fait.iface.FaitLog;
 import edu.brown.cs.fait.iface.IfaceAstReference;
+import edu.brown.cs.fait.iface.IfaceAstStatus;
 import edu.brown.cs.fait.iface.IfaceAuxReference;
 import edu.brown.cs.fait.iface.IfaceBackFlow;
 import edu.brown.cs.fait.iface.IfaceControl;
@@ -690,11 +691,13 @@ private class BackVisitor extends ASTVisitor {
    private IfaceValue end_ref;
    private IfaceValue start_back_ref;
    private ASTNode after_node;
+   private IfaceAstStatus after_status;
    
    BackVisitor(IfaceValue eref) {
       end_ref = eref;
       start_back_ref = null;
       after_node = execute_point.getAstReference().getAfterChild();
+      after_status = execute_point.getAstReference().getStatus();
     }
    
    IfaceValue getStartRef()                     { return start_back_ref; }
@@ -1051,7 +1054,8 @@ private class BackVisitor extends ASTVisitor {
     }
    
    @Override public boolean visit(ReturnStatement s) {
-      if (after_node == null && s.getExpression() != null) start_back_ref = end_ref;
+      if (after_status !=  null) noChange();
+      else if (after_node == null && s.getExpression() != null) start_back_ref = end_ref;
       else if (s.getExpression() != null && end_ref.getRefStack() == 0) {
         noChange();
        }

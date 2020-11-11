@@ -1108,9 +1108,9 @@ IfaceBaseType createMethodType(IfaceType rtn,List<IfaceType> args)
 }
 
 @Override public void processFlowQuery(IfaceCall c,IfaceProgramPoint pt,IfaceValue refval,
-      IfaceValue val,IvyXmlWriter xw)
+      IfaceValue val,List<IfaceMethod> stack,IvyXmlWriter xw)
 {
-   query_factory.processFlowQuery(c,pt,refval,val,xw);
+   query_factory.processFlowQuery(c,pt,refval,val,stack,xw);
 }
 
 

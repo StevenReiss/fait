@@ -34,6 +34,7 @@ import edu.brown.cs.fait.iface.IfaceBackFlow;
 import edu.brown.cs.fait.iface.IfaceCall;
 import edu.brown.cs.fait.iface.IfaceControl;
 import edu.brown.cs.fait.iface.IfaceEntity;
+import edu.brown.cs.fait.iface.IfaceField;
 import edu.brown.cs.fait.iface.IfaceMethod;
 import edu.brown.cs.fait.iface.IfaceProgramPoint;
 import edu.brown.cs.fait.iface.IfacePrototype;
@@ -41,6 +42,7 @@ import edu.brown.cs.fait.iface.IfaceState;
 import edu.brown.cs.fait.iface.IfaceValue;
 import edu.brown.cs.fait.iface.FaitConstants.FaitOperator;
 import edu.brown.cs.fait.iface.FaitConstants.TestBranch;
+import edu.brown.cs.ivy.jcomp.JcompSymbol;
 import edu.brown.cs.ivy.xml.IvyXmlWriter;
 
 class QueryContextRose extends QueryContext implements QueryConstants
@@ -120,12 +122,14 @@ private QueryContextRose(QueryContextRose ctx,Map<IfaceValue,Integer> pmap,Map<I
       
       if (bf.getAuxRefs() != null) {
          int refval = ent.getValue() - 1;
-         for (IfaceAuxReference auxref : bf.getAuxRefs()) {
-            if (auxref.getLocation().equals(backto.getLocation())) {         
-               npmap.put(auxref.getReference(),refval);
-             }
-            else {
-               auxrefs.add(auxref);
+         if (refval > 0) {
+            for (IfaceAuxReference auxref : bf.getAuxRefs()) {
+               if (auxref.getLocation().equals(backto.getLocation())) {         
+                  npmap.put(auxref.getReference(),refval);
+                }
+               else {
+                  auxrefs.add(auxref);
+                }
              }
           }
        }
@@ -208,17 +212,17 @@ private QueryContextRose(QueryContextRose ctx,Map<IfaceValue,Integer> pmap,Map<I
    IfaceMethod mthd = pt.getCalledMethod();
    if (mthd == null) return;
    int ct = mthd.getNumArgs();
+   int ct1 = (mthd.isStatic() ? 0 : 1);
    
    boolean retused = false;
    boolean thisused = false;
    for (IfaceValue ref : priority_map.keySet()) {
-      int slot = ref.getRefSlot();
+      int slot = ref.getRefStack();
       if (slot == 0) retused = true;
-      if (slot == ct) thisused = true;
+      if (!mthd.isStatic() && slot == ct+1) thisused = true;
     }
    if (retused && mthd.getReturnType() != null &&
          !mthd.getReturnType().isVoidType()) {
-      int ct1 = (mthd.isStatic() ? 0 : 1);
       for (int i = 0; i < ct+ct1; ++i) {
          IfaceValue vs = st0.getStack(i);
          vs = QueryFactory.dereference(fait_control,vs,st0);
@@ -323,9 +327,34 @@ private QueryContextRose(QueryContextRose ctx,Map<IfaceValue,Integer> pmap,Map<I
 /*                                                                              */
 /********************************************************************************/
 
-@Override protected void localOutputXml(IvyXmlWriter arg0,IfaceProgramPoint arg1)
+@Override protected void localOutputXml(IvyXmlWriter xw,IfaceProgramPoint where)
 {
-   // method body goes here
+   for (IfaceValue val : priority_map.keySet()) {
+      xw.begin("REFERENCE");
+      int slot = val.getRefSlot();
+      int stk = val.getRefStack();  
+      IfaceField fld = val.getRefField();
+      if (slot >= 0) {
+         xw.field("REFSLOT",slot);
+         Object var = where.getMethod().getItemAtOffset(slot,where);
+         if (var != null) {
+            if (var instanceof JcompSymbol) {
+               JcompSymbol js = (JcompSymbol) var;
+               xw.field("REFSYM",js.getFullName());
+             }
+            else {
+               xw.field("REFSYM",var.toString());
+             }
+          }
+       }
+      else if (stk >= 0) {
+         xw.field("REFSTACK",stk);
+       }
+      else if (fld != null) {
+         xw.field("REFFIELD",fld.getFullName());
+       }
+      xw.end("REFERENCE");
+    }
 }
 
 
@@ -362,10 +391,31 @@ private QueryContextRose(QueryContextRose ctx,Map<IfaceValue,Integer> pmap,Map<I
 /*                                                                              */
 /********************************************************************************/
 
-@Override public boolean equals(Object arg0)
+@Override public boolean equals(Object o)
 {
-   // method body goes here
-
+   if (o instanceof QueryContextRose) {
+      QueryContextRose qcr = (QueryContextRose) o;
+      if (use_conditions != qcr.use_conditions) return false;
+      if (base_reference != qcr.base_reference) return false;
+      if (base_value != qcr.base_value) return false;
+      if (priority_map.size() != qcr.priority_map.size()) return false;
+      for (Map.Entry<IfaceValue,Integer> ent1 : priority_map.entrySet()) {
+         boolean fnd = false;
+         for (Map.Entry<IfaceValue,Integer> ent2 : qcr.priority_map.entrySet()) {
+//             if (ent2.getValue().equals(ent2.getValue())) continue;
+            IfaceValue v1 = ent1.getKey();
+            IfaceValue v2 = ent2.getKey();
+            if (v1.getRefBase() != v2.getRefBase()) continue;
+            if (v1.getRefField() != v2.getRefField()) continue;
+            if (v1.getRefSlot() != v2.getRefSlot()) continue;
+            if (v1.getRefStack() != v2.getRefStack()) continue;
+            fnd = true;
+            break;
+          }
+         if (!fnd) return false;
+       }
+      return true;
+    }
    return false;
 }
 
@@ -373,9 +423,15 @@ private QueryContextRose(QueryContextRose ctx,Map<IfaceValue,Integer> pmap,Map<I
 
 @Override public int hashCode()
 {
-   // method body goes here
-
-   return 0;
+   int hash = use_conditions;
+   if (base_reference != null) hash += base_reference.hashCode();
+   if (base_value != null) hash += base_value.hashCode();
+   for (Map.Entry<IfaceValue,Integer> ent : priority_map.entrySet()) {
+//       hash += ent.getValue().hashCode();
+      hash += ent.getKey().hashCode();
+    }
+   
+   return hash;
 }
 
 

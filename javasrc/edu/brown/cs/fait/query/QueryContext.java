@@ -39,6 +39,7 @@ import java.util.Collection;
 import java.util.List;
 
 import edu.brown.cs.fait.iface.FaitLog;
+import edu.brown.cs.fait.iface.IfaceAstReference;
 import edu.brown.cs.fait.iface.IfaceAuxReference;
 import edu.brown.cs.fait.iface.IfaceCall;
 import edu.brown.cs.fait.iface.IfaceControl;
@@ -46,6 +47,7 @@ import edu.brown.cs.fait.iface.IfaceLocation;
 import edu.brown.cs.fait.iface.IfaceProgramPoint;
 import edu.brown.cs.fait.iface.IfaceState;
 import edu.brown.cs.fait.iface.IfaceValue;
+import edu.brown.cs.fait.iface.IfaceAstStatus.Reason;
 import edu.brown.cs.ivy.jcomp.JcompSymbol;
 import edu.brown.cs.ivy.xml.IvyXmlWriter;
 
@@ -100,7 +102,7 @@ final void computeNext(QueryProcessor qp,QueryQueueItem qqi,IfaceState cur,Query
 
    IfaceCall call = qqi.getCall();
    IfaceProgramPoint pt = qqi.getProgramPoint();
-
+   
    if (cur.isStartOfMethod()) {
       // need to handle case where we initiated the call -- go to call site rather than
       // all call sites
@@ -198,10 +200,12 @@ private void handleFlowFrom(IfaceState backfrom,IfaceState st0,QueryProcessor qp
 	    if (!retctx.isReturnRelevant(st0,from)) continue;
 	    for (IfaceState st1 : from.getReturnStates()) {
 	       if (!retctx.isPriorStateRelevant(st1)) continue;
+               // get the return expression state
+               IfaceState st2 = getReturnState(st1);
 	       QueryGraph graph = node.getGraph();
-	       QueryNode nn = graph.addNode(from,st1.getLocation().getProgramPoint(),retctx,
+	       QueryNode nn = graph.addNode(from,st2.getLocation().getProgramPoint(),retctx,
 		     "Result of method " + from.getMethod().getName(),node);
-	       QueryQueueItem nqqi = new QueryQueueItem(st1.getLocation(),retctx);
+	       QueryQueueItem nqqi = new QueryQueueItem(st2.getLocation(),retctx);
 	       qp.addItem(nqqi,nn);
 	     }
 	  }
@@ -230,6 +234,48 @@ private void handleFlowFrom(IfaceState backfrom,IfaceState st0,QueryProcessor qp
    // STILL need to handle flows based on exceptions
 }
 
+
+
+private IfaceState getReturnState(IfaceState st1)
+{
+   IfaceState st2 = st1;
+   
+   IfaceLocation loc = st1.getLocation();
+   IfaceProgramPoint ppt = loc.getProgramPoint();
+   IfaceAstReference ast = ppt.getAstReference();
+   if (ast != null) {
+      IfaceState st3 = st2;
+      while (ast.getStatus() != null && ast.getStatus().getReason() == Reason.RETURN) {
+         st2 = st3;
+         st3 = getPriorReturnState(st2);
+         if (st3 == null) break;
+         loc = st3.getLocation();
+         ppt = loc.getProgramPoint();
+         ast = ppt.getAstReference();
+       }
+    }
+   else {
+      // handle byte-code return
+    }
+   
+   return st1;
+}
+
+   
+   
+private IfaceState getPriorReturnState(IfaceState st)
+{
+   for (int i = 0; i < st.getNumPriorStates(); ++i) {
+      IfaceState st1 = st.getPriorState(i);
+      if (st1.getLocation() == null) {
+         IfaceState st2 = getPriorReturnState(st1);
+         if (st2 != null) return st2;
+       }
+      else return st1;
+    }
+   
+   return null;
+}
 
 final void handleInitialReferences(Collection<IfaceAuxReference> refs,QueryProcessor qp,
       QueryNode nd,IfaceState st0)

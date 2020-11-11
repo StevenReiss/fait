@@ -48,6 +48,7 @@ import edu.brown.cs.fait.iface.IfaceEntity;
 import edu.brown.cs.fait.iface.IfaceError;
 import edu.brown.cs.fait.iface.IfaceField;
 import edu.brown.cs.fait.iface.IfaceLocation;
+import edu.brown.cs.fait.iface.IfaceMethod;
 import edu.brown.cs.fait.iface.IfaceProgramPoint;
 import edu.brown.cs.fait.iface.IfaceSafetyCheck;
 import edu.brown.cs.fait.iface.IfaceState;
@@ -161,11 +162,13 @@ public void processToQuery(IfaceCall call,IfaceProgramPoint pt,IfaceEntity ent,
 
 
 public void processFlowQuery(IfaceCall call,IfaceProgramPoint pt,IfaceValue refval,
-      IfaceValue val,IvyXmlWriter xw)
+      IfaceValue val,List<IfaceMethod> stack,IvyXmlWriter xw)
 {
    long start = System.currentTimeMillis();
    
-   QueryContext ctx = new QueryContextRose(fait_control,refval,val,0);
+   int locctr = 1;
+   // set locctr based on type of query -- getting here is > others
+   QueryContext ctx = new QueryContextRose(fait_control,refval,val,locctr);
    
    QueryGraph graph = new QueryGraph();
    QueryNode node = graph.addStartNode(call,pt,ctx,"Starting From");
@@ -183,13 +186,16 @@ public void processFlowQuery(IfaceCall call,IfaceProgramPoint pt,IfaceValue refv
        }
     }
    
-   qp.process();
-   
    graph.cleanGraph();
    
-   long time = System.currentTimeMillis() - start;
-   graph.outputXml(xw,time);
-   graph = null;
+   xw.begin("QUERY");
+   xw.field("METHOD",call.getMethod().getFullName());
+   xw.field("SIGNATURE",call.getMethod().getDescription());
+   xw.field("CALL",call.hashCode());  qp.process();
+   pt.outputXml(xw);
+   refval.outputXml(xw);
+   graph.outputXml(xw,System.currentTimeMillis()-start);
+   xw.end("QUERY");
 }
 
 
