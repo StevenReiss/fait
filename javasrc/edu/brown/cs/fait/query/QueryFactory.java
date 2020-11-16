@@ -168,7 +168,16 @@ public void processFlowQuery(IfaceCall call,IfaceProgramPoint pt,IfaceValue refv
    
    int locctr = 1;
    // set locctr based on type of query -- getting here is > others
-   QueryContext ctx = new QueryContextRose(fait_control,refval,val,locctr);
+   QueryContext ctx = new QueryContextRose(fait_control,refval,val,locctr,stack);
+   
+   boolean allow = false;
+   for (IfaceLocation callloc : call.getCallSites()) {
+      if (ctx.isCallRelevant(callloc.getCall(),call)) {
+         allow = true;
+         break;
+       }
+    }
+   if (!allow && call.getCallSites().size() > 0) return;
    
    QueryGraph graph = new QueryGraph();
    QueryNode node = graph.addStartNode(call,pt,ctx,"Starting From");

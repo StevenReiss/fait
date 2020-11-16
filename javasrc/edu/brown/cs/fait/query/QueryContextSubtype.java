@@ -93,7 +93,8 @@ QueryContextSubtype(IfaceControl ctrl,IfaceValue v,IfaceSubtype.Value stv)
 /*                                                                              */
 /********************************************************************************/
 
-@Override protected QueryContext newReference(IfaceValue newref)
+@Override protected QueryContext newReference(IfaceValue newref,
+      IfaceState news,IfaceState olds)
 {
    if (newref == for_value) return this;
    if (newref == null) return null;
@@ -120,7 +121,7 @@ QueryContextSubtype(IfaceControl ctrl,IfaceValue v,IfaceSubtype.Value stv)
    if (slot >= act+delta) return null;
    int stk = act+delta-slot-1;
    IfaceValue nref = fait_control.findRefStackValue(for_value.getDataType(),stk);
-   return newReference(nref);
+   return newReference(nref,null,null);
 }
 
 
@@ -131,7 +132,7 @@ QueryContextSubtype(IfaceControl ctrl,IfaceValue v,IfaceSubtype.Value stv)
    QueryContext nctx = this;
    IfaceValue v = bf.getStartReference();
    if (v == null) nctx = null;
-   else if (v != for_value) nctx = newReference(v);
+   else if (v != for_value) nctx = newReference(v,backto,backfrom);
    return new QueryBackFlowData(nctx,bf);
 }
 
@@ -152,7 +153,7 @@ QueryContextSubtype(IfaceControl ctrl,IfaceValue v,IfaceSubtype.Value stv)
 @Override protected QueryContext getReturnContext(IfaceCall call)
 {
    IfaceValue ref = fait_control.findRefStackValue(for_value.getDataType(),0);
-   return newReference(ref);
+   return newReference(ref,null,null);
 }
 
 

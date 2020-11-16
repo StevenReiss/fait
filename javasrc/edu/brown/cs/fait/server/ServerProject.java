@@ -1072,6 +1072,8 @@ private IfaceValue getReference(IfaceControl ctrl,IfaceCall call,IfaceType vtyp,
 
 private ASTNode getReferredNode(ASTNode root,int spos,int ntyp)
 {
+   if (root == null) return null;
+   
    ASTNode an0 = JcompAst.findNodeAtOffset(root,spos);
    while (an0 != null && an0.getNodeType() != ntyp) {
       an0 = an0.getParent();
@@ -1177,6 +1179,11 @@ private void handleFlowQueryForCall(IfaceControl ctrl,Element qxml,IfaceCall cal
    int ltyp = IvyXml.getAttrInt(loc,"NODETYPEID");
    IfaceProgramPoint pt0 = call.getMethod().getStart();
    IfaceAstReference r0 = pt0.getAstReference();
+   if (r0 == null) {
+      FaitLog.logE("Can't find AST node " + pt0 + " " + r0 + " " + spos + " " +
+            ltyp + " " + call.getMethod());
+      return;
+    }
    ASTNode an0 = getReferredNode(r0.getAstNode(),spos,ltyp);
    int apos = IvyXml.getAttrInt(loc,"AFTERSTART");
    int atyp = IvyXml.getAttrInt(loc,"AFTERTYPEID");

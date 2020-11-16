@@ -78,7 +78,7 @@ protected QueryContext(IfaceControl fc)
 }
 
 
-protected QueryContext newReference(IfaceValue newref)
+protected QueryContext newReference(IfaceValue newref,IfaceState newstate,IfaceState oldstate)
 {
    return this;
 }
@@ -115,6 +115,7 @@ final void computeNext(QueryProcessor qp,QueryQueueItem qqi,IfaceState cur,Query
       node = graph.addNode(call,pt,this,"Start of Method " + call.getMethod().getName(),node);
       for (IfaceCall call0 : call.getAlternateCalls()) {
 	 for (IfaceLocation callloc : call0.getCallSites()) {
+            if (!isCallRelevant(call0,callloc.getCall())) continue;
 	    IfaceState st0 = fait_control.findStateForLocation(callloc.getCall(),
 		  callloc.getProgramPoint());
 	    if (!priorctx.isPriorStateRelevant(st0)) continue;
@@ -294,7 +295,7 @@ private boolean handleAuxReference(IfaceAuxReference ref,QueryProcessor qp,Query
    boolean linked = false;
 
    QueryGraph graph = node.getGraph();
-   QueryContext nctx = newReference(v0);
+   QueryContext nctx = newReference(v0,st0,st1);
    if (nctx.isPriorStateRelevant(st1)) {
       String desc = "Referenced value";
       if (v0.getRefSlot() >= 0) {
@@ -365,9 +366,15 @@ protected abstract boolean isPriorStateRelevant(IfaceState st0);
 
 protected boolean isReturnRelevant(IfaceState st0,IfaceCall call)
 {
+   // return true if the return should be investigated
    return true;
 }
-   // return true if the return should be investigated
+
+
+boolean isCallRelevant(IfaceCall callfrom,IfaceCall callto)
+{
+   return true;
+}
 
 protected abstract void addRelevantArgs(IfaceState st0,QueryBackFlowData bfd);
 

@@ -60,6 +60,7 @@ private Map<IfaceValue,IfaceValue>      known_values;
 private IfaceValue                      base_reference;
 private IfaceValue                      base_value;
 private int                             use_conditions;
+private List<IfaceMethod>               call_stack;
 
 
 
@@ -69,7 +70,7 @@ private int                             use_conditions;
 /*                                                                              */
 /********************************************************************************/
 
-QueryContextRose(IfaceControl ctrl,IfaceValue var,IfaceValue val,int conds)
+QueryContextRose(IfaceControl ctrl,IfaceValue var,IfaceValue val,int conds,List<IfaceMethod> stack)
 {
    super(ctrl);
    base_reference = var;
@@ -81,6 +82,7 @@ QueryContextRose(IfaceControl ctrl,IfaceValue var,IfaceValue val,int conds)
       if (val != null) known_values.put(var,val);
     }
    use_conditions = conds;
+   call_stack = stack;
 }
 
 
@@ -92,6 +94,7 @@ private QueryContextRose(QueryContextRose ctx,Map<IfaceValue,Integer> pmap,Map<I
    priority_map = pmap;
    known_values = kmap;
    use_conditions = ctx.use_conditions;
+   call_stack = ctx.call_stack;
 }
 
 
@@ -278,6 +281,26 @@ private QueryContextRose(QueryContextRose ctx,Map<IfaceValue,Integer> pmap,Map<I
 
 
 
+@Override protected QueryContext newReference(IfaceValue newref,IfaceState newstate,IfaceState oldstate)
+{
+   if (newstate == null || oldstate == null || call_stack == null) return super.newReference(newref,null,null);
+   
+   // IfaceCall c1 = newstate.getLocation().getCall();
+   // IfaceCall c2 = oldstate.getLocation().getCall();
+   // if (c1 == c2) return super.newReference(newref,null,null);
+   
+   Map<IfaceValue,Integer> pmap = null;
+   if (priority_map !=  null) pmap = new HashMap<>(priority_map);
+   Map<IfaceValue,IfaceValue> kmap = null;
+   if (known_values != null) kmap = new HashMap<>(known_values);
+   
+   QueryContextRose nctx = new QueryContextRose(this,pmap,kmap);
+   nctx.call_stack = null;
+   
+   return nctx;
+}
+
+
 
 /********************************************************************************/
 /*                                                                              */
@@ -318,6 +341,17 @@ private QueryContextRose(QueryContextRose ctx,Map<IfaceValue,Integer> pmap,Map<I
    return true;
 }
 
+
+@Override boolean isCallRelevant(IfaceCall callfrom,IfaceCall callto)
+{
+   if (call_stack == null) return true;
+   
+   IfaceMethod mfrom = callfrom.getMethod();
+   
+   if (!call_stack.contains(mfrom)) return false;
+   
+   return true;
+}
 
 
 
@@ -414,6 +448,8 @@ private QueryContextRose(QueryContextRose ctx,Map<IfaceValue,Integer> pmap,Map<I
           }
          if (!fnd) return false;
        }
+      if (call_stack == null && qcr.call_stack != null) return false;
+      if (call_stack != null && qcr.call_stack == null) return false;
       return true;
     }
    return false;
@@ -430,6 +466,7 @@ private QueryContextRose(QueryContextRose ctx,Map<IfaceValue,Integer> pmap,Map<I
 //       hash += ent.getValue().hashCode();
       hash += ent.getKey().hashCode();
     }
+   if (call_stack != null) hash += 1;
    
    return hash;
 }
