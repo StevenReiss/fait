@@ -197,7 +197,7 @@ ValueRef(ValueFactory vf,IfaceType dt,int var,IfaceValue base,IfaceField fld,Ifa
       buf.append(field_name);
     }
    else if (index_value != null) {
-      buf.append(" i");
+      buf.append(" []");
     }
    buf.append(" ");
    buf.append(getDataType());

@@ -315,6 +315,9 @@ TypeBase(TypeFactory fac,IfaceBaseType base,IfaceSubtype.Value [] subs)
 @Override public IfaceSubtype.Value getValue(IfaceSubtype st)
 {
    int idx = ((TypeSubtype) st).getIndex();
+   if (sub_values.length <= idx) {
+      System.err.println("CHECK HERE");
+    }
    return sub_values[idx];
 }
 

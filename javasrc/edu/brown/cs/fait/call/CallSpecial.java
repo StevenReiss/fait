@@ -542,9 +542,7 @@ private List<ArgValue> scanArgs(String coding)
        }
       else if (nvl.startsWith("*") && nvl.length() > 1) {
 	 String tnm = nvl.substring(1);
-	 IfaceType ntyp = fait_control.findDataType(tnm);
-	 IfaceValue v = fait_control.findMutableValue(ntyp);
-	 av = new ConstArgValue(v);
+	 av = new ConstArgValue(tnm);
        }
       else {
 	 try {
@@ -583,15 +581,26 @@ private static class OrigArgValue extends ArgValue {
 }	// end of inner class OrigArgValue
 
 
-private static class ConstArgValue extends ArgValue {
+private class ConstArgValue extends ArgValue {
 
+   private String type_name;
    private IfaceValue const_value;
 
    ConstArgValue(IfaceValue v) {
+      type_name = null;
       const_value = v;
+    }
+   
+   ConstArgValue(String type) {
+      type_name = type;
+      const_value = null;
     }
 
    @Override void addValues(List<IfaceValue> args,IfaceValue newval,List<IfaceValue> rslt) {
+      if (const_value == null && type_name != null) {
+         IfaceType ntyp = fait_control.findDataType(type_name);
+         const_value = fait_control.findMutableValue(ntyp);
+       }
       rslt.add(const_value);
     }
 

@@ -113,7 +113,7 @@ private QueryContextRose(QueryContextRose ctx,Map<IfaceValue,Integer> pmap,Map<I
    
    for (Map.Entry<IfaceValue,Integer> ent : priority_map.entrySet()) {
       IfaceValue ref = ent.getKey();
-      IfaceBackFlow bf = fait_control.getBackFlow(backfrom,backto,ref);
+      IfaceBackFlow bf = fait_control.getBackFlow(backfrom,backto,ref,(use_conditions > 0));
       if (bf == null) continue;
       IfaceValue sref = bf.getStartReference();
       if (sref != null) {
@@ -402,6 +402,7 @@ private QueryContextRose(QueryContextRose ctx,Map<IfaceValue,Integer> pmap,Map<I
       String ref = "?";
       if (refval.getRefSlot() >= 0) ref = "v" + refval.getRefSlot();
       else if (refval.getRefStack() >= 0) ref = "s" + refval.getRefStack();
+      else if (refval.getRefIndex() != null) ref = "[]" + refval.getRefIndex();
       else if (refval.getRefField() != null) ref = refval.getRefField().toString();
       buf.append(ref);
       buf.append(":");

@@ -235,8 +235,10 @@ private IfaceType createActualType(IfaceBaseType base,Map<IfaceSubtype,IfaceSubt
 {
    if (base == null) return null;
    
+   
    IfaceType t0 = type_map.findType(base,subs);
    if (t0 == null) {
+//    FaitLog.logD("FAIT","Create type for " + base);
       IfaceSubtype.Value [] vals = new IfaceSubtype.Value[getNumSubtypes()];
       for (int i = 0; i < getNumSubtypes(); ++i) {
          TypeSubtype st = getSubtype(i);
@@ -261,6 +263,7 @@ private IfaceType createActualType(IfaceBaseType base,IfaceSubtype.Value [] subs
    
    IfaceType t0 = type_map.findType(base,subs);
    if (t0 == null) {
+//    FaitLog.logD("FAIT","Create type for " + base);
       t0 = new TypeBase(this,base,subs);
       t0 = type_map.defineType(t0);
     }
@@ -342,13 +345,15 @@ private void addSubtype(TypeSubtype ts,boolean enable,boolean base)
 {
    known_subtypes.put(ts.getName(),ts);
    
+   FaitLog.logD("FAIT","Add subtype " + ts.getName()); 
+
    if (enable) {
       if (!active_subtypes.contains(ts)) {
          int ct = active_subtypes.size();
          active_subtypes.add(ts);
          ts.setIndex(ct);
        }
-    }
+    } 
    
    if (base) {
       base_subtypes.add(ts);
@@ -359,6 +364,8 @@ private void addSubtype(TypeSubtype ts,boolean enable,boolean base)
 private void removeSubtype(TypeSubtype ts)
 {
    if (!active_subtypes.contains(ts)) return;
+   
+   FaitLog.logD("FAIT","Remove subtype " + ts.getName());
    
    active_subtypes.remove(ts);
    for (int i = 0; i < active_subtypes.size(); ++i) {
@@ -435,33 +442,35 @@ private class TypeMap {
     }
    
    IfaceType findType(IfaceBaseType bt,IfaceSubtype.Value [] vals) {
-      int ct = active_subtypes.size(); 
-      if (ct == 0) {
-         return (IfaceType) base_map.get(bt);
-       }
-      Map<?,?> map = (Map<?,?>) base_map.get(bt);
-      if (map == null) return null;
-      for (int i = 0; i < ct-1; ++i) {
-         Map<?,?> nmap = (Map<?,?>) map.get(vals[i]);
-         if (nmap == null) return null;
+      Object o = base_map.get(bt);
+      if (o == null) return null;
+      else if (o instanceof IfaceType) return (IfaceType) o;
+      Map<?,?> map = (Map<?,?>) o;
+      int ct = active_subtypes.size();
+      for (int i = 0; i < ct; ++i) {
+         Object o1 = map.get(vals[i]);
+         if (o1 == null) return null;
+         else if (o1 instanceof IfaceType) return (IfaceType) o1;
+         Map<?,?> nmap = (Map<?,?>) o1;
          map = nmap;
        }
-      return (IfaceType) map.get(vals[ct-1]);
+      return null;
     }
    
    IfaceType findType(IfaceBaseType bt,Map<IfaceSubtype,IfaceSubtype.Value> valmap) {
+      Object o = base_map.get(bt);
+      if (o == null) return null;
+      else if (o instanceof IfaceType) return (IfaceType) o;  
       int ct = active_subtypes.size(); 
-      if (ct == 0) {
-         return (IfaceType) base_map.get(bt);
-       }
-      Map<?,?> map = (Map<?,?>) base_map.get(bt);
-      if (map == null) return null;
-      for (int i = 0; i < ct-1; ++i) {
-         Map<?,?> nmap = (Map<?,?>) map.get(getValue(bt,i,valmap));
-         if (nmap == null) return null;
+      Map<?,?> map = (Map<?,?>) o;
+      for (int i = 0; i < ct; ++i) {
+         Object o1 = map.get(getValue(bt,i,valmap));
+         if (o1 == null) return null;
+         else if (o1 instanceof IfaceType) return (IfaceType) o1;
+         Map<?,?> nmap = (Map<?,?>) o;
          map = nmap;
        }
-      return (IfaceType) map.get(getValue(bt,ct-1,valmap));
+      return null;
     }
    
    private IfaceSubtype.Value getValue(IfaceBaseType bt,

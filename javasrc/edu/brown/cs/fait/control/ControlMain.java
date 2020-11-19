@@ -189,9 +189,9 @@ void addSpecialFile(File f)
     }
    
    if (e != null) {
+      type_factory.addSpecialFile(e);
       call_factory.addSpecialFile(e);
       safety_factory.addSpecialFile(e);
-      type_factory.addSpecialFile(e);
     }
    else {
       FaitLog.logE("Bad XML in special file " + f);
@@ -1185,16 +1185,16 @@ IfaceBaseType createMethodType(IfaceType rtn,List<IfaceType> args)
 /*                                                                              */
 /********************************************************************************/
 
-@Override public IfaceBackFlow getBackFlow(IfaceState backfrom,IfaceState backto,IfaceValue endref)
+@Override public IfaceBackFlow getBackFlow(IfaceState backfrom,IfaceState backto,IfaceValue endref,boolean conds)
 {
    ControlBackFlow cbf = new ControlBackFlow(this,backfrom,backto,endref);
-   cbf.computeBackFlow();
+   cbf.computeBackFlow(conds);
    return cbf;
 }
 
 
 @Override public IfaceBackFlow getBackFlow(IfaceState from,IfaceState to,
-      Collection<IfaceAuxReference>  refs)
+      Collection<IfaceAuxReference> refs)
 {
    return new ControlBackFlow(this,from,to,refs);
 }

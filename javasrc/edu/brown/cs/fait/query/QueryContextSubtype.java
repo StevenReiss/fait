@@ -128,7 +128,7 @@ QueryContextSubtype(IfaceControl ctrl,IfaceValue v,IfaceSubtype.Value stv)
 
 @Override protected QueryBackFlowData getPriorStateContext(IfaceState backfrom,IfaceState backto)
 {
-   IfaceBackFlow bf = fait_control.getBackFlow(backfrom,backto,for_value);
+   IfaceBackFlow bf = fait_control.getBackFlow(backfrom,backto,for_value,false);
    QueryContext nctx = this;
    IfaceValue v = bf.getStartReference();
    if (v == null) nctx = null;
