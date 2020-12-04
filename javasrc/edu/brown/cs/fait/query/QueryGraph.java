@@ -303,6 +303,7 @@ private class Node implements QueryNode {
    private List<Arc> to_arcs;
    private List<Arc> from_arcs;
    private String node_reason;
+   private int node_priority;
 
    Node(IfaceCall c,IfaceProgramPoint pt,QueryContext ctx,String reason) {
       node_id = node_counter.incrementAndGet();
@@ -312,11 +313,17 @@ private class Node implements QueryNode {
       to_arcs = new ArrayList<>();
       from_arcs = new ArrayList<>();
       node_reason = reason;
+      node_priority = 0;
     }
 
    @Override public int getId() 				{ return node_id; }
    @Override public IfaceProgramPoint getProgramPoint() 	{ return at_point; }
    @Override public IfaceCall getCall() 			{ return for_call; }
+   
+   @Override public void setPriority(int p) {
+      node_priority = Math.max(node_priority,p);
+    }
+   
 
    List<Node> getToNodes() {
       List<Node> rslt = new ArrayList<>();
@@ -387,6 +394,7 @@ private class Node implements QueryNode {
       xw.field("SIGNATURE",for_call.getMethod().getDescription());
       xw.field("CALLID",for_call.hashCode());
       xw.field("FILE",for_call.getMethod().getFile());
+      if (node_priority != 0) xw.field("PRIORITY",node_priority);
       node_context.outputXml(xw,at_point);
       at_point.outputXml(xw);
       for (Arc a : to_arcs) {

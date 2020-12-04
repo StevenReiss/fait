@@ -347,11 +347,24 @@ private QueryContextRose(QueryContextRose ctx,Map<IfaceValue,Integer> pmap,Map<I
    if (call_stack == null) return true;
    
    IfaceMethod mfrom = callfrom.getMethod();
+   if (mfrom.getName().startsWith("TEST_")) return true;
    
    if (!call_stack.contains(mfrom)) return false;
    
    return true;
 }
+
+
+
+@Override protected int getNodePriority()
+{
+   int p = 1;
+   for (Integer i : priority_map.values()) {
+      if (i != null) p = Math.max(p,i);
+    }
+   return p;
+}
+
 
 
 

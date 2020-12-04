@@ -182,6 +182,7 @@ private void handleFlowFrom(IfaceState backfrom,IfaceState st0,QueryProcessor qp
          node = graph.addNode(ploc.getCall(),ploc.getProgramPoint(),priorctx,
                reason,node);
        }
+      node.setPriority(priorctx.getNodePriority());
       QueryQueueItem nqqi = new QueryQueueItem(st0.getLocation(),priorctx);
       qp.addItem(nqqi,node);
     }
@@ -388,6 +389,12 @@ protected boolean handleInternalCall(IfaceState st0,QueryBackFlowData bfd,QueryN
 protected String addToGraph(QueryContext ctx,IfaceState st0)
 {
    return null;
+}
+
+
+protected int getNodePriority()
+{
+   return 0;
 }
 
 

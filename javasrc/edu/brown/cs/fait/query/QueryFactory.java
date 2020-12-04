@@ -195,12 +195,14 @@ public void processFlowQuery(IfaceCall call,IfaceProgramPoint pt,IfaceValue refv
        }
     }
    
+   qp.process();
+   
    graph.cleanGraph();
    
    xw.begin("QUERY");
    xw.field("METHOD",call.getMethod().getFullName());
    xw.field("SIGNATURE",call.getMethod().getDescription());
-   xw.field("CALL",call.hashCode());  qp.process();
+   xw.field("CALL",call.hashCode()); 
    pt.outputXml(xw);
    refval.outputXml(xw);
    graph.outputXml(xw,System.currentTimeMillis()-start);

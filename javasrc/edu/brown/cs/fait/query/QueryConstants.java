@@ -56,6 +56,8 @@ interface QueryNode {
    IfaceProgramPoint getProgramPoint();
    IfaceCall getCall();
    
+   void setPriority(int p);
+   
 }       // end of interface QueryNode
 
 

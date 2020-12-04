@@ -103,9 +103,6 @@ CallReturn handleCall(FlowLocation loc,IfaceState st0,FlowQueueInstance wq,int v
        }
       return CallReturn.NOT_DONE;
     }
-   // if (dbgmthd.getFullName().contains("ThreadPoolExecutor.execute") && loc.toString().contains("cose")) {
-      // System.err.println("CHECK HERE");
-    // }
    
    LinkedList<IfaceValue> args = getCallArguments(loc,st0,varct,dbgmthd);
    if (args == null) {
