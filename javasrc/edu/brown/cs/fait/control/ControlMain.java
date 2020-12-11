@@ -1114,6 +1114,12 @@ IfaceBaseType createMethodType(IfaceType rtn,List<IfaceType> args)
 }
 
 
+@Override public void processChangeQuery(IfaceCall c,IfaceProgramPoint pt,IvyXmlWriter xw)
+{
+   query_factory.processChangeQuery(c,pt,xw);
+}
+
+
 
 
 

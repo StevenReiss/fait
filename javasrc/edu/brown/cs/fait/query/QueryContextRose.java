@@ -45,7 +45,7 @@ import edu.brown.cs.fait.iface.FaitConstants.TestBranch;
 import edu.brown.cs.ivy.jcomp.JcompSymbol;
 import edu.brown.cs.ivy.xml.IvyXmlWriter;
 
-class QueryContextRose extends QueryContext implements QueryConstants
+class QueryContextRose extends QueryContext
 {
 
 
@@ -183,7 +183,7 @@ private QueryContextRose(QueryContextRose ctx,Map<IfaceValue,Integer> pmap,Map<I
 
 
 
-@Override protected QueryContext getReturnContext(IfaceCall arg0)
+@Override protected QueryContext getReturnContext(IfaceCall call)
 {
    Map<IfaceValue,Integer> npmap = new HashMap<>();
    Map<IfaceValue,IfaceValue> nvmap = new HashMap<>();
@@ -270,13 +270,6 @@ private QueryContextRose(QueryContextRose ctx,Map<IfaceValue,Integer> pmap,Map<I
 @Override protected List<QueryContext> getTransitionContext(IfaceState arg0)
 {
    return null;
-}
-
-
-
-@Override protected boolean handleInternalCall(IfaceState st0,QueryBackFlowData bfd,QueryNode n)
-{
-   return false;
 }
 
 

@@ -210,6 +210,15 @@ public void processFlowQuery(IfaceCall call,IfaceProgramPoint pt,IfaceValue refv
 }
 
 
+
+public void processChangeQuery(IfaceCall call,IfaceProgramPoint pt,IvyXmlWriter xw)
+{
+   QueryChangedItems qci = new QueryChangedItems(fait_control,pt,xw);
+   
+   qci.process();
+}
+
+
 public void processVarQuery(String method,int line,int pos,String var,IvyXmlWriter output)
         throws FaitException
 {

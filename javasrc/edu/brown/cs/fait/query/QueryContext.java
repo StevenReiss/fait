@@ -297,7 +297,7 @@ private boolean handleAuxReference(IfaceAuxReference ref,QueryProcessor qp,Query
 
    QueryGraph graph = node.getGraph();
    QueryContext nctx = newReference(v0,st0,st1);
-   if (nctx.isPriorStateRelevant(st1)) {
+   if (nctx != null && nctx.isPriorStateRelevant(st1)) {
       String desc = "Referenced value";
       if (v0.getRefSlot() >= 0) {
 	 Object v = loc.getCall().getMethod().getItemAtOffset(v0.getRefSlot(),loc.getProgramPoint());

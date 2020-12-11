@@ -1172,6 +1172,44 @@ void handleFlowQuery(Element qxml,IvyXmlWriter xw) throws FaitException
 
 
 
+void handleChangeQuery(Element qxml,IvyXmlWriter xw) throws FaitException
+{
+   IfaceControl ctrl = null;
+   if (current_runner != null) {
+      ctrl = current_runner.getControl();
+    }
+   if (ctrl == null) {
+      throw new FaitException("Analysis not run");
+    }
+   
+   String mnm = IvyXml.getAttrString(qxml,"METHOD");
+   String msg = null;
+   String mcl = null;
+   int idx1 = mnm.indexOf("(");
+   if (idx1 > 0) {
+      msg = mnm.substring(idx1);
+      mnm = mnm.substring(0,idx1);
+    }
+   int idx2 = mnm.lastIndexOf(".");
+   if (idx2 > 0) {
+      mcl = mnm.substring(0,idx2);
+      mnm = mnm.substring(idx2+1);
+    }
+   
+   Element vloc = IvyXml.getChild(qxml,"LOCATION");
+   
+   IfaceMethod m = ctrl.findMethod(mcl,mnm,msg);
+   for (IfaceCall c : ctrl.getAllCalls(m)) {
+      for (IfaceCall c1 : c.getAlternateCalls()) {
+         if (vloc != null) {
+            handleChangeQueryForCall(ctrl,qxml,c1,vloc,xw);
+          }
+       }
+    }
+}
+
+
+
 private void handleFlowQueryForCall(IfaceControl ctrl,Element qxml,IfaceCall call,
       Element loc,IvyXmlWriter xw) throws FaitException
 {
@@ -1240,6 +1278,49 @@ private void handleFlowQueryForCall(IfaceControl ctrl,Element qxml,IfaceCall cal
    ctrl.processFlowQuery(call,ppt,ref,curval,stack,xw);
 }
 
+
+
+private void handleChangeQueryForCall(IfaceControl ctrl,Element qxml,IfaceCall call,
+      Element loc,IvyXmlWriter xw) throws FaitException
+{
+   int spos = IvyXml.getAttrInt(loc,"START");
+   int ltyp = IvyXml.getAttrInt(loc,"NODETYPEID");
+   IfaceProgramPoint pt0 = call.getMethod().getStart();
+   IfaceAstReference r0 = pt0.getAstReference();
+   if (r0 == null) {
+      FaitLog.logE("Can't find AST node " + pt0 + " " + r0 + " " + spos + " " +
+            ltyp + " " + call.getMethod());
+      return;
+    }
+   ASTNode an0 = getReferredNode(r0.getAstNode(),spos,ltyp);
+   int apos = IvyXml.getAttrInt(loc,"AFTERSTART");
+   int atyp = IvyXml.getAttrInt(loc,"AFTERTYPEID");
+   ASTNode aft = null;
+   if (apos >= 0) {
+      aft = getReferredNode(r0.getAstNode(),apos,atyp);
+    }
+   IfaceProgramPoint ppt = ctrl.getAstReference(an0,aft);
+   
+   List<IfaceMethod> stack = null;
+   Element selt = IvyXml.getChild(qxml,"STACK");
+   if (selt != null) {
+      stack = new ArrayList<>();
+      for (Element felt : IvyXml.children(selt,"FRAME")) {
+         String cnm = IvyXml.getAttrString(felt,"CLASS");
+         String mnm = IvyXml.getAttrString(felt,"METHOD");
+         String msg = IvyXml.getAttrString(felt,"SIGNATURE");
+         IfaceMethod im = ctrl.findMethod(cnm,mnm,msg);
+         if (im == null && cnm.contains("$")) continue;
+         if (im == null && cnm.contains(".junit.")) continue;
+         if (im == null && cnm.contains(".junit4.")) continue;
+         if (im == null) stack = null;
+         if (stack != null) stack.add(im);
+       }
+      if (stack != null && stack.isEmpty()) stack = null;
+    }
+   
+   ctrl.processChangeQuery(call,ppt,xw);
+} 
 
 
 private IfaceValue getCurrentValue(IfaceControl ctrl,String vstr,IfaceType typ)

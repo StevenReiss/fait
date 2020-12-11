@@ -275,6 +275,9 @@ void processToQuery(IfaceCall c,IfaceProgramPoint pt,IfaceEntity ent,
       IfaceSubtype styp,IfaceSubtype.Value sval,IfaceValue refval,IvyXmlWriter xw);
 void processFlowQuery(IfaceCall c,IfaceProgramPoint pt,IfaceValue refval,
       IfaceValue val,List<IfaceMethod> stack,IvyXmlWriter xw);
+
+void processChangeQuery(IfaceCall c,IfaceProgramPoint pt,IvyXmlWriter xw);
+
 void processReflectionQuery(IvyXmlWriter xw);
 void processCriticalQuery(String ignores,IvyXmlWriter xw);
 
