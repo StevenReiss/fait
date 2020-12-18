@@ -46,7 +46,6 @@ import edu.brown.cs.fait.iface.IfaceEntity;
 import edu.brown.cs.fait.iface.IfaceField;
 import edu.brown.cs.fait.iface.IfaceMethod;
 import edu.brown.cs.fait.iface.IfaceProgramPoint;
-import edu.brown.cs.fait.iface.IfacePrototype;
 import edu.brown.cs.fait.iface.IfaceState;
 import edu.brown.cs.fait.iface.IfaceValue;
 import edu.brown.cs.ivy.jcomp.JcompSymbol;
@@ -72,9 +71,9 @@ private IfaceValue      for_value;
 /*                                                                              */
 /********************************************************************************/
 
-QueryContextEntity(IfaceControl fc,IfaceValue v,IfaceEntity ent)
+QueryContextEntity(IfaceControl fc,QueryCallSites sites,IfaceValue v,IfaceEntity ent)
 {
-   super(fc);
+   super(fc,sites);
    for_value = v;
    base_entity = ent;
 }
@@ -87,12 +86,13 @@ QueryContextEntity(IfaceControl fc,IfaceValue v,IfaceEntity ent)
 /********************************************************************************/
 
 @Override protected QueryContext newReference(IfaceValue newref,
+      QueryCallSites sites,
       IfaceState news,IfaceState olds)
 {
    if (newref == for_value) return this;
    if (newref == null) return null;
    
-  return new QueryContextEntity(fait_control,newref,base_entity);
+  return new QueryContextEntity(fait_control,sites,newref,base_entity);
 }
 
 
@@ -103,7 +103,8 @@ QueryContextEntity(IfaceControl fc,IfaceValue v,IfaceEntity ent)
 /*                                                                              */
 /********************************************************************************/
 
-@Override protected QueryContext getPriorContextForCall(IfaceCall c,IfaceProgramPoint pt)
+@Override protected QueryContext getPriorContextForCall(IfaceCall c,IfaceProgramPoint pt,
+        QueryCallSites sites)
 {
    int slot = for_value.getRefSlot();
    if (slot < 0) return null;
@@ -114,7 +115,7 @@ QueryContextEntity(IfaceControl fc,IfaceValue v,IfaceEntity ent)
    if (slot >= act+delta) return null;
    int stk = act+delta-slot-1;
    IfaceValue nref = fait_control.findRefStackValue(for_value.getDataType(),stk);
-   return newReference(nref,null,null);
+   return newReference(nref,sites,null,null);
 }
 
 
@@ -125,7 +126,7 @@ QueryContextEntity(IfaceControl fc,IfaceValue v,IfaceEntity ent)
    QueryContext nctx = this;
    IfaceValue v = bf.getStartReference();
    if (v == null) nctx = null;
-   else if (v != for_value) nctx = newReference(v,backto,backfrom);
+   else if (v != for_value) nctx = newReference(v,call_sites,backto,backfrom);
    return new QueryBackFlowData(nctx,bf);  
 }
 
@@ -149,7 +150,8 @@ QueryContextEntity(IfaceControl fc,IfaceValue v,IfaceEntity ent)
 @Override protected QueryContext getReturnContext(IfaceCall call)
 {
    IfaceValue ref = fait_control.findRefStackValue(for_value.getDataType(),0);
-   return newReference(ref,null,null);
+   // want to get push current locationn onto callsites here
+   return newReference(ref,call_sites,null,null);
 }
 
 
@@ -184,54 +186,32 @@ QueryContextEntity(IfaceControl fc,IfaceValue v,IfaceEntity ent)
 
 
 
-@Override protected void addRelevantArgs(IfaceState st0,QueryBackFlowData bfd)
+@Override protected QueryContext addRelevantArgs(IfaceState st0,QueryBackFlowData bfd)
 {
    IfaceProgramPoint pt = st0.getLocation().getProgramPoint();
    IfaceMethod mthd = pt.getCalledMethod();
-   if (mthd == null) return;
    
+   boolean useargs = false;
+   boolean usethis = false;
    if (for_value.getRefStack() == 0 && mthd.getReturnType() != null &&
          !mthd.getReturnType().isVoidType()) {
-      int ct = mthd.getNumArgs();
-      int ct1 = (mthd.isStatic() ? 0 : 1);
-      for (int i = 0; i < ct+ct1; ++i) {
-         IfaceValue vs = st0.getStack(i);
-         vs = QueryFactory.dereference(fait_control,vs,st0);
-         IfaceValue vr = fait_control.findRefStackValue(vs.getDataType(),i);
-         IfaceAuxReference ref = fait_control.getAuxReference(st0.getLocation(),vr);
-         bfd.addAuxReference(ref);
-       }
-      
-      if (!mthd.isStatic()) {
-         IfaceValue thisv = st0.getStack(ct);
-         if (thisv != null) thisv = QueryFactory.dereference(fait_control,thisv,st0);
-         if (thisv != null) {
-            for (IfaceEntity ent : thisv.getEntities()) {
-               IfacePrototype proto = ent.getPrototype();
-               if (proto != null) {
-                  List<IfaceAuxReference> refs = proto.getSetLocations(fait_control);
-                  if (refs != null) {
-                     for (IfaceAuxReference aref : refs) {
-                        bfd.addAuxReference(aref);
-                      }
-                   }
-                }
-             }
-          }
-       }
+      useargs = true;
     }
-   else if (!mthd.isStatic()) {
+   if (!mthd.isStatic()) {
       int ct = mthd.getNumArgs();
       IfaceValue v0 = st0.getStack(ct);
       if (v0 != null && v0.getRefSlot() > 0 && v0.getRefSlot() == for_value.getRefSlot()) {
-         for (int i = 0; i < ct; ++i) {
-            IfaceValue vs = st0.getStack(i);
-            IfaceValue vr = fait_control.findRefStackValue(vs.getDataType(),i);
-            IfaceAuxReference ref = fait_control.getAuxReference(st0.getLocation(),vr);
-            bfd.addAuxReference(ref);
-          }
+         usethis = true;
        }
     }
+   
+   List<IfaceAuxReference> refs = getArgumentReferences(st0,useargs,usethis);
+   
+   for (IfaceAuxReference r : refs) {
+      bfd.addAuxReference(r);
+    }
+   
+   return this;
 }
 
 

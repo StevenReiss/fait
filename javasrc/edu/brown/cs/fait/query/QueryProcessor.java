@@ -37,12 +37,23 @@ package edu.brown.cs.fait.query;
 
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.Collection;
 import java.util.Deque;
 
 import edu.brown.cs.fait.iface.FaitLog;
+import edu.brown.cs.fait.iface.IfaceAstReference;
+import edu.brown.cs.fait.iface.IfaceAuxReference;
+import edu.brown.cs.fait.iface.IfaceCall;
 import edu.brown.cs.fait.iface.IfaceControl;
+import edu.brown.cs.fait.iface.IfaceLocation;
+import edu.brown.cs.fait.iface.IfaceMethod;
+import edu.brown.cs.fait.iface.IfaceProgramPoint;
 import edu.brown.cs.fait.iface.IfaceState;
+import edu.brown.cs.fait.iface.IfaceValue;
+import edu.brown.cs.fait.iface.IfaceAstStatus.Reason;
+import edu.brown.cs.ivy.jcomp.JcompSymbol;
 
 class QueryProcessor implements QueryConstants
 {
@@ -97,10 +108,280 @@ void process()
          st0 = fait_control.findStateForLocation(qqi.getCall(),qqi.getProgramPoint());
        }
       QueryNode node = known_items.get(qqi);
-      qqi.getContext().computeNext(this,qqi,st0,node);
+      computeNext(qqi,st0,node);
     }
 }
 
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Process a single queue item                                             */
+/*                                                                              */
+/********************************************************************************/
+
+private void computeNext(QueryQueueItem qqi,IfaceState cur,QueryNode node)
+{
+   QueryContext ctx = qqi.getContext();
+   IfaceCall call = qqi.getCall();
+   IfaceProgramPoint pt = qqi.getProgramPoint();
+   
+   FaitLog.logD("Compute Next: " + " " + ctx + " " + qqi.getProgramPoint() + " " +
+         qqi.getCall().getMethod() + " (" + node.getId() + ")");
+   FaitLog.logD("Next Info: " + cur + " " + qqi.getCall().hashCode());
+   
+   if (cur.isStartOfMethod()) {
+      // need to handle case where we initiated the call -- go to call site rather than
+      // all call sites
+      node.getGraph().markAsEndNode(node);	// allow this to be a starting point
+      QueryCallSites sites = ctx.getCallSites().getPriorSites();
+      QueryContext priorctx = ctx.getPriorContextForCall(call,pt,sites);
+      if (priorctx == null) {
+	 return;
+       }
+      QueryGraph graph = node.getGraph();
+      node = graph.addNode(call,pt,ctx,QueryNodeType.ENTRY,
+            "Start of Method " + call.getMethod().getName(),node);
+      IfaceLocation loc = ctx.getCallSites().getCallSite();
+      if (loc != null) {
+         processCallSite(call,priorctx,node,loc);
+       }
+      else {
+         for (IfaceCall call0 : call.getAlternateCalls()) {
+            for (IfaceLocation callloc : call0.getCallSites()) {
+               if (!ctx.isCallRelevant(call0,callloc.getCall())) continue;
+               processCallSite(call,priorctx,node,callloc);
+             }
+          }
+       }
+    }
+   else {
+      for (int i = 0; i < cur.getNumPriorStates(); ++i) {
+	 IfaceState st0 = cur.getPriorState(i);
+         FaitLog.logD("PRIOR STATE " + i + " " + st0);
+	 handleFlowFrom(cur,st0,ctx,node);
+       }
+    }
+}
+
+
+private void processCallSite(IfaceCall from,QueryContext priorctx,QueryNode node,IfaceLocation callloc)
+{
+   QueryGraph graph = node.getGraph();
+   IfaceState st0 = fait_control.findStateForLocation(callloc.getCall(),
+         callloc.getProgramPoint());
+   if (!priorctx.isPriorStateRelevant(st0)) return;
+   QueryNode nn = graph.addNode(callloc.getCall(),callloc.getProgramPoint(),priorctx,
+         QueryNodeType.CALL,
+         "Call to Method " + from.getMethod().getName(),node);
+   QueryQueueItem nqqi = new QueryQueueItem(callloc,priorctx);
+   addItem(nqqi,nn);
+}
+
+
+
+private void handleFlowFrom(IfaceState backfrom,IfaceState st0,QueryContext ctx,QueryNode node)
+{
+   if (st0.getLocation() == null) {
+      // handle intermediate states
+      for (int i = 0; i < st0.getNumPriorStates(); ++i) {
+	 IfaceState st1 = st0.getPriorState(i);
+	 handleFlowFrom(backfrom,st1,ctx,node);
+       }
+      return;
+    }
+   else {
+      handleActualFlowFrom(backfrom,st0,ctx,node);
+    }
+}
+
+
+
+
+private void handleActualFlowFrom(IfaceState backfrom,IfaceState st0,QueryContext ctx,QueryNode node)
+{
+   QueryBackFlowData bfd = ctx.getPriorStateContext(backfrom,st0);
+   QueryContext priorctx = bfd.getContext();
+   IfaceProgramPoint pt = st0.getLocation().getProgramPoint();
+   IfaceMethod mthd = pt.getCalledMethod();
+   if (mthd != null) {
+      priorctx = ctx.addRelevantArgs(st0,bfd);
+    }
+   boolean islinked = false;
+   
+   if (bfd.getAuxRefs() != null) {
+      for (IfaceAuxReference aref : bfd.getAuxRefs()) {
+	 islinked |= handleAuxReference(aref,ctx,node,st0);
+       }
+    }
+   
+   if (priorctx == null && !islinked) node.getGraph().markAsEndNode(node);
+   
+   if (priorctx != null && priorctx.isPriorStateRelevant(st0)) {
+      String reason = ctx.addToGraph(priorctx,st0);
+      if (reason != null) {
+         QueryGraph graph = node.getGraph();
+         IfaceLocation ploc = st0.getLocation();
+         node = graph.addNode(ploc.getCall(),ploc.getProgramPoint(),priorctx,
+               QueryNodeType.COMPUTED,reason,node);
+       }
+      node.setPriority(priorctx.getNodePriority());
+      QueryQueueItem nqqi = new QueryQueueItem(st0.getLocation(),priorctx);
+      addItem(nqqi,node);
+    }
+   else if (st0.isMethodCall()) {
+      // svals are the conditions at start of call
+      IfaceCall call2 = st0.getLocation().getCall();
+      QueryContext retctx = ctx.getReturnContext(call2);
+      if (retctx == null) return;
+      IfaceProgramPoint ppt2  = st0.getLocation().getProgramPoint();
+      if (call2.getAllMethodsCalled(ppt2).isEmpty()) {
+	 islinked |= ctx.handleInternalCall(st0,bfd,node);
+	 if (!islinked) node.getGraph().markAsEndNode(node);
+       }
+      else {
+	 for (IfaceCall from : call2.getAllMethodsCalled(ppt2)) {
+	    // if return did not include value of interest, skip
+	    if (!retctx.isReturnRelevant(st0,from)) continue;
+	    for (IfaceState st1 : from.getReturnStates()) {
+	       if (!retctx.isPriorStateRelevant(st1)) continue;
+               // get the return expression state
+               IfaceState st2 = getReturnState(st1);
+	       QueryGraph graph = node.getGraph();
+	       QueryNode nn = graph.addNode(from,st2.getLocation().getProgramPoint(),retctx,
+                     QueryNodeType.RETURN,
+		     "Result of method " + from.getMethod().getName(),node);
+	       QueryQueueItem nqqi = new QueryQueueItem(st2.getLocation(),retctx);
+	       addItem(nqqi,nn);
+	     }
+	  }
+       }
+    }
+   else if (priorctx != null) {
+      List<QueryContext> nctxs = priorctx.getTransitionContext(st0);
+      if (nctxs != null && nctxs.size() > 0) {
+	 for (QueryContext ctx1 : nctxs) {
+	    QueryGraph graph = node.getGraph();
+	    IfaceLocation ploc = st0.getLocation();
+	    QueryNode nn = graph.addNode(ploc.getCall(),ploc.getProgramPoint(),ctx1,
+		  QueryNodeType.STATE_TRANSITION,"State Transition",node);
+	    if (ctx1.isEndState(st0)) {
+	       graph.markAsEndNode(nn);
+	       continue;
+	     }
+	    QueryQueueItem nqqi = new QueryQueueItem(ploc,ctx1);
+	    addItem(nqqi,nn);
+	  }
+       }
+      else {
+	 node.getGraph().markAsEndNode(node);
+       }
+    }
+   // STILL need to handle flows based on exceptions
+}
+
+
+void handleInitialReferences(Collection<IfaceAuxReference> refs,QueryContext ctx,
+      QueryNode nd,IfaceState st0)
+{
+   for (IfaceAuxReference ref : refs) {
+      handleAuxReference(ref,ctx,nd,st0);
+    }
+}
+
+
+
+private boolean handleAuxReference(IfaceAuxReference ref,QueryContext ctx,QueryNode node,IfaceState st0)
+{
+   IfaceLocation loc = ref.getLocation();
+   IfaceValue v0 = ref.getReference();
+   IfaceState st1 = fait_control.findStateForLocation(loc);
+   boolean linked = false;
+   
+   QueryGraph graph = node.getGraph();
+   // Might want to use a null call_sites here if not in same method
+   QueryContext nctx = ctx.newReference(v0,ctx.getCallSites(),st0,st1);
+   if (nctx != null && nctx.isPriorStateRelevant(st1)) {
+      String desc = "Referenced value";
+      if (v0.getRefSlot() >= 0) {
+	 Object v = loc.getCall().getMethod().getItemAtOffset(v0.getRefSlot(),loc.getProgramPoint());
+	 if (v != null) {
+	    if (v instanceof JcompSymbol) {
+	       desc = "Variable " + ((JcompSymbol) v).getFullName() + " referenced";
+	     }
+	    else {
+	       desc = "Variable " + v.toString() + " referenced";
+	     }
+	  }
+       }
+      QueryNode nn = graph.addNode(loc.getCall(),loc.getProgramPoint(),nctx,
+            QueryNodeType.REFERENCE,desc,node);
+      QueryQueueItem nqqi = new QueryQueueItem(loc,nctx);
+      addItem(nqqi,nn);
+      linked = true;
+    }
+   
+   return linked;
+}
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Find proper state for return from method                                */
+/*                                                                              */
+/********************************************************************************/
+
+private IfaceState getReturnState(IfaceState st1)
+{
+   IfaceState st2 = st1;
+   
+   IfaceLocation loc = st1.getLocation();
+   IfaceProgramPoint ppt = loc.getProgramPoint();
+   IfaceAstReference ast = ppt.getAstReference();
+   if (ast != null) {
+      IfaceState st3 = st2;
+      while (ast.getStatus() != null && ast.getStatus().getReason() == Reason.RETURN) {
+         st2 = st3;
+         st3 = getPriorReturnState(st2);
+         if (st3 == null) break;
+         loc = st3.getLocation();
+         ppt = loc.getProgramPoint();
+         ast = ppt.getAstReference();
+       }
+    }
+   else {
+      // handle byte-code return
+    }
+   
+   return st1;
+}
+
+
+
+private IfaceState getPriorReturnState(IfaceState st)
+{
+   for (int i = 0; i < st.getNumPriorStates(); ++i) {
+      IfaceState st1 = st.getPriorState(i);
+      if (st1.getLocation() == null) {
+         IfaceState st2 = getPriorReturnState(st1);
+         if (st2 != null) return st2;
+       }
+      else return st1;
+    }
+   
+   return null;
+}
+
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Add to processing queue                                                 */
+/*                                                                              */
+/********************************************************************************/
 
 void addItem(QueryQueueItem qqi,QueryNode gn)
 {
@@ -114,7 +395,7 @@ void addItem(QueryQueueItem qqi,QueryNode gn)
       if (gn1 != gn) {
          if (qqi.getProgramPoint() != gn1.getProgramPoint()) {
             QueryNode gn2 = gn1.getGraph().addNode(qqi.getCall(),qqi.getProgramPoint(),
-                  qqi.getContext(),"Control Flow Merge",gn);
+                  qqi.getContext(),QueryNodeType.MERGE,"Control Flow Merge",gn);
             known_items.put(qqi,gn2);
             gn = gn2;
           }

@@ -40,8 +40,6 @@ import edu.brown.cs.fait.iface.IfaceProgramPoint;
 import edu.brown.cs.fait.iface.IfacePrototype;
 import edu.brown.cs.fait.iface.IfaceState;
 import edu.brown.cs.fait.iface.IfaceValue;
-import edu.brown.cs.fait.iface.FaitConstants.FaitOperator;
-import edu.brown.cs.fait.iface.FaitConstants.TestBranch;
 import edu.brown.cs.ivy.jcomp.JcompSymbol;
 import edu.brown.cs.ivy.xml.IvyXmlWriter;
 
@@ -70,9 +68,11 @@ private List<IfaceMethod>               call_stack;
 /*                                                                              */
 /********************************************************************************/
 
-QueryContextRose(IfaceControl ctrl,IfaceValue var,IfaceValue val,int conds,List<IfaceMethod> stack)
+QueryContextRose(IfaceControl ctrl,QueryCallSites sites,
+      IfaceValue var,IfaceValue val,
+      int conds,List<IfaceMethod> stack)
 {
-   super(ctrl);
+   super(ctrl,sites);
    base_reference = var;
    base_value = val;
    priority_map = new HashMap<>();
@@ -86,9 +86,10 @@ QueryContextRose(IfaceControl ctrl,IfaceValue var,IfaceValue val,int conds,List<
 }
 
 
-private QueryContextRose(QueryContextRose ctx,Map<IfaceValue,Integer> pmap,Map<IfaceValue,IfaceValue> kmap)
+private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
+      Map<IfaceValue,Integer> pmap,Map<IfaceValue,IfaceValue> kmap)
 {
-   super(ctx.fait_control);
+   super(ctx.fait_control,sites);
    base_reference = ctx.base_reference;
    base_value = ctx.base_value;
    priority_map = pmap;
@@ -127,8 +128,11 @@ private QueryContextRose(QueryContextRose ctx,Map<IfaceValue,Integer> pmap,Map<I
          int refval = ent.getValue() - 1;
          if (refval > 0) {
             for (IfaceAuxReference auxref : bf.getAuxRefs()) {
-               if (auxref.getLocation().equals(backto.getLocation())) {         
-                  npmap.put(auxref.getReference(),refval);
+               if (auxref.getLocation().equals(backto.getLocation())) {    
+                  Integer oval = npmap.get(auxref.getReference());
+                  int rval = refval;
+                  if (oval != null) rval = Math.max(rval,oval);
+                  npmap.put(auxref.getReference(),rval);
                 }
                else {
                   auxrefs.add(auxref);
@@ -140,7 +144,7 @@ private QueryContextRose(QueryContextRose ctx,Map<IfaceValue,Integer> pmap,Map<I
    
    QueryContextRose nctx = null;
    if (npmap.equals(priority_map)) nctx = this;
-   else if (!npmap.isEmpty()) nctx = new QueryContextRose(this,npmap,kpmap);
+   else if (!npmap.isEmpty()) nctx = new QueryContextRose(this,call_sites,npmap,kpmap);
    
    if (auxrefs.isEmpty()) auxrefs = null;
    IfaceBackFlow bf = fait_control.getBackFlow(backfrom,backto,auxrefs);
@@ -151,7 +155,8 @@ private QueryContextRose(QueryContextRose ctx,Map<IfaceValue,Integer> pmap,Map<I
 
 
 
-@Override protected QueryContext getPriorContextForCall(IfaceCall c,IfaceProgramPoint pt)
+@Override protected QueryContext getPriorContextForCall(IfaceCall c,IfaceProgramPoint pt,
+        QueryCallSites sites)
 {
    IfaceMethod fm = c.getMethod();
    int delta = (fm.isStatic() ? 0 : 1);
@@ -173,7 +178,7 @@ private QueryContextRose(QueryContextRose ctx,Map<IfaceValue,Integer> pmap,Map<I
     }
 
    if (npmap.isEmpty()) return null;
-   QueryContextRose newctx = new QueryContextRose(this,npmap,nvmap);
+   QueryContextRose newctx = new QueryContextRose(this,sites,npmap,nvmap);
    newctx.use_conditions = Math.max(0,use_conditions-1);
    
    return newctx;
@@ -202,18 +207,18 @@ private QueryContextRose(QueryContextRose ctx,Map<IfaceValue,Integer> pmap,Map<I
    
    if (!useret || npmap.isEmpty()) return null;
    
-   QueryContextRose newctx = new QueryContextRose(this,npmap,nvmap);
+   // need to use getNextSite here
+   QueryContextRose newctx = new QueryContextRose(this,call_sites,npmap,nvmap);
    newctx.use_conditions = Math.max(0,use_conditions-1);
    return newctx;
 }
 
 
 
-@Override protected void addRelevantArgs(IfaceState st0,QueryBackFlowData bfd)
+@Override protected QueryContext addRelevantArgs(IfaceState st0,QueryBackFlowData bfd)
 {
    IfaceProgramPoint pt = st0.getLocation().getProgramPoint();
    IfaceMethod mthd = pt.getCalledMethod();
-   if (mthd == null) return;
    int ct = mthd.getNumArgs();
    int ct1 = (mthd.isStatic() ? 0 : 1);
    
@@ -230,7 +235,8 @@ private QueryContextRose(QueryContextRose ctx,Map<IfaceValue,Integer> pmap,Map<I
          IfaceValue vs = st0.getStack(i);
          vs = QueryFactory.dereference(fait_control,vs,st0);
          IfaceValue vr = fait_control.findRefStackValue(vs.getDataType(),i);
-         IfaceAuxReference ref = fait_control.getAuxReference(st0.getLocation(),vr);
+         IfaceAuxReference ref = 
+            fait_control.getAuxReference(st0.getLocation(),vr,IfaceAuxRefType.ARGUMENT);
          bfd.addAuxReference(ref);
        }
       if (!mthd.isStatic()) {
@@ -257,11 +263,20 @@ private QueryContextRose(QueryContextRose ctx,Map<IfaceValue,Integer> pmap,Map<I
          for (int i = 0; i < ct; ++i) {
             IfaceValue vs = st0.getStack(i);
             IfaceValue vr = fait_control.findRefStackValue(vs.getDataType(),i);
-            IfaceAuxReference ref = fait_control.getAuxReference(st0.getLocation(),vr);
+            IfaceAuxReference ref = 
+               fait_control.getAuxReference(st0.getLocation(),vr,IfaceAuxRefType.ARGUMENT);
             bfd.addAuxReference(ref);
           }
        }
     }
+   
+   // need to call getArgumentReferences to get list of AuxRefs
+   // then if the aux ref is to the same location as the current context, create 
+   // a new context by adding in the aux references
+   // other aux refs are added to bfd.
+   // check if the two control parameters to getArgumentReferences are relevant
+   
+   return this;
 }
 
 
@@ -274,20 +289,38 @@ private QueryContextRose(QueryContextRose ctx,Map<IfaceValue,Integer> pmap,Map<I
 
 
 
-@Override protected QueryContext newReference(IfaceValue newref,IfaceState newstate,IfaceState oldstate)
+@Override protected QueryContext newReference(IfaceValue newref,QueryCallSites sites,
+      IfaceState newstate,IfaceState oldstate)
 {
-   if (newstate == null || oldstate == null || call_stack == null) return super.newReference(newref,null,null);
+   if (newstate == null || oldstate == null || call_stack == null) return this;
    
-   // IfaceCall c1 = newstate.getLocation().getCall();
-   // IfaceCall c2 = oldstate.getLocation().getCall();
-   // if (c1 == c2) return super.newReference(newref,null,null);
+   IfaceCall c1 = newstate.getLocation().getCall();
+   IfaceCall c2 = oldstate.getLocation().getCall();
+   if (c1 != c2) {
+      return this;
+    }
    
-   Map<IfaceValue,Integer> pmap = null;
-   if (priority_map !=  null) pmap = new HashMap<>(priority_map);
-   Map<IfaceValue,IfaceValue> kmap = null;
-   if (known_values != null) kmap = new HashMap<>(known_values);
+   Map<IfaceValue,Integer> pmap = new HashMap<>();
+   Map<IfaceValue,IfaceValue> vmap = new HashMap<>();
+   int p = 0;
+   if (priority_map != null) {
+      for (Map.Entry<IfaceValue,Integer> ent : priority_map.entrySet()) {
+         p = Math.max(p,ent.getValue());
+         IfaceValue ref = ent.getKey();
+         if (ref.getRefStack() < 0) {
+            pmap.put(ref,ent.getValue());
+          }
+         
+       }
+    }
    
-   QueryContextRose nctx = new QueryContextRose(this,pmap,kmap);
+   if (p == 0) {
+      if (call_stack == null) return this;
+    }
+   
+   pmap.put(newref,p);
+   
+   QueryContextRose nctx = new QueryContextRose(this,sites,pmap,vmap);
    nctx.call_stack = null;
    
    return nctx;
@@ -399,7 +432,7 @@ private QueryContextRose(QueryContextRose ctx,Map<IfaceValue,Integer> pmap,Map<I
 
 
 
-@Override protected String localDisplayContext()
+@Override public String toString()
 {
    StringBuffer buf = new StringBuffer();
    buf.append("[");

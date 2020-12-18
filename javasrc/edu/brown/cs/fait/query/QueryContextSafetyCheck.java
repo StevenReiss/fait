@@ -70,9 +70,10 @@ private final IfaceSafetyCheck.Value given_value;
 /*										*/
 /********************************************************************************/
 
-QueryContextSafetyCheck(IfaceControl ctrl,IfaceSafetyCheck chk,IfaceSafetyCheck.Value v)
+QueryContextSafetyCheck(IfaceControl ctrl,QueryCallSites sites,
+      IfaceSafetyCheck chk,IfaceSafetyCheck.Value v)
 {
-   super(ctrl);
+   super(ctrl,sites);
    safety_check = chk;
    given_value = v;
 }
@@ -86,9 +87,10 @@ QueryContextSafetyCheck(IfaceControl ctrl,IfaceSafetyCheck chk,IfaceSafetyCheck.
 /*										*/
 /********************************************************************************/
 
-@Override protected QueryContext getPriorContextForCall(IfaceCall c,IfaceProgramPoint pt)
+@Override protected QueryContext getPriorContextForCall(IfaceCall c,IfaceProgramPoint pt,
+        QueryCallSites sites)
 {
-   return this;
+   return new QueryContextSafetyCheck(fait_control,sites,safety_check,given_value);
 }
 
 
@@ -103,8 +105,8 @@ QueryContextSafetyCheck(IfaceControl ctrl,IfaceSafetyCheck chk,IfaceSafetyCheck.
    List<QueryContext> rslt = new ArrayList<>();
    Set<IfaceSafetyCheck.Value> vals = getValues(st0);
    for (IfaceSafetyCheck.Value val : vals) {
-      QueryContextSafetyCheck nchk = new QueryContextSafetyCheck(fait_control,
-	    safety_check,val);
+      QueryContextSafetyCheck nchk = 
+         new QueryContextSafetyCheck(fait_control,call_sites,safety_check,val);
       rslt.add(nchk);
     }
 
@@ -152,9 +154,9 @@ QueryContextSafetyCheck(IfaceControl ctrl,IfaceSafetyCheck chk,IfaceSafetyCheck.
 }
 
 
-@Override protected void addRelevantArgs(IfaceState st0,QueryBackFlowData bfd)
+@Override protected QueryContext addRelevantArgs(IfaceState st0,QueryBackFlowData bfd)
 {
-   return;
+   return this;
 }
 
 
@@ -164,7 +166,7 @@ QueryContextSafetyCheck(IfaceControl ctrl,IfaceSafetyCheck chk,IfaceSafetyCheck.
    if (im != null && im.getName().equals("KarmaEvent")) {
       QueryGraph g = n.getGraph();
       QueryNode n1 = g.addNode(st0.getLocation().getCall(),st0.getLocation().getProgramPoint(),
-            this,"State Transition for event",n);
+            this,QueryNodeType.STATE_TRANSITION,"State Transition for event",n);
       g.markAsEndNode(n1);
     }
    return false;
@@ -213,7 +215,7 @@ static private boolean intersects(Set<?> s1,Set<?> s2)
 }
 
 
-@Override protected String localDisplayContext()
+@Override public String toString()
 {
    return given_value.toString();
 }

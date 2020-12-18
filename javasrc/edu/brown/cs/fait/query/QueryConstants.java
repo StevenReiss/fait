@@ -35,11 +35,36 @@
 
 package edu.brown.cs.fait.query;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import edu.brown.cs.fait.iface.FaitConstants;
 import edu.brown.cs.fait.iface.IfaceCall;
+import edu.brown.cs.fait.iface.IfaceLocation;
 import edu.brown.cs.fait.iface.IfaceProgramPoint;
 
-public interface QueryConstants
+public interface QueryConstants extends FaitConstants
 {
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Node Types                                                              */
+/*                                                                              */
+/********************************************************************************/
+
+enum QueryNodeType {
+   START,
+   COMPUTED,
+   REFERENCE,
+   CALL,
+   RETURN,
+   ENTRY,
+   MERGE,
+   STATE_TRANSITION,
+}
+
 
 
 /********************************************************************************/
@@ -63,31 +88,54 @@ interface QueryNode {
 
 
 /********************************************************************************/
-/*										*/
-/*	Processing return value 						*/
-/*										*/
+/*                                                                              */
+/*      Stack of calls while backward query processing                          */
+/*                                                                              */
 /********************************************************************************/
 
-class QueryContextNext {
-
-   private IfaceCall for_call;
-   private IfaceProgramPoint program_point;
-   private QueryContext next_context;
-   private QueryNode next_node;
-
-   QueryContextNext(QueryContext ctx,QueryNode n) {
-      next_context = ctx;
-      next_node = n;
+final class QueryCallSites {
+   
+   private final List<IfaceLocation> call_sites;
+   
+   QueryCallSites() {
+      call_sites = null;
     }
-
-   QueryContext getContext()			{ return next_context; }
-   QueryNode getGraphNode()			{ return next_node; }
-   IfaceCall getCall()				{ return for_call; }
-   IfaceProgramPoint getProgramPoint()		{ return program_point; }
-
-}	// end of inner class QueryContextNext
-
-
+   
+   private QueryCallSites(List<IfaceLocation> locs) {
+      call_sites = locs;
+    }
+   
+   IfaceLocation getCallSite() {
+      if (call_sites == null || call_sites.isEmpty()) return null;
+      return call_sites.get(call_sites.size()-1);
+    }
+   
+   QueryCallSites getPriorSites() {
+      if (call_sites == null || call_sites.size() == 0) return this;
+      if (call_sites.size() == 1) return new QueryCallSites();
+      List<IfaceLocation> rslt = new ArrayList<>();
+      for (int i = 0; i < call_sites.size()-1; ++i) rslt.add(call_sites.get(i));
+      return new QueryCallSites(rslt);
+    }
+   
+   
+   QueryCallSites getNextSites(IfaceLocation from) {
+      if (call_sites == null) {
+         return new QueryCallSites(Collections.singletonList(from));
+       }
+      List<IfaceLocation> rslt = new ArrayList<>(call_sites);
+      rslt.add(from);
+      return new QueryCallSites(rslt);
+    }
+   
+   
+   final List<IfaceLocation> getCallSites()
+{
+      return call_sites;
+    }
+   
+   
+}
 
 }	// end of interface QueryConstants
 

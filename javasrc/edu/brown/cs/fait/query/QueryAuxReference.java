@@ -53,6 +53,7 @@ class QueryAuxReference implements IfaceAuxReference
 
 private IfaceLocation   base_location;
 private IfaceValue      ref_value;
+private IfaceAuxRefType aux_type;
 
 
 
@@ -62,10 +63,11 @@ private IfaceValue      ref_value;
 /*                                                                              */
 /********************************************************************************/
 
-QueryAuxReference(IfaceLocation loc,IfaceValue ref)
+QueryAuxReference(IfaceLocation loc,IfaceValue ref,IfaceAuxRefType typ)
 {
    base_location = loc;
    ref_value = ref;
+   aux_type = typ;
 }
 
 
@@ -78,6 +80,16 @@ QueryAuxReference(IfaceLocation loc,IfaceValue ref)
 @Override public IfaceLocation getLocation()            { return base_location; }
 
 @Override public IfaceValue getReference()              { return ref_value; }
+
+@Override public IfaceAuxRefType getRefType()           { return aux_type; }
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Equality methods                                                        */
+/*                                                                              */
+/********************************************************************************/
 
 @Override public boolean equals(Object o) 
 {

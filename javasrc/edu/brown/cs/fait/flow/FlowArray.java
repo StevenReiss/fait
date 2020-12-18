@@ -239,7 +239,8 @@ Collection<IfaceAuxReference> getSetterRefs(IfaceValue arr)
             if (rslt == null) rslt = new ArrayList<>();
             for (Map.Entry<FlowLocation,Integer> set : sets.entrySet()) {
                IfaceValue refv = fait_control.findRefStackValue(btyp,set.getValue());
-               IfaceAuxReference ref = fait_control.getAuxReference(set.getKey(),refv);
+               IfaceAuxReference ref = fait_control.getAuxReference(set.getKey(),refv,
+                     IfaceAuxRefType.ARRAY_REF);
                rslt.add(ref);
              }
           }

@@ -93,7 +93,7 @@ QueryGraph()
 
 QueryNode addStartNode(IfaceCall call,IfaceProgramPoint pt,QueryContext ctx,String reason)
 {
-   Node n = new Node(call,pt,ctx,reason);
+   Node n = new Node(call,pt,ctx,QueryNodeType.START,reason);
    start_nodes.add(n);
    all_nodes.add(n);
 
@@ -110,9 +110,9 @@ void markAsEndNode(QueryNode qn)
 
 
 QueryNode addNode(IfaceCall call,IfaceProgramPoint pt,QueryContext ctx,
-      String reason,QueryNode prior)
+      QueryNodeType typ,String reason,QueryNode prior)
 {
-   Node n = new Node(call,pt,ctx,reason);
+   Node n = new Node(call,pt,ctx,typ,reason);
    addNode(n,prior);
    all_nodes.add(n);
 
@@ -304,14 +304,16 @@ private class Node implements QueryNode {
    private List<Arc> from_arcs;
    private String node_reason;
    private int node_priority;
+   private QueryNodeType node_type;
 
-   Node(IfaceCall c,IfaceProgramPoint pt,QueryContext ctx,String reason) {
+   Node(IfaceCall c,IfaceProgramPoint pt,QueryContext ctx,QueryNodeType typ,String reason) {
       node_id = node_counter.incrementAndGet();
       for_call = c;
       at_point = pt;
       node_context = ctx;
       to_arcs = new ArrayList<>();
       from_arcs = new ArrayList<>();
+      node_type = typ;
       node_reason = reason;
       node_priority = 0;
     }
@@ -324,7 +326,6 @@ private class Node implements QueryNode {
       node_priority = Math.max(node_priority,p);
     }
    
-
    List<Node> getToNodes() {
       List<Node> rslt = new ArrayList<>();
       for (Arc a : to_arcs) {
@@ -387,6 +388,7 @@ private class Node implements QueryNode {
    void outputXml(IvyXmlWriter xw) {
       xw.begin("NODE");
       xw.field("ID",node_id);
+      xw.field("TYPE",node_type);
       xw.field("REASON",node_reason);
       if (start_nodes.contains(this)) xw.field("START",true);
       if (end_nodes.contains(this)) xw.field("END",true);

@@ -265,7 +265,7 @@ void clearAll();
 
 IfaceBackFlow getBackFlow(IfaceState backfrom,IfaceState backto,IfaceValue endref,boolean conds);
 IfaceBackFlow getBackFlow(IfaceState from,IfaceState to,Collection<IfaceAuxReference> refs);
-IfaceAuxReference getAuxReference(IfaceLocation loc,IfaceValue ref);
+IfaceAuxReference getAuxReference(IfaceLocation loc,IfaceValue ref,IfaceAuxRefType typ);
 Collection<IfaceAuxReference> getAuxRefs(IfaceField fld);
 Collection<IfaceAuxReference> getAuxArrayRefs(IfaceValue arr);
 

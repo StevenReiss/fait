@@ -267,7 +267,7 @@ List<IfaceAuxReference> getSetterRefs(IfaceField fld)
    List<IfaceAuxReference> rslt = new ArrayList<>();
    for (Map.Entry<FlowLocation,Integer> ent : set.entrySet()) {
       IfaceValue rv = fait_control.findRefStackValue(fld.getType(),ent.getValue());
-      IfaceAuxReference r = fait_control.getAuxReference(ent.getKey(),rv);
+      IfaceAuxReference r = fait_control.getAuxReference(ent.getKey(),rv,IfaceAuxRefType.FIELD_REF);
       rslt.add(r);
     }
    return rslt;

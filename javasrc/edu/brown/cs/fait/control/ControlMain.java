@@ -1207,9 +1207,9 @@ IfaceBaseType createMethodType(IfaceType rtn,List<IfaceType> args)
 
 
 
-@Override public IfaceAuxReference getAuxReference(IfaceLocation loc,IfaceValue ref)
+@Override public IfaceAuxReference getAuxReference(IfaceLocation loc,IfaceValue ref,IfaceAuxRefType typ)
 {
-   return QueryFactory.getAuxReference(loc,ref);
+   return QueryFactory.getAuxReference(loc,ref,typ);
 }
 
 

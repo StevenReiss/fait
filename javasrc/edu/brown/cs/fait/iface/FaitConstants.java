@@ -91,6 +91,16 @@ enum ErrorLevel {
 }
 
 
+enum IfaceAuxRefType {
+   ARGUMENT,                            // method argument
+   OPERAND,                             // internal operation operand
+   ARRAY_REF,                           // array reference
+   FIELD_REF,                           // field reference
+   LOCAL_REF,                           // local variable reference
+}
+
+
+
 /********************************************************************************/
 /*                                                                              */
 /*      Operators                                                               */

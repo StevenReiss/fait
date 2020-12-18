@@ -308,7 +308,7 @@ public IfaceValue prototype_trimToSize(IfaceMethod fm,List<IfaceValue> args,Ifac
       IfaceLocation loc = ent.getKey();
       int offset = ent.getValue();
       IfaceValue rv = ctl.findRefStackValue(t0,offset);
-      IfaceAuxReference r = ctl.getAuxReference(loc,rv);
+      IfaceAuxReference r = ctl.getAuxReference(loc,rv,IfaceAuxRefType.OPERAND);
       rslt.add(r);
     }
    

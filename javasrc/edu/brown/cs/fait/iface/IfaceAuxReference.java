@@ -37,11 +37,12 @@ package edu.brown.cs.fait.iface;
 
 
 
-public interface IfaceAuxReference
+public interface IfaceAuxReference extends FaitConstants
 {
 
 IfaceLocation getLocation();
 IfaceValue getReference();
+IfaceAuxRefType getRefType();
 
 
 }       // end of interface IfaceAuxReference

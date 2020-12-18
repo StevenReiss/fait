@@ -770,7 +770,7 @@ private class BackVisitor extends ASTVisitor {
                addAuxVarRef(asgval.getRefSlot());
              }
             else if (asgval.getRefField() != null) {
-               addAuxRef(asgval);
+               addAuxRef(asgval,IfaceAuxRefType.OPERAND);
              }
           }
        }
@@ -1320,14 +1320,14 @@ private void addAuxRef(int stk)
     }
    IfaceValue ref = fait_control.findRefStackValue(val.getDataType(),stk);
    
-   addAuxRef(ref);
+   addAuxRef(ref,IfaceAuxRefType.OPERAND);
 }
 
 
-private void addAuxRef(IfaceValue ref)
+private void addAuxRef(IfaceValue ref,IfaceAuxRefType typ)
 {
    if (ref == null || !ref.isReference()) return;
-   addAuxRef(fait_control.getAuxReference(prior_state.getLocation(),ref));
+   addAuxRef(fait_control.getAuxReference(prior_state.getLocation(),ref,typ));
 }
 
 
@@ -1343,7 +1343,7 @@ private void addAuxVarRef(int slot)
    if (slot < 0) return;
    IfaceValue val = prior_state.getLocal(slot);
    IfaceValue ref = fait_control.findRefValue(val.getDataType(),slot);
-   addAuxRef(ref);
+   addAuxRef(ref,IfaceAuxRefType.LOCAL_REF);
 }
 
 

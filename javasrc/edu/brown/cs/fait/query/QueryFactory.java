@@ -107,13 +107,13 @@ public void processErrorQuery(IfaceCall call,IfaceProgramPoint pt,IfaceError err
 	 v0 = QueryFactory.dereference(fait_control,v0,st0);
 	 IfaceValue refv = fait_control.findRefStackValue(v0.getDataType(),sloc);
 	 IfaceSubtype.Value stv = getRelevantSubtypeValue(v0,err.getSubtype());
-	 ctx = new QueryContextSubtype(fait_control,refv,stv);
+	 ctx = new QueryContextSubtype(fait_control,null,refv,stv);
        }
     }
    if (err.getSafetyCheck() != null) {
       IfaceSafetyCheck.Value v = err.getSafetyValue();
       if (v == null) return;
-      ctx = new QueryContextSafetyCheck(fait_control,err.getSafetyCheck(),v);
+      ctx = new QueryContextSafetyCheck(fait_control,null,err.getSafetyCheck(),v);
     }
 
    if (ctx == null) return;
@@ -140,10 +140,10 @@ public void processToQuery(IfaceCall call,IfaceProgramPoint pt,IfaceEntity ent,
    
    QueryContext ctx = null;
    if (styp != null && sval != null) {
-      ctx = new QueryContextSubtype(fait_control,refval,sval);
+      ctx = new QueryContextSubtype(fait_control,null,refval,sval);
     }
    else {
-      ctx = new QueryContextEntity(fait_control,refval,ent);
+      ctx = new QueryContextEntity(fait_control,null,refval,ent);
     }
    
    QueryGraph graph = new QueryGraph();
@@ -168,7 +168,7 @@ public void processFlowQuery(IfaceCall call,IfaceProgramPoint pt,IfaceValue refv
    
    int locctr = 1;
    // set locctr based on type of query -- getting here is > others
-   QueryContext ctx = new QueryContextRose(fait_control,refval,val,locctr,stack);
+   QueryContext ctx = new QueryContextRose(fait_control,null,refval,val,locctr,stack);
    
    boolean allow = false;
    for (IfaceLocation callloc : call.getCallSites()) {
@@ -191,7 +191,7 @@ public void processFlowQuery(IfaceCall call,IfaceProgramPoint pt,IfaceValue refv
       if (base == null || base.getRefSlot() != 0) v = null;
       if (v == null) {
          Collection<IfaceAuxReference> fldrefs = fait_control.getAuxRefs(fld);
-         ctx.handleInitialReferences(fldrefs,qp,node,st0);
+         qp.handleInitialReferences(fldrefs,ctx,node,st0);
        }
     }
    
@@ -241,9 +241,9 @@ public void processCriticalQuery(IfaceControl ctrl,String ignores,IvyXmlWriter o
 
 
 
-public static IfaceAuxReference getAuxReference(IfaceLocation loc,IfaceValue ref)
+public static IfaceAuxReference getAuxReference(IfaceLocation loc,IfaceValue ref,IfaceAuxRefType typ)
 {
-   return new QueryAuxReference(loc,ref);
+   return new QueryAuxReference(loc,ref,typ);
 }
 
 
