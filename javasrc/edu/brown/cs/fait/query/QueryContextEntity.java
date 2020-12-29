@@ -35,7 +35,6 @@
 
 package edu.brown.cs.fait.query;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import edu.brown.cs.fait.iface.IfaceAuxReference;
@@ -132,14 +131,7 @@ QueryContextEntity(IfaceControl fc,QueryCallSites sites,IfaceValue v,IfaceEntity
 
 
 
-@Override protected List<QueryContext> getTransitionContext(IfaceState st0)
-{
-   List<QueryContext> rslt = new ArrayList<>();
-   // return a set of contexts that represent a transition from that context
-   //    to the current one
-   
-   return rslt;
-}
+
 
 
 
@@ -191,12 +183,9 @@ QueryContextEntity(IfaceControl fc,QueryCallSites sites,IfaceValue v,IfaceEntity
    IfaceProgramPoint pt = st0.getLocation().getProgramPoint();
    IfaceMethod mthd = pt.getCalledMethod();
    
-   boolean useargs = false;
+   boolean useargs = for_value.getRefStack() == 0;   
    boolean usethis = false;
-   if (for_value.getRefStack() == 0 && mthd.getReturnType() != null &&
-         !mthd.getReturnType().isVoidType()) {
-      useargs = true;
-    }
+  
    if (!mthd.isStatic()) {
       int ct = mthd.getNumArgs();
       IfaceValue v0 = st0.getStack(ct);

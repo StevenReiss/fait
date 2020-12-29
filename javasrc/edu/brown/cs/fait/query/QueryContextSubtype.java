@@ -35,18 +35,15 @@
 
 package edu.brown.cs.fait.query;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import edu.brown.cs.fait.iface.IfaceAuxReference;
 import edu.brown.cs.fait.iface.IfaceBackFlow;
 import edu.brown.cs.fait.iface.IfaceCall;
 import edu.brown.cs.fait.iface.IfaceControl;
-import edu.brown.cs.fait.iface.IfaceEntity;
 import edu.brown.cs.fait.iface.IfaceField;
 import edu.brown.cs.fait.iface.IfaceMethod;
 import edu.brown.cs.fait.iface.IfaceProgramPoint;
-import edu.brown.cs.fait.iface.IfacePrototype;
 import edu.brown.cs.fait.iface.IfaceState;
 import edu.brown.cs.fait.iface.IfaceSubtype;
 import edu.brown.cs.fait.iface.IfaceType;
@@ -140,14 +137,7 @@ QueryContextSubtype(IfaceControl ctrl,QueryCallSites sites,
 }
 
 
-@Override protected List<QueryContext> getTransitionContext(IfaceState st0)
-{
-   List<QueryContext> rslt = new ArrayList<>();
-   // return a set of contexts that represent a transition from that context
-   //    to the current one
-   
-   return rslt;
-}
+
 
 
 
@@ -199,12 +189,9 @@ QueryContextSubtype(IfaceControl ctrl,QueryCallSites sites,
    IfaceProgramPoint pt = st0.getLocation().getProgramPoint();
    IfaceMethod mthd = pt.getCalledMethod();
    
-   boolean useargs = false;
+   boolean useargs = for_value.getRefStack() == 0;
    boolean usethis = false;
-   if (for_value.getRefStack() == 0 && mthd.getReturnType() != null &&
-         !mthd.getReturnType().isVoidType()) {
-      useargs = true; 
-    }
+   
    if (!mthd.isStatic()) {
       int ct = mthd.getNumArgs();
       IfaceValue v0 = st0.getStack(ct);
@@ -212,7 +199,6 @@ QueryContextSubtype(IfaceControl ctrl,QueryCallSites sites,
          usethis = true;
        }
     }
-         
    
    List<IfaceAuxReference> refs = getArgumentReferences(st0,useargs,usethis);
    

@@ -138,7 +138,10 @@ protected boolean isEndState(IfaceState state)
    // return null if we know this state is irrelevant
 
 
-protected abstract List<QueryContext> getTransitionContext(IfaceState st0);
+protected List<QueryContext> getTransitionContext(IfaceState st0)
+{ 
+   return null;
+}
    // return a set of contexts that represent a transition from that context
    //	 to the current one
 
@@ -188,6 +191,19 @@ protected int getNodePriority()
 }
 
 
+/**
+ *      Given another context for the given location (call,program point), return a merged
+ *      context that is relevant to both.  This should return null if contexts should not 
+ *      be merged.  It can also return either this or the passed in context if that is
+ *      appropriate.
+ **/
+
+protected QueryContext mergeWith(QueryContext ctx)
+{
+   return null;
+}
+
+
 protected List<IfaceAuxReference> getArgumentReferences(IfaceState st0,boolean argvalues,boolean thisval)
 {
    List<IfaceAuxReference> rslt = new ArrayList<>();
@@ -195,7 +211,7 @@ protected List<IfaceAuxReference> getArgumentReferences(IfaceState st0,boolean a
    IfaceProgramPoint pt = st0.getLocation().getProgramPoint();
    IfaceMethod mthd = pt.getCalledMethod();
    
-   if (argvalues) {
+   if (argvalues && mthd.getReturnType() != null && !mthd.getReturnType().isVoidType()) {
       int ct = mthd.getNumArgs();
       int ct1 = (mthd.isStatic() ? 0 : 1);
       for (int i = 0; i < ct+ct1; ++i) {

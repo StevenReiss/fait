@@ -90,6 +90,8 @@ QueryContext getContext()                       { return query_context; }
 
 
 
+
+
 /********************************************************************************/
 /*                                                                              */
 /*      Equality and comparison methods                                         */

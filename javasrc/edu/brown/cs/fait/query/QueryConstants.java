@@ -134,8 +134,23 @@ final class QueryCallSites {
       return call_sites;
     }
    
+   @Override public boolean equals(Object o) {
+      if (o instanceof QueryCallSites) {
+         QueryCallSites qcs = (QueryCallSites) o;
+         if (call_sites == null) {
+            if (qcs.call_sites == null) return true;
+          }
+         else return call_sites.equals(qcs.call_sites);
+       }
+      return false;
+    }
    
-}
+   @Override public int hashCode() {
+      if (call_sites == null) return 0;
+      return call_sites.hashCode();
+    }
+   
+}       // end of inner class QueryCallSites
 
 }	// end of interface QueryConstants
 

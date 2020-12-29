@@ -33,11 +33,9 @@ import edu.brown.cs.fait.iface.IfaceAuxReference;
 import edu.brown.cs.fait.iface.IfaceBackFlow;
 import edu.brown.cs.fait.iface.IfaceCall;
 import edu.brown.cs.fait.iface.IfaceControl;
-import edu.brown.cs.fait.iface.IfaceEntity;
 import edu.brown.cs.fait.iface.IfaceField;
 import edu.brown.cs.fait.iface.IfaceMethod;
 import edu.brown.cs.fait.iface.IfaceProgramPoint;
-import edu.brown.cs.fait.iface.IfacePrototype;
 import edu.brown.cs.fait.iface.IfaceState;
 import edu.brown.cs.fait.iface.IfaceValue;
 import edu.brown.cs.ivy.jcomp.JcompSymbol;
@@ -55,7 +53,6 @@ class QueryContextRose extends QueryContext
 
 private Map<IfaceValue,Integer>         priority_map;
 private Map<IfaceValue,IfaceValue>      known_values;
-private IfaceValue                      base_reference;
 private IfaceValue                      base_value;
 private int                             use_conditions;
 private List<IfaceMethod>               call_stack;
@@ -73,7 +70,6 @@ QueryContextRose(IfaceControl ctrl,QueryCallSites sites,
       int conds,List<IfaceMethod> stack)
 {
    super(ctrl,sites);
-   base_reference = var;
    base_value = val;
    priority_map = new HashMap<>();
    known_values = new HashMap<>();
@@ -90,7 +86,6 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
       Map<IfaceValue,Integer> pmap,Map<IfaceValue,IfaceValue> kmap)
 {
    super(ctx.fait_control,sites);
-   base_reference = ctx.base_reference;
    base_value = ctx.base_value;
    priority_map = pmap;
    known_values = kmap;
@@ -219,62 +214,38 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
 {
    IfaceProgramPoint pt = st0.getLocation().getProgramPoint();
    IfaceMethod mthd = pt.getCalledMethod();
+  
    int ct = mthd.getNumArgs();
-   int ct1 = (mthd.isStatic() ? 0 : 1);
-   
-   boolean retused = false;
-   boolean thisused = false;
+   int retused = -1;
+   int thisused = -1;
    for (IfaceValue ref : priority_map.keySet()) {
       int slot = ref.getRefStack();
-      if (slot == 0) retused = true;
-      if (!mthd.isStatic() && slot == ct+1) thisused = true;
+      if (slot == 0) retused = priority_map.get(ref);
+      if (!mthd.isStatic() && slot == ct+1) thisused = priority_map.get(ref);
     }
-   if (retused && mthd.getReturnType() != null &&
-         !mthd.getReturnType().isVoidType()) {
-      for (int i = 0; i < ct+ct1; ++i) {
-         IfaceValue vs = st0.getStack(i);
-         vs = QueryFactory.dereference(fait_control,vs,st0);
-         IfaceValue vr = fait_control.findRefStackValue(vs.getDataType(),i);
-         IfaceAuxReference ref = 
-            fait_control.getAuxReference(st0.getLocation(),vr,IfaceAuxRefType.ARGUMENT);
-         bfd.addAuxReference(ref);
+   
+   Map<IfaceValue,Integer> npmap = new HashMap<>(priority_map);
+   Map<IfaceValue,IfaceValue> nvmap = new HashMap<>(known_values);
+   boolean chng = false;
+   
+   List<IfaceAuxReference> arefs = getArgumentReferences(st0,retused > 0,thisused > 0);
+   for (IfaceAuxReference aref : arefs) {
+      if (aref.getLocation() == st0.getLocation()) {
+         Integer oval = priority_map.get(aref.getReference());
+         int rval = retused;
+         if (rval < 0) rval = thisused;
+         if (oval != null) rval = Math.max(rval,oval);
+         npmap.put(aref.getReference(),rval);
+         chng = true;
        }
-      if (!mthd.isStatic()) {
-         IfaceValue thisv = st0.getStack(ct);
-         if (thisv != null) thisv = QueryFactory.dereference(fait_control,thisv,st0);
-         if (thisv != null) {
-            for (IfaceEntity ent : thisv.getEntities()) {
-               IfacePrototype proto = ent.getPrototype();
-               if (proto != null) {
-                  List<IfaceAuxReference> refs = proto.getSetLocations(fait_control);
-                  if (refs != null) {
-                     for (IfaceAuxReference aref : refs) {
-                        bfd.addAuxReference(aref);
-                      }
-                   }
-                }
-             }
-          }
-       }
-    }
-   else if (!mthd.isStatic()) {
-      IfaceValue v0 = st0.getStack(ct);
-      if (v0 != null && thisused) {
-         for (int i = 0; i < ct; ++i) {
-            IfaceValue vs = st0.getStack(i);
-            IfaceValue vr = fait_control.findRefStackValue(vs.getDataType(),i);
-            IfaceAuxReference ref = 
-               fait_control.getAuxReference(st0.getLocation(),vr,IfaceAuxRefType.ARGUMENT);
-            bfd.addAuxReference(ref);
-          }
+      else {
+         bfd.addAuxReference(aref);
        }
     }
    
-   // need to call getArgumentReferences to get list of AuxRefs
-   // then if the aux ref is to the same location as the current context, create 
-   // a new context by adding in the aux references
-   // other aux refs are added to bfd.
-   // check if the two control parameters to getArgumentReferences are relevant
+   if (chng) {
+      return new QueryContextRose(this,call_sites,npmap,nvmap);
+    }
    
    return this;
 }
@@ -282,10 +253,7 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
 
 
 
-@Override protected List<QueryContext> getTransitionContext(IfaceState arg0)
-{
-   return null;
-}
+
 
 
 
@@ -307,10 +275,9 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
       for (Map.Entry<IfaceValue,Integer> ent : priority_map.entrySet()) {
          p = Math.max(p,ent.getValue());
          IfaceValue ref = ent.getKey();
-         if (ref.getRefStack() < 0) {
+         if (ref.getRefField() != null) {
             pmap.put(ref,ent.getValue());
           }
-         
        }
     }
    
@@ -324,6 +291,45 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
    nctx.call_stack = null;
    
    return nctx;
+}
+
+
+
+@Override protected QueryContext mergeWith(QueryContext octx)
+{
+   QueryContextRose ctx = (QueryContextRose) octx;
+   if (octx == this) return this;
+   
+   QueryCallSites sites = call_sites;
+   
+   if (call_sites == null || ctx.call_sites == null) sites = null;
+   if (!call_sites.equals(ctx.call_sites)) return null;
+   
+   Map<IfaceValue,Integer> npmap = new HashMap<>(priority_map);
+   Map<IfaceValue,IfaceValue> kpmap = new HashMap<>(known_values);
+   
+   for (Map.Entry<IfaceValue,Integer> ent : ctx.priority_map.entrySet()) {
+      IfaceValue ref = ent.getKey();
+      Integer pri = ent.getValue();
+      Integer opri = npmap.get(ref);
+      IfaceValue known = ctx.known_values.get(ref);
+      if (opri == null) {
+         npmap.put(ref,pri);
+         if (known != null) kpmap.put(ref,known);
+       }
+      else {
+         if (pri > opri) npmap.put(ref,pri);
+         if (known == null) kpmap.remove(ref);
+       }
+    }
+   
+   if (npmap.equals(priority_map) && kpmap.equals(known_values)) return this;
+   if (npmap.equals(ctx.priority_map) && kpmap.equals(ctx.known_values)) return ctx;
+   
+   QueryContextRose newctx = new QueryContextRose(this,sites,npmap,kpmap);
+   newctx.use_conditions = Math.max(use_conditions,ctx.use_conditions);  
+   
+   return newctx;
 }
 
 
@@ -470,7 +476,6 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
    if (o instanceof QueryContextRose) {
       QueryContextRose qcr = (QueryContextRose) o;
       if (use_conditions != qcr.use_conditions) return false;
-      if (base_reference != qcr.base_reference) return false;
       if (base_value != qcr.base_value) return false;
       if (priority_map.size() != qcr.priority_map.size()) return false;
       for (Map.Entry<IfaceValue,Integer> ent1 : priority_map.entrySet()) {
@@ -490,6 +495,8 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
        }
       if (call_stack == null && qcr.call_stack != null) return false;
       if (call_stack != null && qcr.call_stack == null) return false;
+      if (call_sites == null && qcr.call_sites != null) return false;
+      if (call_sites != null && !call_sites.equals(qcr.call_sites)) return false;
       return true;
     }
    return false;
@@ -500,7 +507,6 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
 @Override public int hashCode()
 {
    int hash = use_conditions;
-   if (base_reference != null) hash += base_reference.hashCode();
    if (base_value != null) hash += base_value.hashCode();
    for (Map.Entry<IfaceValue,Integer> ent : priority_map.entrySet()) {
 //       hash += ent.getValue().hashCode();

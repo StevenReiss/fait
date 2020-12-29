@@ -1253,7 +1253,8 @@ private void handleFlowQueryForCall(IfaceControl ctrl,Element qxml,IfaceCall cal
    if (IvyXml.isElement(loc,"EXPR")) {
       IfaceState st0 = ctrl.findStateForLocation(call,ppt);
       if (st0 == null) return;
-      ref = st0.getStack(0);
+      IfaceValue refv = st0.getStack(0);
+      ref = ctrl.findRefStackValue(refv.getDataType(),0);
     }
    else {
       Element refxml = IvyXml.getChild(qxml,"VALUE");

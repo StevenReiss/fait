@@ -706,6 +706,8 @@ private class BackVisitor extends ASTVisitor {
       if (after_node == null || after_node == v.getArray()) start_back_ref = end_ref;
       else if (end_ref.getRefStack() == 0) {
          addAuxArrayRefs(prior_state.getStack(1));
+         addAuxRef(0);
+         addAuxRef(1);
          start_back_ref = null;
        }
       else start_back_ref = adjustRef(end_ref,2,1);

@@ -68,6 +68,7 @@ class QueryProcessor implements QueryConstants
 private Deque<QueryQueueItem> query_queue;
 private IfaceControl	      fait_control;
 private Map<QueryQueueItem,QueryNode> known_items;
+private QueryContextMap         context_map;
 
 
 
@@ -82,6 +83,7 @@ QueryProcessor(IfaceControl ctrl,QueryQueueItem qqi,QueryNode qn)
    fait_control = ctrl;
    query_queue = new LinkedList<>();
    known_items = new HashMap<>();
+   context_map = new QueryContextMap();
 
    if (qqi != null) {
       query_queue.add(qqi);
@@ -130,6 +132,23 @@ private void computeNext(QueryQueueItem qqi,IfaceState cur,QueryNode node)
    FaitLog.logD("Compute Next: " + " " + ctx + " " + qqi.getProgramPoint() + " " +
          qqi.getCall().getMethod() + " (" + node.getId() + ")");
    FaitLog.logD("Next Info: " + cur + " " + qqi.getCall().hashCode());
+   
+   QueryContext oldctx = context_map.get(call,pt);
+   if (oldctx != null) {
+      if (oldctx == ctx) return;
+      QueryContext newctx = oldctx.mergeWith(ctx);
+      if (newctx == oldctx) {
+         QueryQueueItem oqqi = new QueryQueueItem(call,pt,newctx);
+         QueryNode onode = known_items.get(oqqi);
+         if (onode != null && onode != node) {
+            QueryGraph graph = node.getGraph();
+            graph.addNode(onode,node);
+          }
+       }
+      if (newctx == null || newctx == oldctx) return;
+      ctx = newctx;
+    }
+   context_map.put(call,pt,ctx);
    
    if (cur.isStartOfMethod()) {
       // need to handle case where we initiated the call -- go to call site rather than
@@ -205,8 +224,8 @@ private void handleActualFlowFrom(IfaceState backfrom,IfaceState st0,QueryContex
    QueryContext priorctx = bfd.getContext();
    IfaceProgramPoint pt = st0.getLocation().getProgramPoint();
    IfaceMethod mthd = pt.getCalledMethod();
-   if (mthd != null) {
-      priorctx = ctx.addRelevantArgs(st0,bfd);
+   if (mthd != null && priorctx != null) {
+      priorctx = priorctx.addRelevantArgs(st0,bfd);
     }
    boolean islinked = false;
    
@@ -231,7 +250,7 @@ private void handleActualFlowFrom(IfaceState backfrom,IfaceState st0,QueryContex
       addItem(nqqi,node);
     }
    else if (st0.isMethodCall()) {
-      // svals are the conditions at start of call
+      // the context is determined by the call, not by anything prior to the call
       IfaceCall call2 = st0.getLocation().getCall();
       QueryContext retctx = ctx.getReturnContext(call2);
       if (retctx == null) return;
@@ -406,6 +425,37 @@ void addItem(QueryQueueItem qqi,QueryNode gn)
 }
 
 
+
+/********************************************************************************/
+/*                                                                              */
+/*      Map from location to context                                            */
+/*                                                                              */
+/********************************************************************************/
+
+private static class QueryContextMap {
+   
+   private Map<IfaceCall,Map<IfaceProgramPoint,QueryContext>> local_map;
+   
+   QueryContextMap() {
+      local_map = new HashMap<>();
+    }
+   
+   QueryContext get(IfaceCall c,IfaceProgramPoint ppt) {
+      Map<IfaceProgramPoint,QueryContext> m1 = local_map.get(c);
+      if (m1 == null) return null;
+      return m1.get(ppt);
+    }
+   
+   void put(IfaceCall c,IfaceProgramPoint ppt,QueryContext ctx) {
+      Map<IfaceProgramPoint,QueryContext> m1 = local_map.get(c);
+      if (m1 == null) {
+         m1 = new HashMap<>();
+         local_map.put(c,m1);
+       }
+      m1.put(ppt,ctx);
+    }
+   
+}       // end of inner class QueryContextMap
 
 }	// end of class QueryProcessor
 
