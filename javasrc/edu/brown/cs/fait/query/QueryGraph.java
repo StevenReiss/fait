@@ -303,7 +303,7 @@ private class Node implements QueryNode {
    private List<Arc> to_arcs;
    private List<Arc> from_arcs;
    private String node_reason;
-   private int node_priority;
+   private double node_priority;
    private QueryNodeType node_type;
 
    Node(IfaceCall c,IfaceProgramPoint pt,QueryContext ctx,QueryNodeType typ,String reason) {
@@ -322,7 +322,7 @@ private class Node implements QueryNode {
    @Override public IfaceProgramPoint getProgramPoint() 	{ return at_point; }
    @Override public IfaceCall getCall() 			{ return for_call; }
    
-   @Override public void setPriority(int p) {
+   @Override public void setPriority(double p) {
       node_priority = Math.max(node_priority,p);
     }
    

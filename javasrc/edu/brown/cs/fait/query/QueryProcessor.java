@@ -223,10 +223,14 @@ private void handleActualFlowFrom(IfaceState backfrom,IfaceState st0,QueryContex
    QueryBackFlowData bfd = ctx.getPriorStateContext(backfrom,st0);
    QueryContext priorctx = bfd.getContext();
    IfaceProgramPoint pt = st0.getLocation().getProgramPoint();
-   IfaceMethod mthd = pt.getCalledMethod();
-   if (mthd != null && priorctx != null) {
-      priorctx = priorctx.addRelevantArgs(st0,bfd);
+   
+   if (st0.isMethodCall()) {
+      IfaceMethod mthd = pt.getCalledMethod();
+      if (mthd != null) {
+         priorctx = ctx.addRelevantArgs(priorctx,st0,bfd);
+       }
     }
+   
    boolean islinked = false;
    
    if (bfd.getAuxRefs() != null) {
@@ -236,6 +240,37 @@ private void handleActualFlowFrom(IfaceState backfrom,IfaceState st0,QueryContex
     }
    
    if (priorctx == null && !islinked) node.getGraph().markAsEndNode(node);
+   
+   if (st0.isMethodCall() &&
+         (priorctx == null || !priorctx.isPriorStateRelevant(st0) || priorctx.followCalls())) {
+      // the context is determined by the call, not by anything prior to the call
+      IfaceCall call2 = st0.getLocation().getCall();
+      QueryContext retctx = ctx.getReturnContext(call2);
+      if (retctx != null) {
+         IfaceProgramPoint ppt2  = st0.getLocation().getProgramPoint();
+         if (call2.getAllMethodsCalled(ppt2).isEmpty()) {
+            islinked |= ctx.handleInternalCall(st0,bfd,node);
+            if (!islinked) node.getGraph().markAsEndNode(node);
+          }
+         else {
+            for (IfaceCall from : call2.getAllMethodsCalled(ppt2)) {
+               // if return did not include value of interest, skip
+               if (!retctx.isReturnRelevant(st0,from)) continue;
+               for (IfaceState st1 : from.getReturnStates()) {
+                  if (!retctx.isPriorStateRelevant(st1)) continue;
+                  // get the return expression state
+                  IfaceState st2 = getReturnState(st1);
+                  QueryGraph graph = node.getGraph();
+                  QueryNode nn = graph.addNode(from,st2.getLocation().getProgramPoint(),retctx,
+                        QueryNodeType.RETURN,
+                        "Result of method " + from.getMethod().getName(),node);
+                  QueryQueueItem nqqi = new QueryQueueItem(st2.getLocation(),retctx);
+                  addItem(nqqi,nn);
+                }
+             }
+          }
+       }
+    }
    
    if (priorctx != null && priorctx.isPriorStateRelevant(st0)) {
       String reason = ctx.addToGraph(priorctx,st0);
@@ -248,34 +283,6 @@ private void handleActualFlowFrom(IfaceState backfrom,IfaceState st0,QueryContex
       node.setPriority(priorctx.getNodePriority());
       QueryQueueItem nqqi = new QueryQueueItem(st0.getLocation(),priorctx);
       addItem(nqqi,node);
-    }
-   else if (st0.isMethodCall()) {
-      // the context is determined by the call, not by anything prior to the call
-      IfaceCall call2 = st0.getLocation().getCall();
-      QueryContext retctx = ctx.getReturnContext(call2);
-      if (retctx == null) return;
-      IfaceProgramPoint ppt2  = st0.getLocation().getProgramPoint();
-      if (call2.getAllMethodsCalled(ppt2).isEmpty()) {
-	 islinked |= ctx.handleInternalCall(st0,bfd,node);
-	 if (!islinked) node.getGraph().markAsEndNode(node);
-       }
-      else {
-	 for (IfaceCall from : call2.getAllMethodsCalled(ppt2)) {
-	    // if return did not include value of interest, skip
-	    if (!retctx.isReturnRelevant(st0,from)) continue;
-	    for (IfaceState st1 : from.getReturnStates()) {
-	       if (!retctx.isPriorStateRelevant(st1)) continue;
-               // get the return expression state
-               IfaceState st2 = getReturnState(st1);
-	       QueryGraph graph = node.getGraph();
-	       QueryNode nn = graph.addNode(from,st2.getLocation().getProgramPoint(),retctx,
-                     QueryNodeType.RETURN,
-		     "Result of method " + from.getMethod().getName(),node);
-	       QueryQueueItem nqqi = new QueryQueueItem(st2.getLocation(),retctx);
-	       addItem(nqqi,nn);
-	     }
-	  }
-       }
     }
    else if (priorctx != null) {
       List<QueryContext> nctxs = priorctx.getTransitionContext(st0);
@@ -299,6 +306,7 @@ private void handleActualFlowFrom(IfaceState backfrom,IfaceState st0,QueryContex
     }
    // STILL need to handle flows based on exceptions
 }
+
 
 
 void handleInitialReferences(Collection<IfaceAuxReference> refs,QueryContext ctx,

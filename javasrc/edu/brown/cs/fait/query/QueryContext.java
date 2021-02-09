@@ -164,13 +164,17 @@ protected boolean isReturnRelevant(IfaceState st0,IfaceCall call)
    return true;
 }
 
+protected boolean followCalls()
+{
+   return false;
+}
 
 boolean isCallRelevant(IfaceCall callfrom,IfaceCall callto)
 {
    return true;
 }
 
-protected abstract QueryContext addRelevantArgs(IfaceState st0,QueryBackFlowData bfd);
+protected abstract QueryContext addRelevantArgs(QueryContext priorctx,IfaceState st0,QueryBackFlowData bfd);
 
 
 protected boolean handleInternalCall(IfaceState st0,QueryBackFlowData bfd,QueryNode n)
@@ -185,7 +189,7 @@ protected String addToGraph(QueryContext ctx,IfaceState st0)
 }
 
 
-protected int getNodePriority()
+protected double getNodePriority()
 {
    return 0;
 }

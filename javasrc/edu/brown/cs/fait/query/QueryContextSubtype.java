@@ -184,7 +184,7 @@ QueryContextSubtype(IfaceControl ctrl,QueryCallSites sites,
 
 
 
-@Override protected QueryContext addRelevantArgs(IfaceState st0,QueryBackFlowData bfd)
+@Override protected QueryContext addRelevantArgs(QueryContext prior,IfaceState st0,QueryBackFlowData bfd)
 {
    IfaceProgramPoint pt = st0.getLocation().getProgramPoint();
    IfaceMethod mthd = pt.getCalledMethod();
@@ -206,7 +206,7 @@ QueryContextSubtype(IfaceControl ctrl,QueryCallSites sites,
       bfd.addAuxReference(r);
     }
    
-   return this;
+   return prior;
 }
 
 

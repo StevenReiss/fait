@@ -81,7 +81,7 @@ interface QueryNode {
    IfaceProgramPoint getProgramPoint();
    IfaceCall getCall();
    
-   void setPriority(int p);
+   void setPriority(double p);
    
 }       // end of interface QueryNode
 

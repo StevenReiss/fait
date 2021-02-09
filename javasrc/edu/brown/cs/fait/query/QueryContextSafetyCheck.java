@@ -154,9 +154,9 @@ QueryContextSafetyCheck(IfaceControl ctrl,QueryCallSites sites,
 }
 
 
-@Override protected QueryContext addRelevantArgs(IfaceState st0,QueryBackFlowData bfd)
+@Override protected QueryContext addRelevantArgs(QueryContext prior,IfaceState st0,QueryBackFlowData bfd)
 {
-   return this;
+   return prior;
 }
 
 

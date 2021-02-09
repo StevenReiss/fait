@@ -178,7 +178,7 @@ QueryContextEntity(IfaceControl fc,QueryCallSites sites,IfaceValue v,IfaceEntity
 
 
 
-@Override protected QueryContext addRelevantArgs(IfaceState st0,QueryBackFlowData bfd)
+@Override protected QueryContext addRelevantArgs(QueryContext prior,IfaceState st0,QueryBackFlowData bfd)
 {
    IfaceProgramPoint pt = st0.getLocation().getProgramPoint();
    IfaceMethod mthd = pt.getCalledMethod();
@@ -200,7 +200,7 @@ QueryContextEntity(IfaceControl fc,QueryCallSites sites,IfaceValue v,IfaceEntity
       bfd.addAuxReference(r);
     }
    
-   return this;
+   return prior;
 }
 
 

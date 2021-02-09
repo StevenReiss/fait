@@ -57,6 +57,8 @@ private IfaceValue                      base_value;
 private int                             use_conditions;
 private List<IfaceMethod>               call_stack;
 
+private final int MAX_PRIORITY = 10;
+
 
 
 /********************************************************************************/
@@ -74,7 +76,7 @@ QueryContextRose(IfaceControl ctrl,QueryCallSites sites,
    priority_map = new HashMap<>();
    known_values = new HashMap<>();
    if (var != null) {
-      priority_map.put(var,10);
+      priority_map.put(var,MAX_PRIORITY);
       if (val != null) known_values.put(var,val);
     }
    use_conditions = conds;
@@ -210,10 +212,11 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
 
 
 
-@Override protected QueryContext addRelevantArgs(IfaceState st0,QueryBackFlowData bfd)
+@Override protected QueryContext addRelevantArgs(QueryContext priorc,IfaceState st0,QueryBackFlowData bfd)
 {
    IfaceProgramPoint pt = st0.getLocation().getProgramPoint();
    IfaceMethod mthd = pt.getCalledMethod();
+   QueryContextRose prior = (QueryContextRose) priorc;
   
    int ct = mthd.getNumArgs();
    int retused = -1;
@@ -224,8 +227,12 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
       if (!mthd.isStatic() && slot == ct+1) thisused = priority_map.get(ref);
     }
    
-   Map<IfaceValue,Integer> npmap = new HashMap<>(priority_map);
-   Map<IfaceValue,IfaceValue> nvmap = new HashMap<>(known_values);
+   Map<IfaceValue,Integer> npmap = new HashMap<>();
+   Map<IfaceValue,IfaceValue> nvmap = new HashMap<>();
+   if (prior != null) {
+      npmap.putAll(prior.priority_map);
+      nvmap.putAll(prior.known_values);
+    }
    boolean chng = false;
    
    List<IfaceAuxReference> arefs = getArgumentReferences(st0,retused > 0,thisused > 0);
@@ -244,10 +251,11 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
     }
    
    if (chng) {
-      return new QueryContextRose(this,call_sites,npmap,nvmap);
+      if (prior == null) prior = this;
+      return new QueryContextRose(prior,call_sites,npmap,nvmap);
     }
    
-   return this;
+   return prior;
 }
 
 
@@ -386,15 +394,20 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
    return true;
 }
 
-
-
-@Override protected int getNodePriority()
+@Override protected boolean followCalls()
 {
-   int p = 1;
+   return true;
+}
+
+
+@Override protected double getNodePriority()
+{
+   double p = 1;
    for (Integer i : priority_map.values()) {
       if (i != null) p = Math.max(p,i);
     }
-   return p;
+   
+   return p/MAX_PRIORITY;
 }
 
 

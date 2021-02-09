@@ -166,7 +166,7 @@ IfaceMethod findMethod(IfaceBaseType typ,String name,String desc)
    JcompType atyps = null;
    if (desc != null) {
       List<JcompType> types = getParameterList(desc);
-      atyps = JcompType.createMethodType(null,types,false,null);
+      atyps = jcomp_typer.createMethodType(null,types,false,null);
     }
    JcompSymbol msym = getInternalType(typ).lookupMethod(jcomp_typer,name,atyps);
    if (msym == null && name.equals("<clinit>")) {
@@ -314,7 +314,7 @@ IfaceBaseType getMethodType(IfaceType rtn,List<IfaceType> args)
    for (IfaceType t : args) {
       argtyps.add(getInternalType(t.getJavaType()));
     }
-   JcompType mtyp = JcompType.createMethodType(rtyp,argtyps,false,null);
+   JcompType mtyp = jcomp_typer.createMethodType(rtyp,argtyps,false,null);
    return getType(mtyp);
 }
 

@@ -316,7 +316,7 @@ TypeBase(TypeFactory fac,IfaceBaseType base,IfaceSubtype.Value [] subs)
 {
    int idx = ((TypeSubtype) st).getIndex();
    if (sub_values.length <= idx) {
-      System.err.println("CHECK HERE");
+      FaitLog.logE("Wrong length of subvalues for " + st + " " + idx);
     }
    return sub_values[idx];
 }
