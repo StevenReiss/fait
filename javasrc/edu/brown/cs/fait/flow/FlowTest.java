@@ -188,7 +188,7 @@ public void flowTestS6()
    cp += File.pathSeparator + "/pro/ivy/lib";
    cp += System.getenv("ECLIPSEPATH");
    cp += File.pathSeparator + "/pro/s6/lib/json.jar";
-   cp += File.pathSeparator + "/pro/ivy/lib/asm5.jar";
+   cp += File.pathSeparator + "/pro/ivy/lib/asm.jar";
    cp += File.pathSeparator + "/pro/s6/lib/junit.jar";
    cp += File.pathSeparator + "/pro/s6/lib/jsoup.jar";
    cp += File.pathSeparator + "/pro/s6/lib/ddmlib.jar";

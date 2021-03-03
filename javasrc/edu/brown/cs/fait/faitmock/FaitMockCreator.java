@@ -57,10 +57,10 @@ import java.lang.reflect.Modifier;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.w3c.dom.Element;
 
+import edu.brown.cs.ivy.jcode.JcodeConstants;
 import edu.brown.cs.ivy.xml.IvyXml;
 
 public class FaitMockCreator implements FaitMockConstants
@@ -506,7 +506,7 @@ private static class FindMethodVisitor extends ClassVisitor {
    private Map<String,String> service_methods;
    
    FindMethodVisitor() {
-      super(Opcodes.ASM6);
+      super(JcodeConstants.ASM_API);
       set_methods = new HashMap<>();
       action_methods = new ArrayList<>();
       service_methods = new HashMap<>();
