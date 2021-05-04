@@ -426,7 +426,8 @@ void addItem(QueryQueueItem qqi,QueryNode gn)
             known_items.put(qqi,gn2);
             gn = gn2;
           }
-	 FaitLog.logD("Add Link to " + gn1 + " from " + gn + " for " + qqi.getProgramPoint());
+	 FaitLog.logD("Add Link to " + gn1 + " from " + gn + " for " + qqi.getProgramPoint()
+          + " (" + gn1.getId() + ") <- (" + gn.getId() + ")");
 	 gn.getGraph().addNode(gn1,gn);
        }
     }

@@ -97,13 +97,14 @@ QueryNode addStartNode(IfaceCall call,IfaceProgramPoint pt,QueryContext ctx,Stri
    start_nodes.add(n);
    all_nodes.add(n);
 
-   FaitLog.logD("Create Node " + n + " at " + pt);
+   FaitLog.logD("Create Node " + n + " at " + pt + " " + n.getId());
 
    return n;
 }
 
 void markAsEndNode(QueryNode qn)
 {
+   FaitLog.logD("MARK AS END NODE " + qn + " (" + qn.getId() + ")");
    end_nodes.add((Node) qn);
 }
 
@@ -116,7 +117,7 @@ QueryNode addNode(IfaceCall call,IfaceProgramPoint pt,QueryContext ctx,
    addNode(n,prior);
    all_nodes.add(n);
 
-   FaitLog.logD("Create Node " + n + " at " + pt + ": " + reason);
+   FaitLog.logD("Create Node " + n + " at " + pt + ": " + reason + " (" + n.getId() + ") <- (" + prior.getId() + ")");
 
    return n;
 }

@@ -166,7 +166,7 @@ public void processFlowQuery(IfaceCall call,IfaceProgramPoint pt,IfaceValue refv
 {
    long start = System.currentTimeMillis();
    
-   int locctr = 1;
+   int locctr = 4;
    // set locctr based on type of query -- getting here is > others
    QueryContext ctx = new QueryContextRose(fait_control,null,refval,val,locctr,stack);
    

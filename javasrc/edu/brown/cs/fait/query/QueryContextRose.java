@@ -388,8 +388,10 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
    
    IfaceMethod mfrom = callfrom.getMethod();
    if (mfrom.getName().startsWith("TEST_")) return true;
-   
-   if (!call_stack.contains(mfrom)) return false;
+   // this precludes calls to routines from methods on the stack
+   // we need a better way of limiting here -- track whether we 
+   // should use call stack or not?
+// if (!call_stack.contains(mfrom)) return false;
    
    return true;
 }
