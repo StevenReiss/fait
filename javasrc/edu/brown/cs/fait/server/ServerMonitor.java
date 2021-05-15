@@ -356,6 +356,16 @@ private void handleResourceFiles(String sid,Element res,IvyXmlWriter xw)
 private void handleBegin(String sid,Element xml,IvyXmlWriter xw) throws ServerException
 {
    ServerSession ss = new ServerSession(server_control,sid,xml);
+   
+   // check for alternative session for this project
+   ServerProject sp = ss.getProject();
+   for (ServerSession oldsess : session_map.values()) {
+      if (oldsess.getProject() == sp) {
+         ss = oldsess;
+         break;
+       }
+    }
+   
    FaitLog.logD("BEGIN " + sid + " " + ss);
    xw.begin("SESSION");
    xw.field("ID",ss.getSessionId());
