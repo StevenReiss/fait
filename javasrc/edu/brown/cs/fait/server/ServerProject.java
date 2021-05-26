@@ -1229,6 +1229,7 @@ private void handleFlowQueryForCall(IfaceControl ctrl,Element qxml,IfaceCall cal
    if (apos >= 0) {
       aft = getReferredNode(r0.getAstNode(),apos,atyp);
     }
+   if (aft != null) an0 = aft.getParent();
    IfaceProgramPoint ppt = ctrl.getAstReference(an0,aft);
    
    List<IfaceMethod> stack = null;

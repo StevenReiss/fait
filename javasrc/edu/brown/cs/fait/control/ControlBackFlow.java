@@ -865,7 +865,10 @@ private class BackVisitor extends ASTVisitor {
    @Override public boolean visit(EnhancedForStatement s) {
       if (after_node != null && after_node == s.getExpression()) {
          int slot = getSlot(JcompAst.getDefinition(s.getParameter().getName()));
-         if (end_ref.getRefSlot() == slot) start_back_ref = null;
+         if (end_ref.getRefSlot() == slot) {
+            addAuxRef(0);
+            start_back_ref = null;
+          }
          else popOne();
        }
       else noChange();
@@ -1067,6 +1070,7 @@ private class BackVisitor extends ASTVisitor {
    
    @Override public boolean visit(SimpleName v) {
       JcompSymbol js = JcompAst.getReference(v);
+      int slot = getSlot(js);
       if (end_ref.getRefStack() == 0) {
          if (js != null && js.isFieldSymbol()) {
             IfaceField fld = getField(js);
@@ -1083,7 +1087,6 @@ private class BackVisitor extends ASTVisitor {
             start_back_ref = null;
           }
          else {
-            int slot = getSlot(js);
             addAuxVarRef(slot);
             start_back_ref = null;
           }

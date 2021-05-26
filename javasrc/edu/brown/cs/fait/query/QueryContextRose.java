@@ -29,6 +29,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.jdt.core.dom.Expression;
+import org.eclipse.jdt.core.dom.MethodInvocation;
+
+import edu.brown.cs.fait.iface.IfaceAstReference;
 import edu.brown.cs.fait.iface.IfaceAuxReference;
 import edu.brown.cs.fait.iface.IfaceBackFlow;
 import edu.brown.cs.fait.iface.IfaceCall;
@@ -38,6 +42,7 @@ import edu.brown.cs.fait.iface.IfaceMethod;
 import edu.brown.cs.fait.iface.IfaceProgramPoint;
 import edu.brown.cs.fait.iface.IfaceState;
 import edu.brown.cs.fait.iface.IfaceValue;
+import edu.brown.cs.ivy.jcomp.JcompAst;
 import edu.brown.cs.ivy.jcomp.JcompSymbol;
 import edu.brown.cs.ivy.xml.IvyXmlWriter;
 
@@ -160,10 +165,12 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
    int act = fm.getNumArgs();
    Map<IfaceValue,Integer> npmap = new HashMap<>();
    Map<IfaceValue,IfaceValue> nvmap = new HashMap<>();
+   boolean havedummy = false;
    for (IfaceValue ref : priority_map.keySet()) {
       int slot = ref.getRefSlot();
       IfaceValue nref = ref;
       if (slot >= 0) {
+         if (slot >= fm.getLocalSize()) havedummy = true;
          if (slot >= act+delta || slot == 0) continue;
          int stk = act+delta-slot-1;
          nref = fait_control.findRefStackValue(ref.getDataType(),stk);
@@ -174,7 +181,11 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
        }
     }
 
-   if (npmap.isEmpty()) return null;
+   if (npmap.isEmpty()) {
+      if (use_conditions <= 0) return null;
+      if (!havedummy) return null;
+      return null;
+    }
    QueryContextRose newctx = new QueryContextRose(this,sites,npmap,nvmap);
    newctx.use_conditions = Math.max(0,use_conditions-1);
    
@@ -226,6 +237,25 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
       if (slot == 0) retused = priority_map.get(ref);
       if (!mthd.isStatic() && slot == ct+1) thisused = priority_map.get(ref);
     }
+   
+   IfaceAstReference xref = pt.getAstReference();
+   if (xref != null && thisused < 0) {
+      MethodInvocation mi = (MethodInvocation) xref.getAstNode();
+      Expression ex = mi.getExpression();
+      if (ex != null) {
+         JcompSymbol js = JcompAst.getReference(ex);
+         IfaceMethod fmthd = xref.getMethod();
+         if (js != null) {
+            int slot = fmthd.getLocalOffset(js);
+            if (slot >= 0) {
+               for (IfaceValue ref : priority_map.keySet()) {
+                  if (ref.getRefSlot() == slot) thisused = priority_map.get(ref);
+                }
+             }
+          }
+       }
+    }
+   
    
    Map<IfaceValue,Integer> npmap = new HashMap<>();
    Map<IfaceValue,IfaceValue> nvmap = new HashMap<>();
@@ -378,6 +408,8 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
 
 @Override protected boolean isReturnRelevant(IfaceState st0,IfaceCall call)
 {
+   if (!call.getMethod().isEditable())
+      return false;
    return true;
 }
 

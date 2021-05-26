@@ -150,7 +150,7 @@ private void computeNext(QueryQueueItem qqi,IfaceState cur,QueryNode node)
     }
    context_map.put(call,pt,ctx);
    
-   if (cur.isStartOfMethod()) {
+   if (cur != null && cur.isStartOfMethod()) {
       // need to handle case where we initiated the call -- go to call site rather than
       // all call sites
       node.getGraph().markAsEndNode(node);	// allow this to be a starting point
