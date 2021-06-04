@@ -151,8 +151,6 @@ private void computeNext(QueryQueueItem qqi,IfaceState cur,QueryNode node)
    context_map.put(call,pt,ctx);
    
    if (cur != null && cur.isStartOfMethod()) {
-      // need to handle case where we initiated the call -- go to call site rather than
-      // all call sites
       node.getGraph().markAsEndNode(node);	// allow this to be a starting point
       QueryCallSites sites = ctx.getCallSites().getPriorSites();
       QueryContext priorctx = ctx.getPriorContextForCall(call,pt,sites);
@@ -163,13 +161,15 @@ private void computeNext(QueryQueueItem qqi,IfaceState cur,QueryNode node)
       node = graph.addNode(call,pt,ctx,QueryNodeType.ENTRY,
             "Start of Method " + call.getMethod().getName(),node);
       IfaceLocation loc = ctx.getCallSites().getCallSite();
-      if (loc != null) {
+      // need to handle case where we initiated the call -- go to call site rather than
+      // all call sites
+      if (loc != null) {                // CHANGE IF CALL_SITES don't work
          processCallSite(call,priorctx,node,loc);
        }
       else {
          for (IfaceCall call0 : call.getAlternateCalls()) {
             for (IfaceLocation callloc : call0.getCallSites()) {
-               if (!ctx.isCallRelevant(call0,callloc.getCall())) continue;
+               if (!ctx.isCallRelevant(callloc.getCall(),call0)) continue;
                processCallSite(call,priorctx,node,callloc);
              }
           }
@@ -245,7 +245,7 @@ private void handleActualFlowFrom(IfaceState backfrom,IfaceState st0,QueryContex
          (priorctx == null || !priorctx.isPriorStateRelevant(st0) || priorctx.followCalls())) {
       // the context is determined by the call, not by anything prior to the call
       IfaceCall call2 = st0.getLocation().getCall();
-      QueryContext retctx = ctx.getReturnContext(call2);
+      QueryContext retctx = ctx.getReturnContext(st0.getLocation());
       if (retctx != null) {
          IfaceProgramPoint ppt2  = st0.getLocation().getProgramPoint();
          if (call2.getAllMethodsCalled(ppt2).isEmpty()) {

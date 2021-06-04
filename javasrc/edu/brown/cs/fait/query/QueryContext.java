@@ -42,6 +42,7 @@ import edu.brown.cs.fait.iface.IfaceAuxReference;
 import edu.brown.cs.fait.iface.IfaceCall;
 import edu.brown.cs.fait.iface.IfaceControl;
 import edu.brown.cs.fait.iface.IfaceEntity;
+import edu.brown.cs.fait.iface.IfaceLocation;
 import edu.brown.cs.fait.iface.IfaceMethod;
 import edu.brown.cs.fait.iface.IfaceProgramPoint;
 import edu.brown.cs.fait.iface.IfacePrototype;
@@ -147,7 +148,7 @@ protected List<QueryContext> getTransitionContext(IfaceState st0)
 
 
 
-protected abstract QueryContext getReturnContext(IfaceCall call);
+protected abstract QueryContext getReturnContext(IfaceLocation loc);
    // compute the context at a return point given the current context.	The state st0
    //	 can be used to determine what is being called
    // return null if this method call is not relevant to the context

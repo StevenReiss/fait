@@ -42,6 +42,7 @@ import java.util.Set;
 
 import edu.brown.cs.fait.iface.IfaceCall;
 import edu.brown.cs.fait.iface.IfaceControl;
+import edu.brown.cs.fait.iface.IfaceLocation;
 import edu.brown.cs.fait.iface.IfaceMethod;
 import edu.brown.cs.fait.iface.IfaceProgramPoint;
 import edu.brown.cs.fait.iface.IfaceSafetyCheck;
@@ -124,7 +125,7 @@ QueryContextSafetyCheck(IfaceControl ctrl,QueryCallSites sites,
 }
 
 
-@Override protected QueryContext getReturnContext(IfaceCall call)
+@Override protected QueryContext getReturnContext(IfaceLocation call)
 {
    return this;
 }

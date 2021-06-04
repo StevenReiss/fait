@@ -1236,6 +1236,13 @@ private void handleFlowQueryForCall(IfaceControl ctrl,Element qxml,IfaceCall cal
    Element selt = IvyXml.getChild(qxml,"STACK");
    if (selt != null) {
       stack = new ArrayList<>();
+      boolean fndstart = false; 
+      IfaceMethod callm = call.getMethod();
+      boolean istest = false;
+      for (Element felt : IvyXml.children(selt,"FRAME")) {
+         String cnm = IvyXml.getAttrString(felt,"CLASS");
+         if (cnm.startsWith("org.junit.runners")) istest = true;
+       }
       for (Element felt : IvyXml.children(selt,"FRAME")) {
          String cnm = IvyXml.getAttrString(felt,"CLASS");
          String mnm = IvyXml.getAttrString(felt,"METHOD");
@@ -1244,10 +1251,19 @@ private void handleFlowQueryForCall(IfaceControl ctrl,Element qxml,IfaceCall cal
          if (im == null && cnm.contains("$")) continue;
          if (im == null && cnm.contains(".junit.")) continue;
          if (im == null && cnm.contains(".junit4.")) continue;
+         if (cnm.startsWith("jdk.internal.reflect.")) {
+            if (istest) break;
+            else continue;
+          }
          if (im == null) stack = null;
+         else if (!fndstart) {
+            if (im == callm) fndstart = true;
+            else continue;
+          }
          if (stack != null) stack.add(im);
        }
       if (stack != null && stack.isEmpty()) stack = null;
+      if (!fndstart) stack = null;
     }
    
    IfaceValue ref = null;

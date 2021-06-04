@@ -43,6 +43,7 @@ import edu.brown.cs.fait.iface.IfaceCall;
 import edu.brown.cs.fait.iface.IfaceControl;
 import edu.brown.cs.fait.iface.IfaceEntity;
 import edu.brown.cs.fait.iface.IfaceField;
+import edu.brown.cs.fait.iface.IfaceLocation;
 import edu.brown.cs.fait.iface.IfaceMethod;
 import edu.brown.cs.fait.iface.IfaceProgramPoint;
 import edu.brown.cs.fait.iface.IfaceState;
@@ -139,11 +140,11 @@ QueryContextEntity(IfaceControl fc,QueryCallSites sites,IfaceValue v,IfaceEntity
 
 
 
-@Override protected QueryContext getReturnContext(IfaceCall call)
+@Override protected QueryContext getReturnContext(IfaceLocation loc)
 {
    IfaceValue ref = fait_control.findRefStackValue(for_value.getDataType(),0);
-   // want to get push current locationn onto callsites here
-   return newReference(ref,call_sites,null,null);
+   QueryCallSites cs = call_sites.getNextSites(loc);
+   return newReference(ref,cs,null,null);
 }
 
 

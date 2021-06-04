@@ -38,6 +38,7 @@ import edu.brown.cs.fait.iface.IfaceBackFlow;
 import edu.brown.cs.fait.iface.IfaceCall;
 import edu.brown.cs.fait.iface.IfaceControl;
 import edu.brown.cs.fait.iface.IfaceField;
+import edu.brown.cs.fait.iface.IfaceLocation;
 import edu.brown.cs.fait.iface.IfaceMethod;
 import edu.brown.cs.fait.iface.IfaceProgramPoint;
 import edu.brown.cs.fait.iface.IfaceState;
@@ -196,7 +197,7 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
 
 
 
-@Override protected QueryContext getReturnContext(IfaceCall call)
+@Override protected QueryContext getReturnContext(IfaceLocation loc)
 {
    Map<IfaceValue,Integer> npmap = new HashMap<>();
    Map<IfaceValue,IfaceValue> nvmap = new HashMap<>();
@@ -216,7 +217,8 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
    if (!useret || npmap.isEmpty()) return null;
    
    // need to use getNextSite here
-   QueryContextRose newctx = new QueryContextRose(this,call_sites,npmap,nvmap);
+   QueryCallSites ncallsites = call_sites.getNextSites(loc);
+   QueryContextRose newctx = new QueryContextRose(this,ncallsites,npmap,nvmap);
    newctx.use_conditions = Math.max(0,use_conditions-1);
    return newctx;
 }
@@ -423,9 +425,17 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
    // this precludes calls to routines from methods on the stack
    // we need a better way of limiting here -- track whether we 
    // should use call stack or not?
-// if (!call_stack.contains(mfrom)) return false;
+   // if (!call_stack.contains(mfrom)) return false;
+   boolean fnd = false;
+   boolean stkfnd = false;
+   for (IfaceMethod im : call_stack) {
+      if (im == callto.getMethod()) fnd = true;
+      else if (fnd && im == callfrom.getMethod()) stkfnd = true;
+    }
+   if (!fnd || stkfnd)
+      return true;
    
-   return true;
+   return false;
 }
 
 @Override protected boolean followCalls()
