@@ -449,11 +449,11 @@ private class AstType implements IfaceBaseType {
 
    @Override public IfaceBaseType getRunTimeType() {
       if (jcomp_type.isParameterizedType()) {
-	 return getType(jcomp_type.getBaseType());
+         return getType(jcomp_type.getBaseType());
        }
       else if (jcomp_type.isArrayType() && jcomp_type.getBaseType().isParameterizedType()) {
-	 IfaceBaseType t0 = getType(jcomp_type.getBaseType().getBaseType());
-	 return t0.getArrayType();
+         IfaceBaseType t0 = getType(jcomp_type.getBaseType().getBaseType());
+         return t0.getArrayType();
        }
       return this;
     }
