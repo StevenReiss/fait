@@ -256,6 +256,12 @@ private void handleActualFlowFrom(IfaceState backfrom,IfaceState st0,QueryContex
             for (IfaceCall from : call2.getAllMethodsCalled(ppt2)) {
                // if return did not include value of interest, skip
                if (!retctx.isReturnRelevant(st0,from)) continue;
+//             if (from.getReturnStates().size() > 1) {
+//                int ct = from.getMethod().getLocalSize();
+//                IfaceType t0 = fait_control.findDataType("int");
+//                IfaceValue ref = fait_control.findRefValue(t0,ct+10);
+//              }
+               
                for (IfaceState st1 : from.getReturnStates()) {
                   if (!retctx.isPriorStateRelevant(st1)) continue;
                   // get the return expression state

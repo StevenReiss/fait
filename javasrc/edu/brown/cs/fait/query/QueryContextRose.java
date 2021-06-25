@@ -148,6 +148,7 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
    QueryContextRose nctx = null;
    if (npmap.equals(priority_map)) nctx = this;
    else if (!npmap.isEmpty()) nctx = new QueryContextRose(this,call_sites,npmap,kpmap);
+   else if (use_conditions > 0) nctx = new QueryContextRose(this,call_sites,npmap,kpmap);
    
    if (auxrefs.isEmpty()) auxrefs = null;
    IfaceBackFlow bf = fait_control.getBackFlow(backfrom,backto,auxrefs);
@@ -403,7 +404,9 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
       if (opri == null) return "Value Computed";
       else if (opri != ent.getValue()) return "Value Changed";
     }
-   
+   if (priority_map.size() != prior.priority_map.size()) {
+      return "Value Computed";
+    }
    return null;
 }
 
@@ -430,7 +433,7 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
    boolean stkfnd = false;
    for (IfaceMethod im : call_stack) {
       if (im == callto.getMethod()) fnd = true;
-      else if (fnd && im == callfrom.getMethod()) stkfnd = true;
+      if (fnd && im == callfrom.getMethod()) stkfnd = true;
     }
    if (!fnd || stkfnd)
       return true;
