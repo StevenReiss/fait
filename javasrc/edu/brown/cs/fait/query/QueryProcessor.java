@@ -223,11 +223,13 @@ private void handleActualFlowFrom(IfaceState backfrom,IfaceState st0,QueryContex
    QueryBackFlowData bfd = ctx.getPriorStateContext(backfrom,st0);
    QueryContext priorctx = bfd.getContext();
    IfaceProgramPoint pt = st0.getLocation().getProgramPoint();
+   boolean cntxrel = false;
    
    if (st0.isMethodCall()) {
       IfaceMethod mthd = pt.getCalledMethod();
       if (mthd != null) {
          priorctx = ctx.addRelevantArgs(priorctx,st0,bfd);
+         if (priorctx != ctx) cntxrel = true;
        }
     }
    
@@ -240,6 +242,15 @@ private void handleActualFlowFrom(IfaceState backfrom,IfaceState st0,QueryContex
     }
    
    if (priorctx == null && !islinked) node.getGraph().markAsEndNode(node);
+   else if (cntxrel) {
+      QueryGraph graph = node.getGraph();
+      IfaceLocation ploc = st0.getLocation();
+      QueryNode nn = graph.addNode(ploc.getCall(),ploc.getProgramPoint(),priorctx,
+            QueryNodeType.REFERENCE,"State Transition",node);
+      nn.setPriority(priorctx.getNodePriority());
+      
+      node = nn;
+    }
    
    if (st0.isMethodCall() &&
          (priorctx == null || !priorctx.isPriorStateRelevant(st0) || priorctx.followCalls())) {
@@ -285,6 +296,7 @@ private void handleActualFlowFrom(IfaceState backfrom,IfaceState st0,QueryContex
          IfaceLocation ploc = st0.getLocation();
          node = graph.addNode(ploc.getCall(),ploc.getProgramPoint(),priorctx,
                QueryNodeType.COMPUTED,reason,node);
+         node.getGraph().markAsEndNode(node);
        }
       node.setPriority(priorctx.getNodePriority());
       QueryQueueItem nqqi = new QueryQueueItem(st0.getLocation(),priorctx);
