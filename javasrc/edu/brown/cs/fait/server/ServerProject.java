@@ -1209,6 +1209,48 @@ void handleChangeQuery(Element qxml,IvyXmlWriter xw) throws FaitException
 }
 
 
+void handleFileQuery(Element qxml,IvyXmlWriter xw) throws FaitException 
+{
+   IfaceControl ctrl = null;
+   if (current_runner != null) {
+      ctrl = current_runner.getControl();
+    }
+   if (ctrl == null) {
+      throw new FaitException("Analysis not run");
+    }
+   
+   
+   Set<String> classes = new HashSet<>();
+   Set<IfaceCall> done = new HashSet<>();
+   
+   for (Element melt : IvyXml.children(qxml,"METHOD")){
+      String mnm = IvyXml.getText(melt);
+      String msg = null;
+      String mcl = null;
+      int idx1 = mnm.indexOf("(");
+      if (idx1 > 0) {
+         msg = mnm.substring(idx1);
+         mnm = mnm.substring(0,idx1);
+       }
+      int idx2 = mnm.lastIndexOf(".");
+      if (idx2 > 0) {
+         mcl = mnm.substring(0,idx2);
+         mnm = mnm.substring(idx2+1);
+       }
+      IfaceMethod m = ctrl.findMethod(mcl,mnm,msg);
+      for (IfaceCall c : ctrl.getAllCalls(m)) {
+         for (IfaceCall c1 : c.getAlternateCalls()) {
+            handleFileQueryForCall(ctrl,c1,classes,done);
+          }
+       }
+    }
+   
+   for (String s : classes) {
+      xw.textElement("CLASS",s);
+    }
+}
+
+
 
 private void handleFlowQueryForCall(IfaceControl ctrl,Element qxml,IfaceCall call,
       Element loc,IvyXmlWriter xw) throws FaitException
@@ -1341,6 +1383,7 @@ private void handleChangeQueryForCall(IfaceControl ctrl,Element qxml,IfaceCall c
 } 
 
 
+
 private IfaceValue getCurrentValue(IfaceControl ctrl,String vstr,IfaceType typ)
 {
    if (vstr == null) return null;
@@ -1372,6 +1415,23 @@ private IfaceValue getCurrentValue(IfaceControl ctrl,String vstr,IfaceType typ)
 }
 
 
+
+private void handleFileQueryForCall(IfaceControl ctrl,IfaceCall call,
+      Set<String> rslt,Set<IfaceCall> done)
+{
+   if (done.add(call)) {
+      String cnm = call.getMethod().getDeclaringClass().getName();
+      if (isProjectClass(cnm)) {
+         if (cnm != null) rslt.add(cnm);
+         for (IfaceCall c : call.getAllMethodsCalled(null)) {
+            handleFileQueryForCall(ctrl,c,rslt,done);
+          }
+       }
+    } 
+}
+   
+   
+   
 /********************************************************************************/
 /*										*/
 /*	Handle Reflection queries						*/

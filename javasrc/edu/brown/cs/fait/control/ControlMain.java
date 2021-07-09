@@ -938,6 +938,12 @@ boolean isEditableClass(IfaceBaseType dt)
    
    if (user_project.isEditableClass(name)) return true;
    
+   int idx1 = name.indexOf("<");
+   if (idx1 > 0) {
+      name = name.substring(0,idx1);
+      if (user_project.isEditableClass(name)) return true;
+    }
+   
    int idx = name.indexOf(".$");;
    if (idx > 0) {
       String onm = name.substring(0,idx);

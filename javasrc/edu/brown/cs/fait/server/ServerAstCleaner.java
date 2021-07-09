@@ -58,6 +58,7 @@ import org.eclipse.jdt.core.dom.EnumConstantDeclaration;
 import org.eclipse.jdt.core.dom.EnumDeclaration;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.ExpressionStatement;
+import org.eclipse.jdt.core.dom.FieldAccess;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.Initializer;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
@@ -325,10 +326,12 @@ private void fixType(AbstractTypeDeclaration td,boolean inner)
 	    List<Object> stmts = blk.statements();
 	    boolean fnd = false;
 	    int idx = 0;
+            boolean cnstinv = false;
 	    for (Object stmtn : stmts) {
-	       if (stmtn instanceof SuperConstructorInvocation ||
-		     stmtn instanceof ConstructorInvocation) fnd = true;
+               if (stmtn instanceof ConstructorInvocation) cnstinv = true;
+	       if (stmtn instanceof SuperConstructorInvocation) fnd = true;
 	     }
+            if (cnstinv) continue;      // not needed if it calls this(...)
 	    if (fnd) idx = 1;
 	    if (!fnd && supertype != null) {
 	       SuperConstructorInvocation sci = the_ast.newSuperConstructorInvocation();
@@ -344,7 +347,10 @@ private void fixType(AbstractTypeDeclaration td,boolean inner)
 			   VariableDeclarationFragment vdf = (VariableDeclarationFragment) o2;
 			   if (vdf.getInitializer() != null) {
 			      Assignment asgn = the_ast.newAssignment();
-			      asgn.setLeftHandSide(the_ast.newSimpleName(vdf.getName().getIdentifier()));
+                              FieldAccess fa = the_ast.newFieldAccess();
+                              fa.setExpression(the_ast.newThisExpression());
+                              fa.setName(the_ast.newSimpleName(vdf.getName().getIdentifier()));
+                              asgn.setLeftHandSide(fa);
 			      asgn.setRightHandSide((Expression) ASTNode.copySubtree(the_ast,vdf.getInitializer()));
 			      ExpressionStatement es = the_ast.newExpressionStatement(asgn);
 			      md.getBody().statements().add(idx++,es);

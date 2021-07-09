@@ -801,8 +801,15 @@ private void removeMethodCall(IfaceLocation loc,IfaceCall c)
 {
    Collection<IfaceCall> rslt = new ArrayList<IfaceCall>();
    synchronized (method_map) {
-      Map<IfaceMethod,IfaceCall> mm = method_map.get(ins);
-      if (mm != null) rslt.addAll(mm.values());
+      if (ins == null) {
+         for (Map<IfaceMethod,IfaceCall> mm : method_map.values()) {
+            if (mm != null) rslt.addAll(mm.values());
+          }
+       }
+      else {
+         Map<IfaceMethod,IfaceCall> mm = method_map.get(ins);
+         if (mm != null) rslt.addAll(mm.values());
+       }
     }
    return rslt;
 }

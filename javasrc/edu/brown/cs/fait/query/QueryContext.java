@@ -38,6 +38,10 @@ package edu.brown.cs.fait.query;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.jdt.core.dom.ASTNode;
+import org.eclipse.jdt.core.dom.MethodInvocation;
+
+import edu.brown.cs.fait.iface.IfaceAstReference;
 import edu.brown.cs.fait.iface.IfaceAuxReference;
 import edu.brown.cs.fait.iface.IfaceCall;
 import edu.brown.cs.fait.iface.IfaceControl;
@@ -218,7 +222,24 @@ protected List<IfaceAuxReference> getArgumentReferences(IfaceState st0,boolean a
    
    if (argvalues && mthd.getReturnType() != null && !mthd.getReturnType().isVoidType()) {
       int ct = mthd.getNumArgs();
-      int ct1 = (mthd.isStatic() ? 0 : 1);
+      int ct1 = 0;
+      IfaceValue thisv = null;
+      if (!mthd.isStatic()) {
+         thisv = st0.getStack(ct);
+         ct1= 1;
+         IfaceAstReference ar = pt.getAstReference();
+         if (ar != null) {
+            ASTNode n = ar.getAstNode();
+            if (n instanceof MethodInvocation) {
+               MethodInvocation mi = (MethodInvocation) n;
+               if (mi.getExpression() == null) {
+                  ct1 = 0;
+                  // might need to be local(1) for nested class
+                  thisv = st0.getLocal(0);
+                }
+             }
+          }
+       }
       for (int i = 0; i < ct+ct1; ++i) {
          IfaceValue vs = st0.getStack(i);
          vs = QueryFactory.dereference(fait_control,vs,st0);
@@ -229,7 +250,6 @@ protected List<IfaceAuxReference> getArgumentReferences(IfaceState st0,boolean a
        }
       
       if (!mthd.isStatic()) {
-         IfaceValue thisv = st0.getStack(ct);
          if (thisv != null) thisv = QueryFactory.dereference(fait_control,thisv,st0);
          if (thisv != null) {
             for (IfaceEntity ent : thisv.getEntities()) {

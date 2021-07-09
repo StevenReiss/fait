@@ -132,6 +132,11 @@ FaitStatistics getStatistics();
 
 
 
+
+
+
+
+
 }	// end of interface IfaceCall
 
 

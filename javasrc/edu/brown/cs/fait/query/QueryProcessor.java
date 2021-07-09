@@ -132,7 +132,7 @@ private void computeNext(QueryQueueItem qqi,IfaceState cur,QueryNode node)
    FaitLog.logD("Compute Next: " + " " + ctx + " " + qqi.getProgramPoint() + " " +
          qqi.getCall().getMethod() + " (" + node.getId() + ")");
    FaitLog.logD("Next Info: " + cur + " " + qqi.getCall().hashCode());
-   
+         
    QueryContext oldctx = context_map.get(call,pt);
    if (oldctx != null) {
       if (oldctx == ctx) return;
@@ -175,7 +175,7 @@ private void computeNext(QueryQueueItem qqi,IfaceState cur,QueryNode node)
           }
        }
     }
-   else {
+   else if (cur != null) {
       for (int i = 0; i < cur.getNumPriorStates(); ++i) {
 	 IfaceState st0 = cur.getPriorState(i);
          FaitLog.logD("PRIOR STATE " + i + " " + st0);
@@ -228,6 +228,7 @@ private void handleActualFlowFrom(IfaceState backfrom,IfaceState st0,QueryContex
    if (st0.isMethodCall()) {
       IfaceMethod mthd = pt.getCalledMethod();
       if (mthd != null) {
+         FaitLog.logD("Call to: " + mthd.getName());
          priorctx = ctx.addRelevantArgs(priorctx,st0,bfd);
          if (priorctx != ctx) cntxrel = true;
        }
@@ -251,6 +252,7 @@ private void handleActualFlowFrom(IfaceState backfrom,IfaceState st0,QueryContex
       
       node = nn;
     }
+   
    
    if (st0.isMethodCall() &&
          (priorctx == null || !priorctx.isPriorStateRelevant(st0) || priorctx.followCalls())) {

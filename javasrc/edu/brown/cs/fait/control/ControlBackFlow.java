@@ -760,7 +760,8 @@ private class BackVisitor extends ASTVisitor {
                noBack();
              }
           }
-         else if (asgval.getRefField() == end_ref.getRefField()) {
+         else if (asgval.getRefField() != null && 
+               asgval.getRefField() == end_ref.getRefField()) {
             addAuxRef(0);
             noBack();
           }

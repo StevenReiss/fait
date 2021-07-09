@@ -1349,6 +1349,9 @@ private Object visit(QualifiedName v)
       if (v0 == null) return NO_NEXT_REPORT;
       IfaceType rtyp = convertType(JcompAst.getExprType(v));
       IfaceField fld = getField(sym);
+      if (fld == null) {
+	 fld = getField(sym);
+       }
       IfaceValue v1 = fait_control.findRefValue(rtyp,v0,fld);
       pushValue(v1);
     }
@@ -2277,7 +2280,7 @@ private Object visit(TryStatement s)
 	 if (o instanceof IfaceAstStatus) {
 	    IfaceAstStatus sts = (IfaceAstStatus) o;
 	    // IfaceAstReference nar = fait_control.getAstReference(s,sts);
-            IfaceAstReference nar = fait_control.getAstReference(par,sts);
+	    IfaceAstReference nar = fait_control.getAstReference(par,sts);
 	    FlowLocation nloc = new FlowLocation(flow_queue,work_queue.getCall(),nar);
 	    work_queue.mergeState(cur_state,nloc);
 	  }
@@ -3750,13 +3753,15 @@ private long getNumericValue(String sv)
    if (sv.endsWith("L") || sv.endsWith("l")) {
       sv = sv.substring(0,sv.length()-1);
     }
-   if (sv.startsWith("0x") && sv.length() > 2) {
+   if ((sv.startsWith("0x")  || sv.startsWith("0X")) && sv.length() > 2) {
       sv = sv.substring(2);
-      lv = Long.parseLong(sv,16);
-    }
-   else if (sv.startsWith("0X") && sv.length() > 2) {
-      sv = sv.substring(2);
-      lv = Long.parseLong(sv,16);
+      if (sv.length() == 16) {
+	 for (int i = 0; i < 16; ++i) {
+	    int v = Character.digit(sv.charAt(i),16);
+	    lv = (lv<<4) | v;
+	  }
+       }
+      else lv = Long.parseLong(sv,16);
     }
    else if (sv.startsWith("0b") && sv.length() > 2) {
       sv = sv.substring(2);

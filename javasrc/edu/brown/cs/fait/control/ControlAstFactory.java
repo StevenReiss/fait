@@ -258,7 +258,24 @@ private int getTypeFromDescription(String txt,int idx,List<JcompType> rslt)
 	     }
 	  }
 	 break;
-
+      case 'T' :
+         for (int i = idx+1; i < txt.length(); ++i) {
+	    if (txt.charAt(i) == '<' || txt.charAt(i) == ';') {
+	       if (txt.charAt(i) == '<') {
+		  ++i;
+		  List<JcompType> dtyp = new ArrayList<JcompType>();
+		  while (i < txt.length()) {
+		     i = getTypeFromDescription(txt,i,dtyp);
+		     if (i >= txt.length() || txt.charAt(i) == '>') break;
+		   }
+		  ++i;
+		}
+	       if (i < txt.length() && txt.charAt(i) == ';') ++i;
+               rslt.add(jcomp_typer.findSystemType("java.lang.Object"));
+	       return i;
+	     }
+	  }
+	 break;
     }
    return idx+1;
 }
