@@ -1287,6 +1287,8 @@ private void handleFlowQueryForCall(IfaceControl ctrl,Element qxml,IfaceCall cal
        }
       for (Element felt : IvyXml.children(selt,"FRAME")) {
          String cnm = IvyXml.getAttrString(felt,"CLASS");
+         int idx0 = cnm.indexOf("<");
+         if (idx0 > 0) cnm = cnm.substring(0,idx0);
          String mnm = IvyXml.getAttrString(felt,"METHOD");
          String msg = IvyXml.getAttrString(felt,"SIGNATURE");
          IfaceMethod im = ctrl.findMethod(cnm,mnm,msg);

@@ -233,6 +233,13 @@ public void handleUpdate(IfaceUpdater upd)
 }
 
 
+public void updateTypeInitializations(IfaceUpdater upd)
+{
+   flow_queue.updateTypeInitializations(upd);
+}
+
+
+
 
 
 

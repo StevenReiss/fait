@@ -35,6 +35,7 @@
 
 package edu.brown.cs.fait.server;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 import edu.brown.cs.fait.iface.FaitLog;
@@ -230,7 +231,7 @@ private boolean getAllAsts()
    int editcount = ServerFile.getEditCount();
    FaitLog.logI("Getting ASTS " + editcount);
 
-   Collection<ServerFile> files = for_project.getActiveFiles();
+   Collection<ServerFile> files = new ArrayList<>(for_project.getActiveFiles());
    for (ServerFile sf : files) {
       if (ServerFile.getEditCount() != editcount) break;
       sf.saveAst();

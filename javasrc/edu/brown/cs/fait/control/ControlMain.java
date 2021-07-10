@@ -1187,6 +1187,8 @@ IfaceBaseType createMethodType(IfaceType rtn,List<IfaceType> args)
    
    ast_factory.updateAll(user_project.getTyper());
    bytecode_factory.updateAll();
+   
+   flow_factory.updateTypeInitializations(upd);
 }
 
 

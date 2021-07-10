@@ -526,6 +526,19 @@ void handleUpdate(IfaceUpdater upd)
       if (locs.isEmpty()) it1.remove();
     }
 
+   // updateTypeInitializations(upd);
+
+   synchronized (call_map) {
+      for (FlowQueueInstance qi : call_map.values()) {
+	 qi.handleUpdate(upd);
+       }
+    }
+}
+
+
+
+void updateTypeInitializations(IfaceUpdater upd)
+{
    for (IfaceType typ : upd.getTypesRemoved()) {
       FaitLog.logD("Remove inited type " + typ);
       IfaceBaseType btyp = typ.getJavaType();
@@ -536,12 +549,6 @@ void handleUpdate(IfaceUpdater upd)
 	 staticinit_queue.remove(btyp);
 	 staticinit_redos.remove(btyp);
 	 initialize(typ);
-       }
-    }
-
-   synchronized (call_map) {
-      for (FlowQueueInstance qi : call_map.values()) {
-	 qi.handleUpdate(upd);
        }
     }
 }
