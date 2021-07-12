@@ -569,6 +569,17 @@ IfaceMethod getMethod(JcompSymbol js)
    if (typ.isEditable()) {
       AstMethod m1 = method_map.get(js);
       if (m1 == null || m1.getJcompSymbol() != js) {
+         // try finding method here
+         if (js.isBinarySymbol()) {
+            JcompSymbol msym = getInternalType(typ).lookupMethod(jcomp_typer,js.getName(),js.getType());
+            if (msym != null && !msym.isBinarySymbol()) {
+               IfaceMethod im1 = getMethod(msym);
+               if (im1 != null && im1 instanceof AstMethod) {
+                  method_map.put(js,(AstMethod) im1);
+                  return im1;
+                }
+             }
+          }
 	 m1 = new AstMethod(js);
 	 AstMethod m2 = method_map.putIfAbsent(js,m1);
 	 if (m2 != null) m1 = m2;
