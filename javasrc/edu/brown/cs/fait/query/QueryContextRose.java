@@ -115,31 +115,48 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
    Map<IfaceValue,IfaceValue> kpmap = new HashMap<>();
    List<IfaceAuxReference> auxrefs = new ArrayList<>();
    
-   for (Map.Entry<IfaceValue,Integer> ent : priority_map.entrySet()) {
-      IfaceValue ref = ent.getKey();
-      IfaceBackFlow bf = fait_control.getBackFlow(backfrom,backto,ref,(use_conditions > 0));
-      if (bf == null) continue;
-      IfaceValue sref = bf.getStartReference();
-      if (sref != null) {
-         npmap.put(sref,ent.getValue());
-         if (known_values.get(ref) != null) {
-            kpmap.put(sref,known_values.get(ref));
+   if (priority_map.size() > 0) {
+      for (Map.Entry<IfaceValue,Integer> ent : priority_map.entrySet()) {
+         IfaceValue ref = ent.getKey();
+         IfaceBackFlow bf = fait_control.getBackFlow(backfrom,backto,ref,(use_conditions > 0));
+         if (bf == null) continue;
+         IfaceValue sref = bf.getStartReference();
+         if (sref != null) {
+            npmap.put(sref,ent.getValue());
+            if (known_values.get(ref) != null) {
+               kpmap.put(sref,known_values.get(ref));
+             }
+          }
+         
+         if (bf.getAuxRefs() != null && bf.getAuxRefs().size() > 0) {
+            int refval = ent.getValue() - 1;
+            if (refval > 0) {
+               for (IfaceAuxReference auxref : bf.getAuxRefs()) {
+                  if (auxref.getLocation().equals(backto.getLocation())) {    
+                     Integer oval = npmap.get(auxref.getReference());
+                     int rval = refval;
+                     if (oval != null) rval = Math.max(rval,oval);
+                     npmap.put(auxref.getReference(),rval);
+                   }
+                  else {
+                     auxrefs.add(auxref);
+                   }
+                }
+             }
           }
        }
-      
-      if (bf.getAuxRefs() != null) {
-         int refval = ent.getValue() - 1;
-         if (refval > 0) {
-            for (IfaceAuxReference auxref : bf.getAuxRefs()) {
-               if (auxref.getLocation().equals(backto.getLocation())) {    
-                  Integer oval = npmap.get(auxref.getReference());
-                  int rval = refval;
-                  if (oval != null) rval = Math.max(rval,oval);
-                  npmap.put(auxref.getReference(),rval);
-                }
-               else {
-                  auxrefs.add(auxref);
-                }
+    }
+   else if (use_conditions > 0) {
+      IfaceBackFlow bf = fait_control.getBackFlow(backfrom,backto,null,true);
+      if (bf.getAuxRefs() != null && bf.getAuxRefs().size() > 0) {
+         for (IfaceAuxReference auxref : bf.getAuxRefs()) {
+            if (auxref.getLocation().equals(backto.getLocation())) {    
+               Integer oval = npmap.get(auxref.getReference());
+               if (oval == null) oval = use_conditions;
+               npmap.put(auxref.getReference(),oval);
+             }
+            else {
+               auxrefs.add(auxref);
              }
           }
        }

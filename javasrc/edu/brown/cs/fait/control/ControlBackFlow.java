@@ -256,9 +256,19 @@ void computeBackFlow()
 
 void computeBackFlow(boolean conds)
 {
-   if (execute_point == null || end_refs == null || end_refs.isEmpty()) return;
-   
    note_conditions = conds;
+   
+   if (execute_point == null || end_refs == null || end_refs.isEmpty()) {
+      if (conds) {
+         IfaceType typ = fait_control.findDataType("int");
+         IfaceValue dummyref = fait_control.findRefValue(typ,10000);
+         if (execute_point.getAstReference() != null) 
+            computeAstBackFlow(dummyref);
+         else
+            computeByteCodeBackFlow(dummyref);
+       }
+      return;
+    }
    
    for (IfaceValue eref : end_refs) {
       IfaceValue sref = null;

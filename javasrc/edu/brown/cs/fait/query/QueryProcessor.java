@@ -132,6 +132,7 @@ private void computeNext(QueryQueueItem qqi,IfaceState cur,QueryNode node)
    FaitLog.logD("Compute Next: " + " " + ctx + " " + qqi.getProgramPoint() + " " +
          qqi.getCall().getMethod() + " (" + node.getId() + ")");
    FaitLog.logD("Next Info: " + cur + " " + qqi.getCall().hashCode());
+//b
          
    QueryContext oldctx = context_map.get(call,pt);
    if (oldctx != null) {
