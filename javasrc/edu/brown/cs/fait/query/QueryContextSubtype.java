@@ -202,7 +202,7 @@ QueryContextSubtype(IfaceControl ctrl,QueryCallSites sites,
        }
     }
    
-   List<IfaceAuxReference> refs = getArgumentReferences(st0,useargs,usethis);
+   List<IfaceAuxReference> refs = getArgumentReferences(st0,useargs,usethis,false);
    
    for (IfaceAuxReference r : refs) {
       bfd.addAuxReference(r);

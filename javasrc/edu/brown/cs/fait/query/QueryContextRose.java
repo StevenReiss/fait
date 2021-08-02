@@ -29,8 +29,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.jdt.core.dom.ASTNode;
+import org.eclipse.jdt.core.dom.Assignment;
+import org.eclipse.jdt.core.dom.ClassInstanceCreation;
 import org.eclipse.jdt.core.dom.Expression;
+import org.eclipse.jdt.core.dom.FieldAccess;
 import org.eclipse.jdt.core.dom.MethodInvocation;
+import org.eclipse.jdt.core.dom.SimpleName;
+import org.eclipse.jdt.core.dom.ThisExpression;
 
 import edu.brown.cs.fait.iface.IfaceAstReference;
 import edu.brown.cs.fait.iface.IfaceAuxReference;
@@ -42,9 +48,11 @@ import edu.brown.cs.fait.iface.IfaceLocation;
 import edu.brown.cs.fait.iface.IfaceMethod;
 import edu.brown.cs.fait.iface.IfaceProgramPoint;
 import edu.brown.cs.fait.iface.IfaceState;
+import edu.brown.cs.fait.iface.IfaceType;
 import edu.brown.cs.fait.iface.IfaceValue;
 import edu.brown.cs.ivy.jcomp.JcompAst;
 import edu.brown.cs.ivy.jcomp.JcompSymbol;
+import edu.brown.cs.ivy.jcomp.JcompType;
 import edu.brown.cs.ivy.xml.IvyXmlWriter;
 
 class QueryContextRose extends QueryContext
@@ -114,6 +122,7 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
    Map<IfaceValue,Integer> npmap = new HashMap<>();
    Map<IfaceValue,IfaceValue> kpmap = new HashMap<>();
    List<IfaceAuxReference> auxrefs = new ArrayList<>();
+   boolean checkcond = true;
    
    if (priority_map.size() > 0) {
       for (Map.Entry<IfaceValue,Integer> ent : priority_map.entrySet()) {
@@ -131,6 +140,7 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
          if (bf.getAuxRefs() != null && bf.getAuxRefs().size() > 0) {
             int refval = ent.getValue() - 1;
             if (refval > 0) {
+               checkcond = false;
                for (IfaceAuxReference auxref : bf.getAuxRefs()) {
                   if (auxref.getLocation().equals(backto.getLocation())) {    
                      Integer oval = npmap.get(auxref.getReference());
@@ -146,7 +156,7 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
           }
        }
     }
-   else if (use_conditions > 0) {
+   if (use_conditions > 0 && checkcond) {
       IfaceBackFlow bf = fait_control.getBackFlow(backfrom,backto,null,true);
       if (bf.getAuxRefs() != null && bf.getAuxRefs().size() > 0) {
          for (IfaceAuxReference auxref : bf.getAuxRefs()) {
@@ -224,6 +234,19 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
       int slot = ref.getRefStack();
       if (slot > 0) continue;           // ignore stack other than return value
       else if (slot == 0) {
+         IfaceAstReference astr = loc.getProgramPoint().getAstReference();
+         if (astr != null) {
+            ASTNode astn = astr.getAstNode();
+            if (astn instanceof ClassInstanceCreation) {
+               ClassInstanceCreation cic = (ClassInstanceCreation) astn;
+               JcompType jt = JcompAst.getJavaType(cic.getType());
+               IfaceType it = fait_control.findDataType(jt.getName());
+               IfaceValue v0ref = fait_control.findRefValue(it,0);
+               npmap.put(v0ref,priority_map.get(ref));
+               useret = true;
+               continue;
+             }
+          }
          useret = true;
          npmap.put(ref,priority_map.get(ref));
        }
@@ -252,10 +275,15 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
    int ct = mthd.getNumArgs();
    int retused = -1;
    int thisused = -1;
+   IfaceValue voidused = null;
    for (IfaceValue ref : priority_map.keySet()) {
       int slot = ref.getRefStack();
       if (slot == 0) retused = priority_map.get(ref);
       if (!mthd.isStatic() && slot == ct+1) thisused = priority_map.get(ref);
+      if (ref.getRefSlot() == 100000) {
+         voidused = ref;
+         retused = priority_map.get(ref);
+       }
     }
    
    IfaceAstReference xref = pt.getAstReference();
@@ -282,10 +310,11 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
    if (prior != null) {
       npmap.putAll(prior.priority_map);
       nvmap.putAll(prior.known_values);
+      if (voidused != null) npmap.remove(voidused);
     }
    boolean chng = false;
    
-   List<IfaceAuxReference> arefs = getArgumentReferences(st0,retused > 0,thisused > 0);
+   List<IfaceAuxReference> arefs = getArgumentReferences(st0,retused > 0,thisused > 0,voidused != null);
    for (IfaceAuxReference aref : arefs) {
       if (aref.getLocation() == st0.getLocation()) {
          Integer oval = priority_map.get(aref.getReference());
@@ -415,15 +444,40 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
 @Override protected String addToGraph(QueryContext priorctx,IfaceState state)
 {
    QueryContextRose prior = (QueryContextRose) priorctx;
+   boolean havethis = false;
    for (Map.Entry<IfaceValue,Integer> ent : prior.priority_map.entrySet()) {
       IfaceValue ref = ent.getKey();
       Integer opri = priority_map.get(ref);
+      if (ref.getRefSlot() == 0) havethis = true;
       if (opri == null) return "Value Computed";
       else if (opri != ent.getValue()) return "Value Changed";
     }
    if (priority_map.size() != prior.priority_map.size()) {
       return "Value Computed";
     }
+   if (havethis) {
+      IfaceAstReference astref = state.getLocation().getProgramPoint().getAstReference();
+      if (astref != null) {
+         ASTNode an = astref.getAstNode();
+         if (an instanceof Assignment) {
+            Assignment asgn = (Assignment) an;
+            ASTNode lhsv = asgn.getLeftHandSide();
+            boolean isrel = false;
+            if (lhsv instanceof SimpleName) {
+               JcompSymbol lhssym = JcompAst.getReference(lhsv);
+               if (lhssym != null && lhssym.isFieldSymbol()) isrel = true;
+             }
+            else if (lhsv instanceof FieldAccess) {
+               FieldAccess facc = (FieldAccess) lhsv;
+               if (facc.getExpression() instanceof ThisExpression) isrel = true;
+             }
+            if (isrel) {
+               return "Field Set";
+             }
+          }
+       }
+    }
+   
    return null;
 }
 

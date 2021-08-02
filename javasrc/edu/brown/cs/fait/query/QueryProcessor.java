@@ -132,7 +132,8 @@ private void computeNext(QueryQueueItem qqi,IfaceState cur,QueryNode node)
    FaitLog.logD("Compute Next: " + " " + ctx + " " + qqi.getProgramPoint() + " " +
          qqi.getCall().getMethod() + " (" + node.getId() + ")");
    FaitLog.logD("Next Info: " + cur + " " + qqi.getCall().hashCode());
-//b
+// if (qqi.getCall().getMethod().getName().contains("inverseCumulative"))
+//    System.err.println("CHECK HERE");
          
    QueryContext oldctx = context_map.get(call,pt);
    if (oldctx != null) {
@@ -253,7 +254,6 @@ private void handleActualFlowFrom(IfaceState backfrom,IfaceState st0,QueryContex
       
       node = nn;
     }
-   
    
    if (st0.isMethodCall() &&
          (priorctx == null || !priorctx.isPriorStateRelevant(st0) || priorctx.followCalls())) {
@@ -403,13 +403,15 @@ private IfaceState getReturnState(IfaceState st1)
       // handle byte-code return
     }
    
-   return st1;
+   return st2;
 }
 
 
 
 private IfaceState getPriorReturnState(IfaceState st)
 {
+   if (st.getNumPriorStates() > 1) return null;
+   
    for (int i = 0; i < st.getNumPriorStates(); ++i) {
       IfaceState st1 = st.getPriorState(i);
       if (st1.getLocation() == null) {

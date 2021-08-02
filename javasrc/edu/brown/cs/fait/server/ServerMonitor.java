@@ -76,6 +76,7 @@ private ServerMain		server_control;
 private MintControl		mint_control;
 private boolean 		is_done;
 private Map<String,ServerSession> session_map;
+private boolean                 no_exit;
 
 
 /********************************************************************************/
@@ -89,6 +90,7 @@ ServerMonitor(ServerMain sm)
    server_control = sm;
    is_done = false;
    session_map = new HashMap<String,ServerSession>();
+   no_exit = false;
 
    mint_control = MintControl.create(sm.getMintId(),MintSyncMode.ONLY_REPLIES);
 }
@@ -161,7 +163,7 @@ private class WaitForExit extends Thread {
           }
        }
    
-      System.exit(0);
+      if (!no_exit) System.exit(0);
     }
 
 }	// end of inner class WaitForExit
@@ -356,6 +358,7 @@ private void handleResourceFiles(String sid,Element res,IvyXmlWriter xw)
 private void handleBegin(String sid,Element xml,IvyXmlWriter xw) throws ServerException
 {
    ServerSession ss = new ServerSession(server_control,sid,xml);
+   no_exit = IvyXml.getAttrBool(xml,"NOEXIT");
    
    // check for alternative session for this project
    ServerProject sp = ss.getProject();
@@ -722,7 +725,7 @@ private String processCommand(String cmd,String sid,Element e) throws ServerExce
 	 xw.text("PONG");
 	 break;
       case "EXIT" :
-	 System.exit(0);
+	 if (!no_exit) System.exit(0);
 	 break;
       case "BEGIN" :
 	 handleBegin(sid,e,xw);

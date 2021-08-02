@@ -920,13 +920,13 @@ private class BackVisitor extends ASTVisitor {
       else if (end_ref.getRefStack() == 0) {
          JcompSymbol sym = JcompAst.getReference(v.getName());
          IfaceField fld = getField(sym);
-         if (prior_state.getStack(0) == prior_state.getLocal(0) && 
+         if (fld != null && prior_state.getStack(0) == prior_state.getLocal(0) && 
                !execute_point.getMethod().isStatic() && prior_state.getFieldValue(fld) != null) {
             start_back_ref = fait_control.findRefValue(end_ref.getDataType(),prior_state.getStack(0),fld);
           }
          else {
             start_back_ref = null;
-            addAuxRefs(fld);
+            if (fld != null) addAuxRefs(fld);
           }
        }
       else start_back_ref = adjustRef(end_ref,1,1);
@@ -1070,7 +1070,7 @@ private class BackVisitor extends ASTVisitor {
     }
    
    @Override public boolean visit(ReturnStatement s) {
-      if (after_status !=  null) noChange();
+      if (after_status != null) noChange();
       else if (after_node == null && s.getExpression() != null) start_back_ref = end_ref;
       else if (s.getExpression() != null && end_ref.getRefStack() == 0) {
         noChange();
@@ -1258,6 +1258,7 @@ private class BackVisitor extends ASTVisitor {
     }
    
    private IfaceField getField(JcompSymbol sym) {
+      if (sym == null) return null;             // can be .length
       IfaceType fcls = fait_control.findDataType(sym.getClassType().getName());
       IfaceField fld = fait_control.findField(fcls,sym.getFullName());
       if (fld != null) return fld;

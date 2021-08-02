@@ -533,6 +533,9 @@ private void processAstNode()
 	 case ASTNode.FOR_STATEMENT :
 	    rslt = visitThrow((ForStatement) node,sts);
 	    break;
+         case ASTNode.LABELED_STATEMENT :
+            rslt = visitThrow((LabeledStatement) node,sts);
+            break;
 	 case ASTNode.WHILE_STATEMENT :
 	    rslt = visitThrow((WhileStatement) node,sts);
 	    break;
@@ -1699,7 +1702,7 @@ private Object visit(MethodInvocation v)
 {
    JcompSymbol js = JcompAst.getReference(v.getName());
    if (after_node == null && v.getExpression() == null) {
-      if (!js.isStatic()) {
+      if (js != null && !js.isStatic()) {
 	 IfaceType mcls = convertType(js.getClassType());
 	 IfaceValue v0 = getThisValue(mcls);
 	 cur_state.pushStack(v0);
@@ -2115,6 +2118,25 @@ private Object visit(LabeledStatement s)
    if (after_node == null) return s.getBody();
    return null;
 }
+
+
+private Object visitThrow(LabeledStatement s,IfaceAstStatus sts)
+{
+   switch (sts.getReason()) {
+      case BREAK :
+         String lbl = sts.getMessage();
+         if (lbl == null) return sts;
+         if (s.getLabel().getIdentifier().equals(lbl)) {
+            return null;
+          }
+         break;
+      default :
+         return sts;
+    }
+   
+   return null;
+}
+
 
 
 private Object visit(ReturnStatement s)

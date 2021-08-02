@@ -1315,20 +1315,25 @@ private void handleFlowQueryForCall(IfaceControl ctrl,Element qxml,IfaceCall cal
       IfaceState st0 = ctrl.findStateForLocation(call,ppt);
       if (st0 == null) return;
       IfaceValue refv = st0.getStack(0);
-      ref = ctrl.findRefStackValue(refv.getDataType(),0);
+      if (refv != null) {
+         ref = ctrl.findRefStackValue(refv.getDataType(),0);
+       }
+      else {
+         IfaceType t0 = ctrl.findDataType("int");
+         ref = ctrl.findRefValue(t0,100000);
+       }
     }
    else {
       Element refxml = IvyXml.getChild(qxml,"VALUE");
       if (refxml != null) {
          ref = getReference(ctrl,call,null,ppt,refxml);
        }
-      else {
-         // create dummy local reference
-         IfaceMethod m = call.getMethod();
-         int sz = m.getLocalSize();
-         IfaceType t0 = ctrl.findDataType("int");
-         ref = ctrl.findRefValue(t0,sz+10);
-       }
+    }
+   if (ref == null) {
+      IfaceMethod m = call.getMethod();
+      int sz = m.getLocalSize();
+      IfaceType t0 = ctrl.findDataType("int");
+      ref = ctrl.findRefValue(t0,sz+10);
     }
    
    if (ref == null) return;

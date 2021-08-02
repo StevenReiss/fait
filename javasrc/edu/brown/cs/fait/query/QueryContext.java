@@ -213,15 +213,26 @@ protected QueryContext mergeWith(QueryContext ctx)
 }
 
 
-protected List<IfaceAuxReference> getArgumentReferences(IfaceState st0,boolean argvalues,boolean thisval)
+protected List<IfaceAuxReference> getArgumentReferences(IfaceState st0,boolean argvalues,boolean thisval,boolean canbevoid)
 {
    List<IfaceAuxReference> rslt = new ArrayList<>();
    
    IfaceProgramPoint pt = st0.getLocation().getProgramPoint();
    IfaceMethod mthd = pt.getCalledMethod();
+   boolean isvoid = (mthd.getReturnType() == null || mthd.getReturnType().isVoidType());
    
-   if (argvalues && mthd.getReturnType() != null && !mthd.getReturnType().isVoidType()) {
+   if (argvalues && (!isvoid || canbevoid)) {
       int ct = mthd.getNumArgs();
+      if (mthd.isVarArgs()) {
+         IfaceAstReference astr = pt.getAstReference();
+         if (astr != null) {
+            ASTNode an = astr.getAstNode();
+            if (an instanceof MethodInvocation) {
+               MethodInvocation mi = (MethodInvocation) an;
+               ct = mi.arguments().size();
+             }
+          }
+       }
       int ct1 = 0;
       IfaceValue thisv = null;
       if (!mthd.isStatic()) {
