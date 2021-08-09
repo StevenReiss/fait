@@ -54,6 +54,7 @@ import java.util.List;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.ArrayAccess;
+import org.eclipse.jdt.core.dom.ClassInstanceCreation;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.MethodInvocation;
@@ -167,6 +168,15 @@ ControlAstReference(ControlAstFactory af,ASTNode n,ASTNode c,IfaceAstStatus sts)
          if (after_child != mi.arguments().get(ct-1)) return null;
        }
       else if (mi.getExpression() != null && after_child != mi.getExpression()) return null;
+      return getReferencedMethod();
+    }
+   else if (eval_node instanceof ClassInstanceCreation) {
+      ClassInstanceCreation cic = (ClassInstanceCreation) eval_node;
+      int ct = cic.arguments().size();
+      if (ct > 0) {
+         if (after_child != cic.arguments().get(ct-1)) return null;
+       }
+      else if (cic.getExpression() != null && after_child != cic.getExpression()) return null;
       return getReferencedMethod();
     }
    return null;

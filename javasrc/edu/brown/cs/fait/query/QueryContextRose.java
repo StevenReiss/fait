@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.jdt.core.dom.ASTNode;
+import org.eclipse.jdt.core.dom.ArrayAccess;
 import org.eclipse.jdt.core.dom.Assignment;
 import org.eclipse.jdt.core.dom.ClassInstanceCreation;
 import org.eclipse.jdt.core.dom.Expression;
@@ -138,7 +139,16 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
           }
          
          if (bf.getAuxRefs() != null && bf.getAuxRefs().size() > 0) {
-            int refval = ent.getValue() - 1;
+            int delta = 1;
+            IfaceAstReference aref = backfrom.getLocation().getProgramPoint().getAstReference();
+            if (aref != null && aref.getAstNode() != null) {
+               switch (aref.getAstNode().getNodeType()) {
+                  case ASTNode.INFIX_EXPRESSION :
+                     delta = 0;
+                     break;
+                }
+             }
+            int refval = ent.getValue() - delta;
             if (refval > 0) {
                checkcond = false;
                for (IfaceAuxReference auxref : bf.getAuxRefs()) {
@@ -288,8 +298,15 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
    
    IfaceAstReference xref = pt.getAstReference();
    if (xref != null && thisused < 0) {
-      MethodInvocation mi = (MethodInvocation) xref.getAstNode();
-      Expression ex = mi.getExpression();
+      Expression ex = null;
+      if (xref.getAstNode() instanceof MethodInvocation) {
+         MethodInvocation mi = (MethodInvocation) xref.getAstNode();
+         ex = mi.getExpression();
+       }
+      else if (xref.getAstNode() instanceof ClassInstanceCreation) {
+         ClassInstanceCreation cic = (ClassInstanceCreation) xref.getAstNode();
+         ex = cic.getExpression();
+       }
       if (ex != null) {
          JcompSymbol js = JcompAst.getReference(ex);
          IfaceMethod fmthd = xref.getMethod();
@@ -455,8 +472,8 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
    if (priority_map.size() != prior.priority_map.size()) {
       return "Value Computed";
     }
+   IfaceAstReference astref = state.getLocation().getProgramPoint().getAstReference();
    if (havethis) {
-      IfaceAstReference astref = state.getLocation().getProgramPoint().getAstReference();
       if (astref != null) {
          ASTNode an = astref.getAstNode();
          if (an instanceof Assignment) {
@@ -473,6 +490,32 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
              }
             if (isrel) {
                return "Field Set";
+             }
+          }
+       }
+    }
+   if (astref != null && astref.getAstNode() instanceof ArrayAccess) {
+      ArrayAccess ai = (ArrayAccess) astref.getAstNode();
+      if (ai.getParent() instanceof Assignment) {
+         Assignment asgn = (Assignment) ai.getParent();
+         if (asgn.getLeftHandSide() == ai) {
+            if (astref.getAfterChild() == ai.getIndex()) {
+               Expression lhs = ai.getArray();
+               while (lhs instanceof ArrayAccess) {
+                  ArrayAccess aa1 = (ArrayAccess) lhs;
+                  lhs = aa1.getArray();
+                }
+               JcompSymbol js = JcompAst.getReference(lhs);
+               if (js != null) {
+                  int lcl = state.getLocation().getMethod().getLocalOffset(js);
+                  if (lcl > 0) {
+                     for (Map.Entry<IfaceValue,Integer> ent : prior.priority_map.entrySet()) {
+                        IfaceValue ref = ent.getKey();
+                        if (ref.getRefSlot() == lcl) return "Array Set";
+                      }
+                   }
+                  else if (havethis && js.isFieldSymbol()) return "Field Array Set";
+                }
              }
           }
        }

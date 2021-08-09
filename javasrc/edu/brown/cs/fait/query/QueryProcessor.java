@@ -203,7 +203,7 @@ private void processCallSite(IfaceCall from,QueryContext priorctx,QueryNode node
 
 
 private void handleFlowFrom(IfaceState backfrom,IfaceState st0,QueryContext ctx,QueryNode node)
-{
+            {
    if (st0.getLocation() == null) {
       // handle intermediate states
       for (int i = 0; i < st0.getNumPriorStates(); ++i) {

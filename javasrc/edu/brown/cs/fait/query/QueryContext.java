@@ -220,8 +220,7 @@ protected List<IfaceAuxReference> getArgumentReferences(IfaceState st0,boolean a
    IfaceProgramPoint pt = st0.getLocation().getProgramPoint();
    IfaceMethod mthd = pt.getCalledMethod();
    boolean isvoid = (mthd.getReturnType() == null || mthd.getReturnType().isVoidType());
-   
-   if (argvalues && (!isvoid || canbevoid)) {
+   if (argvalues && (!isvoid || canbevoid || mthd.isConstructor())) {
       int ct = mthd.getNumArgs();
       if (mthd.isVarArgs()) {
          IfaceAstReference astr = pt.getAstReference();
@@ -253,6 +252,7 @@ protected List<IfaceAuxReference> getArgumentReferences(IfaceState st0,boolean a
        }
       for (int i = 0; i < ct+ct1; ++i) {
          IfaceValue vs = st0.getStack(i);
+         if (vs == null) continue;
          vs = QueryFactory.dereference(fait_control,vs,st0);
          IfaceValue vr = fait_control.findRefStackValue(vs.getDataType(),i);
          IfaceAuxReference ref = 

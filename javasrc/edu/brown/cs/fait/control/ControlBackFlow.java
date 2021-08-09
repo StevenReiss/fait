@@ -177,7 +177,7 @@ private boolean         note_conditions;
 
 private List<IfaceValue> start_refs;
 private Collection<IfaceAuxReference> aux_refs;
-
+                
 
 
 /********************************************************************************/
