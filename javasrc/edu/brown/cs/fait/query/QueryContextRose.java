@@ -210,7 +210,7 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
       IfaceValue nref = ref;
       if (slot >= 0) {
          if (slot >= fm.getLocalSize()) havedummy = true;
-         if (slot >= act+delta || slot == 0) continue;
+         if (slot >= act+delta || slot < delta) continue;
          int stk = act+delta-slot-1;
          nref = fait_control.findRefStackValue(ref.getDataType(),stk);
          npmap.put(nref,priority_map.get(ref));

@@ -799,7 +799,7 @@ private void removeMethodCall(IfaceLocation loc,IfaceCall c)
 
 @Override public Collection<IfaceCall> getAllMethodsCalled(IfaceProgramPoint ins)
 {
-   Collection<IfaceCall> rslt = new ArrayList<IfaceCall>();
+   Collection<IfaceCall> rslt = new ArrayList<>();
    synchronized (method_map) {
       if (ins == null) {
          for (Map<IfaceMethod,IfaceCall> mm : method_map.values()) {

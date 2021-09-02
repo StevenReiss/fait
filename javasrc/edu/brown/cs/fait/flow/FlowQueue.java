@@ -502,7 +502,10 @@ void handleUpdate(IfaceUpdater upd)
 
    for (Iterator<IfaceCall> it = call_map.keySet().iterator(); it.hasNext(); ) {
       IfaceCall call = it.next();
-      if (upd.isCallRemoved(call)) it.remove();
+      if (upd.isCallRemoved(call)) { 
+         if (!call.getMethod().isEditable())
+            it.remove();
+       }
     }
 
    for (Iterator<IfaceCall> it = static_inits.iterator(); it.hasNext(); ) {

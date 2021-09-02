@@ -132,7 +132,7 @@ private void computeNext(QueryQueueItem qqi,IfaceState cur,QueryNode node)
    FaitLog.logD("Compute Next: " + " " + ctx + " " + qqi.getProgramPoint() + " " +
          qqi.getCall().getMethod() + " (" + node.getId() + ")");
    FaitLog.logD("Next Info: " + cur + " " + qqi.getCall().hashCode());
-// if (qqi.getCall().getMethod().getName().contains("inverseCumulative"))
+// if (qqi.getCall().getMethod().getName().contains("getOffsetFromLocal"))
 //    System.err.println("CHECK HERE");
          
    QueryContext oldctx = context_map.get(call,pt);
