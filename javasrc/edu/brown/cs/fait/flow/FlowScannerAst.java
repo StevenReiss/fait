@@ -1321,8 +1321,34 @@ private IfaceValue getThisValue(IfaceType typ)
    IfaceType thistyp = thisv.getDataType();
    if (thistyp.equals(typ)) return thisv;
    if (thistyp.isDerivedFrom(typ)) return thisv;
+   if (thisv.getDataType().isJavaLangObject()) {
+      for (IfaceEntity ent : thisv.getEntities()) {
+         IfaceValue nv = scanOuterValues(thisv,typ,ent.getDataType());
+         if (nv != null) return nv;
+       }
+    }
+   else {
+      for (IfaceValue nthis = thisv; nthis != null; ) {
+         IfaceType ntyp = nthis.getDataType();
+         IfaceField xfld = fait_control.findField(ntyp,"this$0");
+         if (xfld == null) break;
+         IfaceType xtyp = xfld.getType();
+         IfaceValue rval = fait_control.findRefValue(xtyp,nthis,xfld);
+         nthis = getActualValue(rval,true);
+         if (xtyp.isDerivedFrom(typ)) return nthis;
+       }
+    }
+   return thisv;
+}
+
+
+
+private IfaceValue scanOuterValues(IfaceValue thisv,IfaceType typ,IfaceType typ0)
+{
    for (IfaceValue nthis = thisv; nthis != null; ) {
-      IfaceType ntyp = nthis.getDataType();
+      IfaceType ntyp = null;
+      if (thisv == nthis && typ != null) ntyp = typ0;
+      else ntyp = nthis.getDataType();
       IfaceField xfld = fait_control.findField(ntyp,"this$0");
       if (xfld == null) break;
       IfaceType xtyp = xfld.getType();
@@ -1330,7 +1356,7 @@ private IfaceValue getThisValue(IfaceType typ)
       nthis = getActualValue(rval,true);
       if (xtyp.isDerivedFrom(typ)) return nthis;
     }
-   return thisv;
+   return null;
 }
 
 

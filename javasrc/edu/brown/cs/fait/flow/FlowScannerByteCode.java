@@ -671,7 +671,7 @@ private void processInstruction(IfaceProgramPoint inspt)
       case INVOKEVIRTUAL :
 	 IfaceMethod fm = inspt.getReferencedMethod();
 	 st1 = handleAccess(here,st1);
-	 if (st1 == null) break;
+	 if (st1 == null || fm == null) break;
          if (fm.isNative() && fm.isVarArgs()) {
             boolean poly = false;
             List<IfaceAnnotation> retannots = fm.getReturnAnnotations();
@@ -753,7 +753,7 @@ private void processInstruction(IfaceProgramPoint inspt)
 	 break;
       case ANEWARRAY :
 	 v0 = st1.popStack();
-	 flow_queue.initialize(jdtyp);
+	 if (jdtyp != null) flow_queue.initialize(jdtyp);
 	 v1 = flow_queue.handleNewArraySet(here,jdtyp,1,v0);
 	 st1.pushStack(v1);
 	 break;

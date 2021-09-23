@@ -318,6 +318,8 @@ void doneWithFlowQueue(FlowQueueInstance fqi)
 
 void initialize(IfaceType dt)
 {
+   if (dt == null) return;
+   
    Collection<IfaceCall> inits = new ArrayList<IfaceCall>();
    IfaceBaseType bt = dt.getJavaType();
 
