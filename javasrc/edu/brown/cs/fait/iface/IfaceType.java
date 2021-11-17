@@ -34,12 +34,12 @@
 
 package edu.brown.cs.fait.iface;
 
-import java.util.Collection;
-import java.util.List;
-
 import edu.brown.cs.fait.iface.FaitConstants.FaitOperator;
 import edu.brown.cs.fait.iface.FaitConstants.FaitTypeOperator;
 import edu.brown.cs.ivy.xml.IvyXmlWriter;
+import java.util.List;
+import java.util.Collection;
+
 
 public interface IfaceType
 {
