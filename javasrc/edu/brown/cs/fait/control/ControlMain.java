@@ -379,6 +379,7 @@ public Collection<IfaceMethod> getStartMethods()
    
    JcodeFactory jf = user_project.getJcodeFactory();
    for (JcodeClass jc : jf.getAllPossibleClasses(new ProjectFilter())) { 
+      if (jc.getDataType() == null) continue;
       String nm = jc.getName();
       nm = nm.replace("$",".");
       findJavaType(nm);
