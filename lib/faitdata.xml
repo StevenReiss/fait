@@ -79,6 +79,7 @@
    <METHOD NAME="java.lang.Class.newInstance" RETURN="java.lang.Object" MUTABLE="true" />
    <METHOD NAME="java.lang.Class.desiredAssertionStatus" />
    <METHOD NAME="java.lang.Class.getEnumConstants" RETURN="java.lang.Enum[]" MUTABLE="true" />
+   <METHOD NAME="java.lang.Class.getConstructor" />
 
    <METHOD NAME="java.lang.System.getSecurityManager"
 		RETURN="java.lang.SecurityManager" MUTABLE="true" NULL="true" />

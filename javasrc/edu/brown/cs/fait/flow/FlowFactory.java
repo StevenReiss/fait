@@ -86,8 +86,8 @@ public void analyze(int nthread,boolean update,ReportOption opt)
     }
    
    Collection<IfaceMethod> start = fait_control.getStartMethods();
-   List<IfaceValue> sargl = new LinkedList<IfaceValue>();
-   List<IfaceValue> targl = new LinkedList<IfaceValue>();
+   List<IfaceValue> sargl = new LinkedList<>();
+   List<IfaceValue> targl = new LinkedList<>();
    IfaceSafetyStatus ists = fait_control.getInitialSafetyStatus();
    sargl.add(fait_control.findMainArgsValue());
    for (IfaceMethod fm : start) {

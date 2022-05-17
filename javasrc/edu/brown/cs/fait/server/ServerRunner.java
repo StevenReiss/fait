@@ -105,7 +105,8 @@ synchronized void resumeAnalysis(int nth,String retid,ReportOption opt)
    if (nth > 0) num_threads = nth;
    if (retid != null) next_return = retid;
    if (opt != null) report_option = opt;
-
+   if (restart_analysis) return;
+   
    FaitLog.logI("Resume analysis request");
 
    interrupt();
@@ -170,6 +171,8 @@ IfaceControl getControl()
 	 for_project.sendStarted(return_id);
 	 FaitLog.logI("Begin analysis " + return_id);
 	 anal = comp;
+         restart_analysis = false;
+         abort_analysis = false;
 	 runner_control.analyze(num_threads,update,report_option);
 	 anal = System.currentTimeMillis();
 	 if (interrupted() || abort_analysis) {

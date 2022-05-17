@@ -331,6 +331,10 @@ private void handleResourceFiles(String sid,Element res,IvyXmlWriter xw)
          if (f.getPath().startsWith("*FAIT*")) {
             String rnm = "/" + f.getName();
             URL fn = ControlMain.class.getResource(rnm);
+            if (fn == null) {
+               String rrn = "/pro/fait/lib" + rnm;
+               xw.field("NAME",rrn);
+             }
             if (fn != null) {
                xw.field("URL",fn);
                xw.field("NAME",fn.getFile());
