@@ -117,12 +117,6 @@ void editFile(int len,int off,String txt,boolean complete)
 
 
 
-
-
-
-
-
-
 /********************************************************************************/
 /*										*/
 /*	Methods to provide ASTs to jcomp for current project			*/
@@ -181,7 +175,7 @@ ASTNode getAst()
 
 private ASTNode buildAst()
 {
-   ASTParser parser = ASTParser.newParser(AST.JLS11);
+   ASTParser parser = ASTParser.newParser(AST.getJLSLatest());
    parser.setKind(ASTParser.K_COMPILATION_UNIT);
    parser.setSource(edit_document.get().toCharArray());
    Map<String,String> options = JavaCore.getOptions();
