@@ -96,6 +96,7 @@ import org.eclipse.jdt.core.dom.SuperMethodReference;
 import org.eclipse.jdt.core.dom.SwitchCase;
 import org.eclipse.jdt.core.dom.SwitchStatement;
 import org.eclipse.jdt.core.dom.SynchronizedStatement;
+import org.eclipse.jdt.core.dom.TextBlock;
 import org.eclipse.jdt.core.dom.ThisExpression;
 import org.eclipse.jdt.core.dom.ThrowStatement;
 import org.eclipse.jdt.core.dom.TryStatement;
@@ -476,7 +477,10 @@ private void processAstNode()
 	 case ASTNode.SYNCHRONIZED_STATEMENT :
 	    rslt = visit((SynchronizedStatement) node);
 	    break;
-	 case ASTNode.THIS_EXPRESSION :
+	 case ASTNode.TEXT_BLOCK :
+	    rslt = visit((TextBlock) node);
+	    break;
+         case ASTNode.THIS_EXPRESSION :
 	    rslt = visit((ThisExpression) node);
 	    break;
 	 case ASTNode.THROW_STATEMENT :
@@ -774,6 +778,21 @@ private Object visit(StringLiteral v)
     }
    catch (Throwable e) {
       FaitLog.logE("Unable to get string literal value for " + v.getEscapedValue(),e);
+      pushValue(fait_control.findConstantStringValue(v.getEscapedValue()));
+    }
+   return null;
+}
+
+
+private Object visit(TextBlock v)
+{
+   try {
+      String s = v.getEscapedValue();	// this is thread safe, getLiteralValue is not
+      String s1 = IvyFormat.getLiteralValue(s);
+      pushValue(fait_control.findConstantStringValue(s1));
+    }
+   catch (Throwable e) {
+      FaitLog.logE("Unable to get text block literal value for " + v.getEscapedValue(),e);
       pushValue(fait_control.findConstantStringValue(v.getEscapedValue()));
     }
    return null;
@@ -3276,6 +3295,9 @@ private void processBackNode(IfaceValue ref,IfaceType settype)
 	 break;
       case ASTNode.SYNCHRONIZED_STATEMENT :
 	 nextref = visitBack((SynchronizedStatement) node,ref);
+	 break;
+      case ASTNode.TEXT_BLOCK :
+	 nextref = adjustRef(ref,0,1);
 	 break;
       case ASTNode.THIS_EXPRESSION :
 	 nextref = adjustRef(ref,0,1);

@@ -118,6 +118,7 @@ import org.eclipse.jdt.core.dom.SwitchCase;
 import org.eclipse.jdt.core.dom.SwitchStatement;
 import org.eclipse.jdt.core.dom.SynchronizedStatement;
 import org.eclipse.jdt.core.dom.TagElement;
+import org.eclipse.jdt.core.dom.TextBlock;
 import org.eclipse.jdt.core.dom.TextElement;
 import org.eclipse.jdt.core.dom.ThisExpression;
 import org.eclipse.jdt.core.dom.ThrowStatement;
@@ -1123,6 +1124,8 @@ private class BackVisitor extends ASTVisitor {
    @Override public boolean visit(SimpleType n)                         { return noChange(); }
    @Override public boolean visit(SingleMemberAnnotation n)             { return noChange(); }
    @Override public boolean visit(StringLiteral n)                      { return pushOne(); }
+   
+   @Override public boolean visit(TextBlock n)                          { return pushOne(); }
    @Override public boolean visit(SuperConstructorInvocation n)         { return noBack(); }
    @Override public boolean visit(SuperFieldAccess n)                   { return pushOne(); }
    @Override public boolean visit(SuperMethodInvocation n)              { return noBack(); }
