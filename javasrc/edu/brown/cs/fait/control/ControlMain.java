@@ -376,6 +376,7 @@ public Collection<IfaceMethod> getStartMethods()
 {
    if (user_project == null) return null;
    
+   user_project.getJcompProject();              // force compilation
    JcodeFactory jf = user_project.getJcodeFactory();
    for (JcodeClass jc : jf.getAllPossibleClasses(new ProjectFilter())) { 
       if (jc.getDataType() == null) continue;

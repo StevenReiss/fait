@@ -454,7 +454,6 @@ IfaceUpdateSet compileProject()
        }
     }
 
-
    List<ServerFile> newfiles = null;
    synchronized (changed_files) {
       newfiles = new ArrayList<>(changed_files);
