@@ -234,6 +234,9 @@ private void handleActualFlowFrom(IfaceState backfrom,IfaceState st0,QueryContex
          priorctx = ctx.addRelevantArgs(priorctx,st0,bfd);
          if (priorctx != ctx) cntxrel = true;
        }
+      FaitLog.logD("CHECK CALL " + priorctx + " " + cntxrel + " " + 
+        priorctx.isPriorStateRelevant(st0) + " " + priorctx.followCalls());
+
     }
    
    boolean islinked = false;
@@ -265,6 +268,7 @@ private void handleActualFlowFrom(IfaceState backfrom,IfaceState st0,QueryContex
          if (call2.getAllMethodsCalled(ppt2).isEmpty()) {
             islinked |= ctx.handleInternalCall(st0,bfd,node);
             if (!islinked) node.getGraph().markAsEndNode(node);
+            FaitLog.logD("No call found");
           }
          else {
             for (IfaceCall from : call2.getAllMethodsCalled(ppt2)) {
@@ -281,7 +285,8 @@ private void handleActualFlowFrom(IfaceState backfrom,IfaceState st0,QueryContex
                   // get the return expression state
                   IfaceState st2 = getReturnState(st1);
                   QueryGraph graph = node.getGraph();
-                  QueryNode nn = graph.addNode(from,st2.getLocation().getProgramPoint(),retctx,
+                  QueryNode nn = graph.addNode(from,
+                        st2.getLocation().getProgramPoint(),retctx,
                         QueryNodeType.RETURN,
                         "Result of method " + from.getMethod().getName(),node);
                   QueryQueueItem nqqi = new QueryQueueItem(st2.getLocation(),retctx);

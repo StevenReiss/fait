@@ -179,6 +179,8 @@ void process() throws FaitException
       return;
     }
    
+   FaitLog.logD("Find variable for " + astr);
+   
    xml_writer.begin("VALUESET");
    xml_writer.field("LINE",line_number);
    xml_writer.field("METHOD",method_name);
