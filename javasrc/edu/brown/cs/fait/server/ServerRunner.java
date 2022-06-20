@@ -147,8 +147,14 @@ IfaceControl getControl()
 @Override public void run()
 {
    for ( ; ; ) {
-      waitForNextTime();
-
+      try {
+         waitForNextTime();
+       }
+      catch (Throwable t) {
+         FaitLog.logE("Problem doing analysis",t);
+         for_project.sendAborted(return_id,0,0,0);
+       }
+       
       long start = System.currentTimeMillis();
       long comp = start;
       long anal = start;
