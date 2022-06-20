@@ -825,7 +825,8 @@ private void removeMethodCall(IfaceLocation loc,IfaceCall c)
 
 @Override public void removeForUpdate(IfaceUpdater upd)
 {
-   FaitLog.logD("Remove for update: " +  getMethod().getFullName());
+   FaitLog.logD("CALL","Remove for update: " +  getMethod().getFullName() + " " +
+         method_map.size() + " " + entity_map.size() + " " + hashCode());
 
    // first remove all entities created in this call
    for (IfaceEntity ie : entity_map.values()) {
@@ -838,10 +839,14 @@ private void removeMethodCall(IfaceLocation loc,IfaceCall c)
    for (Map<IfaceMethod,IfaceCall> mm : method_map.values()) {
       for (IfaceCall ic : mm.values()) {
 	 CallBase cb = (CallBase) ic;
+         FaitLog.logD("CALL","Call Removal " + ic.hashCode() + " " +
+           cb.toString() + " " + cb.removeCaller(this));
 	 if (cb.removeCaller(this)) upd.removeCall(cb);
        }
     }
    method_map.clear();
+   
+   return_states.clear();
 
    // finally remove this call from any call site for it and requeue
    // that call to be evaluated.  Ignore if the call site will also
@@ -856,6 +861,7 @@ private void requeueCall(IfaceUpdater upd)
       CallBase cb = (CallBase) loc.getCall();
       cb.removeMethodCall(loc,this);
       if (!upd.shouldUpdate(cb)) {
+         FaitLog.logD("CALL","Requeue " + cb.hashCode() + " " + loc);
 	 upd.addToWorkQueue(cb,loc.getProgramPoint());
        }
     }

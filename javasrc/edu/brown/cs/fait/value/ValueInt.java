@@ -615,8 +615,9 @@ ValueInt(ValueFactory vf,IfaceType dt,Long minv,Long maxv,IfaceEntitySet es)
    if (vb == this || vb == null) return this;
 
    if (!(vb instanceof ValueInt)) {
-      if (FaitLog.isTracing())
+      if (FaitLog.isTracing()) {
          FaitLog.logD1("Invalidate variable: Bad int value merge: " + this + " " + vb);
+       }
       return value_factory.badValue();
     }
 

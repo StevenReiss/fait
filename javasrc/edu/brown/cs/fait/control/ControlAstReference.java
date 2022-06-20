@@ -94,7 +94,7 @@ ControlAstReference(ControlAstFactory af,ASTNode n,ASTNode c,IfaceAstStatus sts)
    run_status = sts;
 
    if (n == null) {
-      FaitLog.logX("Eval node shouldn't be null");
+      FaitLog.logX("CONTROL","Eval node shouldn't be null");
     }
 }
 

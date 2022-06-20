@@ -340,6 +340,10 @@ private boolean checkMergeWithState(StateBase cs)
       IfaceValue ov = local_values[i];
       IfaceValue nv = (ov == null ? cs.local_values[i] : ov.mergeValue(cs.local_values[i]));
       if (nv != ov) {
+         if (nv != null && nv.isBad()) {
+            FaitLog.logD("STATE","Bad merge for local " + i + " " +
+                  getLocation() + " " + cs.getLocation());
+          }
 	 change = true;
 	 local_values[i] = nv;
        }
@@ -356,6 +360,10 @@ private boolean checkMergeWithState(StateBase cs)
       if (no == null) no = oo;
       if (oo != null) {
 	 no = oo.mergeValue(no);
+         if (no != null && no.isBad()) {
+            FaitLog.logD("STATE","Bad merge for stack " + i + " " +
+               getLocation() + " " + cs.getLocation());
+          }
        }
 
       if (no != oo) {
@@ -376,6 +384,10 @@ private boolean checkMergeWithState(StateBase cs)
        }
       else {
 	 nval = val.mergeValue(nval);
+         if (nval != null && nval.isBad()) {
+            FaitLog.logD("STATE","Bad merge for field " + fld + " " +
+                  getLocation() + " " + cs.getLocation());
+          }
 	 if (val != nval) {
             if (changes == null) changes = new HashMap<>();
             changes.put(fld,nval);

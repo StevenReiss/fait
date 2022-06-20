@@ -263,6 +263,7 @@ FlowQueueInstance setupNextFlowQueue()
       fqi = call_map.get(cm);
       if (fqi == null) {
 	 fqi = FlowQueueInstance.createInstance(this,cm,QueueLevel.NORMAL);
+         FaitLog.logD("Add to call map " + cm + " " + cm.hashCode());
 	 call_map.put(cm,fqi);
 	 newfqi = true;
        }
