@@ -147,6 +147,7 @@ IfaceState mergeState(IfaceState st,IfaceLocation here)
     }
    
    ost.setLocation(here);
+   
    state_map.put(ins,ost);
    work_list.addFirst(ins);
    

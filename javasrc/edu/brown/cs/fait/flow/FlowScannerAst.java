@@ -1577,8 +1577,12 @@ private Object visit(ThisExpression v)
    else {
       v0 = getLocal("this");
     }
+   
+   if (v0.getDataType().isNumericType()) {
+      FaitLog.logE("FLOW","This yields a numeric type");
+    }
    pushValue(v0);
-
+   
    return null;
 }
 
@@ -2032,7 +2036,7 @@ private Object visit(ExpressionStatement s)
 {
    if (after_node == null) return s.getExpression();
    else {
-      JcompType typ =JcompAst.getExprType(s.getExpression());
+      JcompType typ = JcompAst.getExprType(s.getExpression());
       if (typ != null && !typ.isVoidType()) popValue();
     }
    return null;
@@ -2074,6 +2078,11 @@ private Object visit(ForStatement s)
       int idx = 0;
       List<?> inits = s.initializers();
       if (after_node != null) {
+         JcompType typ = JcompAst.getExprType(after_node);
+         if (after_node instanceof VariableDeclarationExpression) typ = null;
+         if (typ != null && !typ.isVoidType()) {
+            popValue();
+          }
 	 idx = inits.indexOf(after_node) + 1;
        }
       if (idx < inits.size()) return inits.get(idx);
