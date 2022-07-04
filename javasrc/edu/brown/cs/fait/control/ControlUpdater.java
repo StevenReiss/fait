@@ -182,6 +182,8 @@ void processUpdate()
 
    if (new_updates == null) new_updates = new HashSet<>();
    new_updates.add(ic);
+   
+   FaitLog.logD("CALL","Add to call updates " + ic.hashCode() + " " + ic);
 }
 
 

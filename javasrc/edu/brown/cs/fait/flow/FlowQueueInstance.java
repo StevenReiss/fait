@@ -225,8 +225,8 @@ void handleUpdate(IfaceUpdater upd)
    List<IfaceState> work = new ArrayList<IfaceState>(state_map.values());
    Set<IfaceState> done = new HashSet<IfaceState>();
    
-// FaitLog.logD("FLOW","Update queue instance " + for_call + " " + for_call.hashCode() + " " +
-//       work.size());
+   FaitLog.logD("FLOW","Update queue instance " + for_call + " " + for_call.hashCode() + " " +
+         work.size());
    
    while (!work.isEmpty()) {
       int ln = work.size();

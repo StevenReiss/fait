@@ -421,6 +421,7 @@ private void handleAnalyze(String sid,Element xml,IvyXmlWriter xw)
    ServerSession ss = session_map.get(sid);
    if (ss == null) return;
    ServerProject sp = ss.getProject();
+   if (sp == null) return;
    int nth = IvyXml.getAttrInt(xml,"THREADS",ss.getNumThread());
    if (nth != 0) ss.setNumThread(nth);
    ReportOption opt = IvyXml.getAttrEnum(xml,"REPORT",ReportOption.FULL_STATS);

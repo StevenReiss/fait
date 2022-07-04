@@ -42,6 +42,7 @@ import java.util.Map;
 import org.w3c.dom.Element;
 
 import edu.brown.cs.fait.iface.FaitLog;
+import edu.brown.cs.ivy.file.IvyFile;
 import edu.brown.cs.ivy.xml.IvyXml;
 
 class ServerFileManager implements ServerConstants
@@ -81,6 +82,8 @@ ServerFileManager(ServerMain sm)
 
 ServerFile openFile(File f)
 {
+   f = IvyFile.getCanonical(f);
+   
    synchronized (known_files) {
       ServerFile sf = known_files.get(f);
       if (sf != null) return sf;
@@ -116,6 +119,8 @@ ServerFile openFile(File f)
 
 void closeFile(File f)
 {
+   f = IvyFile.getCanonical(f);
+   
    synchronized (known_files) {
       known_files.remove(f);
     }
@@ -131,6 +136,7 @@ void closeFile(File f)
 
 ServerFile handleEdit(File f,int len,int offset,boolean complete,String txt)
 {
+   f = IvyFile.getCanonical(f);
    ServerFile sf = known_files.get(f);
    if (sf == null) return null;
    if (complete && txt == null) {

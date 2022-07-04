@@ -630,7 +630,7 @@ private IfaceValue checkVirtual(IfaceMethod bm,List<IfaceValue> args,
    if (mi0 != null) {
       mi = mi0;
     } 
-   
+    
    if (fm0 != fm) {
       IfaceCall mi1 = findCall(loc,fm0,nargs,getSafetyStatus(st));
       synchronized (rename_map) {
@@ -654,7 +654,7 @@ private IfaceValue checkVirtual(IfaceMethod bm,List<IfaceValue> args,
    if (mi.addCall(nargs,getSafetyStatus(st))) {
       if (FaitLog.isTracing()) FaitLog.logD1("Call " + mi);
       if (mi.getMethod().hasCode()) {
-	 IfaceCall from = null;
+	 IfaceCall from = null; 
 	 if (loc != null) from = loc.getCall();
 	 flow_queue.queueMethodCall(mi,st,from);
        }

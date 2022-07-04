@@ -72,6 +72,7 @@ private List<IfaceType> implied_arg_types;
 private IfaceType	implied_return_type;
 private IfaceSafetyStatus safety_result;
 private CallBase	alternate_call;
+private boolean         force_scan;
 
 private int		num_forward;
 private int		num_backward;
@@ -112,7 +113,8 @@ CallBase(IfaceControl fc,IfaceMethod fm,IfaceProgramPoint pt,IfaceSafetyStatus s
    is_scanned = false;
    set_fields = false;
    is_affected = false;
-
+   force_scan = false;
+   
    queue_level = QueueLevel.NORMAL;
 
    alternate_call = null;
@@ -447,6 +449,10 @@ CallBase(IfaceControl fc,IfaceMethod fm,IfaceProgramPoint pt,IfaceSafetyStatus s
 
    if (special_data != null && special_data.getDontScan()) chng = false;
    else if (start_state.mergeSafetyStatus(sts)) chng = true;
+   if (force_scan) {
+      force_scan = false;
+      chng = true;
+    }
 
    return chng;
 }
@@ -827,6 +833,10 @@ private void removeMethodCall(IfaceLocation loc,IfaceCall c)
 {
    FaitLog.logD("CALL","Remove for update: " +  getMethod().getFullName() + " " +
          method_map.size() + " " + entity_map.size() + " " + hashCode());
+   
+   if (getMethod().getFullName().contains("MathLibrary.max")) {
+      System.err.println("CHECK HERE");
+    }
 
    // first remove all entities created in this call
    for (IfaceEntity ie : entity_map.values()) {
@@ -840,14 +850,19 @@ private void removeMethodCall(IfaceLocation loc,IfaceCall c)
       for (IfaceCall ic : mm.values()) {
 	 CallBase cb = (CallBase) ic;
          FaitLog.logD("CALL","Call Removal " + ic.hashCode() + " " +
-           cb.toString() + " " + cb.removeCaller(this));
-	 if (cb.removeCaller(this)) upd.removeCall(cb);
+           cb.toString());
+	 if (cb.removeCaller(this)) {
+            // this seems to ignore too much later on
+//          upd.removeCall(cb);
+          }
        }
     }
    method_map.clear();
    
    return_states.clear();
-
+   
+   force_scan = true;
+   
    // finally remove this call from any call site for it and requeue
    // that call to be evaluated.  Ignore if the call site will also
    // be eliminated
