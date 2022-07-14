@@ -834,10 +834,6 @@ private void removeMethodCall(IfaceLocation loc,IfaceCall c)
    FaitLog.logD("CALL","Remove for update: " +  getMethod().getFullName() + " " +
          method_map.size() + " " + entity_map.size() + " " + hashCode());
    
-   if (getMethod().getFullName().contains("MathLibrary.max")) {
-      System.err.println("CHECK HERE");
-    }
-
    // first remove all entities created in this call
    for (IfaceEntity ie : entity_map.values()) {
       upd.addEntityToRemove(ie);

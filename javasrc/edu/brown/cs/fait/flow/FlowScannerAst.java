@@ -638,9 +638,6 @@ private void processAstNode()
 
 private Object visit(MethodDeclaration md)
 {
-   if (md.toString().contains("MathLibrary.max")) {
-      System.err.println("CHECK HERE");
-    }
    JcompSymbol js = JcompAst.getDefinition(md);
 
    if (after_node == null) {
