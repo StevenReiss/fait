@@ -133,12 +133,18 @@ CallBase(IfaceControl fc,IfaceMethod fm,IfaceProgramPoint pt,IfaceSafetyStatus s
       result_set = fc.findMutableValue(fm.getReturnType());
     }
 
-   start_state = fc.createState(fm.getLocalSize(),sts);
+   int lclsz = fm.getLocalSize();
+   if (lclsz == 0 && fm.getFullName().startsWith("java.lang.invoke.VarHandle.")) {
+      // handle polymorphic methods
+      lclsz = 10;
+    }
+   
+   start_state = fc.createState(lclsz,sts);
    return_states = new HashSet<>();
 
    int idx = 0;
    if (!fm.isStatic()) {
-      if (fm.getLocalSize() == 0) {
+      if (lclsz == 0) {
 	 FaitLog.logE("Problem with method " + fm.getFullName() + " " + fm.getLocalSize() + " " +
 	    fm.getDescription() + " " + fm.hasCode() + " " + fm.getClass() + " " + fm.getStart());
        }

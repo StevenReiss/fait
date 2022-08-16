@@ -1431,7 +1431,8 @@ private void handleDynamicCall(IfaceLocation here,IfaceState st)
    JcodeInstruction ins = inspt.getInstruction();
    String [] args = ins.getDynamicReference();
 
-   if (args[2].startsWith("java/lang/invoke/LambdaMetafactory.metafactory")) {
+   if (args[2].startsWith("java/lang/invoke/LambdaMetafactory.metafactory") || 
+         args[2].startsWith("java/lang/invoke/LambdaMetafactory.altMetafactory")) {
       IfaceType t1 = fait_control.createFunctionRefType(args[5],args[1]);
       if (!args[1].startsWith("()")) {
 	 Type [] ar = Type.getArgumentTypes(args[1]);
@@ -1470,7 +1471,7 @@ private void handleDynamicCall(IfaceLocation here,IfaceState st)
       IfaceType rtyp = fait_control.findDataType(rtypnm);
       IfaceValue val = fait_control.findAnyValue(rtyp);
       st.pushStack(val);
-      FaitLog.logE("HANDLE dynamic call" + args[2]);
+      FaitLog.logE("HANDLE dynamic call " + args[2]);
     }
 }
 
