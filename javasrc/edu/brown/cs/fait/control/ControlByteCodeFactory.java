@@ -62,6 +62,7 @@ import edu.brown.cs.ivy.jcode.JcodeInstruction;
 import edu.brown.cs.ivy.jcode.JcodeLocalVariable;
 import edu.brown.cs.ivy.jcode.JcodeMethod;
 import edu.brown.cs.ivy.jcode.JcodeTryCatchBlock;
+import edu.brown.cs.ivy.jcomp.JcompTyper;
 import edu.brown.cs.ivy.xml.IvyXmlWriter;
 
 
@@ -90,7 +91,7 @@ private Map<JcodeInstruction,Reference<InsPoint>> point_map;
 /*										*/
 /********************************************************************************/
 
-ControlByteCodeFactory(ControlMain cm,JcodeFactory jf)
+ControlByteCodeFactory(ControlMain cm,JcompTyper typer,JcodeFactory jf)
 {
    fait_control = cm;
    code_factory = jf;

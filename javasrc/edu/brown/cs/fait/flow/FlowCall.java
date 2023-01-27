@@ -291,6 +291,7 @@ private LinkedList<IfaceValue> getCallArguments(FlowLocation loc,IfaceState st0,
 
    for (int i = 0; i < tgt.getNumArgs(); ++i) {
       IfaceType rtype = tgt.getArgType(i);
+      
       if (rtype == null) {
 	 FaitLog.logW("NULL argument type for " + tgt + " " + i);
 	 return null;

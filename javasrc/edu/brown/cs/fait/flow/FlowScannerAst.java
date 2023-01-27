@@ -2978,7 +2978,8 @@ private Object visit(ExpressionMethodReference v)
     }
 
    JcompSymbol js = JcompAst.getReference(v);
-   if (after_node == null && !js.isStatic()) {
+   boolean stat = (js != null && js.isStatic());
+   if (after_node == null && !stat) {
       ASTNode next = v.getExpression();
       JcompType jty = JcompAst.getJavaType(next);
       JcompType ety = JcompAst.getExprType(next);
@@ -2988,7 +2989,7 @@ private Object visit(ExpressionMethodReference v)
     }
 
    IfaceValue refval = null;
-   if (!js.isStatic() && after_node != null && after_node == v.getExpression()) {
+   if (!stat && after_node != null && after_node == v.getExpression()) {
       refval = popActual();
     }
    IfaceValue rv = generateReferenceValue(v,refval);

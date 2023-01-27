@@ -781,6 +781,7 @@ IfaceValue castValue(IfaceType rtyp,IfaceValue v0,IfaceLocation loc)
       if (t0.equals(rtyp)) return v0;
     }
 
+   rtyp.defineAll();
    if (t0.isCompatibleWith(rtyp)) return v0;
 
    v1 = v0.restrictByType(rtyp);

@@ -399,6 +399,12 @@ TypeBase(TypeFactory fac,IfaceBaseType base,IfaceSubtype.Value [] subs)
 }
 
 
+
+@Override public void defineAll()
+{
+   base_type.defineAll();
+}
+
 /********************************************************************************/
 /*                                                                              */
 /*      Operation methods                                                       */

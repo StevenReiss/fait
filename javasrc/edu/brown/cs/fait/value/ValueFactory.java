@@ -126,12 +126,12 @@ public ValueBase anyValue(IfaceType typ)
 	    cv = constantString();
 	  }
 	 else {
-            IfaceEntity ent = fait_control.findFixedEntity(typ);
-            IfaceEntitySet eset = fait_control.createSingletonSet(ent);
-            cv = objectValue(typ,eset,FaitAnnotation.NULLABLE);
-            // cv = new ValueObject(this,typ,fait_control.createEmptyEntitySet(),FaitAnnotation.NULLABLE);
-          }	
-         any_map.put(typ,cv);
+	    IfaceEntity ent = fait_control.findFixedEntity(typ);
+	    IfaceEntitySet eset = fait_control.createSingletonSet(ent);
+	    cv = objectValue(typ,eset,FaitAnnotation.NULLABLE);
+	    // cv = new ValueObject(this,typ,fait_control.createEmptyEntitySet(),FaitAnnotation.NULLABLE);
+	  }
+	 any_map.put(typ,cv);
        }
       return cv;
     }
@@ -160,7 +160,7 @@ public ValueBase rangeValue(IfaceType typ,Long v0,Long v1)
    ValueInt cv1 = range_map.addIfAbsent(cv);
    if (cv1 == null || cv1 == cv) {
       if (FaitLog.isTracing())
-         FaitLog.logD("Create new INTVALUE " + typ + " " + v0 + " " + v1);
+	 FaitLog.logD("Create new INTVALUE " + typ + " " + v0 + " " + v1);
       cv1 = cv;
       // if (v0 != null && v0 == 0 && v1 != null && v1 == 0) {
 	 // FaitLog.logD("RECHECK 0 " + typ + " " + typ.hashCode());
@@ -197,7 +197,7 @@ public ValueBase objectValue(IfaceType typ,IfaceEntitySet ss,IfaceAnnotation ...
 
 public ValueBase objectValue(IfaceType typ,IfaceEntitySet ss,String conststr,IfaceAnnotation ... flags)
 {
-   if (ss.isEmpty()) return emptyValue(typ,flags);
+   if (ss.isEmpty() || typ == null) return emptyValue(typ,flags);
 
    typ = typ.getAnnotatedType(flags);
    ss = ss.restrictByType(typ);
@@ -297,13 +297,13 @@ public ValueBase mainArgs()
    if (main_value == null) {
       IfaceType stringtype = fait_control.findDataType("java.lang.String");
       stringtype = fait_control.findConstantType(stringtype,"Hello World");
-      
+
       IfaceEntity ssrc = fait_control.findArrayEntity(stringtype,null);
       ValueBase cv = nativeValue(stringtype);
       cv = cv.forceNonNull();
       ssrc.setArrayContents(cv);
       IfaceEntitySet sset = fait_control.createSingletonSet(ssrc);
-      
+
       main_value = objectValue(ssrc.getDataType(),sset,FaitAnnotation.NON_NULL);
     }
 
@@ -333,14 +333,14 @@ public ValueBase nullValue()
 public ValueBase nullValue(IfaceType dt)
 {
    if (dt == null) return nullValue();
-   
+
    synchronized (null_map) {
       ValueBase cv = null_map.get(dt);
       if (cv == null) {
-         IfaceType dt1 = fait_control.findConstantType(dt,null);
+	 IfaceType dt1 = fait_control.findConstantType(dt,null);
 	 cv = emptyValue(dt1,FaitAnnotation.MUST_BE_NULL);
 	 null_map.put(dt,cv);
-         null_map.put(dt1,cv);
+	 null_map.put(dt1,cv);
        }
       return cv;
     }
@@ -446,12 +446,12 @@ public IfaceValue initialFieldValue(IfaceField fld,boolean nat)
 	 nonnull = true;
 	 if (fnm.equals("in")) {
 	    ftyp = fait_control.findDataType("java.io.FileInputStream");
-            ftyp = ftyp.getComputedType(FaitTypeOperator.DONEINIT);
-          }
+	    ftyp = ftyp.getComputedType(FaitTypeOperator.DONEINIT);
+	  }
 	 else if (fnm.equals("out") || fnm.equals("err")) {
 	    ftyp = fait_control.findDataType("java.io.PrintStream");
-            ftyp = ftyp.getComputedType(FaitTypeOperator.DONEINIT);
-          }
+	    ftyp = ftyp.getComputedType(FaitTypeOperator.DONEINIT);
+	  }
        }
       else if (ctyp.getName().equals("java.lang.String")) nonnull = true;
       else if (ctyp.getName().equals("java.lang.ThreadGroup")) nonnull = false;
@@ -469,7 +469,7 @@ public IfaceValue initialFieldValue(IfaceField fld,boolean nat)
        }
       else {
 	 // s0 = emptyValue(ftyp,FaitAnnotation.NULLABLE);
-         s0 = nullValue(ftyp);
+	 s0 = nullValue(ftyp);
        }
     }
 
@@ -483,18 +483,18 @@ public ValueBase refValue(IfaceType dt,int slot)
    synchronized (ref_map) {
       mm = ref_map.get(dt);
       if (mm == null) {
-         mm = new HashMap<>();
-         ref_map.put(dt,mm);
+	 mm = new HashMap<>();
+	 ref_map.put(dt,mm);
        }
-    }  
+    }
    synchronized (mm) {
       List<ValueRef> lr = mm.get(slot);
       if (lr == null) {
-         lr = new ArrayList<>();
-         ValueRef vr = new ValueRef(this,dt,slot,null,null,null);
-         lr.add(vr);
-         mm.put(slot,lr);
-         return vr;
+	 lr = new ArrayList<>();
+	 ValueRef vr = new ValueRef(this,dt,slot,null,null,null);
+	 lr.add(vr);
+	 mm.put(slot,lr);
+	 return vr;
        }
       else return lr.get(0);
     }
@@ -512,26 +512,26 @@ public ValueBase refValue(IfaceType dt,IfaceValue base,IfaceField fld)
    if (fld == null) {
       FaitLog.logE("Field reference to non-existant field");
     }
-   
+
    Map<Object,List<ValueRef>> mm = null;
    synchronized (ref_map) {
       mm = ref_map.get(dt);
       if (mm == null) {
-         mm = new HashMap<>();
-         ref_map.put(dt,mm);
+	 mm = new HashMap<>();
+	 ref_map.put(dt,mm);
        }
-    }  
+    }
    List<ValueRef> lr = null;
    synchronized (mm) {
       lr = mm.get(fld);
       if (lr == null) {
-         lr = new ArrayList<>();
-         mm.put(fld,lr);
+	 lr = new ArrayList<>();
+	 mm.put(fld,lr);
        }
     }
    synchronized (lr) {
       for (ValueRef vr : lr) {
-         if (vr.getRefBase() == base) return vr;
+	 if (vr.getRefBase() == base) return vr;
        }
       ValueRef nvr = new ValueRef(this,dt,NO_REF,base,fld,null);
       lr.add(nvr);
@@ -545,26 +545,26 @@ public ValueBase refValue(IfaceType dt,IfaceValue base,IfaceValue idx)
    if (idx == null) {
       FaitLog.logE("Index reference to non-existant index");
     }
-   
+
    Map<Object,List<ValueRef>> mm = null;
    synchronized (ref_map) {
       mm = ref_map.get(dt);
       if (mm == null) {
-         mm = new HashMap<>();
-         ref_map.put(dt,mm);
+	 mm = new HashMap<>();
+	 ref_map.put(dt,mm);
        }
-    }  
+    }
    List<ValueRef> lr = null;
    synchronized (mm) {
       lr = mm.get(idx);
       if (lr == null) {
-         lr = new ArrayList<>();
-         mm.put(idx,lr);
+	 lr = new ArrayList<>();
+	 mm.put(idx,lr);
        }
     }
    synchronized (lr) {
       for (ValueRef vr : lr) {
-         if (vr.getRefBase() == base) return vr;
+	 if (vr.getRefBase() == base) return vr;
        }
       ValueRef nvr = new ValueRef(this,dt,NO_REF,base,null,idx);
       lr.add(nvr);

@@ -545,6 +545,10 @@ private class AstType implements IfaceBaseType {
    @Override public boolean isInProject() {
       return fait_control.isProjectClass(this);
     }
+   
+   @Override public void defineAll() {
+      jcomp_type.defineAll(jcomp_typer);
+    }
 
    @Override public String toString() {
       if (jcomp_type == null) return "???";
@@ -809,9 +813,9 @@ private class AstMethod implements IfaceMethod {
       if (v == null) return;
       checkLocals();
       if (external_values != null) {
-	 IfaceValue v0 = external_values.get(sym);
-	 IfaceValue v1 = v.mergeValue(v0);
-	 external_values.put(sym,v1);
+         IfaceValue v0 = external_values.get(sym);
+         IfaceValue v1 = v.mergeValue(v0);
+         external_values.put(sym,v1);
        }
     }
 

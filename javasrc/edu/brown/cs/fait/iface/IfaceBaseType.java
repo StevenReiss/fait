@@ -82,6 +82,8 @@ boolean isEditable();
 boolean isInProject();
 IfaceBaseType getRunTimeType();
 
+void defineAll();
+
 
 }       // end of interface IfaceBaseType
 

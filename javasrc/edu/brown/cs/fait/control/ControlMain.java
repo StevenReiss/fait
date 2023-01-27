@@ -104,7 +104,7 @@ public ControlMain(IfaceProject ip)
 {
    basic_types = new HashMap<>();
    
-   bytecode_factory = new ControlByteCodeFactory(this,ip.getJcodeFactory());
+   bytecode_factory = new ControlByteCodeFactory(this,ip.getTyper(),ip.getJcodeFactory());
    ast_factory = new ControlAstFactory(this,ip.getTyper());
    
    type_factory = new TypeFactory(this);

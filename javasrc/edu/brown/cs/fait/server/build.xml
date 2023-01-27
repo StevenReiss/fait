@@ -121,6 +121,17 @@
       </junit>
    </target>
 
+   <target name='testcatre' depends='compile'>
+      <junit fork='true' printsummary='on' outputtoformatters='true'>
+	 <classpath refid='fait.classpath' />
+	 <assertions><enable/></assertions>
+	 <formatter type='xml' usefile='true' />
+	 <test name='edu.brown.cs.fait.server.ServerTest'
+	       methods='serverTestCatre'
+	       outfile='testcatre.out' />
+      </junit>
+   </target>
+
    <target name='testfait' depends='compile'>
       <junit fork='true' printsummary='on' outputtoformatters='true'>
 	 <classpath refid='fait.classpath' />

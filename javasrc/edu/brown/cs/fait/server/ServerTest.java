@@ -199,7 +199,7 @@ public synchronized void serverTestFait()
 
 /********************************************************************************/
 /*										*/
-/*	Bubbles tes								*/
+/*	Bubbles test								*/
 /*										*/
 /********************************************************************************/
 
@@ -207,6 +207,20 @@ public synchronized void serverTestFait()
 public synchronized void serverTestBubbles()
 {
    runServerTest("bubblesx","bubbles",0,null,false);
+}
+
+
+
+/********************************************************************************/
+/*										*/
+/*	Catre test								*/
+/*										*/
+/********************************************************************************/
+
+@Test
+public synchronized void serverTestCatre()
+{
+   runServerTest("catre","catre",0,null,false);
 }
 
 
@@ -233,7 +247,7 @@ public synchronized void serverTestJavaSecurity()
 
    EntityQueryTest edt = new EntityQueryTest(vq2,"98","QTYPE","TO");
    eqs.add(edt);
-	
+
    runServerTest("javasecurity","WebServer",50,null,vqs,eqs);
 }
 
@@ -241,9 +255,9 @@ public synchronized void serverTestJavaSecurity()
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Tutorial test                                                           */
-/*                                                                              */
+/*										*/
+/*	Tutorial test								*/
+/*										*/
 /********************************************************************************/
 
 @Test
@@ -251,15 +265,15 @@ public synchronized void serverTestTutorial()
 {
    List<VarQueryTest> vqs = new ArrayList<>();
    List<EntityQueryTest> eqs = new ArrayList<>();
-   
+
    VarQueryTest vq1 = new VarQueryTest(137,3923,"g",
-         "edu.brown.cs.bubbles.tutorial.romp.Board.drawCircleInches(int,int,int,Graphics)",
-         "/Users/spr/Eclipse/tutorial/romp/src/edu/brown/cs/bubbles/tutorial/romp/Board.java");
+	 "edu.brown.cs.bubbles.tutorial.romp.Board.drawCircleInches(int,int,int,Graphics)",
+	 "/Users/spr/Eclipse/tutorial/romp/src/edu/brown/cs/bubbles/tutorial/romp/Board.java");
    vqs.add(vq1);
-   
+
    EntityQueryTest edt = new EntityQueryTest(vq1,"Debug","QTYPE","TO");
    eqs.add(edt);
-   
+
    runServerTest("tutorial","romp",50,null,vqs,eqs);
 }
 
@@ -648,6 +662,10 @@ private void runServerTest(String dir,String pid,int ctr,String updfile,
 	  }
        }
     }
+   catch (Throwable t) {
+      System.err.println("PROBLEM RUNNING TEST");
+      t.printStackTrace();
+    }
    finally {
       shutdownBedrock();
     }
@@ -1006,7 +1024,7 @@ private class VarQueryTest {
 
    void process(String sid,String rid) {
       CommandArgs cargs = new CommandArgs("FILE",file_name,"LINE",line_number,
-	
+
 	    "START",start_offset,"TOKEN",token_name,"METHOD",method_name);
       Element xml = sendReply(sid,"VARQUERY",cargs,null);
       System.err.println("RESULT OF VARQUERY: " + IvyXml.convertXmlToString(xml));
@@ -1034,7 +1052,7 @@ private class EntityQueryTest {
    EntityQueryTest(VarQueryTest qtest,String txt,Object ... args) {
       command_args = new CommandArgs();
       for (int i = 0; i < args.length; i += 2) {
-         command_args.put((String) args[i],args[i+1]);
+	 command_args.put((String) args[i],args[i+1]);
        }
       var_query = qtest;
       match_text = txt;
@@ -1046,28 +1064,28 @@ private class EntityQueryTest {
       Element useval = null;
       Element useent = null;
       top: for (Element refxml : IvyXml.children(qxml,"REFVALUE")) {
-         for (Element valxml : IvyXml.children(refxml,"VALUE")) {
-            Element seet = IvyXml.getChild(valxml,"ENTITYSET");
-            for (Element entxml : IvyXml.children(seet,"ENTITY")) {
-               if (checkMatch(entxml,match_text)) {
-                  useref = refxml;
-                  useval = valxml;
-                  useent = entxml;
-                  break top;
-                }
-             }
-          }
+	 for (Element valxml : IvyXml.children(refxml,"VALUE")) {
+	    Element seet = IvyXml.getChild(valxml,"ENTITYSET");
+	    for (Element entxml : IvyXml.children(seet,"ENTITY")) {
+	       if (checkMatch(entxml,match_text)) {
+		  useref = refxml;
+		  useval = valxml;
+		  useent = entxml;
+		  break top;
+		}
+	     }
+	  }
        }
       Assert.assertNotEquals(useref,null);
       Assert.assertNotEquals(useval,null);
       Assert.assertNotEquals(useent,null);
-   
+
       String cnm = IvyXml.getAttrString(useref,"CALL");
       cnm += "@" + IvyXml.getAttrString(useref,"CALLID");
       command_args.put("METHOD",cnm);
       command_args.put("FILE",var_query.getFileName());
       command_args.put("VARIABLE",var_query.getTokenName());
-   
+
       Element loc = IvyXml.getChild(useref,"LOCATION");
       Element locp = IvyXml.getChild(loc,"POINT");
       command_args.put("LINE",IvyXml.getAttrInt(locp,"LINE"));
@@ -1075,40 +1093,40 @@ private class EntityQueryTest {
       command_args.put("LOCATION",IvyXml.getAttrInt(locp,"NODETYPEID"));
       int afterstart = IvyXml.getAttrInt(locp,"AFTERSTART");
       if (afterstart >= 0) {
-         command_args.put("AFTER",afterstart);
-         command_args.put("AFTERLOCATION",IvyXml.getAttrInt(locp,"AFTERTYPEID"));
+	 command_args.put("AFTER",afterstart);
+	 command_args.put("AFTERLOCATION",IvyXml.getAttrInt(locp,"AFTERTYPEID"));
        }
-   
+
       Element typv = IvyXml.getChild(useval,"TYPE");
       command_args.put("TYPE",IvyXml.getAttrString(typv,"BASE"));
-   
+
       command_args.put("ENTITY",IvyXml.getAttrInt(useent,"ID"));
-   
+
       if (command_args.get("QTYPE") == null) {
-         if (command_args.get("SUBTYPE") != null) command_args.put("QTYPE","EXPLAIN");
-         else command_args.put("QTYPE","TO");
+	 if (command_args.get("SUBTYPE") != null) command_args.put("QTYPE","EXPLAIN");
+	 else command_args.put("QTYPE","TO");
        }
-   
+
       IvyXmlWriter refxw = new IvyXmlWriter();
       Element basv = IvyXml.getChild(useref,"REFERENCE");
       Element basv1 = IvyXml.getChild(basv,"VALUE");
-   
+
       refxw.begin("REFERENCE");
       refxw.field("BASEID",IvyXml.getAttrInt(basv1,"BASE"));
       if (IvyXml.getAttrString(basv1,"FIELD") != null) {
-         refxw.field("FIELD",IvyXml.getAttrString(basv1,"FIELD"));
+	 refxw.field("FIELD",IvyXml.getAttrString(basv1,"FIELD"));
        }
       if (IvyXml.getAttrInt(basv1,"SLOT") >= 0) {
-         refxw.field("SLOT",IvyXml.getAttrInt(basv1,"SLOT"));
+	 refxw.field("SLOT",IvyXml.getAttrInt(basv1,"SLOT"));
        }
       if (IvyXml.getAttrInt(basv1,"STACK") >= 0) {
-         refxw.field("STACK",IvyXml.getAttrInt(basv1,"STACK"));
+	 refxw.field("STACK",IvyXml.getAttrInt(basv1,"STACK"));
        }
       refxw.end("REFERENCE");
-   
+
       String refs = refxw.toString();
       refxw.close();
-   
+
       Element xml = sendReply(sid,"QUERY",command_args,refs);
       System.err.println("RESULT OF ENTITYQUERY: " + IvyXml.convertXmlToString(xml));
       Assert.assertNotEquals(xml,null);

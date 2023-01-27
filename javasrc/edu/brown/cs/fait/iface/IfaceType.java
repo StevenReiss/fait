@@ -100,6 +100,8 @@ List<IfaceType> getBackTypes(FaitOperator op,IfaceValue ... v);
 List<String> getAnnotations();
 List<IfaceSubtype> getSubtypes();
 
+void defineAll();
+
 void outputXml(IvyXmlWriter xw);
 
 
