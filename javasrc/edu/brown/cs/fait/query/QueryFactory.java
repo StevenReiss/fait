@@ -162,13 +162,14 @@ public void processToQuery(IfaceCall call,IfaceProgramPoint pt,IfaceEntity ent,
 
 
 public void processFlowQuery(IfaceCall call,IfaceProgramPoint pt,IfaceValue refval,
-      IfaceValue val,List<IfaceMethod> stack,IvyXmlWriter xw)
+      IfaceValue val,List<IfaceMethod> stack,int depth,int conddepth,IvyXmlWriter xw)
 {
    long start = System.currentTimeMillis();
    
-   int locctr = 4;
+   int locctr = conddepth;
+   int depthctr = depth;
    // set locctr based on type of query -- getting here is > others
-   QueryContext ctx = new QueryContextRose(fait_control,null,refval,val,locctr,stack);
+   QueryContext ctx = new QueryContextRose(fait_control,null,refval,val,depthctr,locctr,stack);
    
    boolean allow = false;
    for (IfaceLocation callloc : call.getCallSites()) {

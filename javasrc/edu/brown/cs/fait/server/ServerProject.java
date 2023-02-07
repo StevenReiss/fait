@@ -1340,8 +1340,10 @@ private void handleFlowQueryForCall(IfaceControl ctrl,Element qxml,IfaceCall cal
    String strval = IvyXml.getAttrString(qxml,"CURRENT");
    IfaceType valtyp = ref.getDataType();
    IfaceValue curval = getCurrentValue(ctrl,strval,valtyp);
+   int depth = IvyXml.getAttrInt(qxml,"DEPTH",10);
+   int conddepth = IvyXml.getAttrInt(qxml,"CONDDEPTH",4);
   
-   ctrl.processFlowQuery(call,ppt,ref,curval,stack,xw);
+   ctrl.processFlowQuery(call,ppt,ref,curval,stack,depth,conddepth,xw);
 }
 
 

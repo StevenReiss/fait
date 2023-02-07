@@ -71,8 +71,8 @@ private Map<IfaceValue,IfaceValue>      known_values;
 private IfaceValue                      base_value;
 private int                             use_conditions;
 private List<IfaceMethod>               call_stack;
+private int                             max_priority;
 
-private final int MAX_PRIORITY = 10;
 
 
 
@@ -83,15 +83,16 @@ private final int MAX_PRIORITY = 10;
 /********************************************************************************/
 
 QueryContextRose(IfaceControl ctrl,QueryCallSites sites,
-      IfaceValue var,IfaceValue val,
+      IfaceValue var,IfaceValue val,int depth,
       int conds,List<IfaceMethod> stack)
 {
    super(ctrl,sites);
+   max_priority = depth;
    base_value = val;
    priority_map = new HashMap<>();
    known_values = new HashMap<>();
    if (var != null) {
-      priority_map.put(var,MAX_PRIORITY);
+      priority_map.put(var,max_priority);
       if (val != null) known_values.put(var,val);
     }
    use_conditions = conds;
@@ -106,6 +107,7 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
    base_value = ctx.base_value;
    priority_map = pmap;
    known_values = kmap;
+   max_priority = ctx.max_priority;
    use_conditions = ctx.use_conditions;
    call_stack = ctx.call_stack;
 }
@@ -568,7 +570,7 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
       if (i != null) p = Math.max(p,i);
     }
    
-   return p/MAX_PRIORITY;
+   return p/max_priority;
 }
 
 
