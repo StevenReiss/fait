@@ -482,6 +482,24 @@ private void handleFlowQuery(String sid,Element xml,IvyXmlWriter xw)
 }
 
 
+private void handleStackStartQuery(String sid,Element xml,IvyXmlWriter xw)
+{
+   ServerSession ss = session_map.get(sid);
+   if (ss == null) return;
+   ServerProject sp = ss.getProject();
+   
+   try {
+      sp.handleStackStartQuery(xml,xw);
+    }
+   catch (FaitException e) {
+      xw.begin("FAITQUERY");
+      xw.field("FAIL",true);
+      xw.field("ERROR",e.getMessage());
+      xw.end("FAITQUERY");
+    }
+}
+
+
 
 private void handleFileQuery(String sid,Element xml,IvyXmlWriter xw)
 {
@@ -770,6 +788,9 @@ private String processCommand(String cmd,String sid,Element e) throws ServerExce
          break;
       case "FILEQUERY" :
          handleFileQuery(sid,e,xw);
+         break;
+      case "STACKSTART" :
+         handleStackStartQuery(sid,e,xw);
          break;
       case "TESTCASE" :
          handleTestCase(sid,e,xw);

@@ -366,13 +366,16 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
 @Override protected QueryContext newReference(IfaceValue newref,QueryCallSites sites,
       IfaceState newstate,IfaceState oldstate)
 {
-   if (newstate == null || oldstate == null || call_stack == null) return this;
-   
-   IfaceCall c1 = newstate.getLocation().getCall();
-   IfaceCall c2 = oldstate.getLocation().getCall();
-   if (c1 != c2) {
-      return this;
+   boolean ignore = false;
+   if (newstate == null || oldstate == null) ignore = true;
+   else {
+      IfaceCall c1 = newstate.getLocation().getCall();
+      IfaceCall c2 = oldstate.getLocation().getCall();
+      if (c1 != c2) ignore = true;
     }
+   
+   if (sites == null && getCallSites() != null) ignore = false;
+   if (ignore) return this;
    
    Map<IfaceValue,Integer> pmap = new HashMap<>();
    Map<IfaceValue,IfaceValue> vmap = new HashMap<>();

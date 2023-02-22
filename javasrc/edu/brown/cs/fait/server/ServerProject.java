@@ -51,11 +51,23 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.AnnotationTypeDeclaration;
+import org.eclipse.jdt.core.dom.AssertStatement;
+import org.eclipse.jdt.core.dom.BooleanLiteral;
+import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.EnumDeclaration;
+import org.eclipse.jdt.core.dom.Expression;
+import org.eclipse.jdt.core.dom.MethodDeclaration;
+import org.eclipse.jdt.core.dom.MethodInvocation;
+import org.eclipse.jdt.core.dom.NumberLiteral;
+import org.eclipse.jdt.core.dom.SimpleName;
+import org.eclipse.jdt.core.dom.StringLiteral;
+import org.eclipse.jdt.core.dom.TextBlock;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.w3c.dom.Element;
 
@@ -86,6 +98,7 @@ import edu.brown.cs.ivy.jcomp.JcompControl;
 import edu.brown.cs.ivy.jcomp.JcompProject;
 import edu.brown.cs.ivy.jcomp.JcompSemantics;
 import edu.brown.cs.ivy.jcomp.JcompSource;
+import edu.brown.cs.ivy.jcomp.JcompSymbol;
 import edu.brown.cs.ivy.jcomp.JcompType;
 import edu.brown.cs.ivy.jcomp.JcompTyper;
 import edu.brown.cs.ivy.project.IvyProject;
@@ -122,6 +135,9 @@ private boolean 	test_built;
 private ServerFile	test_file;
 
 private static final String DEFAULT_PACKAGE = "*DEFAULT*";
+
+private static Pattern NULL_PATTERN = Pattern.compile(
+      "Cannot invoke \\\"([^\"]+)\\\" because \\\"([^\"]+)\\\" is null");
 
 
 
@@ -1171,6 +1187,7 @@ void handleFlowQuery(Element qxml,IvyXmlWriter xw) throws FaitException
 
 
 
+
 void handleChangeQuery(Element qxml,IvyXmlWriter xw) throws FaitException
 {
    IfaceControl ctrl = null;
@@ -1440,6 +1457,269 @@ private void handleFileQueryForCall(IfaceControl ctrl,IfaceCall call,
    
    
    
+/********************************************************************************/
+/*                                                                              */
+/*      Queries for BREPAIR                                                     */
+/*                                                                              */
+/********************************************************************************/
+
+void handleStackStartQuery(Element qxml,IvyXmlWriter xw) throws FaitException
+{
+   compileProject();
+   Element stk = IvyXml.getChild(qxml,"STACK");
+   String exc = IvyXml.getTextElement(stk,"EXCEPTION");
+   for (Element frm : IvyXml.children(stk,"FRAME")) {
+      String file = IvyXml.getAttrString(frm,"FILE");
+      String mthd = IvyXml.getAttrString(frm,"METHOD");
+      int lno = IvyXml.getAttrInt(frm,"LINE");
+      if (lno < 0) continue;
+      int idx = mthd.lastIndexOf(".");
+      if (idx < 0) continue;
+      String cnm = mthd.substring(0,idx);
+      mthd = mthd.substring(idx+1);
+      if (!isProjectClass(cnm)) continue;
+      String fnm = file;
+      if (!file.startsWith(File.separator)) fnm = File.separator + fnm;
+      ASTNode an = null;
+      for (ServerFile sf : active_files) {
+         if (sf.getFileName().endsWith(fnm)) {
+            an = sf.getAstRootNode();
+            if (an != null) break;
+          }
+       }
+      if (an == null) {
+         FaitLog.logD("SERVER","No ASTNode for " + file + " " + mthd + " " + lno);
+         continue;
+       }
+      
+      ASTNode linean = JcompAst.findNodeAtLine(an,lno);
+      if (exc.startsWith("org.junit.ComparisonFailure")) {
+         if (findComparisonStart(exc,linean,xw)) break;
+       }
+      else if (exc.startsWith("java.lang.AssertionError")) {
+         if (findAssertionStart(exc,linean,xw)) break;
+       }
+      else if (exc.startsWith("java.lang.NUllPointerException")) {
+         if (findNullStart(exc,linean,xw)) break;
+       }
+      else {
+         if (findExceptionStart(exc,linean,xw)) break;
+       }
+    }
+}
+
+
+private boolean findComparisonStart(String exc,ASTNode n,IvyXmlWriter xw)
+{
+   AssertCallFinder acf = new AssertCallFinder();
+   n.accept(acf);
+   MethodInvocation call = acf.getAssertCall();
+   FaitLog.logD("SERVER","Comparison " + call);
+   if (call == null) return false;
+   Expression bestarg = null;
+   int bestscore = -1;
+   for (Object o : call.arguments()) {
+      Expression ex = (Expression) o;
+      ExpressionScorer esc = new ExpressionScorer();
+      ex.accept(esc);
+      if (esc.getScore() >= bestscore) {
+         bestarg = ex;
+         bestscore = esc.getScore();
+       }
+    }
+   FaitLog.logD("SERVER","Comparisonn expr " + bestarg);
+   if (bestarg == null) return false;
+   
+   outputExpr(bestarg,xw);
+   
+   return true;
+}
+
+
+private void outputExpr(ASTNode n,IvyXmlWriter xw)
+{
+   ASTNode par = n.getParent();
+   CompilationUnit cu = (CompilationUnit) n.getRoot(); 
+   String mthdname = null;
+   for (ASTNode pn = n; pn != null && mthdname == null; pn = pn.getParent()) {
+      if (pn instanceof MethodDeclaration) {
+         JcompSymbol js = JcompAst.getDefinition(pn);
+         FaitLog.logD("SERVER","Look at method " + pn + " " + js);
+         if (js != null) mthdname = js.getFullName();
+         else { 
+            String qnm = ((MethodDeclaration) pn).getName().getFullyQualifiedName();
+            mthdname = qnm;
+          }
+       }
+    }
+   
+   xw.begin("QUERY");
+   xw.field("FILE",JcompAst.getSource(n).getFileName());
+   xw.field("LINE",cu.getLineNumber(n.getStartPosition()));
+   xw.field("METHOD",mthdname);
+   xw.begin("EXPR");
+   xw.field("AFTER",n.getLocationInParent().getId());
+   xw.field("AFTEREND",n.getStartPosition() + n.getLength());
+   xw.field("AFTERSTART",n.getStartPosition());
+   xw.field("AFTERTYPE",getNodeType(n));
+   xw.field("AFTERTYPEID",n.getNodeType());
+   xw.field("END",par.getStartPosition() + par.getLength());
+   xw.field("LINE",cu.getLineNumber(par.getStartPosition()));
+   xw.field("NODETYPE",getNodeType(par));
+   xw.field("NODETYPEID",par.getNodeType());
+   xw.field("START",par.getStartPosition());
+   xw.textElement("TEXT",n.toString());
+   xw.end("EXPR");
+   xw.end("QUERY");
+}
+
+
+
+private String getNodeType(ASTNode n) 
+{
+   String s = n.getClass().getName();
+   int idx = s.lastIndexOf(".");
+   return s.substring(idx+1);
+}
+
+private static class AssertCallFinder extends ASTVisitor {
+   
+   private MethodInvocation assert_call;
+   
+   AssertCallFinder() {
+      assert_call = null;
+    }
+   
+   MethodInvocation getAssertCall()             { return assert_call; }
+   
+   @Override public boolean visit(MethodInvocation n) {
+      String nm = n.getName().getIdentifier();
+      if (nm.startsWith("assert")) {
+         if (assert_call == null) assert_call = n;
+       }
+      return false;
+    }
+   
+}       // end of inner class AssertCallFinder
+
+
+private static class ExpressionScorer extends ASTVisitor {
+   
+   private int total_score;
+   
+   ExpressionScorer() {
+      total_score = 0;
+    }
+   
+   int getScore()                       { return total_score; }
+   
+   @Override public boolean visit(StringLiteral n) {
+      total_score += 1;
+      return false;
+    }
+   
+   @Override public boolean visit(NumberLiteral n) {
+      total_score += 1;
+      return false;
+    }
+   
+   @Override public boolean visit(BooleanLiteral n) {
+      total_score += 1;
+      return false;
+    }
+   
+   @Override public boolean visit(TextBlock n) {
+      total_score += 1;
+      return false;
+    }
+   
+   @Override public boolean visit(SimpleName n) {
+      JcompSymbol js = JcompAst.getReference(n);
+      if (js == null) total_score += 2;
+      else if (js.isStatic()) total_score += 3;
+      else total_score += 4;
+      return false;
+    }
+  
+   @Override public boolean visit(MethodInvocation n) {
+      total_score += 10;
+      return true;
+    }
+   
+}       // end of inner class ExpressionScorer
+
+
+private boolean findAssertionStart(String exc,ASTNode n,IvyXmlWriter xw)
+{
+   if (n instanceof AssertStatement) {
+      AssertStatement as = (AssertStatement) n;
+      outputExpr(as.getExpression(),xw);
+      return true;
+    }
+   else return findComparisonStart(exc,n,xw);
+}
+
+
+private boolean findNullStart(String exc,ASTNode n,IvyXmlWriter xw)
+{
+   if (exc == null) return false;
+   
+   Matcher m = NULL_PATTERN.matcher(exc);
+   if (m.find()) {
+      String invoke = m.group(1);
+      String arg = m.group(2);
+      NullFinder nfd = new NullFinder(arg,invoke);
+      n.accept(nfd);
+      Expression ex = nfd.getResult();
+      if (ex != null) {
+         outputExpr(ex,xw);
+         return true;
+       }
+    }
+   return false;
+}
+
+
+private static class NullFinder extends ASTVisitor {
+   
+   private String null_expr;
+   private String in_expr;
+   private Expression found_node;
+   
+   NullFinder(String nexpr,String iexpr) {
+      if (nexpr.startsWith("this.")) nexpr = nexpr.substring(5);
+      null_expr = nexpr;
+      int idx0 = iexpr.indexOf("(");
+      if (idx0 > 0) {
+         iexpr = iexpr.substring(0,idx0+1);
+       }
+      int idx1 = iexpr.lastIndexOf(".");
+      if (idx1 > 0) iexpr = iexpr.substring(idx1+1);
+      in_expr = iexpr;
+    }
+   
+   Expression getResult()               { return found_node; }
+   
+   @Override public boolean preVisit2(ASTNode n) {
+      if (n.toString().contains(null_expr) &&
+            n.getParent().toString().contains(in_expr)) {
+         if (n instanceof Expression) {
+            found_node = (Expression) n;
+          }
+         return true;
+       }
+      return false;
+    }
+   
+}       // end of inner class NullFinder
+
+private boolean findExceptionStart(String exc,ASTNode n,IvyXmlWriter xw)
+{
+   return false;
+}
+
+
+
 /********************************************************************************/
 /*										*/
 /*	Handle Reflection queries						*/

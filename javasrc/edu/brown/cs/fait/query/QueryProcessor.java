@@ -232,8 +232,7 @@ private void handleActualFlowFrom(IfaceState backfrom,IfaceState st0,QueryContex
          priorctx = ctx.addRelevantArgs(priorctx,st0,bfd);
          if (priorctx != ctx) cntxrel = true;
        }
-      FaitLog.logD("CHECK CALL " + priorctx + " " + cntxrel + " " + 
-        priorctx.isPriorStateRelevant(st0) + " " + priorctx.followCalls());
+      FaitLog.logD("CHECK CALL " + priorctx + " " + cntxrel);
 
     }
    
@@ -352,7 +351,12 @@ private boolean handleAuxReference(IfaceAuxReference ref,QueryContext ctx,QueryN
    
    QueryGraph graph = node.getGraph();
    // Might want to use a null call_sites here if not in same method
-   QueryContext nctx = ctx.newReference(v0,ctx.getCallSites(),st0,st1);
+   QueryCallSites qcs = ctx.getCallSites();
+   IfaceMethod m1 = ref.getLocation().getMethod();
+   IfaceMethod m2 = st0.getLocation().getMethod();
+   if (m1 != m2) qcs = null;
+   
+   QueryContext nctx = ctx.newReference(v0,qcs,st0,st1);
    if (nctx != null && nctx.isPriorStateRelevant(st1)) {
       String desc = "Referenced value";
       if (v0.getRefSlot() >= 0) {

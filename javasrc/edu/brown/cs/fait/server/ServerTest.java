@@ -227,6 +227,73 @@ public synchronized void serverTestCatre()
 
 /********************************************************************************/
 /*										*/
+/*	NanoXML test								*/
+/*										*/
+/********************************************************************************/
+
+@Test
+public synchronized void serverTestNanoXml()
+{
+   List<QueryTest> qts = new ArrayList<>();
+
+   String sq =
+      "<STACK>\n" +
+      "<EXCEPTION>org.junit.ComparisonFailure: expected:&lt;ns:[]Bar&gt; but was:&lt;ns:[:]Bar&gt;</EXCEPTION>\n" +
+      "<FRAME METHOD='org.junit.Assert.assertEquals' FILE='Assert.java' LINE='115' />\n" +
+      "<FRAME METHOD='org.junit.Assert.assertEquals' FILE='Assert.java' LINE='144' />\n" +
+      "<FRAME METHOD='net.n3.nanoxml.ParserTest1.testParsing16' FILE='ParserTest1.java' LINE='457' />\n" +
+      "<FRAME METHOD='org.junit.runners.model.FrameworkMethod$1.runReflectiveCall' FILE='FrameworkMethod.java' LINE='50' />\n" +
+      "<FRAME METHOD='org.junit.internal.runners.model.ReflectiveCallable.run' FILE='ReflectiveCallable.java' LINE='12' />\n" +
+      "<FRAME METHOD='org.junit.runners.model.FrameworkMethod.invokeExplosively' FILE='FrameworkMethod.java' LINE='47' />\n" +
+      "<FRAME METHOD='org.junit.internal.runners.statements.InvokeMethod.evaluate' FILE='InvokeMethod.java' LINE='17' />\n" +
+      "<FRAME METHOD='org.junit.runners.ParentRunner.runLeaf' FILE='ParentRunner.java' LINE='325' />\n" +
+      "<FRAME METHOD='org.junit.runners.BlockJUnit4ClassRunner.runChild' FILE='BlockJUnit4ClassRunner.java' LINE='78' />\n" +
+      "<FRAME METHOD='org.junit.runners.BlockJUnit4ClassRunner.runChild' FILE='BlockJUnit4ClassRunner.java' LINE='57' />\n" +
+      "<FRAME METHOD='org.junit.runners.ParentRunner$3.run' FILE='ParentRunner.java' LINE='290' />\n" +
+      "<FRAME METHOD='org.junit.runners.ParentRunner$1.schedule' FILE='ParentRunner.java' LINE='71' />\n" +
+      "<FRAME METHOD='org.junit.runners.ParentRunner.runChildren' FILE='ParentRunner.java' LINE='288' />\n" +
+      "<FRAME METHOD='org.junit.runners.ParentRunner.access$000' FILE='ParentRunner.java' LINE='58' />\n" +
+      "<FRAME METHOD='org.junit.runners.ParentRunner$2.evaluate' FILE='ParentRunner.java' LINE='268' />\n" +
+      "<FRAME METHOD='org.junit.runners.ParentRunner.run' FILE='ParentRunner.java' LINE='363' />\n" +
+      "<FRAME METHOD='org.junit.runner.JUnitCore.run' FILE='JUnitCore.java' LINE='137' />\n" +
+      "<FRAME METHOD='org.junit.runner.JUnitCore.run' FILE='JUnitCore.java' LINE='115' />\n" +
+      "<FRAME METHOD='edu.brown.cs.bubbles.batt.BattJUnit.process' FILE='BattJUnit.java' LINE='414' />\n" +
+      "<FRAME METHOD='edu.brown.cs.bubbles.batt.BattJUnit.main' FILE='BattJUnit.java' LINE='82' />\n" +
+      "</STACK>";
+   StackStartTest sst = new StackStartTest(sq);
+   qts.add(sst);
+
+   IvyXmlWriter xw = new IvyXmlWriter();
+   xw.begin("EXPR");
+   xw.field("AFTER","arguments");
+   xw.field("AFTEREND",15382);
+   xw.field("AFTERSTART",15341);
+   xw.field("AFTERTYPE","MethodInvocation");
+   xw.field("AFTERTYPEID",32);
+   xw.field("END",15359);
+   xw.field("LINE",457);
+   xw.field("NODETYPE","MethodInvocation");
+   xw.field("NODETYPEID",32);
+   xw.field("START",15318);
+   xw.textElement("TEXT","xml.getChildAtIndex(0).getQualifiedName()");
+   xw.end("EXPR");
+   String cnts = xw.toString();
+   xw.close();
+
+   FlowQueryTest fq1 = new FlowQueryTest(cnts,
+//	 "CONDDEPTH",50,"DEPTH",100,
+	 "FILE","/pro/nanoxml/test/net/n3/nanoxml/ParserTest1.java",
+	 "LINE",457,"METHOD","net.n3.nanoxml.ParserTest1.testParsing16",
+	 "QTYPE","EXPRESSION");
+   qts.add(fq1);
+
+   runServerTest("nanoxml","nanoxml",0,null,qts);
+}
+
+
+
+/********************************************************************************/
+/*										*/
 /*	JavaSecurity test							*/
 /*										*/
 /********************************************************************************/
@@ -234,8 +301,7 @@ public synchronized void serverTestCatre()
 @Test
 public synchronized void serverTestJavaSecurity()
 {
-   List<VarQueryTest> vqs = new ArrayList<>();
-   List<EntityQueryTest> eqs = new ArrayList<>();
+   List<QueryTest> vqs = new ArrayList<>();
 
    VarQueryTest vq1 = new VarQueryTest(79,2020,"q","edu.brown.cs.securitylab.SecurityDatabase.query(String,Object[])",
 	 "/research/people/spr/javasecurity/javasrc/edu/brown/cs/securitylab/SecurityDatabase.java");
@@ -246,9 +312,9 @@ public synchronized void serverTestJavaSecurity()
    vqs.add(vq2);
 
    EntityQueryTest edt = new EntityQueryTest(vq2,"98","QTYPE","TO");
-   eqs.add(edt);
+   vqs.add(edt);
 
-   runServerTest("javasecurity","WebServer",50,null,vqs,eqs);
+   runServerTest("javasecurity","WebServer",50,null,vqs);
 }
 
 
@@ -263,8 +329,7 @@ public synchronized void serverTestJavaSecurity()
 @Test
 public synchronized void serverTestTutorial()
 {
-   List<VarQueryTest> vqs = new ArrayList<>();
-   List<EntityQueryTest> eqs = new ArrayList<>();
+   List<QueryTest> vqs = new ArrayList<>();
 
    VarQueryTest vq1 = new VarQueryTest(137,3923,"g",
 	 "edu.brown.cs.bubbles.tutorial.romp.Board.drawCircleInches(int,int,int,Graphics)",
@@ -272,9 +337,9 @@ public synchronized void serverTestTutorial()
    vqs.add(vq1);
 
    EntityQueryTest edt = new EntityQueryTest(vq1,"Debug","QTYPE","TO");
-   eqs.add(edt);
+   vqs.add(edt);
 
-   runServerTest("tutorial","romp",50,null,vqs,eqs);
+   runServerTest("tutorial","romp",50,null,vqs);
 }
 
 
@@ -500,7 +565,7 @@ public synchronized void serverTestTimedUpdateWebgoatBench()
 private void runServerTest(String dir,String pid,int ctr,String updfile)
 {
    try {
-      runServerTest(dir,pid,ctr,updfile,null,null,false);
+      runServerTest(dir,pid,ctr,updfile,null,false);
     }
    catch (Throwable t) {
       FaitLog.logE("Test failed",t);
@@ -509,10 +574,10 @@ private void runServerTest(String dir,String pid,int ctr,String updfile)
 }
 
 private void runServerTest(String dir,String pid,int ctr,String updfile,
-      List<VarQueryTest> vqs,List<EntityQueryTest> eqs)
+      List<QueryTest> vqs)
 {
    try {
-      runServerTest(dir,pid,ctr,updfile,vqs,eqs,false);
+      runServerTest(dir,pid,ctr,updfile,vqs,false);
     }
    catch (Throwable t) {
       FaitLog.logE("Test failed",t);
@@ -524,12 +589,12 @@ private void runServerTest(String dir,String pid,int ctr,String updfile,
 
 private void runServerTest(String dir,String pid,int ctr,String updfile,boolean timed)
 {
-   runServerTest(dir,pid,ctr,updfile,null,null,timed);
+   runServerTest(dir,pid,ctr,updfile,null,timed);
 }
 
 
 private void runServerTest(String dir,String pid,int ctr,String updfile,
-      List<VarQueryTest> vqs,List<EntityQueryTest> eqs,boolean timed)
+      List<QueryTest> qs,boolean timed)
 {
    Set<File> testfiles = new HashSet<>();
 
@@ -650,15 +715,9 @@ private void runServerTest(String dir,String pid,int ctr,String updfile,
 	  }
        }
 
-      if (vqs != null) {
-	 for (VarQueryTest vq : vqs) {
+      if (qs != null) {
+	 for (QueryTest vq : qs) {
 	    vq.process(sid,rid);
-	  }
-       }
-
-      if (eqs != null) {
-	 for (EntityQueryTest eq : eqs) {
-	    eq.process(sid,rid);
 	  }
        }
     }
@@ -993,6 +1052,19 @@ private void errorQueries(String sid,Element xml)
 }
 
 
+/********************************************************************************/
+/*										*/
+/*	Generic query tests							*/
+/*										*/
+/********************************************************************************/
+
+private abstract class QueryTest {
+
+   abstract void process(String sid,String rid);
+
+}	// end of inner class QueryTest
+
+
 
 /********************************************************************************/
 /*										*/
@@ -1000,7 +1072,7 @@ private void errorQueries(String sid,Element xml)
 /*										*/
 /********************************************************************************/
 
-private class VarQueryTest {
+private class VarQueryTest extends QueryTest {
 
    private int line_number;
    private int start_offset;
@@ -1022,7 +1094,7 @@ private class VarQueryTest {
    String getFileName() 			{ return file_name; }
    String getTokenName()			{ return token_name; }
 
-   void process(String sid,String rid) {
+   @Override void process(String sid,String rid) {
       CommandArgs cargs = new CommandArgs("FILE",file_name,"LINE",line_number,
 
 	    "START",start_offset,"TOKEN",token_name,"METHOD",method_name);
@@ -1043,7 +1115,7 @@ private class VarQueryTest {
 /*										*/
 /********************************************************************************/
 
-private class EntityQueryTest {
+private class EntityQueryTest extends QueryTest {
 
    private CommandArgs command_args;
    private VarQueryTest var_query;
@@ -1058,7 +1130,7 @@ private class EntityQueryTest {
       match_text = txt;
     }
 
-   void process(String sid,String rid) {
+   @Override void process(String sid,String rid) {
       Element qxml = var_query.getQueryResult();
       Element useref = null;
       Element useval = null;
@@ -1140,6 +1212,63 @@ private class EntityQueryTest {
 
 }	// end of inner class EntityQueryTest
 
+
+
+/********************************************************************************/
+/*										*/
+/*	Flow query test 							*/
+/*										*/
+/********************************************************************************/
+
+private class FlowQueryTest extends QueryTest {
+
+   private CommandArgs command_args;
+   private String command_cnts;
+
+   FlowQueryTest(String cnts,Object ... args) {
+      command_args = new CommandArgs();
+      for (int i = 0; i < args.length; i += 2) {
+	 command_args.put((String) args[i],args[i+1]);
+       }
+      command_cnts = cnts;
+    }
+
+   @Override void process(String sid,String rid) {
+      Element xml = sendReply(sid,"FLOWQUERY",command_args,command_cnts);
+      System.err.println("RESULT OF FLOWQUERY: " + IvyXml.convertXmlToString(xml));
+      Assert.assertNotEquals(xml,null);
+    }
+
+}	// end of inner class FlowQueryTest
+
+
+
+/********************************************************************************/
+/*										*/
+/*	Stack start test							*/
+/*										*/
+/********************************************************************************/
+
+private class StackStartTest extends QueryTest {
+
+   private CommandArgs command_args;
+   private String command_cnts;
+
+   StackStartTest(String cnts,Object ... args) {
+      command_args = new CommandArgs();
+      for (int i = 0; i < args.length; i += 2) {
+	 command_args.put((String) args[i],args[i+1]);
+       }
+      command_cnts = cnts;
+    }
+
+   @Override void process(String sid,String rid) {
+      Element xml = sendReply(sid,"STACKSTART",command_args,command_cnts);
+      System.err.println("RESULT OF STACKSTART: " + IvyXml.convertXmlToString(xml));
+      Assert.assertNotEquals(xml,null);
+    }
+
+}	// end of inner class StackStartTest
 
 
 

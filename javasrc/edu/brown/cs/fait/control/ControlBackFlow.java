@@ -218,6 +218,11 @@ ControlBackFlow(IfaceControl fc,IfaceState endstate,IfaceState priorstate,Collec
    execute_point = prior_state.getLocation().getProgramPoint();
    start_refs = null;
    note_conditions = false;
+   aux_refs = null;
+   if (refs != null) {
+      aux_refs = new HashSet<>();
+      aux_refs.addAll(refs);
+    }
 }
 
 
