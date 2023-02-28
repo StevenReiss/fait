@@ -230,6 +230,9 @@ void handleArrayCopy(List<IfaceValue> args,FlowLocation loc)
 Collection<IfaceAuxReference> getSetterRefs(IfaceValue arr)
 {
    if (arr == null) return null;
+   if (arr.isReference()) {
+      arr = arr.getRefBase();
+    }
    List<IfaceAuxReference> rslt = null;
    for (IfaceEntity ent : arr.getEntities()) {
       if (ent.getDataType().isArrayType()) {
@@ -243,6 +246,16 @@ Collection<IfaceAuxReference> getSetterRefs(IfaceValue arr)
                      IfaceAuxRefType.ARRAY_REF);
                rslt.add(ref);
              }
+          }
+         if (btyp.isArrayType()) {
+           IfaceValue aval = ent.getArrayValue(null,fait_control);
+           if (aval != null) {
+              Collection<IfaceAuxReference> nrefs = getSetterRefs(aval);
+              if (nrefs != null && !nrefs.isEmpty()) {
+                 if (rslt == null) rslt = new ArrayList<>();
+                 rslt.addAll(nrefs);
+               }
+            }
           }
        }
     }

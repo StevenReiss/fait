@@ -1384,6 +1384,7 @@ private void addAuxRefs(IfaceField fld)
 private void addAuxArrayRefs(IfaceValue arr)
 {
    if (arr == null) return;
+   
    Collection<IfaceAuxReference> refs = fait_control.getAuxArrayRefs(arr);
    if (refs == null) return;
    for (IfaceAuxReference r : refs) addAuxRef(r);

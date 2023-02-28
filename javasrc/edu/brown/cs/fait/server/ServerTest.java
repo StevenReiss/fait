@@ -294,6 +294,66 @@ public synchronized void serverTestNanoXml()
 
 /********************************************************************************/
 /*										*/
+/*	Tetris test								*/
+/*										*/
+/********************************************************************************/
+
+@Test
+public synchronized void serverTestTetris()
+{
+   List<QueryTest> qts = new ArrayList<>();
+
+   String cnts =
+      "<EXPR AFTER='arguments' AFTEREND='2919' AFTERSTART='2917' AFTERTYPE='SimpleName' AFTERTYPEID='42' END='2872' LINE='61' NODETYPE='MethodInvocation' NODETYPEID='32' START='2870'>\n" +
+      "<TEXT>b4</TEXT>\n" +
+      "</EXPR>\n" +
+      "<STACK>\n" +
+      "<FRAME CLASS='org.junit.Assert' FSIGN='(java.lang.String)' METHOD='fail' SIGNATURE='(Ljava/lang/String;)V' />\n" +
+      "<FRAME CLASS='org.junit.Assert' FSIGN='(java.lang.String,java.lang.Object,java.lang.Object)' METHOD='failNotEquals' SIGNATURE='(Ljava/lang/String;Ljava/lang/Object;Ljava/lang/Object;)V' />\n" +
+      "<FRAME CLASS='org.junit.Assert' FSIGN='(java.lang.String,java.lang.Object,java.lang.Object)' METHOD='assertEquals' SIGNATURE='(Ljava/lang/String;Ljava/lang/Object;Ljava/lang/Object;)V' />\n" +
+      "<FRAME CLASS='net.percederberg.tetris.TetrisTest' FSIGN='()' METHOD='testSquareRotate' SIGNATURE='()V' />\n" +
+      "<FRAME CLASS='java.lang.invoke.LambdaForm$DMH.0x000000080108c000' FSIGN='(java.lang.Object,java.lang.Object)' METHOD='invokeVirtual' SIGNATURE='(Ljava/lang/Object;Ljava/lang/Object;)V' />\n" +
+      "<FRAME CLASS='java.lang.invoke.LambdaForm$MH.0x000000080108cc00' FSIGN='(java.lang.Object,java.lang.Object)' METHOD='invoke' SIGNATURE='(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;' />\n" +
+      "<FRAME CLASS='java.lang.invoke.Invokers$Holder' FSIGN='(java.lang.Object,java.lang.Object,java.lang.Object)' METHOD='invokeExact_MT' SIGNATURE='(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;' />\n" +
+      "<FRAME CLASS='jdk.internal.reflect.DirectMethodHandleAccessor' FSIGN='(java.lang.Object,java.lang.Object[])' METHOD='invokeImpl' SIGNATURE='(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;' />\n" +
+      "<FRAME CLASS='jdk.internal.reflect.DirectMethodHandleAccessor' FSIGN='(java.lang.Object,java.lang.Object[])' METHOD='invoke' SIGNATURE='(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;' />\n" +
+      "<FRAME CLASS='java.lang.reflect.Method' FSIGN='(java.lang.Object,java.lang.Object[])' METHOD='invoke' SIGNATURE='(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;' />\n" +
+      "<FRAME CLASS='org.junit.runners.model.FrameworkMethod$1' FSIGN='()' METHOD='runReflectiveCall' SIGNATURE='()Ljava/lang/Object;' />\n" +
+      "<FRAME CLASS='org.junit.internal.runners.model.ReflectiveCallable' FSIGN='()' METHOD='run' SIGNATURE='()Ljava/lang/Object;' />\n" +
+      "<FRAME CLASS='org.junit.runners.model.FrameworkMethod' FSIGN='(java.lang.Object,java.lang.Object[])' METHOD='invokeExplosively' SIGNATURE='(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;' />\n" +
+      "<FRAME CLASS='org.junit.internal.runners.statements.InvokeMethod' FSIGN='()' METHOD='evaluate' SIGNATURE='()V' />\n" +
+      "<FRAME CLASS='org.junit.runners.ParentRunner&lt;T&gt;' FSIGN='(org.junit.runners.model.Statement,org.junit.runner.Description,org.junit.runner.notification.RunNotifier)' METHOD='runLeaf' SIGNATURE='(Lorg/junit/runners/model/Statement;Lorg/junit/runner/Description;Lorg/junit/runner/notification/RunNotifier;)V' />\n" +
+      "<FRAME CLASS='org.junit.runners.BlockJUnit4ClassRunner' FSIGN='(org.junit.runners.model.FrameworkMethod,org.junit.runner.notification.RunNotifier)' METHOD='runChild' SIGNATURE='(Lorg/junit/runners/model/FrameworkMethod;Lorg/junit/runner/notification/RunNotifier;)V' />\n" +
+      "<FRAME CLASS='org.junit.runners.BlockJUnit4ClassRunner' FSIGN='(java.lang.Object,org.junit.runner.notification.RunNotifier)' METHOD='runChild' SIGNATURE='(Ljava/lang/Object;Lorg/junit/runner/notification/RunNotifier;)V' />\n" +
+      "<FRAME CLASS='org.junit.runners.ParentRunner$3' FSIGN='()' METHOD='run' SIGNATURE='()V' />\n" +
+      "<FRAME CLASS='org.junit.runners.ParentRunner$1' FSIGN='(java.lang.Runnable)' METHOD='schedule' SIGNATURE='(Ljava/lang/Runnable;)V' />\n" +
+      "<FRAME CLASS='org.junit.runners.ParentRunner&lt;T&gt;' FSIGN='(org.junit.runner.notification.RunNotifier)' METHOD='runChildren' SIGNATURE='(Lorg/junit/runner/notification/RunNotifier;)V' />\n" +
+      "<FRAME CLASS='org.junit.runners.ParentRunner&lt;T&gt;' FSIGN='(org.junit.runners.ParentRunner,org.junit.runner.notification.RunNotifier)' METHOD='access$000' SIGNATURE='(Lorg/junit/runners/ParentRunner;Lorg/junit/runner/notification/RunNotifier;)V' />\n" +
+      "<FRAME CLASS='org.junit.runners.ParentRunner$2' FSIGN='()' METHOD='evaluate' SIGNATURE='()V' />\n" +
+      "<FRAME CLASS='org.junit.runners.ParentRunner&lt;T&gt;' FSIGN='(org.junit.runner.notification.RunNotifier)' METHOD='run' SIGNATURE='(Lorg/junit/runner/notification/RunNotifier;)V' />\n" +
+      "<FRAME CLASS='org.eclipse.jdt.internal.junit4.runner.JUnit4TestReference' FSIGN='(org.eclipse.jdt.internal.junit.runner.TestExecution)' METHOD='run' SIGNATURE='(Lorg/eclipse/jdt/internal/junit/runner/TestExecution;)V' />\n" +
+      "<FRAME CLASS='org.eclipse.jdt.internal.junit.runner.TestExecution' FSIGN='(org.eclipse.jdt.internal.junit.runner.ITestReference[])' METHOD='run' SIGNATURE='([Lorg/eclipse/jdt/internal/junit/runner/ITestReference;)V' />\n" +
+      "<FRAME CLASS='org.eclipse.jdt.internal.junit.runner.RemoteTestRunner' FSIGN='(java.lang.String[],java.lang.String,org.eclipse.jdt.internal.junit.runner.TestExecution)' METHOD='runTests' SIGNATURE='([Ljava/lang/String;Ljava/lang/String;Lorg/eclipse/jdt/internal/junit/runner/TestExecution;)V' />\n" +
+      "<FRAME CLASS='org.eclipse.jdt.internal.junit.runner.RemoteTestRunner' FSIGN='(org.eclipse.jdt.internal.junit.runner.TestExecution)' METHOD='runTests' SIGNATURE='(Lorg/eclipse/jdt/internal/junit/runner/TestExecution;)V' />\n" +
+      "<FRAME CLASS='org.eclipse.jdt.internal.junit.runner.RemoteTestRunner' FSIGN='()' METHOD='run' SIGNATURE='()V' />\n" +
+      "<FRAME CLASS='org.eclipse.jdt.internal.junit.runner.RemoteTestRunner' FSIGN='(java.lang.String[])' METHOD='main' SIGNATURE='([Ljava/lang/String;)V' />\n" +
+      "</STACK>\n";
+
+   FlowQueryTest fq1 = new FlowQueryTest(cnts,
+					    "CONDDEPTH",4,"DEPTH",10,
+					    "FILE","/pro/tetris/src/net/percederberg/tetris/TetrisTest.java",
+					    "LINE",61,
+					    "METHOD","net.percederberg.tetris.TetrisTest.testSquareRotate",
+					    "QTYPE","EXPRESSION");
+   qts.add(fq1);
+
+   runServerTest("tetris","tetris",0,null,qts);
+}
+
+
+
+/********************************************************************************/
+/*										*/
 /*	JavaSecurity test							*/
 /*										*/
 /********************************************************************************/
