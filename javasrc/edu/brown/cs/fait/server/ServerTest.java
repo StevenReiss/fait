@@ -286,6 +286,13 @@ public synchronized void serverTestNanoXml()
 	 "LINE",457,"METHOD","net.n3.nanoxml.ParserTest1.testParsing16",
 	 "QTYPE","EXPRESSION");
    qts.add(fq1);
+   FlowQueryTest fq2 = new FlowQueryTest(null,
+         "FILE","/pro/nanoxml/test/net/n3/nanoxml/ParserTest1.java",
+         "LINE",373,"METHOD","net.n3.nanoxml.StdXMLParser.processElement()",
+         "START",11304,
+         "TOKEN","name",
+         "QTYPE","TOKEN");
+   qts.add(fq2);
 
    runServerTest("nanoxml","nanoxml",0,null,qts);
 }
@@ -1288,7 +1295,7 @@ private class FlowQueryTest extends QueryTest {
    FlowQueryTest(String cnts,Object ... args) {
       command_args = new CommandArgs();
       for (int i = 0; i < args.length; i += 2) {
-	 command_args.put((String) args[i],args[i+1]);
+         command_args.put((String) args[i],args[i+1]);
        }
       command_cnts = cnts;
     }

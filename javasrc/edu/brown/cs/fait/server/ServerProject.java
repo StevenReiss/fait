@@ -1146,6 +1146,7 @@ void handleFlowQuery(Element qxml,IvyXmlWriter xw) throws FaitException
       mcl = mnm.substring(0,idx2);
       mnm = mnm.substring(idx2+1);
     }
+   IfaceMethod m = ctrl.findMethod(mcl,mnm,msg);
    
    String qtyp = IvyXml.getAttrString(qxml,"QTYPE");
    
@@ -1154,7 +1155,6 @@ void handleFlowQuery(Element qxml,IvyXmlWriter xw) throws FaitException
  
    switch (qtyp) {
       case "EXPRESSION" :
-         calls = null;
          vloc = IvyXml.getChild(qxml,"EXPR");
          break;
       case "VARIABLE" :
@@ -1168,12 +1168,14 @@ void handleFlowQuery(Element qxml,IvyXmlWriter xw) throws FaitException
           }
          break;
       case "LOCATION" :
-         calls = null;
          vloc = IvyXml.getChild(qxml,"LOCATION");
+         break;
+      case "TOKEN" :
+         vloc = createTokenLoc(m,qxml);
+         if (vloc == null) throw new FaitException("Can't find location");
          break;
     }
    
-   IfaceMethod m = ctrl.findMethod(mcl,mnm,msg);
    for (IfaceCall c : ctrl.getAllCalls(m)) {
       for (IfaceCall c1 : c.getAlternateCalls()) {
          Element loc = vloc;
@@ -1183,6 +1185,36 @@ void handleFlowQuery(Element qxml,IvyXmlWriter xw) throws FaitException
           }
        }
     }
+}
+
+
+private Element createTokenLoc(IfaceMethod m,Element qxml)
+{
+   int lno = IvyXml.getAttrInt(qxml,"LINE");
+   int start = IvyXml.getAttrInt(qxml,"START");
+   IfaceProgramPoint pt = m.getStart();
+ 
+   ASTNode n = pt.getAstReference().getAstNode();
+   ASTNode n1 = JcompAst.findNodeAtOffset(n,start);
+   ASTNode n2 = n1.getParent();
+   if (n1.getNodeType() == ASTNode.SIMPLE_NAME) {
+      IvyXmlWriter xw = new IvyXmlWriter();
+      xw.begin("EXPR");
+      xw.field("AFTERSTART",n1.getStartPosition());
+      xw.field("AFTERTYPEID",n1.getNodeType());
+      xw.field("START",n2.getStartPosition());
+      xw.field("NODETYPEID",n2.getNodeType());
+      xw.end("EXPR");
+      Element e = IvyXml.convertStringToXml(xw.toString());
+      xw.close();
+      return e;
+    }
+   else {
+      FaitLog.logE("SERVER","Unknown token location " + 
+            lno + " " + start + " " + n1 + " " + n2);
+    }
+   
+   return null;
 }
 
 

@@ -233,6 +233,8 @@ Collection<IfaceAuxReference> getSetterRefs(IfaceValue arr)
    if (arr.isReference()) {
       arr = arr.getRefBase();
     }
+   if (arr == null) return null;
+   
    List<IfaceAuxReference> rslt = null;
    for (IfaceEntity ent : arr.getEntities()) {
       if (ent.getDataType().isArrayType()) {
