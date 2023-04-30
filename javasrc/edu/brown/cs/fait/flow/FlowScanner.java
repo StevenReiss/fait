@@ -301,6 +301,9 @@ protected IfaceValue adjustRef(IfaceValue ref,int pop,int push)
    if (idx >= 0) {
       if (idx < push) return null;
       if (pop == push) return ref;
+      if (idx >= 8) {
+         System.err.println("CHECK HERE");
+       }
       return fait_control.findRefStackValue(ref.getDataType(),idx-push+pop);
     }
    return ref;

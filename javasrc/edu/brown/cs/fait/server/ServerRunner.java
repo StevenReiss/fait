@@ -238,9 +238,9 @@ private synchronized void waitForNextTime()
 private boolean getAllAsts()
 {
    int editcount = ServerFile.getEditCount();
-   FaitLog.logI("Getting ASTS " + editcount);
-
    Collection<ServerFile> files = new ArrayList<>(for_project.getActiveFiles());
+   FaitLog.logI("Getting ASTS " + editcount + " " + files.size());
+
    for (ServerFile sf : files) {
       if (ServerFile.getEditCount() != editcount) break;
       sf.saveAst();

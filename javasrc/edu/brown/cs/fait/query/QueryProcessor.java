@@ -228,12 +228,11 @@ private void handleActualFlowFrom(IfaceState backfrom,IfaceState st0,QueryContex
    if (st0.isMethodCall()) {
       IfaceMethod mthd = pt.getCalledMethod();
       if (mthd != null) {
-         FaitLog.logD("Call to: " + mthd.getName());
+         FaitLog.logD("Call to: " + mthd.getFullName());
          priorctx = ctx.addRelevantArgs(priorctx,st0,bfd);
          if (priorctx != ctx) cntxrel = true;
        }
-      FaitLog.logD("CHECK CALL " + priorctx + " " + cntxrel);
-
+      FaitLog.logD("CHECK CALL " + mthd.getFullName() + " " + ctx + " " + cntxrel);
     }
    
    boolean islinked = false;

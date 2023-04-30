@@ -41,6 +41,7 @@ import java.util.List;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.MethodInvocation;
 
+import edu.brown.cs.fait.iface.FaitLog;
 import edu.brown.cs.fait.iface.IfaceAstReference;
 import edu.brown.cs.fait.iface.IfaceAuxReference;
 import edu.brown.cs.fait.iface.IfaceCall;
@@ -216,6 +217,8 @@ protected QueryContext mergeWith(QueryContext ctx)
 protected List<IfaceAuxReference> getArgumentReferences(IfaceState st0,boolean argvalues,boolean thisval,boolean canbevoid)
 {
    List<IfaceAuxReference> rslt = new ArrayList<>();
+   
+   FaitLog.logD("QUERY","Argument refs " + argvalues + " " + thisval + " " + canbevoid);
    
    IfaceProgramPoint pt = st0.getLocation().getProgramPoint();
    IfaceMethod mthd = pt.getCalledMethod();

@@ -32,6 +32,7 @@ import java.util.Map;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ArrayAccess;
 import org.eclipse.jdt.core.dom.Assignment;
+import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.ClassInstanceCreation;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.FieldAccess;
@@ -39,6 +40,7 @@ import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.SimpleName;
 import org.eclipse.jdt.core.dom.ThisExpression;
 
+import edu.brown.cs.fait.iface.FaitLog;
 import edu.brown.cs.fait.iface.IfaceAstReference;
 import edu.brown.cs.fait.iface.IfaceAuxReference;
 import edu.brown.cs.fait.iface.IfaceBackFlow;
@@ -128,12 +130,26 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
    boolean checkcond = true;
    
    if (priority_map.size() > 0) {
+      boolean stackok = true;
+      IfaceAstReference aref = backto.getLocation().getProgramPoint().getAstReference();
+      if (aref != null && aref.getAstNode() != null && aref.getAstNode() instanceof Block &&
+            aref.getStatus() == null) 
+         stackok = false;
+      
       for (Map.Entry<IfaceValue,Integer> ent : priority_map.entrySet()) {
          IfaceValue ref = ent.getKey();
+         if (!stackok && ref.getRefStack() >= 0) {
+            FaitLog.logD("QUERY","Spurrious stack reference " + ref + " AT " + backfrom.getLocation());
+            continue;
+          }
          IfaceBackFlow bf = fait_control.getBackFlow(backfrom,backto,ref,(use_conditions > 0));
          if (bf == null) continue;
          IfaceValue sref = bf.getStartReference();
          if (sref != null) {
+            if (sref.getRefStack() > 10) {
+               FaitLog.logE("QUERY","Stack Reference too deep " + sref + " " + ref + " " + backfrom + " " + backto);
+               continue;
+             }
             npmap.put(sref,ent.getValue());
             if (known_values.get(ref) != null) {
                kpmap.put(sref,known_values.get(ref));
@@ -142,7 +158,6 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
          
          if (bf.getAuxRefs() != null && bf.getAuxRefs().size() > 0) {
             int delta = 1;
-            IfaceAstReference aref = backfrom.getLocation().getProgramPoint().getAstReference();
             if (aref != null && aref.getAstNode() != null) {
                switch (aref.getAstNode().getNodeType()) {
                   case ASTNode.INFIX_EXPRESSION :
@@ -322,7 +337,6 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
           }
        }
     }
-   
    
    Map<IfaceValue,Integer> npmap = new HashMap<>();
    Map<IfaceValue,IfaceValue> nvmap = new HashMap<>();
