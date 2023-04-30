@@ -231,8 +231,8 @@ private void handleActualFlowFrom(IfaceState backfrom,IfaceState st0,QueryContex
          FaitLog.logD("Call to: " + mthd.getFullName());
          priorctx = ctx.addRelevantArgs(priorctx,st0,bfd);
          if (priorctx != ctx) cntxrel = true;
+         FaitLog.logD("CHECK CALL " + mthd.getFullName() + " " + ctx + " " + cntxrel);
        }
-      FaitLog.logD("CHECK CALL " + mthd.getFullName() + " " + ctx + " " + cntxrel);
     }
    
    boolean islinked = false;
