@@ -3367,6 +3367,7 @@ protected IfaceValue getActualValue(IfaceValue ref,boolean nonnull)
 
 private IfaceValue assignValue(IfaceValue ref,IfaceValue v,int stackref)
 {
+   if (ref == null) return v;
    IfaceValue lhsv = ref.getRefBase();
    if (lhsv != null) {
       IfaceType t2 = lhsv.checkOperation(FaitOperator.DEREFERENCE,v);
