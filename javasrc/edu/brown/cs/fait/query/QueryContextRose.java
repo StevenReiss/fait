@@ -146,7 +146,7 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
          if (bf == null) continue;
          IfaceValue sref = bf.getStartReference();
          if (sref != null) {
-            if (sref.getRefStack() > 10) {
+            if (sref.getRefStack() > 25) {
                FaitLog.logE("QUERY","Stack Reference too deep " + sref + " " + ref + " " + backfrom + " " + backto);
                continue;
              }
