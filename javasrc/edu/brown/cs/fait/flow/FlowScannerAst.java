@@ -480,7 +480,7 @@ private void processAstNode()
 	 case ASTNode.TEXT_BLOCK :
 	    rslt = visit((TextBlock) node);
 	    break;
-         case ASTNode.THIS_EXPRESSION :
+	 case ASTNode.THIS_EXPRESSION :
 	    rslt = visit((ThisExpression) node);
 	    break;
 	 case ASTNode.THROW_STATEMENT :
@@ -537,9 +537,9 @@ private void processAstNode()
 	 case ASTNode.FOR_STATEMENT :
 	    rslt = visitThrow((ForStatement) node,sts);
 	    break;
-         case ASTNode.LABELED_STATEMENT :
-            rslt = visitThrow((LabeledStatement) node,sts);
-            break;
+	 case ASTNode.LABELED_STATEMENT :
+	    rslt = visitThrow((LabeledStatement) node,sts);
+	    break;
 	 case ASTNode.WHILE_STATEMENT :
 	    rslt = visitThrow((WhileStatement) node,sts);
 	    break;
@@ -1342,19 +1342,19 @@ private IfaceValue getThisValue(IfaceType typ)
    if (thistyp.isDerivedFrom(typ)) return thisv;
    if (thisv.getDataType().isJavaLangObject()) {
       for (IfaceEntity ent : thisv.getEntities()) {
-         IfaceValue nv = scanOuterValues(thisv,typ,ent.getDataType());
-         if (nv != null) return nv;
+	 IfaceValue nv = scanOuterValues(thisv,typ,ent.getDataType());
+	 if (nv != null) return nv;
        }
     }
    else {
       for (IfaceValue nthis = thisv; nthis != null; ) {
-         IfaceType ntyp = nthis.getDataType();
-         IfaceField xfld = fait_control.findField(ntyp,"this$0");
-         if (xfld == null) break;
-         IfaceType xtyp = xfld.getType();
-         IfaceValue rval = fait_control.findRefValue(xtyp,nthis,xfld);
-         nthis = getActualValue(rval,true);
-         if (xtyp.isDerivedFrom(typ)) return nthis;
+	 IfaceType ntyp = nthis.getDataType();
+	 IfaceField xfld = fait_control.findField(ntyp,"this$0");
+	 if (xfld == null) break;
+	 IfaceType xtyp = xfld.getType();
+	 IfaceValue rval = fait_control.findRefValue(xtyp,nthis,xfld);
+	 nthis = getActualValue(rval,true);
+	 if (xtyp.isDerivedFrom(typ)) return nthis;
        }
     }
    return thisv;
@@ -1577,12 +1577,12 @@ private Object visit(ThisExpression v)
    else {
       v0 = getLocal("this");
     }
-   
+
    if (v0.getDataType().isNumericType()) {
       FaitLog.logE("FLOW","This yields a numeric type");
     }
    pushValue(v0);
-   
+
    return null;
 }
 
@@ -2078,11 +2078,11 @@ private Object visit(ForStatement s)
       int idx = 0;
       List<?> inits = s.initializers();
       if (after_node != null) {
-         JcompType typ = JcompAst.getExprType(after_node);
-         if (after_node instanceof VariableDeclarationExpression) typ = null;
-         if (typ != null && !typ.isVoidType()) {
-            popValue();
-          }
+	 JcompType typ = JcompAst.getExprType(after_node);
+	 if (after_node instanceof VariableDeclarationExpression) typ = null;
+	 if (typ != null && !typ.isVoidType()) {
+	    popValue();
+	  }
 	 idx = inits.indexOf(after_node) + 1;
        }
       if (idx < inits.size()) return inits.get(idx);
@@ -2178,16 +2178,16 @@ private Object visitThrow(LabeledStatement s,IfaceAstStatus sts)
 {
    switch (sts.getReason()) {
       case BREAK :
-         String lbl = sts.getMessage();
-         if (lbl == null) return sts;
-         if (s.getLabel().getIdentifier().equals(lbl)) {
-            return null;
-          }
-         break;
+	 String lbl = sts.getMessage();
+	 if (lbl == null) return sts;
+	 if (s.getLabel().getIdentifier().equals(lbl)) {
+	    return null;
+	  }
+	 break;
       default :
-         return sts;
+	 return sts;
     }
-   
+
    return null;
 }
 
@@ -3005,7 +3005,7 @@ private IfaceValue visitBack(ExpressionMethodReference v,IfaceValue ref)
       return null;
     }
    JcompSymbol js = JcompAst.getReference(v);
-   if (after_node == null && !js.isStatic()) {
+   if (after_node == null && js != null && !js.isStatic()) {
       ASTNode next = v.getExpression();
       JcompType jty = JcompAst.getJavaType(next);
       JcompType ety = JcompAst.getExprType(next);
@@ -3014,7 +3014,7 @@ private IfaceValue visitBack(ExpressionMethodReference v,IfaceValue ref)
        }
     }
    int ct = 0;
-   if (!js.isStatic() && after_node != null && after_node == v.getExpression()) {
+   if (js != null && !js.isStatic() && after_node != null && after_node == v.getExpression()) {
       ct = 1;
     }
    return adjustRef(ref,ct,1);
