@@ -1288,7 +1288,7 @@ private Object visit(SimpleName v)
 	 pushValue(ref);
        }
       else {
-	 FaitLog.logE("Unknown name " + v + " " + v.getParent().getParent() + " " + getHere());
+	 FaitLog.logE("Unknown name " + v + " P:" + v.getParent().getParent() + " @" + getHere());
 	 return NO_NEXT;
        }
     }
