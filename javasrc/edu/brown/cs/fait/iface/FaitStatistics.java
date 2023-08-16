@@ -103,9 +103,9 @@ public void add(FaitStatistics fs)
 
 public void add(FaitStatistics fs,double fract)
 {
-   num_scans += Math.round(fs.num_scans*fract);
-   num_forward += Math.round(fs.num_forward*fract);
-   num_backward += Math.round(fs.num_backward*fract);
+   num_scans += (int) Math.round(fs.num_scans*fract);
+   num_forward += (int) Math.round(fs.num_forward*fract);
+   num_backward += (int) Math.round(fs.num_backward*fract);
 }
 
 
