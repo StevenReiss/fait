@@ -150,6 +150,35 @@ private void processClass(JcodeFactory jf,JcodeClass jc)
 	}
     }
 
+   if (tests.isEmpty()) {
+      // handle JUNIT 3 tests
+      if (!jc.isInterface () && !jc.isEnum() && jc.superName != null && 
+            jc.superName.endsWith("TestCase") && jc.isPublic()) {
+         Boolean cnstok = null;
+         for (JcodeMethod jm : jc.getMethods()) {
+            if (jm.isStaticInitializer()) continue;
+            else if (jm.isConstructor()) {
+               if (jm.isPublic() && jm.getNumArguments() <= 1) cnstok = true;
+               else if (cnstok == null) cnstok = false;
+             }
+            else if (jm.isAbstract() || jm.isNative()) continue;
+            if (jm.getName().equals("setUp") && !jm.isPrivate() && jm.getNumArguments() == 0) {
+               before.add(jm);
+             }
+            else if (jm.getName().equals("tearDown") && !jm.isPrivate() && jm.getNumArguments() == 0) {
+               after.add(jm);
+             }
+            else if (jm.getName().startsWith("test") && jm .isPublic() && jm.getNumArguments() == 0) {
+               tests.add(jm);
+             }
+          }
+         FaitLog.logD("CHECK TEST CLASS " + jc.getName() + " " + cnstok + " " + tests.size());
+         if (cnstok == Boolean.FALSE) {
+            tests.clear();
+          }
+       }
+    }
+   
    if (tests.isEmpty()) return;
    augmentClass(jf,jc.superName,beforeclass,before,afterclass,after);
 
