@@ -152,8 +152,19 @@ private void processClass(JcodeFactory jf,JcodeClass jc)
 
    if (tests.isEmpty()) {
       // handle JUNIT 3 tests
-      if (!jc.isInterface () && !jc.isEnum() && jc.superName != null && 
-            jc.superName.endsWith("TestCase") && jc.isPublic()) {
+      boolean checkmethods = false;
+      if (!jc.isInterface() && !jc.isEnum() && jc.isPublic()) {
+         for (JcodeClass jx = jc; jx != null; ) {
+            String sup = jx.superName;
+            if (sup == null) break;
+            if (sup.endsWith("TestCase")) {
+               checkmethods = true;
+               break;
+             }
+            jx = jf.findClass(sup);
+          }
+       }
+      if (checkmethods) {
          Boolean cnstok = null;
          for (JcodeMethod jm : jc.getMethods()) {
             if (jm.isStaticInitializer()) continue;
