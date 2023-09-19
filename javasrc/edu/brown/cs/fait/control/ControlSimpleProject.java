@@ -101,7 +101,6 @@ public ControlSimpleProject(String cp,String pfx)
 @Override public Collection<IfaceDescriptionFile> getDescriptionFiles() { return null; }
 
 
-
 @Override public boolean isProjectClass(String cls) {
    if (cls.startsWith(project_prefix)) return true;
    return false;

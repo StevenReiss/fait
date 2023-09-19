@@ -56,10 +56,13 @@ import edu.brown.cs.fait.call.*;
 import edu.brown.cs.fait.flow.*;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.*;
 import java.util.function.Predicate;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.w3c.dom.Element;
@@ -133,7 +136,17 @@ public ControlMain(IfaceProject ip)
        }
     }
    for (IfaceDescriptionFile f : files) {
-      addSpecialFile(f.getFile());
+      if (f.getEntryName() == null) {
+         addSpecialFile(f.getFile());
+       }
+      else {
+         try (JarFile jf = new JarFile(f.getFile())) {
+            JarEntry je = jf.getJarEntry(f.getEntryName());
+            InputStream ins = jf.getInputStream(je);
+            addSpecialFile(f.getFile().getPath(),ins);
+          }
+         catch (IOException e) { }
+       }
     }
    
    flow_factory = new FlowFactory(this);
@@ -194,6 +207,21 @@ void addSpecialFile(File f)
     }
    else {
       FaitLog.logE("Bad XML in special file " + f);
+    }
+}
+
+
+void addSpecialFile(String nm,InputStream ins)
+{
+   FaitLog.logI("Adding special resource file " + nm);
+   Element e = IvyXml.loadXmlFromStream(ins);
+   if (e != null) {
+      type_factory.addSpecialFile(e);
+      call_factory.addSpecialFile(e);
+      safety_factory.addSpecialFile(e);
+    }
+   else {
+      FaitLog.logE("BAD XML in special resource file " + nm);
     }
 }
 

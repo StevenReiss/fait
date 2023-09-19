@@ -49,6 +49,7 @@ int PRIORITY_DEPENDENT_PROJECT = 200;int PRIORITY_BASE_PROJECT = 100;
 public File    getFile();
 public int     getPriority();
 public File    getLibrary();
+public default String getEntryName()            { return null; }
 
 
 
