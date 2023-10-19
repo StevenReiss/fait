@@ -97,14 +97,14 @@ QueryNode addStartNode(IfaceCall call,IfaceProgramPoint pt,QueryContext ctx,Stri
    start_nodes.add(n);
    all_nodes.add(n);
 
-   FaitLog.logD("Create Node " + n + " at " + pt + " " + n.getId());
+   FaitLog.logD("QUERY","START NODE " + n + " at " + pt + " " + n.getId());
 
    return n;
 }
 
 void markAsEndNode(QueryNode qn)
 {
-   FaitLog.logD("MARK AS END NODE " + qn + " (" + qn.getId() + ")");
+   FaitLog.logD("QUERY","MARK AS END NODE " + qn + " (" + qn.getId() + ")");
    end_nodes.add((Node) qn);
 }
 
@@ -117,22 +117,22 @@ QueryNode addNode(IfaceCall call,IfaceProgramPoint pt,QueryContext ctx,
    addNode(n,prior);
    all_nodes.add(n);
 
-   FaitLog.logD("Create Node " + n + " at " + pt + ": " + reason + " (" + n.getId() + ") <- (" + prior.getId() + ")");
+   FaitLog.logD("QUERY","Create Node " + n + " at " + pt + ": " + reason + " (" + n.getId() + ") -> (" + prior.getId() + ")");
 
    return n;
 }
 
 
-void addNode(QueryNode qn,QueryNode from)
+void addNode(QueryNode fromnode,QueryNode tonode)
 {
-   if (qn == from) return;
-   if (from != null && qn != null) {
-      Node pn = (Node) from;
-      Node nn = (Node) qn;
-      if (nn.linksTo(pn)) return;
-      Arc a = new Arc(nn,pn);
-      nn.addToArc(a);
-      pn.addFromArc(a);
+   if (fromnode == tonode) return;
+   if (tonode != null && fromnode != null) {
+      Node tn = (Node) tonode;
+      Node fn = (Node) fromnode;
+      if (fn.linksTo(tn)) return;
+      Arc a = new Arc(fn,tn);
+      fn.addToArc(a);
+      tn.addFromArc(a);
     }
 }
 
@@ -140,6 +140,8 @@ void addNode(QueryNode qn,QueryNode from)
 
 void mergeNodes(QueryNode node,QueryNode into)
 {
+   FaitLog.logD("QUERY","MERGE NODE " + node.getId() + " INTO " +
+         into.getId());
    all_nodes.remove(node);
    // might need to do more here
 }
@@ -156,7 +158,10 @@ void cleanGraph()
 {
    for (Iterator<Node> it = end_nodes.iterator(); it.hasNext(); ) {
       Node n = it.next();
-      if (!n.getFromNodes().isEmpty()) it.remove();
+      if (!n.getFromNodes().isEmpty()) {
+         it.remove();
+         FaitLog.logD("QUERY","CLEAN: UNMARK END NODE " + n.getId());
+       }
     }
    
    removeDeadNodes();
@@ -177,7 +182,7 @@ private void removeDeadNodes()
 	       workqueue.add(n1);
 	     }
 	    workqueue.remove(n);
-	    FaitLog.logD("Clean: remove dead node " + n.getId());
+	    FaitLog.logD("QUERY","CLEAN: DEAD NODE " + n.getId());
 	    removeNode(n);
 	  }
        }
@@ -199,7 +204,7 @@ private void removeRedundantNodes()
 	  Node nj = ends.get(j);
 	  if (equivalentNodes(ni,nj)) {
 	     replaceNodeWith(nj,ni);
-	     FaitLog.logD("Clean: remove end node " + nj.getId() + " for " + ni.getId());
+	     FaitLog.logD("QUERY","Clean: remove end node " + nj.getId() + " for " + ni.getId());
 	   }
        }
     }
@@ -219,7 +224,8 @@ private void removeRedundantNodes()
        }
       for (Node n1 : eq) {
 	 replaceNodeWith(n1,n);
-	 FaitLog.logD("Clean: remove duplicate node " + n1.getId() + " for " + n.getId());
+	 FaitLog.logD("QUERY","Clean: remove duplicate node " + n1.getId() + " for " + n.getId());
+
 	 workq.remove(n1);
 	 done.clear();
        }
@@ -230,6 +236,7 @@ private void removeRedundantNodes()
 
 private void removeNode(Node n)
 {
+   FaitLog.logD("QUERY","REMOVE NODE " + n.getId());
    for (Node n1 : n.getToNodes()) {
       n1.removeArcFrom(n);
     }
@@ -256,6 +263,8 @@ private boolean equivalentNodes(Node n1,Node n2)
 
 private void replaceNodeWith(Node nold,Node nnew)
 {
+   FaitLog.logD("QUERY","REPLACE NODE " + nold.getId() + " INTO " +
+         nnew.getId());
    for (Node np : nold.getToNodes()) {
       if (!np.linksTo(nnew)) {
 	 addNode(nnew,np);
@@ -437,7 +446,8 @@ private class Node implements QueryNode {
     }
 
    @Override public String toString() {
-      return node_context.toString() + " " + to_arcs.size() + " " + from_arcs.size();
+      return node_id + ":" + node_context.toString() + " " + to_arcs.size() + " " + from_arcs.size();
+   
     }
 
 }	// end of inner class Node

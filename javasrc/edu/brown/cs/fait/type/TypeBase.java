@@ -48,6 +48,7 @@ import edu.brown.cs.fait.iface.IfaceBaseType;
 import edu.brown.cs.fait.iface.IfaceCall;
 import edu.brown.cs.fait.iface.IfaceError;
 import edu.brown.cs.fait.iface.IfaceLocation;
+import edu.brown.cs.fait.iface.IfaceMethod;
 import edu.brown.cs.fait.iface.IfaceSubtype;
 import edu.brown.cs.fait.iface.IfaceType;
 import edu.brown.cs.fait.iface.IfaceTypeImplications;
@@ -518,6 +519,10 @@ public IfaceType getCallType(IfaceCall c,IfaceValue rslt,List<IfaceValue> args)
 }
 
 
+@Override public IfaceMethod findRefMethod(String nm,String sgn)
+{
+   return base_type.findRefMethod(nm,sgn);
+}
 
 
 /********************************************************************************/

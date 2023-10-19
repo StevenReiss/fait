@@ -337,7 +337,7 @@ private IfaceMethod findProperMethod(IfaceLocation loc,List<IfaceValue> args,Ifa
    if (!tgt.hasCode() && tgt.isStatic()) {
       // handle inherited static methods
       IfaceMethod ntgt = fait_control.findInheritedMethod(tgt.getDeclaringClass(),
-	    tgt.getName(),tgt.getDescription());
+	    tgt.getName(),tgt.getDescription(),tgt.getSignature());
       if (ntgt != null && ntgt.hasCode()) tgt = ntgt;
     }
    while (tgt.getDeclaringClass().isInterfaceType() && !ifc) {
@@ -348,17 +348,12 @@ private IfaceMethod findProperMethod(IfaceLocation loc,List<IfaceValue> args,Ifa
     }
    if (!tgt.isStatic() && ins.isVirtualCall()) {
       // for virtual calls, get the innermost method based on actual type
-      // String nm = tgt.getName();
-      // String cnm = tgt.getDeclaringClass().getName();
-      // if (nm.equals("read") && cnm.equals("java.io.InputStream"))
-	 // System.err.println("HANDLE READ");
-
       IfaceValue v0 = args.get(0);
       IfaceType dt0 = v0.getDataType();
       IfaceType dt1 = tgt.getDeclaringClass();
       if (dt0 != null && dt0 != dt1 && dt0.isDerivedFrom(dt1) && !dt0.isArrayType()) {
 	 IfaceMethod ntgt = fait_control.findInheritedMethod(dt0,
-	       tgt.getName(),tgt.getDescription());
+	       tgt.getName(),tgt.getDescription(),tgt.getSignature());
 	 if (ntgt != null && ntgt != tgt) {
 	    tgt = ntgt;
 	  }
@@ -408,7 +403,8 @@ private IfaceValue processCall(IfaceMethod bm,List<IfaceValue> args,boolean virt
 	 IfaceMethod m0 = ent.getKey();
 	 LinkedList<IfaceValue> vargs = new LinkedList<>(ent.getValue());
 	 mi.fixReplaceArgs(m0,vargs);
-	 IfaceValue xrslt = processActualCall(bm,args,virt,loc,st0,mi,m0,vargs,prslt,cbid,varct,used);
+	 IfaceValue xrslt = processActualCall(bm,args,virt,loc,st0,mi,m0,
+               vargs,prslt,cbid,varct,used);
 	 if (m0.getName().contains("<init>") && !bm.getName().contains("<init>")) {
 	    if (xrslt == null || xrslt.getDataType().isVoidType()) {
 	       xrslt = vargs.get(0);
@@ -538,6 +534,8 @@ private ProtoInfo handlePrototypes(IfaceProgramPoint ppt,IfaceMethod fm,LinkedLi
 
    boolean iscopy = fm.getName().equals("toArray") || fm.getName().equals("copyInto");
    iscopy &= args.size() == 2;
+   
+   if (args.size() == 0) return null;
 
    IfaceValue cv = args.get(0);
    for (IfaceEntity ce : cv.getEntities()) {
@@ -576,8 +574,8 @@ private IfaceValue checkVirtual(IfaceMethod bm,List<IfaceValue> args,
       FlowLocation loc,IfaceState st,IfaceMethod orig,IfaceValue rslt,
       String cbid,int varct,Set<IfaceMethod> used)
 {
-   IfaceValue cv = args.get(0);
-   boolean isnative = cv.isAllNative();
+   IfaceValue thisarg = args.get(0);
+   boolean isnative = thisarg.isAllNative();
    if (used == null) used = new HashSet<>();
    used.add(bm);
    if (orig != null) used.add(orig);
@@ -586,7 +584,7 @@ private IfaceValue checkVirtual(IfaceMethod bm,List<IfaceValue> args,
       if (used.contains(km)) continue;
       used.add(km);
       if (isnative && fait_control.isProjectClass(km.getDeclaringClass()) &&
-	    !fait_control.isProjectClass(cv.getDataType()))
+	    !fait_control.isProjectClass(thisarg.getDataType()))
 	 continue;
       IfaceValue srslt = processCall(km,args,false,loc,st,cbid,varct,used);
       if (srslt != null) {
@@ -594,17 +592,74 @@ private IfaceValue checkVirtual(IfaceMethod bm,List<IfaceValue> args,
 	 else rslt = rslt.mergeValue(srslt);
        }
     }
+   
+   for (IfaceEntity ce : thisarg.getEntities()) {
+      IfaceType dt = ce.getDataType();
+      if (dt != null && dt.isFunctionRef()) {
+         IfaceMethod mthd = ce.getMethod();
+         String mnm = ce.getMethodName();
+         FaitLog.logD("FLOW","REFCALL " + mthd + " " + mnm);
+         if (mnm != null && mthd == null) {
+            int idx = mnm.indexOf("(");
+            int idx1 = mnm.indexOf(")");
+            String pfx = mnm.substring(0,idx);
+            String desc = mnm.substring(idx,idx1+1);
+            int idx2 = pfx.lastIndexOf(".");
+            String cnm = pfx.substring(0,idx2);
+            String mthdnm = pfx.substring(idx2+1);
+            mthd = fait_control.findMethod(cnm,mthdnm,desc);
+          }
+         if (mthd != null) {
+            if (used.contains(mthd)) continue; 
+            used.add(mthd);
+            FaitLog.logD("REFCALLMETHOD " + mthd.getFullName());
+            Map<Object,IfaceValue> bindings = ce.getBindings();
+            List<IfaceValue> nargs = new ArrayList<>(args);
+            nargs.remove(0);
+            if (mthd.isConstructor()) {
+               FaitLog.logD("FLOW","HANDLE CONSTRUCTOR " + mthd.getFullName());
+               IfaceType t0 = mthd.getDeclaringClass();
+               IfaceEntity newent = fait_control.findFixedEntity(t0);
+               IfaceValue newval = fait_control.findObjectValue(t0,
+                     fait_control.createSingletonSet(newent));
+               nargs.add(0,newval);
+             }
+            else if (!mthd.isStatic() && bindings != null) {
+               nargs.add(0,bindings.get("this"));
+             }
+            else if (!mthd.isStatic()) {
+               // this occurs with lambdas == can be ignored
+//             FaitLog.logE("Attempt to handle virtual call without this argument");
+             }
+            IfaceValue srslt = processCall(mthd,nargs,false,loc,
+                  st,cbid,varct,used);
+            if (srslt != null) {
+               if (rslt == null) rslt = srslt;
+               else rslt = rslt.mergeValue(srslt); 
+             }
+          }
+         else {
+            IfaceLocation celoc = ce.getLocation();
+            IfaceProgramPoint ppt = celoc.getProgramPoint();
+            IfaceAstReference pptast = ppt.getAstReference();
+            ASTNode lambda = pptast.getAstNode();
+            FaitLog.logD("FLOW","HANDLE LAMBDA CALL " + lambda);
+          }
+       }
+    }
 
    if (rslt == null &&
 	 loc != null && loc.getCall() != null && args.size() > 0) {
       used.add(bm);
-      for (IfaceEntity ce : cv.getEntities()) {
+      for (IfaceEntity ce : thisarg.getEntities()) {
 	 IfaceType dt = ce.getDataType();
-	 if (dt != null) {
-	    IfaceMethod cem = fait_control.findInheritedMethod(dt,bm.getName(),bm.getDescription());
+	 if (dt != null && !dt.isFunctionRef()) {
+	    IfaceMethod cem = fait_control.findInheritedMethod(dt,bm.getName(),
+                  bm.getDescription(),bm.getSignature());
 	    if (cem != null && !cem.isAbstract() && !used.contains(cem)) {
 	       used.add(cem);
-	       IfaceValue srslt = processCall(cem,args,true,loc,st,cbid,varct,used);
+	       IfaceValue srslt = processCall(cem,args,true,loc,st,
+                     cbid,varct,used);
 	       IfaceCall kmi = findCall(loc,cem,null,st.getSafetyStatus());
 	       if (kmi != null && kmi.hasResult()) {
 		  if (rslt == null) rslt = srslt;
@@ -665,13 +720,14 @@ private IfaceValue checkVirtual(IfaceMethod bm,List<IfaceValue> args,
    // else FaitLog.logD1("No call site given");        // callbacks have no call site
 
    if (mi.hasResult()) {
+      int ano = mi.getReturnArg();
       IfaceValue prslt = null;
       if (mi.isClone()) {
 	 IfaceValue cv = nargs.get(0);
 	 prslt = fait_control.findNativeValue(cv.getDataType());
        }
-      else if (mi.isReturnArg0()) {
-	 prslt = nargs.get(0);
+      else if (ano >= 0) {
+	 prslt = nargs.get(ano);
        }
       else {
 	 prslt = mi.getResultValue();

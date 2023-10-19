@@ -84,6 +84,8 @@ IfaceBaseType getRunTimeType();
 
 void defineAll();
 
+IfaceMethod findRefMethod(String nm,String sgn);
+
 
 }       // end of interface IfaceBaseType
 

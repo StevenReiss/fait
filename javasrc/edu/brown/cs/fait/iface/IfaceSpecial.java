@@ -46,7 +46,7 @@ public interface IfaceSpecial extends FaitConstants
 
 IfaceValue getReturnValue(IfaceProgramPoint pt,IfaceMethod mthd);
 List<IfaceValue> getExceptions(IfaceProgramPoint pt,IfaceMethod mthd);
-boolean returnsArg0();
+int getReturnArg();
 boolean isConstructor();
 String getReplaceName();
 

@@ -49,6 +49,7 @@ String getFullName();
 String getName();
 String getDescription();
 String getFile();
+String getSignature();
 
 boolean isStatic();
 boolean isVarArgs();

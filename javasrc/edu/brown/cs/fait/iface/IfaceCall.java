@@ -54,7 +54,7 @@ IfaceValue getExceptionValue();
 IfaceSafetyStatus getResultSafetyStatus();
 
 boolean isClone();
-boolean isReturnArg0();
+int getReturnArg(); 
 boolean isSetFields(boolean clr);
 boolean isAffected();
 boolean isScanned();

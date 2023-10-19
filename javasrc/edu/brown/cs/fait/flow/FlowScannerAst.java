@@ -1765,10 +1765,10 @@ private Object visit(MethodInvocation v)
    List <?> args = v.arguments();
    if (after_node != null && after_node != v.getExpression()) idx = args.indexOf(after_node) + 1;
    if (idx < args.size()) return args.get(idx);
-
+   
    int act = args.size();
    if (js != null && !js.isStatic()) ++act;
-
+   
    switch (processCall(v,act)) {
       case NOT_DONE :
 	 return NO_NEXT_REPORT;
@@ -2882,7 +2882,8 @@ private Object visit(LambdaExpression v)
 	 rv = fait_control.findAnyObjectValue();
        }
       else {
-	 IfaceEntity ie = fait_control.findFunctionRefEntity(getHere(),typ,bindings);
+	 IfaceEntity ie = fait_control.findFunctionRefEntity(getHere(),typ,
+               null,bindings);
 	 IfaceEntitySet set = fait_control.createSingletonSet(ie);
 	 rv = fait_control.findObjectValue(typ,set);
        }
@@ -2987,13 +2988,17 @@ private Object visit(ExpressionMethodReference v)
 	 return next;
        }
     }
-
+   
    IfaceValue refval = null;
    if (!stat && after_node != null && after_node == v.getExpression()) {
       refval = popActual();
     }
    IfaceValue rv = generateReferenceValue(v,refval);
    pushValue(rv);
+   
+   if (v.toString().contains("::createCondition")) {
+      System.err.println("CHECK HERE");
+    }
 
    return null;
 }
@@ -3082,7 +3087,12 @@ private IfaceValue generateReferenceValue(ASTNode n,IfaceValue ref)
       bind = new HashMap<>();
       bind.put("this",ref);
     }
-   IfaceEntity ie = fait_control.findFunctionRefEntity(getHere(),ntyp,bind);
+  
+   JcompSymbol sym = JcompAst.getReference(n);
+   IfaceMethod im = fait_control.findMethod(sym);
+   
+   IfaceEntity ie = fait_control.findFunctionRefEntity(getHere(),
+         ntyp,im,bind);
    IfaceEntitySet set = fait_control.createSingletonSet(ie);
    IfaceValue rv = fait_control.findObjectValue(ntyp,set);
    return rv;

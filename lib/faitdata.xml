@@ -14,6 +14,7 @@
    <PACKAGE NAME='java.io.' />
    <PACKAGE NAME='java.util.zip.' />
    <PACKAGE NAME='java.net.' />
+   <PACKAGE NAME='javax.net.' />
    <PACKAGE NAME='java.nio.charset' />
    <PACKAGE NAME='javax.crypto' />
    <PACKAGE NAME='sun.net.www' />
@@ -27,6 +28,7 @@
    <PACKAGE NAME='sun.java2d.' />
    <PACKAGE NAME='sun.awt.' />
    <PACKAGE NAME='sun.util.logging' />
+   <PACKAGE NAME='jdk.internal.vm' />
 
    <CLASS NAME="java.lang.reflect.Field" />
    <CLASS NAME='java.lang.ClassLoader' />
@@ -143,7 +145,8 @@
    <METHOD NAME="java.awt.Component.addComponentListener" CBID="awt" CALLBACK="componentHidden componentMoved componentResized componentShown" CBARGS="1" />
    <METHOD NAME="java.awt.Container.addContainerListener" CBID="awt" CALLBACK="componentAdded componentRemoved" CBARGS="1" />
    <METHOD NAME="java.awt.dnd.DragGestureRecognizer.addDragGestureListener" CBID="awt" CALLBACK="dragGestureRecognized" CBARGS="1" />
-   <METHOD NAME="java.awt.dnd.DragSourceContext.addDragSourceListener" CBID="awt" CALLBACK="dragDropEnd dragEnter dragExit dragOver dropActionChanged" CBARGS="1" /> <METHOD NAME="java.awt.dnd.DragSource.addDragSourceListener" CBID="awt" CALLBACK="dragDropEnd dragEnter dragExit dragOver dropActionChanged" CBARGS="1" />
+   <METHOD NAME="java.awt.dnd.DragSourceContext.addDragSourceListener" CBID="awt" CALLBACK="dragDropEnd dragEnter dragExit dragOver dropActionChanged" CBARGS="1" />
+   <METHOD NAME="java.awt.dnd.DragSource.addDragSourceListener" CBID="awt" CALLBACK="dragDropEnd dragEnter dragExit dragOver dropActionChanged" CBARGS="1" />
    <METHOD NAME="java.awt.dnd.DragSource.addDragSourceMotionListener" CBID="awt" CALLBACK="dragMouseMoved" CBARGS="1" />
    <METHOD NAME="java.awt.dnd.DropTarget.addDropTargetListener" CBID="awt" CALLBACK="dragEnter dragExit dragOver drop dropActionChanged" CBARGS="1" />
    <METHOD NAME="java.awt.List$AccessibleAWTList$AccessibleAWTListChild.addFocusListener" CBID="awt" CALLBACK="focusGained focusLost" CBARGS="1" />
@@ -182,6 +185,8 @@
    <METHOD NAME="java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment" RETURN="sun.awt.X11GraphicsEnvironment" />
 
    <METHOD NAME='java.math.BigInteger.reportOverflow' SCAN='TRUE' NORETURN='true' />
+   <METHOD NAME='java.util.concurrent.ForkJoinTask.rethrow' SCAN='TRUE' NORETURN='TRUE' />
+   <METHOD NAME='java.util.concurrent.ForkJoinTask.uncheckedThrow' SCAN='TRUE' NORETURN='TRUE' />
 
    <METHOD NAME="javax.xml.transform.TransformerFactory.newInstance"
 	RETURN="com.sun.org.apache.xalan.internal.xsltc.trax.SmartTransformerFactoryImpl" />
@@ -325,6 +330,8 @@
    <PACKAGE NAME="org.eclipse.jdt.core.compiler." />
 
    <PACKAGE NAME='org.jsoup.parser.' />
+
+   <METHOD NAME='java.lang.ThreadLocal.childValue' RETURN='1' />
 
    <METHOD NAME='org.junit.Assert.fail' SCAN='TRUE' NORETURN='true' />
    <METHOD NAME='org.junit.Assert.failNotEquals' SCAN='TRUE' NORETURN='true' />

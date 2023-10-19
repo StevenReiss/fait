@@ -106,7 +106,7 @@ void process()
       if (qqi == null) break;
       IfaceState st0 = fait_control.findStateForLocation(qqi.getCall(),qqi.getProgramPoint());
       if (st0 == null) {
-         FaitLog.logD("NO PRIOR STATE: " + qqi.getCall().hashCode());
+         FaitLog.logD("QUERY","NO PRIOR STATE: " + qqi.getCall().hashCode());
          st0 = fait_control.findStateForLocation(qqi.getCall(),qqi.getProgramPoint());
        }
       QueryNode node = known_items.get(qqi);
@@ -129,9 +129,9 @@ private void computeNext(QueryQueueItem qqi,IfaceState cur,QueryNode node)
    IfaceCall call = qqi.getCall();
    IfaceProgramPoint pt = qqi.getProgramPoint();
    
-   FaitLog.logD("Compute Next: " + " " + ctx + " " + qqi.getProgramPoint() + " " +
+   FaitLog.logD("QUERY","Compute Next: " + " " + ctx + " " + qqi.getProgramPoint() + " " +
          qqi.getCall().getMethod() + " (" + node.getId() + ")");
-   FaitLog.logD("Next Info: " + cur + " " + qqi.getCall().hashCode());
+   FaitLog.logD("QUERY","Next Info: " + cur + " " + qqi.getCall().hashCode());
          
    QueryContext oldctx = context_map.get(call,pt);
    if (oldctx != null) {
@@ -160,6 +160,7 @@ private void computeNext(QueryQueueItem qqi,IfaceState cur,QueryNode node)
       QueryGraph graph = node.getGraph();
       node = graph.addNode(call,pt,ctx,QueryNodeType.ENTRY,
             "Start of Method " + call.getMethod().getName(),node);
+//    graph.markAsEndNode(node);
       IfaceLocation loc = ctx.getCallSites().getCallSite();
       // need to handle case where we initiated the call -- go to call site rather than
       // all call sites
@@ -178,7 +179,7 @@ private void computeNext(QueryQueueItem qqi,IfaceState cur,QueryNode node)
    else if (cur != null) {
       for (int i = 0; i < cur.getNumPriorStates(); ++i) {
 	 IfaceState st0 = cur.getPriorState(i);
-         FaitLog.logD("PRIOR STATE " + i + " " + st0);
+         FaitLog.logD("QUERY","PRIOR STATE " + i + " " + st0);
 	 handleFlowFrom(cur,st0,ctx,node);
        }
     }
@@ -194,6 +195,7 @@ private void processCallSite(IfaceCall from,QueryContext priorctx,QueryNode node
    QueryNode nn = graph.addNode(callloc.getCall(),callloc.getProgramPoint(),priorctx,
          QueryNodeType.CALL,
          "Call to Method " + from.getMethod().getName(),node);
+   graph.markAsEndNode(nn);
    QueryQueueItem nqqi = new QueryQueueItem(callloc,priorctx);
    addItem(nqqi,nn);
 }
@@ -228,10 +230,10 @@ private void handleActualFlowFrom(IfaceState backfrom,IfaceState st0,QueryContex
    if (st0.isMethodCall()) {
       IfaceMethod mthd = pt.getCalledMethod();
       if (mthd != null) {
-         FaitLog.logD("Call to: " + mthd.getFullName());
+         FaitLog.logD("QUERY","Call to: " + mthd.getFullName());
          priorctx = ctx.addRelevantArgs(priorctx,st0,bfd);
          if (priorctx != ctx) cntxrel = true;
-         FaitLog.logD("CHECK CALL " + mthd.getFullName() + " " + ctx + " " + cntxrel);
+         FaitLog.logD("QUERY","CHECK CALL " + mthd.getFullName() + " " + ctx + " " + cntxrel);
        }
     }
    
@@ -264,7 +266,7 @@ private void handleActualFlowFrom(IfaceState backfrom,IfaceState st0,QueryContex
          if (call2.getAllMethodsCalled(ppt2).isEmpty()) {
             islinked |= ctx.handleInternalCall(st0,bfd,node);
             if (!islinked) node.getGraph().markAsEndNode(node);
-            FaitLog.logD("No call found");
+            FaitLog.logT("QUERY","No call found");
           }
          else {
             for (IfaceCall from : call2.getAllMethodsCalled(ppt2)) {
@@ -442,7 +444,7 @@ private IfaceState getPriorReturnState(IfaceState st)
 void addItem(QueryQueueItem qqi,QueryNode gn)
 {
    if (!known_items.containsKey(qqi)) {
-      FaitLog.logD("Queue Node " + gn + " at " + qqi.getProgramPoint());
+      FaitLog.logD("QUERY","Queue Node " + gn + " at " + qqi.getProgramPoint());
       known_items.put(qqi,gn);
       query_queue.addFirst(qqi);
     }
@@ -455,7 +457,7 @@ void addItem(QueryQueueItem qqi,QueryNode gn)
             known_items.put(qqi,gn2);
             gn = gn2;
           }
-	 FaitLog.logD("Add Link to " + gn1 + " from " + gn + " for " + qqi.getProgramPoint()
+	 FaitLog.logD("QUERY","Add Link to " + gn1 + " from " + gn + " for " + qqi.getProgramPoint()
           + " (" + gn1.getId() + ") <- (" + gn.getId() + ")");
 	 gn.getGraph().addNode(gn1,gn);
        }

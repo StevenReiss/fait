@@ -98,11 +98,11 @@ IfaceType findConstantType(IfaceType t,Object cnst);
 List<IfaceSubtype> getAllSubtypes();
 
 
-IfaceMethod findMethod(String cls,String method,String sign);
+IfaceMethod findMethod(String cls,String method,String desc);
 IfaceMethod findMethod(JcompSymbol js);
 
 
-IfaceMethod findInheritedMethod(IfaceType cls,String name,String sign);
+IfaceMethod findInheritedMethod(IfaceType cls,String name,String desc,String sgn);
 
 IfaceField findField(IfaceType cls,String fld);
 Collection<IfaceMethod> getStartMethods();
@@ -126,7 +126,8 @@ IfaceEntity findStringEntity(String s);
 IfaceEntity findArrayEntity(IfaceType base,IfaceValue size);
 IfaceEntity findPrototypeEntity(IfaceType base,IfacePrototype from,IfaceLocation src,boolean mutable);
 IfaceEntity findFunctionRefEntity(IfaceLocation loc,IfaceType typ,String method);
-IfaceEntity findFunctionRefEntity(IfaceLocation loc,IfaceType typ,Map<Object,IfaceValue> bindings);
+IfaceEntity findFunctionRefEntity(IfaceLocation loc,IfaceType typ,IfaceMethod mthd,
+      Map<Object,IfaceValue> bindings);
 IfaceEntity findEntityById(int id);
 IfaceEntity findLocalEntity(IfaceLocation loc,IfaceType dt,IfacePrototype ptyp);
 

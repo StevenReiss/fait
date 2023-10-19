@@ -336,15 +336,22 @@ public IfaceType findCommonParent(IfaceType t1,IfaceType t2)
 
 
 
-@Override public IfaceMethod findMethod(String cls,String method,String sign)
+@Override public IfaceMethod findMethod(String cls,String method,String desc)
+{
+   return findMethod(cls,method,desc,null);
+}
+
+
+
+IfaceMethod findMethod(String cls,String method,String desc,String sgn)
 {
    IfaceBaseType ctyp = findJavaType(cls);
    if (ctyp == null) return null;
    else if (ctyp.isEditable()) {
-      return ast_factory.findMethod(ctyp,method,sign);
+      return ast_factory.findMethod(ctyp,method,desc,sgn); 
     }
    else {
-      return bytecode_factory.findMethod(ctyp,method,sign);
+      return bytecode_factory.findMethod(ctyp,method,desc);
     }
 }
 
@@ -374,12 +381,18 @@ public List<IfaceMethod> findAllMethods(IfaceBaseType typ,String name)
 }
 
 
-@Override public IfaceMethod findInheritedMethod(IfaceType cls,String nm,String sgn)
+@Override public IfaceMethod findInheritedMethod(IfaceType cls,String nm,String desc,String sgn)
 {
-   IfaceMethod m = findMethod(cls.getName(),nm,sgn);
+   IfaceMethod m = null;
+   if (cls.isFunctionRef()) {
+      m = cls.findRefMethod(nm,desc);
+    }
+   else {
+      m = findMethod(cls.getName(),nm,desc,sgn);
+    }
    if (m != null) return m;
    for (IfaceType ityp : cls.getInterfaces()) {
-      m = findInheritedMethod(ityp,nm,sgn);
+      m = findInheritedMethod(ityp,nm,desc,sgn);
       if (m != null) return m;
     }
    return null;
@@ -513,9 +526,9 @@ private void checkStartMethod(IfaceMethod im,Collection<IfaceMethod> rslt)
 
 
 @Override public IfaceEntity findFunctionRefEntity(IfaceLocation loc,IfaceType dt,
-      Map<Object,IfaceValue> bindings) 
+      IfaceMethod mthd,Map<Object,IfaceValue> bindings) 
 {
-   return entity_factory.createFunctionRefEntity(loc,dt,bindings);
+   return entity_factory.createFunctionRefEntity(loc,dt,mthd,bindings);
 }
 
 

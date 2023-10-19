@@ -59,7 +59,7 @@ private IfaceValue	exception_set;
 private IfaceState	start_state;
 private Set<IfaceState> return_states;
 private boolean 	is_clone;
-private boolean 	is_arg0;
+private int      	return_arg;
 private boolean 	is_proto;
 private boolean 	can_exit;
 private boolean 	set_fields;
@@ -107,7 +107,7 @@ CallBase(IfaceControl fc,IfaceMethod fm,IfaceProgramPoint pt,IfaceSafetyStatus s
    num_result = 0;
 
    is_clone = false;
-   is_arg0 = false;
+   return_arg = -1;
    is_proto = false;
    can_exit = false;
    is_scanned = false;
@@ -158,6 +158,9 @@ CallBase(IfaceControl fc,IfaceMethod fm,IfaceProgramPoint pt,IfaceSafetyStatus s
       IfaceValue fv = fc.findAnyValue(atyp);
       if (i == 0 && fm.isStatic() && fm.getName().equals("main"))
 	 fv = fc.findMainArgsValue();
+      if (idx >= lclsz) {
+         System.err.println("PROBLEM WITH LOCALS");
+       }
       start_state.setLocal(idx++,fv);
       if (atyp.isCategory2()) ++idx;
     }
@@ -178,7 +181,7 @@ CallBase(IfaceControl fc,IfaceMethod fm,IfaceProgramPoint pt,IfaceSafetyStatus s
     }
    else if (special_data != null) {
       is_clone = special_data.getIsClone();
-      is_arg0 = special_data.returnsArg0();
+      return_arg = special_data.getReturnArg();
       can_exit = special_data.getExits();
       set_fields = special_data.getSetFields();
       is_affected = special_data.isAffected();
@@ -266,7 +269,7 @@ CallBase(IfaceControl fc,IfaceMethod fm,IfaceProgramPoint pt,IfaceSafetyStatus s
 @Override public IfaceValue getExceptionValue() { return exception_set; }
 
 @Override public boolean isClone()		{ return is_clone; }
-@Override public boolean isReturnArg0() 	{ return is_arg0; }
+@Override public int getReturnArg() 	        { return return_arg; }
 
 @Override public boolean isSetFields(boolean clr)
 {
@@ -482,7 +485,7 @@ CallBase(IfaceControl fc,IfaceMethod fm,IfaceProgramPoint pt,IfaceSafetyStatus s
 
 @Override synchronized public boolean hasResult()
 {
-   if (num_result > 0 || is_arg0) return true;
+   if (num_result > 0 || return_arg >= 0) return true;
    return false;
 }
 
@@ -510,12 +513,12 @@ CallBase(IfaceControl fc,IfaceMethod fm,IfaceProgramPoint pt,IfaceSafetyStatus s
        }
     }
 
-   if (is_arg0) chng = false;
+   if (return_arg >= 0) chng = false;
 
    if (sts != null) {
       if (safety_result == null) {
 	 safety_result = sts;
-	 if (!is_arg0) chng = true;
+	 if (return_arg < 0) chng = true;
        }
       else {
 	 IfaceSafetyStatus nsts = safety_result.merge(sts);
@@ -633,7 +636,7 @@ private void addReturnStates(IfaceState st)
          for (IfaceEntity ent : v0.getEntities()) {
             IfaceMethod nfm = null;
             IfaceType dt = ent.getDataType();
-            while (dt != null) {
+            while (dt != null && !dt.isFunctionRef()) {
                if (adesc != null) nfm = fait_control.findMethod(dt.getName(),nm,adesc);
                else nfm = fait_control.findMethod(dt.getName(),nm,desc);
                if (nfm != null) break;

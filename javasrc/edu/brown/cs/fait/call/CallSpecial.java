@@ -62,7 +62,7 @@ private boolean 	canbe_null;
 private boolean 	is_mutable;
 private boolean 	is_constructor;
 private boolean 	is_clone;
-private boolean 	return_arg0;
+private int             return_arg;
 private String		replace_name;
 private boolean 	dont_scan;
 private boolean 	async_call;
@@ -93,12 +93,13 @@ CallSpecial(IfaceControl fc,Element xml,boolean formthd)
 
    replace_name = IvyXml.getTextElement(xml,"REPLACE");
 
-   return_arg0 = false;
+   return_arg = -1;
    result_type = null;
    alt_result = null;
    String rtn = IvyXml.getAttrString(xml,"RETURN");
    if (rtn == null || rtn == "" || rtn.equals("*")) ;
-   else if (rtn.equals("0")) return_arg0 = true;
+   else if (rtn.equals("0")) return_arg = 0;
+   else if (rtn.equals("1")) return_arg = 1;
    else {
       result_type = rtn;
     }
@@ -330,8 +331,7 @@ CallSpecial(IfaceControl fc,Element xml,boolean formthd)
 
 
 
-@Override public boolean returnsArg0()
-{ return return_arg0; }
+@Override public int getReturnArg()                     { return return_arg; }
 
 @Override public boolean isConstructor()
 { return is_constructor; }
@@ -411,7 +411,7 @@ CallSpecial(IfaceControl fc,Element xml,boolean formthd)
    if (canbe_null) xw.field("CANBENULL",true);
    if (is_mutable) xw.field("MUTABLE",true);
    if (is_constructor) xw.field("CONSTRUCTOR",true);
-   if (return_arg0) xw.field("RETURNARG0",true);
+   if (return_arg >= 0) xw.field("RETURNARG",return_arg);
    if (replace_name != null) xw.field("REPLACE",replace_name);
    if (!dont_scan) xw.field("SCAN",true);
    if (async_call) xw.field("ASYNC",true);

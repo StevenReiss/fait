@@ -209,6 +209,7 @@ public Collection<IfaceEntity> mutateTo(IfaceType dt,EntityFactory factory)
 
 @Override public Map<Object,IfaceValue> getBindings()           { return null; }
 @Override public String getMethodName()                         { return null; }
+@Override public IfaceMethod getMethod()                        { return null; }
 @Override public boolean isFunctionRef()                        { return false; }
 
 

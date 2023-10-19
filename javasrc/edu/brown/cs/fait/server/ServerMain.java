@@ -207,10 +207,7 @@ void response(String cmd,CommandArgs args,String cnts,MintReply rply)
 }
 
 
-void sendMessage(String cmd,String proj,Map<String,Object> flds,String cnts)
-{
-   sendMessage(cmd,proj,flds,cnts,null,MINT_MSG_NO_REPLY);
-}
+
 
 String getStringReply(String cmd,String proj,Map<String,Object> flds,String cnts,long delay)
 {

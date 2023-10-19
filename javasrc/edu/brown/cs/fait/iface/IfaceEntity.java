@@ -100,6 +100,7 @@ IfacePrototype getPrototype();
 
 Map<Object,IfaceValue> getBindings();
 String getMethodName();
+IfaceMethod getMethod();                
 boolean isFunctionRef();
 
 List<IfaceValue> getContents(List<IfaceValue> rslt);

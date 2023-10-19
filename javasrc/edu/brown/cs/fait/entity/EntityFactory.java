@@ -176,9 +176,10 @@ public IfaceEntity createFunctionRefEntity(IfaceLocation loc,IfaceType dt,String
 }
 
 
-public IfaceEntity createFunctionRefEntity(IfaceLocation loc,IfaceType dt,Map<Object,IfaceValue> bind)
+public IfaceEntity createFunctionRefEntity(IfaceLocation loc,IfaceType dt,IfaceMethod mthd,
+      Map<Object,IfaceValue> bind)
 {
-   EntityFunctionRef er = new EntityFunctionRef(loc,dt,bind);
+   EntityFunctionRef er = new EntityFunctionRef(loc,dt,mthd,bind); 
    return er;
 }
 

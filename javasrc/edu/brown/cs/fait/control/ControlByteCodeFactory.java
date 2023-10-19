@@ -388,6 +388,7 @@ private class InsMethod implements IfaceMethod {
    @Override public String getFullName()	{ return for_method.getFullName(); }
    @Override public String getName()		{ return for_method.getName(); }
    @Override public String getDescription()	{ return for_method.getDescription(); }
+   @Override public String getSignature()       { return for_method.getSignature(); }
    @Override public String getFile() {
       return for_method.getFile();
     }

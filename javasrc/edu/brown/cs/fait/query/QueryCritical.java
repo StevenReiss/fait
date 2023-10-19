@@ -244,7 +244,7 @@ private void addPriorStates(IfaceProgramPoint pt)
 {
    IfaceState st = fait_control.findStateForLocation(for_call,pt);
    if (st == null) {
-      FaitLog.logE("Can't find state for call " + for_call + " at " + pt);
+      FaitLog.logE("QUERY","Can't find state for call " + for_call + " at " + pt);
       return;
     }
    for (int i = 0; i < st.getNumPriorStates(); ++i) {

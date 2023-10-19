@@ -136,13 +136,13 @@ void process() throws FaitException
        }
     }
    if (mbody == null) {
-      FaitLog.logE("Can't find method body for var query for " + method_name + " in " + typ + " " +
+      FaitLog.logE("QUERY","Can't find method body for var query for " + method_name + " in " + typ + " " +
         typ.isEditable());
       for (IfaceMethod im : for_control.findAllMethods(typ,method_name)) {
-	 FaitLog.logE("\tConsider " + im + " " + start_pos);
+	 FaitLog.logE("QUERY","\tConsider " + im + " " + start_pos);
 	 if (im.getStart().getAstReference() == null) continue;
 	 ASTNode mb = im.getStart().getAstReference().getAstNode();
-	 FaitLog.logE("\tAST at " + mb.getStartPosition() + " " + mb.getLength());
+	 FaitLog.logE("QUERY","\tAST at " + mb.getStartPosition() + " " + mb.getLength());
        }
       return;
     }
@@ -153,13 +153,13 @@ void process() throws FaitException
    if (start_pos > 0) {
       ASTNode child = JcompAst.findNodeAtOffset(mbody,start_pos);
       if (child == null) {
-         FaitLog.logE("Can't find child node from " + start_pos + " " + mbody);
+         FaitLog.logE("QUERY","Can't find child node from " + start_pos + " " + mbody);
          return;
        }
       QueryVarReference qvr = new QueryVarReference(for_control,method,child);
       astr = qvr.getAstReference();
       if (astr == null) {
-         FaitLog.logE("Can't find ast reference for " + child);
+         FaitLog.logE("QUERY","Can't find ast reference for " + child);
          return;
        }
       refval = qvr.getRefValue();
@@ -175,11 +175,11 @@ void process() throws FaitException
       refval = findReferenceForName(variable_name,method,mbody,astr,child);
     }
    if (refval == null) {
-      FaitLog.logE("Can't find reference value");
+      FaitLog.logE("QUERY","Can't find reference value");
       return;
     }
    
-   FaitLog.logD("Find variable for " + astr);
+   FaitLog.logD("QUERY","Find variable for " + astr);
    
    xml_writer.begin("VALUESET");
    xml_writer.field("LINE",line_number);

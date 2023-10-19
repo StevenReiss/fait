@@ -56,9 +56,11 @@ import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.ArrayAccess;
 import org.eclipse.jdt.core.dom.ClassInstanceCreation;
 import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.eclipse.jdt.core.dom.ConstructorInvocation;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.StructuralPropertyDescriptor;
+import org.eclipse.jdt.core.dom.SuperConstructorInvocation;
 
 import edu.brown.cs.fait.iface.FaitConstants;
 
@@ -179,7 +181,25 @@ ControlAstReference(ControlAstFactory af,ASTNode n,ASTNode c,IfaceAstStatus sts)
       else if (cic.getExpression() != null && after_child != cic.getExpression()) return null;
       return getReferencedMethod();
     }
-   return null;
+   else if (eval_node instanceof ConstructorInvocation) {
+      ConstructorInvocation ci = (ConstructorInvocation) eval_node;
+      int ct = ci.arguments().size();
+      if (ct > 0) {
+         if (after_child != ci.arguments().get(ct-1)) return null;
+       }
+      return getReferencedMethod();
+    }
+   else if (eval_node instanceof SuperConstructorInvocation) {
+      SuperConstructorInvocation ci = (SuperConstructorInvocation) eval_node;
+      int ct = ci.arguments().size();
+      if (ct > 0) {
+         if (after_child != ci.arguments().get(ct-1)) return null;
+       }
+      return getReferencedMethod();
+    }
+   else {
+      return null;
+    }
 }
 
 

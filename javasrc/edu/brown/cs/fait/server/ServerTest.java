@@ -967,7 +967,7 @@ private static void setupBedrock(String dir,String mint,String proj)
    File ec1 = new File("/u/spr/eclipse-oxygenx/eclipse/eclipse");
    File ec2 = new File("/u/spr/Eclipse/" + dir);
    if (!ec1.exists()) {
-      ec1 = new File("/vol/Developer/eclipse-2020-03/Eclipse.app/Contents/MacOS/eclipse");
+      ec1 = new File("/vol/Developer/java-2023-06/Eclipse.app/Contents/MacOS/eclipse");
       ec2 = new File("/Users/spr/Eclipse/" + dir);
     }
    if (!ec1.exists()) {

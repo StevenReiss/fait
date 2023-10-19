@@ -34,10 +34,12 @@ import org.eclipse.jdt.core.dom.ArrayAccess;
 import org.eclipse.jdt.core.dom.Assignment;
 import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.ClassInstanceCreation;
+import org.eclipse.jdt.core.dom.ConstructorInvocation;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.FieldAccess;
 import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.SimpleName;
+import org.eclipse.jdt.core.dom.SuperConstructorInvocation;
 import org.eclipse.jdt.core.dom.ThisExpression;
 
 import edu.brown.cs.fait.iface.FaitLog;
@@ -323,6 +325,16 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
       else if (xref.getAstNode() instanceof ClassInstanceCreation) {
          ClassInstanceCreation cic = (ClassInstanceCreation) xref.getAstNode();
          ex = cic.getExpression();
+       }
+      else if (xref.getAstNode() instanceof ConstructorInvocation) {
+         for (IfaceValue ref : priority_map.keySet()) {
+            if (ref.getRefSlot() == 0) thisused = priority_map.get(ref);
+          }
+       }
+      else if (xref.getAstNode() instanceof SuperConstructorInvocation) {
+         for (IfaceValue ref : priority_map.keySet()) {
+            if (ref.getRefSlot() == 0) thisused = priority_map.get(ref);
+          }
        }
       if (ex != null) {
          JcompSymbol js = JcompAst.getReference(ex);
@@ -652,6 +664,8 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
        }
       buf.append(",");
     }
+   buf.append("C:");
+   buf.append(use_conditions);
    buf.append("]");
    return buf.toString();
 }

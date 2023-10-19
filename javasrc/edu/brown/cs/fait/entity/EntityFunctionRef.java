@@ -38,6 +38,7 @@ package edu.brown.cs.fait.entity;
 import java.util.Map;
 
 import edu.brown.cs.fait.iface.IfaceLocation;
+import edu.brown.cs.fait.iface.IfaceMethod;
 import edu.brown.cs.fait.iface.IfaceType;
 import edu.brown.cs.fait.iface.IfaceValue;
 import edu.brown.cs.ivy.xml.IvyXmlWriter;
@@ -54,6 +55,7 @@ class EntityFunctionRef extends EntityLocal
 
 private Map<Object,IfaceValue>  initial_bindings;
 private String                  method_name;
+private IfaceMethod             ref_method;
 
 
 
@@ -64,11 +66,12 @@ private String                  method_name;
 /*                                                                              */
 /********************************************************************************/
 
-EntityFunctionRef(IfaceLocation loc,IfaceType typ,Map<Object,IfaceValue> bind)
+EntityFunctionRef(IfaceLocation loc,IfaceType typ,IfaceMethod mthd,Map<Object,IfaceValue> bind)
 {
    super(loc,typ,null);
    initial_bindings = bind;
    method_name = null;
+   ref_method = mthd;
 }
 
 
@@ -77,6 +80,7 @@ EntityFunctionRef(IfaceLocation loc,IfaceType typ,String method)
    super(loc,typ,null);
    initial_bindings = null;
    method_name = method;
+   ref_method  = null;
 }
 
 
@@ -87,11 +91,13 @@ EntityFunctionRef(IfaceLocation loc,IfaceType typ,String method)
 /*                                                                              */
 /********************************************************************************/
 
-public Map<Object,IfaceValue> getBindings()             { return initial_bindings; }
+@Override public Map<Object,IfaceValue> getBindings()   { return initial_bindings; }
 
-public String getMethodName()                           { return method_name; }
+@Override public String getMethodName()                 { return method_name; }
 
-public boolean isFunctionRef()                          { return true; }
+@Override public IfaceMethod getMethod()                { return ref_method; }
+
+@Override public boolean isFunctionRef()                { return true; }
 
 
 /********************************************************************************/

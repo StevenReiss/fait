@@ -161,14 +161,39 @@ List<IfaceMethod> findAllMethods(IfaceBaseType typ,String name)
 }
 
 
-IfaceMethod findMethod(IfaceBaseType typ,String name,String desc)
+IfaceMethod findMethod(IfaceBaseType typ,String name,String desc,String sgn)
 {
    JcompType atyps = null;
    if (desc != null) {
       List<JcompType> types = getParameterList(desc);
       atyps = jcomp_typer.createMethodType(null,types,false,null);
     }
-   JcompSymbol msym = getInternalType(typ).lookupMethod(jcomp_typer,name,atyps);
+   JcompType btyp = getInternalType(typ);
+   JcompSymbol msym = btyp.lookupMethod(jcomp_typer,name,atyps);
+   if (msym != null && sgn != null && msym.getClassType() != btyp) {
+      List<JcompSymbol> syms = btyp.getDefinedMethods(null);
+      for (JcompSymbol chk : syms) {
+         if (chk.getName().equals(name)) {
+            int narg = chk.getType().getComponents().size();
+            int ngiv = atyps.getComponents().size();
+            if (narg == ngiv) {
+               boolean fnd = true;
+               for (int i = 0; fnd && i < narg; ++i) {
+                  JcompType argt = chk.getType().getComponents().get(i);
+                  JcompType givt = atyps.getComponents().get(i);
+                  if (!argt.isCompatibleWith(givt)) {
+                     fnd = false;
+                   }
+                }
+               if (fnd) {
+                  msym = chk;
+                  break;
+                }
+               
+             }
+          }
+       }
+    }
    if (msym == null && name.equals("<clinit>")) {
       msym = getInternalType(typ).lookupMethod(jcomp_typer,INITER_NAME,atyps);
     }
@@ -511,10 +536,9 @@ private class AstType implements IfaceBaseType {
             if (typs != null) {
                for (String jtnm : typs) {
                   JcompType jt = jcomp_typer.findType(jtnm);
-                  if (jt != null) {
+                  if (jt != null && !jt.isTypeVariable()) {
                      if (!jt.isInterfaceType() && !jt.isAbstract()) concrete = true;
                      rslt.add(getType(jt));
-                     
                    }
                 }
              }
@@ -550,6 +574,14 @@ private class AstType implements IfaceBaseType {
       jcomp_type.defineAll(jcomp_typer);
     }
 
+   @Override public IfaceMethod findRefMethod(String nm,String desc) {
+      List<JcompType> atyps = getParameterList(desc);
+      JcompType mtyp = jcomp_typer.createMethodType(null,atyps,false,null);
+      JcompSymbol jm = jcomp_type.lookupMethod(jcomp_typer,nm,mtyp);
+      return getMethod(jm);
+    }
+   
+   
    @Override public String toString() {
       if (jcomp_type == null) return "???";
       return jcomp_type.toString();
@@ -695,6 +727,7 @@ private class AstMethod implements IfaceMethod {
    @Override public String getDescription() {
       return method_symbol.getType().getJavaTypeName();
     }
+   @Override public String getSignature()               { return null; }
    @Override public String getFile() {
       JcompSource src = JcompAst.getSource(method_symbol.getNameNode());
       return src.getFileName();
@@ -863,17 +896,20 @@ private class AstMethod implements IfaceMethod {
     }
 
    @Override public List<IfaceAnnotation> getArgAnnotations(int i) {
-      MethodDeclaration md = (MethodDeclaration) method_symbol.getDefinitionNode();
-      if (md == null) return null;
-      if (method_symbol.isConstructorSymbol()) {
-	 if (method_symbol.getClassType().needsOuterClass()) {
-	    if (i == 0) return null;
-	    i = i-1;
-	  }
+      if (method_symbol.getDefinitionNode() instanceof MethodDeclaration) {
+         MethodDeclaration md = (MethodDeclaration) method_symbol.getDefinitionNode();
+         if (md == null) return null;
+         if (method_symbol.isConstructorSymbol()) {
+            if (method_symbol.getClassType().needsOuterClass()) {
+               if (i == 0) return null;
+               i = i-1;
+             }
+          }
+         SingleVariableDeclaration arg = (SingleVariableDeclaration) md.parameters().get(i);
+         JcompSymbol argsym = JcompAst.getDefinition(arg);
+         return getAnnotations(argsym);
        }
-      SingleVariableDeclaration arg = (SingleVariableDeclaration) md.parameters().get(i);
-      JcompSymbol argsym = JcompAst.getDefinition(arg);
-      return getAnnotations(argsym);
+      else return null;
     }
 
    private List<IfaceAnnotation> getAnnotations(JcompSymbol sym) {
@@ -881,7 +917,7 @@ private class AstMethod implements IfaceMethod {
       if (jans == null) return null;
       List<IfaceAnnotation> rslt = new ArrayList<>();
       for (JcompAnnotation ja : jans) {
-	 rslt.add(createAnnotation(ja));
+         rslt.add(createAnnotation(ja));
        }
       return rslt;
     }

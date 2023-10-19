@@ -298,8 +298,8 @@ EntitySet handleTypeRestricts(IfaceType dt)
       for (IfaceEntity ie1 : getEntities()) {
 	 EntityBase ie = (EntityBase) ie1;
 	 boolean fg = true;
-	 if (ie.getDataType() != null) {
-            IfaceType ty1 = ie.getDataType();
+         IfaceType ty1 = ie.getDataType();
+	 if (ty1 != null) {
             ty1 = ty1.getRunTimeType();
 	    fg = entity_factory.compatibleTypes(ty1,dt);
 	  }

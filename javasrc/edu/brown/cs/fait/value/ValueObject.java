@@ -221,10 +221,6 @@ private ValueBase tryNonNull()
 
 
 
-
-
-
-
 @Override public ValueBase mergeValue(IfaceValue cv)
 {
    if (cv == this || cv == null) return this;
@@ -239,6 +235,10 @@ private ValueBase tryNonNull()
    IfaceEntitySet es = getEntitySet().addToSet(cvo.getEntitySet());
    IfaceType t1 = findCommonParent(getDataType(),cvo.getDataType());
    
+   if (getDataType().isFunctionRef() && !t1.isFunctionRef()) {
+      FaitLog.logD("ATTEMPT TO MERGE FUNCTION REF WITH TYPE " + getDataType() + " " + t1);
+    }
+   
    if (es == getEntitySet() && getDataType() == t1)
       return this;
 
@@ -251,10 +251,6 @@ private ValueBase tryNonNull()
 
    return value_factory.objectValue(typ,es);
 }
-
-
-
-
 
 
 
