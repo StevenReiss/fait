@@ -40,6 +40,7 @@ import edu.brown.cs.fait.iface.*;
 import java.util.*;
 
 
+
 abstract class FlowQueueInstance implements FlowConstants
 {
 
@@ -110,6 +111,33 @@ FlowQueue getWorkQueue()                        { return work_queue; }
 IfaceState getState(IfaceProgramPoint fi)        
 {
    return state_map.get(fi); 
+}
+
+
+IfaceState getCloseState(IfaceProgramPoint fi)
+{
+   IfaceState st0 = state_map.get(fi);
+   if (st0 != null) return st0;
+   
+// IfaceAstReference firef = fi.getAstReference();
+// if (firef == null) return null;
+// ASTNode refnode = firef.getAstNode();
+// ASTNode refchild = firef.getAfterChild();
+// 
+// IfaceState best = null;
+// IfaceProgramPoint bestpt = null;
+// for (Map.Entry<IfaceProgramPoint,IfaceState> ent : state_map.entrySet()) {
+//    IfaceProgramPoint pt = ent.getKey();
+//    IfaceAstReference ref = pt.getAstReference();
+//    if (ref == null) continue;
+//    System.err.println("CHECK " + ref.getAstNode() + " " + 
+//          ref.getAfterChild());
+//    if (refchild == ref.getAstNode()) {
+//       System.err.println("CHECK HERE");
+//     }
+//  }
+   
+   return null;
 }
 
 

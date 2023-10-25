@@ -146,7 +146,7 @@ CallBase(IfaceControl fc,IfaceMethod fm,IfaceProgramPoint pt,IfaceSafetyStatus s
    if (!fm.isStatic()) {
       if (lclsz == 0) {
 	 FaitLog.logE("Problem with method " + fm.getFullName() + " " + fm.getLocalSize() + " " +
-	    fm.getDescription() + " " + fm.hasCode() + " " + fm.getClass() + " " + fm.getStart());
+	    fm.getDescription() + " " + fm.hasCode() + " " + fm.getClass());
        }
       IfaceValue fv = fc.findAnyValue(fm.getDeclaringClass());
       fv = fv.forceNonNull();

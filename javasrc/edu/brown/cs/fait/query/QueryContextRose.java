@@ -88,7 +88,7 @@ private int                             max_priority;
 
 QueryContextRose(IfaceControl ctrl,QueryCallSites sites,
       IfaceValue var,IfaceValue val,int depth,
-      int conds,List<IfaceMethod> stack)
+      int conds,List<IfaceMethod> stack,IfaceType thistype)
 {
    super(ctrl,sites);
    max_priority = depth;
@@ -98,6 +98,10 @@ QueryContextRose(IfaceControl ctrl,QueryCallSites sites,
    if (var != null) {
       priority_map.put(var,max_priority);
       if (val != null) known_values.put(var,val);
+    }
+   if (thistype != null) {
+      IfaceValue thisref = ctrl.findRefValue(thistype,0);
+      priority_map.put(thisref,max_priority);
     }
    use_conditions = conds;
    call_stack = stack;
@@ -221,6 +225,7 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
    IfaceMethod fm = c.getMethod();
    int delta = (fm.isStatic() ? 0 : 1);
    int act = fm.getNumArgs();
+   
    Map<IfaceValue,Integer> npmap = new HashMap<>();
    Map<IfaceValue,IfaceValue> nvmap = new HashMap<>();
    boolean havedummy = false;
@@ -242,7 +247,7 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
    if (npmap.isEmpty()) {
       if (use_conditions <= 0) return null;
       if (!havedummy) return null;
-      return null;
+//    return null;
     }
    QueryContextRose newctx = new QueryContextRose(this,sites,npmap,nvmap);
    newctx.use_conditions = Math.max(0,use_conditions-1);

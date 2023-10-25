@@ -37,6 +37,7 @@ package edu.brown.cs.fait.query;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import edu.brown.cs.fait.iface.FaitException;
 import edu.brown.cs.fait.iface.IfaceAstReference;
@@ -169,7 +170,12 @@ public void processFlowQuery(IfaceCall call,IfaceProgramPoint pt,IfaceValue refv
    int locctr = conddepth;
    int depthctr = depth;
    // set locctr based on type of query -- getting here is > others
-   QueryContext ctx = new QueryContextRose(fait_control,null,refval,val,depthctr,locctr,stack);
+   IfaceType thistype = null;
+// if (!call.getMethod().isStatic()) {
+//    thistype = call.getMethod().getDeclaringClass();
+//  }
+   
+   QueryContext ctx = new QueryContextRose(fait_control,null,refval,val,depthctr,locctr,stack,thistype); 
    
    boolean allow = false;
    for (IfaceLocation callloc : call.getCallSites()) {

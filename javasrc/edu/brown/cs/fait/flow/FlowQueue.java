@@ -838,7 +838,9 @@ IfaceState findStateForLocation(IfaceCall c0,IfaceProgramPoint pt)
 
    FlowQueueInstance wq = call_map.get(c0);
    if (wq == null) return null;
-   return wq.getState(pt);
+   IfaceState st = wq.getCloseState(pt);
+   
+   return st;
 }
 
 

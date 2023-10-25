@@ -63,6 +63,23 @@ boolean isEditable();
 boolean hasCode();
 IfaceType getReturnType();
 int getNumArgs();
+
+default int getArgSize() 
+{
+   int base = 0;
+   if (!isStatic()) {
+      base = 1;
+      if (isConstructor() && getDeclaringClass().getSuperType() != null) base= 2;
+    }
+   for (int i = 0; i < getNumArgs(); ++i) {
+      IfaceType argtyp = getArgType(i);
+      if (argtyp.isCategory2()) base += 2;
+      else base += 1;
+    }
+   
+   return base;
+}
+
 IfaceType getArgType(int i);
 IfaceType getDeclaringClass();
 List<IfaceType> getExceptionTypes();
