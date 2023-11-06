@@ -48,6 +48,7 @@ import edu.brown.cs.fait.iface.IfaceCall;
 import edu.brown.cs.fait.iface.IfaceEntity;
 import edu.brown.cs.fait.iface.IfaceEntitySet;
 import edu.brown.cs.fait.iface.IfaceLocation;
+import edu.brown.cs.fait.iface.IfaceMethod;
 import edu.brown.cs.fait.iface.IfaceProgramPoint;
 import edu.brown.cs.fait.iface.IfaceType;
 import edu.brown.cs.fait.iface.IfaceUpdateSet;
@@ -108,10 +109,17 @@ ControlUpdater(ControlMain cm,IfaceUpdateSet upd)
 
 void processUpdate()
 {
+   Collection<IfaceType> utyps = update_set.getUpdatedTypes(fait_control);
+   
    // get initial set of updated calls
    Set<IfaceCall> upds = new HashSet<>();
    for (IfaceCall ic : fait_control.getAllCalls()) {
-      if (update_set.shouldUpdate(ic)) {
+      IfaceMethod m = ic.getMethod();
+      IfaceType mt = m.getDeclaringClass();
+      if (utyps.contains(mt)) {
+         upds.add(ic);
+       }
+      else if (update_set.shouldUpdate(ic)) {
 	 upds.add(ic);
        }
     }
@@ -130,7 +138,6 @@ void processUpdate()
       upds = new_updates;
     }
 
-   Collection<IfaceType> utyps = update_set.getUpdatedTypes(fait_control);
    if (utyps != null) {
       for (IfaceType typ : utyps) {
 	 if (typ != null) {

@@ -245,7 +245,9 @@ StateBase(int numlocal,IfaceSafetyStatus sts)
 
 @Override public void setLocal(int idx,IfaceValue v)
 {
-   local_values[idx] = v;
+   if (idx < local_values.length) {
+      local_values[idx] = v;
+    }
 }
 
 

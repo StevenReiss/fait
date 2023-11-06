@@ -326,6 +326,9 @@ private class Node implements QueryNode {
       node_type = typ;
       node_reason = reason;
       node_priority = 0;
+      if (ctx == null) {
+         System.err.println("CHECK HERE");
+       }
     }
 
    @Override public int getId() 				{ return node_id; }
@@ -446,8 +449,7 @@ private class Node implements QueryNode {
     }
 
    @Override public String toString() {
-      return node_id + ":" + node_context.toString() + " " + to_arcs.size() + " " + from_arcs.size();
-   
+      return node_id + ":" + node_context + " " + to_arcs.size() + " " + from_arcs.size();
     }
 
 }	// end of inner class Node

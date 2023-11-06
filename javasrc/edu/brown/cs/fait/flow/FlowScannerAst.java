@@ -2996,10 +2996,6 @@ private Object visit(ExpressionMethodReference v)
    IfaceValue rv = generateReferenceValue(v,refval);
    pushValue(rv);
    
-   if (v.toString().contains("::createCondition")) {
-      System.err.println("CHECK HERE");
-    }
-
    return null;
 }
 
@@ -3536,7 +3532,8 @@ private CallReturn processCall(ASTNode v,int act)
       IfaceValue v1 = getActualValue(v0,false);
       if (i == checkarg) {
 	 if (v1 != null && v1.canBeNull()) {
-	    checkBackPropagation(getHere(),cur_state,i,v1,FaitOperator.DEREFERENCE,null);
+	    checkBackPropagation(getHere(),cur_state,i,v1,
+                  FaitOperator.DEREFERENCE,null);
 	    v1 = getActualValue(v0,true);
 	  }
        }

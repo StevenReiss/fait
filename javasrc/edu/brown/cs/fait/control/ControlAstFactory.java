@@ -607,7 +607,8 @@ IfaceMethod getMethod(JcompSymbol js)
       if (m1 == null || m1.getJcompSymbol() != js) {
          // try finding method here
          if (js.isBinarySymbol()) {
-            JcompSymbol msym = getInternalType(typ).lookupMethod(jcomp_typer,js.getName(),js.getType());
+            JcompSymbol msym = getInternalType(typ).lookupMethod(jcomp_typer,
+                  js.getName(),js.getType());
             if (msym != null && !msym.isBinarySymbol()) {
                IfaceMethod im1 = getMethod(msym);
                if (im1 != null && im1 instanceof AstMethod) {
@@ -705,6 +706,9 @@ private class AstMethod implements IfaceMethod {
 
    AstMethod(JcompSymbol js) {
       method_symbol = js;
+      if (js.isBinarySymbol()) {
+         System.err.println("CHECK HERE " + js);
+       }
       local_map = null;
       local_count = 0;
       parent_methods = null;
@@ -805,7 +809,8 @@ private class AstMethod implements IfaceMethod {
    @Override public IfaceProgramPoint getStart() {
       ASTNode n = method_symbol.getDefinitionNode();
       if (n == null) {
-         FaitLog.logE("No AST definition found for " + this);
+         FaitLog.logE("No AST definition found for " + this + " " + method_symbol);
+         System.err.println("No AST definition found for " + this + " " + method_symbol);
        }
       return fait_control.getAstReference(n);
     }

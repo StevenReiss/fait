@@ -46,6 +46,7 @@ import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 
 import edu.brown.cs.fait.iface.FaitLog;
 import edu.brown.cs.fait.iface.IfaceAstReference;
+import edu.brown.cs.fait.iface.IfaceBaseType;
 import edu.brown.cs.fait.iface.IfaceCall;
 import edu.brown.cs.fait.iface.IfaceControl;
 import edu.brown.cs.fait.iface.IfaceField;
@@ -92,7 +93,6 @@ ServerUpdateData(List<ServerFile> files)
 
 @Override public boolean shouldUpdate(IfaceCall call)
 {
-  
    IfaceMethod m = call.getMethod();
    IfaceProgramPoint pt = m.getStart();
    if (pt == null) return false;
@@ -103,6 +103,10 @@ ServerUpdateData(List<ServerFile> files)
       if (cnm.startsWith("java.") ||
 	    cnm.startsWith("javax.") ||
 	    cnm.startsWith("sun.")) return false;
+      IfaceType typ = call.getControl().findDataType(m.getDeclaringClass().getName());
+      IfaceBaseType btyp = typ.getJavaType();
+      if (btyp.isEditable() && !m.isEditable()) 
+         return true;
       IfaceMethod m0 = call.getControl().findMethod(m.getDeclaringClass().getName(),
 	    m.getName(),m.getDescription());
       if (m0 == m) return false;

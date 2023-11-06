@@ -161,7 +161,7 @@ void setDataType(IfaceType typ)                 { proto_type = typ; }
        }
     }
    catch (Exception e) {
-      System.err.println("FAIT: Problem with prototype call: " + e);
+      FaitLog.logE("Problem with prototype call",e);
       e.printStackTrace();
     }
 

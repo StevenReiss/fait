@@ -37,7 +37,6 @@ package edu.brown.cs.fait.query;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 import edu.brown.cs.fait.iface.FaitException;
 import edu.brown.cs.fait.iface.IfaceAstReference;

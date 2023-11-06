@@ -443,7 +443,7 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
    QueryCallSites sites = call_sites;
    
    if (call_sites == null || ctx.call_sites == null) sites = null;
-   if (!call_sites.equals(ctx.call_sites)) return null;
+// if (!call_sites.equals(ctx.call_sites)) return null;
    
    Map<IfaceValue,Integer> npmap = new HashMap<>(priority_map);
    Map<IfaceValue,IfaceValue> kpmap = new HashMap<>(known_values);

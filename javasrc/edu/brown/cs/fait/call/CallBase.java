@@ -447,7 +447,7 @@ CallBase(IfaceControl fc,IfaceMethod fm,IfaceProgramPoint pt,IfaceSafetyStatus s
 	    if (num_adds == 0) start_state.setLocal(idx,cv);
 	    else chng |= start_state.addToLocal(idx,cv);
 	  }
-	 if (start_state.getLocal(idx).isBad()) {
+	 if (start_state.getLocal(0) == null || start_state.getLocal(idx).isBad()) {
 	    start_state.setLocal(idx,ov);
 	  }
 	 if (cv.isCategory2()) ++idx;
