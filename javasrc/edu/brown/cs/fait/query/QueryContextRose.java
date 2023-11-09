@@ -76,6 +76,7 @@ private IfaceValue                      base_value;
 private int                             use_conditions;
 private List<IfaceMethod>               call_stack;
 private int                             max_priority;
+private boolean                         doing_location;
 
 
 
@@ -88,10 +89,11 @@ private int                             max_priority;
 
 QueryContextRose(IfaceControl ctrl,QueryCallSites sites,
       IfaceValue var,IfaceValue val,int depth,
-      int conds,List<IfaceMethod> stack,IfaceType thistype)
+      int conds,boolean location,List<IfaceMethod> stack,IfaceType thistype)
 {
    super(ctrl,sites);
    max_priority = depth;
+   doing_location = location;
    base_value = val;
    priority_map = new HashMap<>();
    known_values = new HashMap<>();
@@ -118,6 +120,7 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
    max_priority = ctx.max_priority;
    use_conditions = ctx.use_conditions;
    call_stack = ctx.call_stack;
+   doing_location = ctx.doing_location;
 }
 
 
@@ -148,12 +151,14 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
             FaitLog.logD("QUERY","Spurrious stack reference " + ref + " AT " + backfrom.getLocation());
             continue;
           }
-         IfaceBackFlow bf = fait_control.getBackFlow(backfrom,backto,ref,(use_conditions > 0));
+         IfaceBackFlow bf = fait_control.getBackFlow(backfrom,backto,
+               ref,(use_conditions > 0));
          if (bf == null) continue;
          IfaceValue sref = bf.getStartReference();
          if (sref != null) {
             if (sref.getRefStack() > 25) {
-               FaitLog.logE("QUERY","Stack Reference too deep " + sref + " " + ref + " " + backfrom + " " + backto);
+               FaitLog.logE("QUERY","Stack Reference too deep " + sref + " " + ref + " " +
+                     backfrom + " " + backto);
                continue;
              }
             npmap.put(sref,ent.getValue());
@@ -289,7 +294,11 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
        }
     }
    
-   if (!useret || npmap.isEmpty()) return null;
+   if (!useret || npmap.isEmpty()) {
+      if (!doing_location || use_conditions == 0) {
+         return null;
+       }
+    }
    
    // need to use getNextSite here
    QueryCallSites ncallsites = call_sites.getNextSites(loc);
@@ -377,6 +386,10 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
       else {
          bfd.addAuxReference(aref);
        }
+    }
+   
+   if (!chng && doing_location && use_conditions > 0) {
+      chng = true;
     }
    
    if (chng) {
@@ -471,6 +484,38 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
    
    return newctx;
 }
+
+
+@Override protected QueryContext restrictToState(IfaceState st0)
+{
+   if (priority_map == null || st0 == null) return this;
+   
+   QueryContext newctx = this;
+   
+   List<IfaceValue> del = null;
+   int stksz = st0.getStackSize();
+   for (IfaceValue iv : priority_map.keySet()) {
+      int sref = iv.getRefStack();
+      if (sref > stksz) {
+         FaitLog.logD("QUERY","Remove excess stack reference " + sref + " " + stksz);
+         if (del == null) del = new ArrayList<>();
+         del.add(iv);
+       }
+    }
+   if (del != null) {
+      Map<IfaceValue,Integer> npmap = new HashMap<>(priority_map);
+      Map<IfaceValue,IfaceValue> kpmap = new HashMap<>(known_values);
+      for (IfaceValue iv : del) {
+         npmap.remove(iv);
+         kpmap.remove(iv);
+         
+       }
+      newctx = new QueryContextRose(this,call_sites,npmap,kpmap);
+    }
+   
+   return newctx;
+}
+
 
 
 

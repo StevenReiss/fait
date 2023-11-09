@@ -54,6 +54,7 @@ IfaceValue getStack(int idx);
 void setStack(int idx,IfaceValue v);
 void setLocal(int idx,IfaceValue v);
 boolean addToLocal(int idx,IfaceValue v);
+int getStackSize();
 
 IfaceValue getFieldValue(IfaceField fld);
 void setFieldValue(IfaceField fnm,IfaceValue v);

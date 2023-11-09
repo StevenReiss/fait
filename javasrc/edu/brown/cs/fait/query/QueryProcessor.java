@@ -129,7 +129,9 @@ private void computeNext(QueryQueueItem qqi,IfaceState cur,QueryNode node)
    IfaceCall call = qqi.getCall();
    IfaceProgramPoint pt = qqi.getProgramPoint();
    
-   FaitLog.logD("QUERY","Compute Next: " + " " + ctx + " " + qqi.getProgramPoint() + " " +
+   ctx = ctx.restrictToState(cur);
+   
+   FaitLog.logD("QUERY","Compute Next: " + ctx + " " + qqi.getProgramPoint() + " " +
          qqi.getCall().getMethod() + " (" + node.getId() + ")");
    FaitLog.logD("QUERY","Next Info: " + cur + " " + qqi.getCall().hashCode());
    

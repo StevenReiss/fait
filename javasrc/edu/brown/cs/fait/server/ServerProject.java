@@ -1391,8 +1391,9 @@ private void handleFlowQueryForCall(IfaceControl ctrl,Element qxml,IfaceCall cal
    IfaceValue curval = getCurrentValue(ctrl,strval,valtyp);
    int depth = IvyXml.getAttrInt(qxml,"DEPTH",10);
    int conddepth = IvyXml.getAttrInt(qxml,"CONDDEPTH",4);
+   boolean location = IvyXml.getAttrString(qxml,"QTYPE","").equals("LOCATION");
   
-   ctrl.processFlowQuery(call,ppt,ref,curval,stack,depth,conddepth,xw);
+   ctrl.processFlowQuery(call,ppt,ref,curval,stack,depth,conddepth,location,xw);
 }
 
 

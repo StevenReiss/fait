@@ -1156,12 +1156,12 @@ IfaceBaseType createMethodType(IfaceType rtn,List<IfaceType> args)
 }
 
 @Override public void processFlowQuery(IfaceCall c,IfaceProgramPoint pt,IfaceValue refval,
-      IfaceValue val,List<IfaceMethod> stack,int depth,int conddepth,IvyXmlWriter xw)
+      IfaceValue val,List<IfaceMethod> stack,int depth,int conddepth,boolean location,IvyXmlWriter xw)
 {
    if (depth < 0) depth = 10;
    if (conddepth < 0) conddepth = 4;
    
-   query_factory.processFlowQuery(c,pt,refval,val,stack,depth,conddepth, xw);
+   query_factory.processFlowQuery(c,pt,refval,val,stack,depth,conddepth,location, xw);
 }
 
 

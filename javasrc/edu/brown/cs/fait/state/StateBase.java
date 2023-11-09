@@ -164,6 +164,11 @@ StateBase(int numlocal,IfaceSafetyStatus sts)
    return vf.isCategory2();
 }
 
+@Override public int getStackSize()
+{
+   return stack_values.size();
+}
+
 
 @Override public void handleDup(boolean dbl,int lvl)
 {
@@ -653,6 +658,11 @@ private void removePriorState(StateBase st)
 }
 
 
+@Override public String toString()
+{
+   return "<" + stack_values.size() + " " + local_values.length + " " + field_map.size() + ">";
+
+}
 
 }	// end of class StateBase
 

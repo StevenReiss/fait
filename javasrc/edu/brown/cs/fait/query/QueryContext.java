@@ -214,6 +214,10 @@ protected QueryContext mergeWith(QueryContext ctx)
 }
 
 
+protected QueryContext restrictToState(IfaceState state)        { return this; }                     
+
+
+
 protected List<IfaceAuxReference> getArgumentReferences(IfaceState st0,boolean argvalues,boolean thisval,boolean canbevoid)
 {
    List<IfaceAuxReference> rslt = new ArrayList<>();

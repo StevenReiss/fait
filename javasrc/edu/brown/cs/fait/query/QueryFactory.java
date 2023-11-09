@@ -162,7 +162,8 @@ public void processToQuery(IfaceCall call,IfaceProgramPoint pt,IfaceEntity ent,
 
 
 public void processFlowQuery(IfaceCall call,IfaceProgramPoint pt,IfaceValue refval,
-      IfaceValue val,List<IfaceMethod> stack,int depth,int conddepth,IvyXmlWriter xw)
+      IfaceValue val,List<IfaceMethod> stack,int depth,int conddepth,
+      boolean location,IvyXmlWriter xw)
 {
    long start = System.currentTimeMillis();
    
@@ -174,7 +175,7 @@ public void processFlowQuery(IfaceCall call,IfaceProgramPoint pt,IfaceValue refv
 //    thistype = call.getMethod().getDeclaringClass();
 //  }
    
-   QueryContext ctx = new QueryContextRose(fait_control,null,refval,val,depthctr,locctr,stack,thistype); 
+   QueryContext ctx = new QueryContextRose(fait_control,null,refval,val,depthctr,locctr,location,stack,thistype);   
    
    boolean allow = false;
    for (IfaceLocation callloc : call.getCallSites()) {

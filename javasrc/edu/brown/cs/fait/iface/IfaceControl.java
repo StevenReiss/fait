@@ -275,7 +275,8 @@ void processVarQuery(String method,int line,int pos,String var,IvyXmlWriter xw) 
 void processToQuery(IfaceCall c,IfaceProgramPoint pt,IfaceEntity ent,
       IfaceSubtype styp,IfaceSubtype.Value sval,IfaceValue refval,IvyXmlWriter xw);
 void processFlowQuery(IfaceCall c,IfaceProgramPoint pt,IfaceValue refval,
-      IfaceValue val,List<IfaceMethod> stack,int depth,int conddepth,IvyXmlWriter xw);
+      IfaceValue val,List<IfaceMethod> stack,int depth,int conddepth,
+      boolean location,IvyXmlWriter xw);
 
 void processChangeQuery(IfaceCall c,IfaceProgramPoint pt,IvyXmlWriter xw);
 
