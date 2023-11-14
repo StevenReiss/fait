@@ -401,9 +401,10 @@ private void handleAddFile(String sid,Element xml,IvyXmlWriter xw)
       String file = IvyXml.getAttrString(e,"NAME");
       ServerFile sf = server_control.getFileManager().openFile(new File(file));
       if (sf != null) {
-         upd |= sp.addFile(sf);
+         upd |= sp.addFile(sf,true);
        }   
     }
+   if (upd) sp.resumeAnalysis();
    
    xw.field("ADDED",upd);
 }

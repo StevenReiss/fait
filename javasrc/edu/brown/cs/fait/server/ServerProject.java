@@ -202,12 +202,12 @@ void addProject(String pnm)
 /*										*/
 /********************************************************************************/
 
-boolean addFile(ServerFile sf)
+boolean addFile(ServerFile sf,boolean hold)
 {
    boolean added = false;
    
    if (sf != null && active_files.add(sf)) {
-      noteFileChanged(sf,false);
+      noteFileChanged(sf,hold,false);
       added = true;
     }
    
@@ -215,12 +215,12 @@ boolean addFile(ServerFile sf)
 }
 
 
-void removeFile(ServerFile sf)
+void removeFile(ServerFile sf,boolean hold)
 {
    if (sf == null) return;
 
    if (active_files.remove(sf)) {
-      noteFileChanged(sf,true);
+      noteFileChanged(sf,hold,true);
     }
 }
 
@@ -404,7 +404,7 @@ private void checkForDescriptionFile(String s)
 /*										*/
 /********************************************************************************/
 
-boolean noteFileChanged(ServerFile sf,boolean force)
+boolean noteFileChanged(ServerFile sf,boolean hold,boolean force)
 {
    if (!force && !active_files.contains(sf)) return false;
 
@@ -414,7 +414,7 @@ boolean noteFileChanged(ServerFile sf,boolean force)
 	 synchronized (changed_files) {
 	    if (sf != null) {
 	       if (changed_files.add(sf)) {
-		  resumeAnalysis();
+		  if (!hold) resumeAnalysis();
 		}
 	     }
 	  }

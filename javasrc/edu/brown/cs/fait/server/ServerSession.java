@@ -121,7 +121,7 @@ void setReturnId(String s)                      { return_id = s; }
 
 void noteFileChanged(ServerFile sf)
 {
-   for_project.noteFileChanged(sf,false);
+   for_project.noteFileChanged(sf,false,false);
 }
 
 
