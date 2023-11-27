@@ -182,7 +182,7 @@ CallSpecial(IfaceControl fc,Element xml,boolean formthd)
    callback_id = null;
    String cbnm = IvyXml.getTextElement(xml,"CALLBACK");
    if (cbnm != null) {
-      callback_names = new ArrayList<String>();
+      callback_names = new ArrayList<>();
       callback_id = IvyXml.getAttrString(xml,"CBID");
       for (StringTokenizer tok = new StringTokenizer(cbnm); tok.hasMoreTokens(); ) {
 	 String cn = tok.nextToken();

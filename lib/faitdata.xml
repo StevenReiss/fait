@@ -396,4 +396,6 @@
 
    <CLASS NAME='java.util.ServiceLoader' />
 
+   <PACKAGE NAME='jdk.internal.logger' />
+
 </FAIT>
