@@ -67,6 +67,7 @@
    <CLASS NAME="javax.media.opengl.GLCanvas" />
    <CLASS NAME="javax.swing.ArrayTable" />
    <CLASS NAME="java.lang.UNIXProcess" />
+   <METHOD NAME='java.lang.Enum.ordinal' />
 <!--  <CLASS NAME='sun.security.util.DerIndefLenConverter' />    -->
 
    <CLASS NAME="com.sun.org.apache.internal.impl.XMLErrorReporter" />

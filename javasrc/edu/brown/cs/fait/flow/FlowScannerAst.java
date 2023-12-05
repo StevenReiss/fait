@@ -116,6 +116,7 @@ import edu.brown.cs.fait.iface.IfaceBackElement;
 import edu.brown.cs.fait.iface.IfaceControl;
 import edu.brown.cs.fait.iface.IfaceEntity;
 import edu.brown.cs.fait.iface.IfaceEntitySet;
+import edu.brown.cs.fait.iface.IfaceError;
 import edu.brown.cs.fait.iface.IfaceField;
 import edu.brown.cs.fait.iface.IfaceImplications;
 import edu.brown.cs.fait.iface.IfaceMethod;
@@ -575,6 +576,11 @@ private void processAstNode()
       else if (rslt instanceof IfaceAstReference) {
 	 nar = (IfaceAstReference) rslt;
        }
+      else if (rslt instanceof IfaceError) {
+         IfaceError err = (IfaceError) rslt;
+         work_queue.getCall().addError(ast_where,err);
+         return;
+       }
       else if (rslt == NO_NEXT_REPORT) {
 	 work_queue.getCall().addError(ast_where,UNREACHABLE_CODE);
 	 return;
@@ -833,7 +839,7 @@ private Object visit(ArrayAccess v)
 	 return NO_NEXT_REPORT;
       IfaceValue varr = popActualNonNull(1);
       if (varr == null)
-	 return NO_NEXT_REPORT;
+	 return DEREFERENCE_NULL;
       Integer idx = vidx.getIndexValue();
       if (idx != null && idx < 0) {
 	 IfaceType iob = fait_control.findDataType("java.lang.IndexOutOfBoundsException");
@@ -969,7 +975,8 @@ private Object visit(CastExpression v)
    else {
       IfaceValue v0 = popActual();
       if (v0 == null) return NO_NEXT_REPORT;
-      IfaceType ctyp = convertType(JcompAst.getJavaType(v.getType()));
+      JcompType jt0 = JcompAst.getJavaType(v.getType());
+      IfaceType ctyp = convertType(jt0);
       IfaceProgramPoint typpt = fait_control.getAstReference(v.getType());
       IfaceAnnotation [] annots = fait_control.getAnnotations(typpt);
       IfaceType rtyp = null;
@@ -977,7 +984,7 @@ private Object visit(CastExpression v)
 	 rtyp = ctyp.getAnnotatedType(annots);
       IfaceValue v1 = flow_queue.castValue(ctyp,v0,getHere());
       if (rtyp != null) {
-	 v1 = v1.changeType(rtyp);
+         v1 = v1.changeType(rtyp);
 	 // set v1 type to include annotations given in rtyp
        }
       if (FaitLog.isTracing()) FaitLog.logD1("Cast Value = " + v1);
@@ -1023,48 +1030,7 @@ private Object visit(ConditionalExpression ce)
 
 
 
-@SuppressWarnings("unused")
-private Object OLDvisit(ConditionalExpression v)
-{
-   if (after_node == null) return v.getExpression();
-   else if (after_node == v.getExpression()) {
-      IfaceValue v0 = popActual();
-      if (v0 == null) return NO_NEXT_REPORT;
-      TestBranch brslt = getTestResult(v0);
-      // flow_queue.handleImplications(work_queue,ast_where,cur_state,brslt);
-      pushValue(fait_control.findMarkerValue(ast_where,brslt));
-      if (brslt == TestBranch.NEVER) {
-	 return v.getElseExpression();
-       }
-      else {
-	 return v.getThenExpression();
-       }
-    }
-   else if (after_node == v.getThenExpression()) {
-      IfaceValue v0 = popActual();
-      Set<Object> mrk = popMarker(v);
-      IfaceType t0 = convertType(JcompAst.getExprType(v));
-      IfaceValue v1 = flow_queue.castValue(t0,v0,getHere());
-      pushValue(v1);
-      if (mrk.contains(TestBranch.ANY)) {
-	 pushValue(fait_control.findMarkerValue(ast_where,TestBranch.ANY));
-	 return v.getElseExpression();
-       }
-    }
-   else if (after_node == v.getElseExpression()) {
-      IfaceValue v0 = popActual();
-      Set<Object> mrk = popMarker(v);
-      IfaceType t0 = convertType(JcompAst.getExprType(v));
-      IfaceValue v1 = flow_queue.castValue(t0,v0,getHere());
-      if (mrk.contains(TestBranch.ANY)) {
-	 IfaceValue v2 = popActual();
-	 v1 = v1.mergeValue(v2);
-       }
-      pushValue(v1);
-    }
 
-   return null;
-}
 
 
 
@@ -1081,7 +1047,7 @@ private Object visit(FieldAccess v)
    else {
       JcompSymbol sym = JcompAst.getReference(v.getName());
       IfaceValue v0 = popActualNonNull(0);
-      if (v0 == null) return NO_NEXT_REPORT;
+      if (v0 == null) return DEREFERENCE_NULL;
       IfaceType rcls = convertType(JcompAst.getExprType(v));
       IfaceValue ref = null;
       if (sym != null) {
@@ -1394,7 +1360,7 @@ private Object visit(QualifiedName v)
     }
    if (after_node == v.getQualifier() && sym != null) {
       IfaceValue v0 = popActualNonNull(0);
-      if (v0 == null) return NO_NEXT_REPORT;
+      if (v0 == null) return DEREFERENCE_NULL;
       IfaceType rtyp = convertType(JcompAst.getExprType(v));
       IfaceField fld = getField(sym);
       if (fld == null) {
@@ -1405,7 +1371,7 @@ private Object visit(QualifiedName v)
     }
    else if (after_node == v.getQualifier() && sym == null) {
       IfaceValue v0 = popActualNonNull(0);
-      if (v0 == null) return NO_NEXT_REPORT;
+      if (v0 == null) return DEREFERENCE_NULL;
       // IfaceValue v1 = v0.getArrayLength();
       IfaceValue v1 = flow_queue.handleArrayLength(getHere(),v0);
       pushValue(v1);
@@ -1668,7 +1634,11 @@ private Object visit(ClassInstanceCreation v)
 	 case CONTINUE :
 	    break;
 	 case NOT_DONE :
-	    return NO_NEXT_REPORT;
+	    return callNeverReturnsError(js);
+         case NULL_ACCESS :
+            return DEREFERENCE_NULL;
+         case NO_METHOD :
+            return noImplementationError(js);
 	 case NO_RETURN:
 	    return NO_NEXT;
        }
@@ -1718,9 +1688,14 @@ private Object visit(ConstructorInvocation v)
    int delta = 1;
    if (rty.needsOuterClass()) delta = 2;
 
-   switch (processCall(v,args.size() + delta)) {
+   CallReturn callret = processCall(v,args.size() + delta);
+   switch (callret) {
       case NOT_DONE :
-	 return NO_NEXT_REPORT;
+	 return callNeverReturnsError(rtn);
+      case NULL_ACCESS :
+         return DEREFERENCE_NULL;
+      case NO_METHOD :
+         return noImplementationError(rtn);
       case NO_RETURN :
 	 return NO_NEXT;
       case CONTINUE :
@@ -1771,7 +1746,11 @@ private Object visit(MethodInvocation v)
    
    switch (processCall(v,act)) {
       case NOT_DONE :
-	 return NO_NEXT_REPORT;
+	 return callNeverReturnsError(js);
+      case NULL_ACCESS :
+         return DEREFERENCE_NULL;
+      case NO_METHOD :
+         return noImplementationError(js);
       case CONTINUE :
 	 break;
       case NO_RETURN :
@@ -1785,7 +1764,7 @@ private Object visit(MethodInvocation v)
       IfaceType it = convertType(jt);
       IfaceValue rslt = cur_state.getStack(0);
       it = it.getAnnotatedType(rslt.getDataType());
-      if (!rslt.getDataType().isCompatibleWith(it)) {
+      if (!jt.isAnyType() && !jt.isTypeVariable() && !rslt.getDataType().isCompatibleWith(it)) {
 	 IfaceValue vrslt = rslt.restrictByType(it);
 	 if (vrslt != null && vrslt != rslt) {
 	    if (vrslt.mustBeNull() && !rslt.mustBeNull()) {
@@ -1858,11 +1837,18 @@ private Object visit(SuperConstructorInvocation v)
 
    int delta = 1;
    if (rty.needsOuterClass()) ++delta;
-   switch (processCall(v,args.size()+delta)) {
+   
+   CallReturn callret = processCall(v,args.size()+delta);
+   JcompSymbol rtn = JcompAst.getReference(v);
+   switch (callret) {
       case NOT_DONE :
 	 // super constructor does nothing -- can ignore
-	 if (JcompAst.getReference(v) == null) return null;
-	 return NO_NEXT_REPORT;
+	 if (rtn == null) return null;
+	 return callNeverReturnsError(rtn);
+      case NULL_ACCESS :
+         return DEREFERENCE_NULL;
+      case NO_METHOD :
+         return noImplementationError(rtn);
       case NO_RETURN :
 	 return NO_NEXT;
       case CONTINUE :
@@ -1896,7 +1882,11 @@ private Object visit(SuperMethodInvocation v)
 
    switch (processCall(v,act)) {
       case NOT_DONE :
-	 return NO_NEXT_REPORT;
+	 return callNeverReturnsError(js);
+      case NULL_ACCESS :
+         return DEREFERENCE_NULL;
+      case NO_METHOD :
+         return noImplementationError(js);
       case NO_RETURN :
 	 return NO_NEXT;
       case CONTINUE :
@@ -2050,7 +2040,7 @@ private IfaceValue visitBack(ExpressionStatement s,IfaceValue ref)
 }
 
 
-
+               
 private Object visit(ForStatement s)
 {
    StructuralPropertyDescriptor spd = null;
@@ -2287,7 +2277,7 @@ private Object visit(SynchronizedStatement s)
    else if (after_node == s.getExpression()) {
       if (cur_state != null) {
 	 IfaceValue v0 = popActualNonNull(0);
-	 if (v0 == null) return NO_NEXT_REPORT;
+	 if (v0 == null) return DEREFERENCE_NULL;
 	 pushValue(v0);
        }
       return s.getBody();
@@ -2323,7 +2313,7 @@ private Object visit(ThrowStatement s)
 {
    if (after_node == null) return s.getExpression();
    IfaceValue v = popActualNonNull(0);
-   if (v == null) return NO_NEXT_REPORT;
+   if (v == null) return DEREFERENCE_NULL;
    flow_queue.handleThrow(work_queue,getHere(),v,cur_state);
    return NO_NEXT;
 }
@@ -2596,7 +2586,11 @@ private Object visit(EnhancedForStatement s)
 	       CallReturn cr = processInternalCall(im1);
 	       switch (cr) {
 		  case NOT_DONE :
-		     return NO_NEXT_REPORT;
+		     return CALL_NEVER_RETURNS;
+                  case NULL_ACCESS :
+                     return DEREFERENCE_NULL;
+                  case NO_METHOD :
+                     return NO_IMPLEMENTATION;
 		  case CONTINUE :
 		     break;
 		  case NO_RETURN :
@@ -2611,8 +2605,12 @@ private Object visit(EnhancedForStatement s)
 	       CallReturn cr = processInternalCall(im2);
 	       switch (cr) {
 		  case NOT_DONE :
-		     return NO_NEXT_REPORT;
-		  case CONTINUE :
+		     return CALL_NEVER_RETURNS;
+                  case NULL_ACCESS :
+                     return DEREFERENCE_NULL;
+                  case NO_METHOD :
+                     return NO_IMPLEMENTATION;
+                  case CONTINUE :
 		     break;
 		  case NO_RETURN :
 		     return NO_NEXT;
@@ -2957,6 +2955,11 @@ private Object visit(CreationReference v)
    if (v == work_queue.getCall().getMethod().getStart().getAstReference()) {
       return evaluateReference(v);
     }
+   JcompSymbol sym = JcompAst.getReference(v);
+   JcompType jt = sym.getClassType();
+   IfaceType it = convertType(jt);
+   if (it != null) fait_control.initialize(it);
+   
    IfaceValue iv = generateReferenceValue(v);
    pushValue(iv);
 
@@ -3519,7 +3522,7 @@ private TestBranch getTestResult(IfaceValue v1)
 private CallReturn processCall(ASTNode v,int act)
 {
    JcompSymbol js = JcompAst.getReference(v);
-   if (js == null) return CallReturn.NOT_DONE;
+   if (js == null) return CallReturn.NO_METHOD;
 
    JcompType jt = js.getType();
 
@@ -3592,8 +3595,8 @@ private CallReturn processCall(ASTNode v,int act)
     }
 
    CallReturn rsts = flow_queue.handleCall(getHere(),cur_state,work_queue,varct);
-   if (rsts == CallReturn.NOT_DONE) {
-      if (FaitLog.isTracing()) FaitLog.logD1("Unknown RETURN value for " + js);
+   if (rsts != CallReturn.CONTINUE && rsts != CallReturn.NO_RETURN) {
+      if (FaitLog.isTracing()) FaitLog.logD1("Unknown RETURN value " + rsts + " for " + js);
     }
 
    return rsts;
@@ -3604,7 +3607,7 @@ private CallReturn processCall(ASTNode v,int act)
 
 private CallReturn processInternalCall(IfaceMethod im)
 {
-   if (im == null) return CallReturn.NOT_DONE;
+   if (im == null) return CallReturn.NO_METHOD;
    int act = im.getNumArgs();
 
    int checkarg = -1;

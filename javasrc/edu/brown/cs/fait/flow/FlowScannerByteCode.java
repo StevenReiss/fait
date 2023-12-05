@@ -50,6 +50,7 @@ import edu.brown.cs.fait.iface.IfaceCall;
 import edu.brown.cs.fait.iface.IfaceControl;
 import edu.brown.cs.fait.iface.IfaceEntity;
 import edu.brown.cs.fait.iface.IfaceEntitySet;
+import edu.brown.cs.fait.iface.IfaceError;
 import edu.brown.cs.fait.iface.IfaceField;
 import edu.brown.cs.fait.iface.IfaceImplications;
 import edu.brown.cs.fait.iface.IfaceLocation;
@@ -254,6 +255,7 @@ private void processInstruction(IfaceProgramPoint inspt)
    IfaceProgramPoint nins = call.getMethod().getNext(inspt);
    IfaceProgramPoint pins = nins;
    boolean notenext = true;
+   IfaceError noteerror = null;
    FlowLocation here = new FlowLocation(flow_queue,call,inspt);
 
    switch (ins.getOpcode()) {
@@ -704,18 +706,33 @@ private void processInstruction(IfaceProgramPoint inspt)
                st1.pushStack(rslt);
              }
           }
-	 switch (flow_queue.handleCall(here,st1,work_queue,-1)) {
+        
+         CallReturn rsts = flow_queue.handleCall(here,st1,work_queue,-1);
+         IfaceCall ncall = call.getMethodCalled(inspt,fm);
+         switch (rsts) {
 	    case NOT_DONE :
-	       if (FaitLog.isTracing()) FaitLog.logD1("Unknown RETURN value for " + fm);
-	       IfaceCall ncall = call.getMethodCalled(inspt,fm);
+	       if (FaitLog.isTracing()) FaitLog.logD1("Unknown RETURN value " + rsts + " for " + fm);
 	       if (ncall != null && ncall.getCanExit()) pins = null;
 	       nins = null;
+               if (ncall == null) noteerror = CALL_NEVER_RETURNS;
+               else noteerror = callNeverReturnsError(ncall.getMethod().getFullName());
 	       break;
 	    case NO_RETURN :
 	       ncall = call.getMethodCalled(inspt,fm);
 	       if (ncall != null && ncall.getCanExit()) pins = null;
 	       nins = null;
 	       notenext = false;
+	       break;
+            case NULL_ACCESS :
+               if (FaitLog.isTracing()) FaitLog.logD1("Unknown RETURN value " + rsts + " for " + fm);
+	       nins = null;
+               noteerror = DEREFERENCE_NULL;
+	       break;
+            case NO_METHOD :
+               if (FaitLog.isTracing()) FaitLog.logD1("Unknown RETURN value " + rsts + " for " + fm);
+	       nins = null;
+               if (ncall == null) noteerror = NO_IMPLEMENTATION;
+               else noteerror = noImplementationError(ncall.getMethod().getFullName());
 	       break;
 	    case CONTINUE :
 	       break;
@@ -811,7 +828,10 @@ private void processInstruction(IfaceProgramPoint inspt)
 /* FIELD INSTRUCTIONS */
       case GETFIELD :
 	 st1 = handleAccess(here,st1);
-	 if (st1 == null) break;
+	 if (st1 == null) {
+            noteerror = DEREFERENCE_NULL;
+            break;
+          }
 	 oref = false;
 	 v0 = st1.popStack();
 	 if (ins.getPrevious() != null && !call.getMethod().isStatic()) {
@@ -827,7 +847,10 @@ private void processInstruction(IfaceProgramPoint inspt)
 	 break;
       case PUTFIELD :
 	 st1 = handleAccess(here,st1);
-	 if (st1 == null) break;
+	 if (st1 == null) {
+            noteerror = DEREFERENCE_NULL;
+            break;
+          }
 	 oref = false;
 	 v0 = st1.popStack();
 	 v1 = st1.popStack();
@@ -852,7 +875,10 @@ private void processInstruction(IfaceProgramPoint inspt)
       FlowLocation nloc = newLocation(nins);
       work_queue.mergeState(st1,nloc);
     }
-   else if (pins != null && notenext) call.addError(inspt,UNREACHABLE_CODE);
+   else if (pins != null && notenext) {
+      if (noteerror == null) noteerror = UNREACHABLE_CODE;
+      call.addError(inspt,noteerror);
+    }
 }
 
 

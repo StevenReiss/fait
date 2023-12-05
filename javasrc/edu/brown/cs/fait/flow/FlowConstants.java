@@ -51,6 +51,8 @@ enum CallReturn {
    NOT_DONE,                    // wait for call to be completed
    CONTINUE,                    // call complete, can continue processing
    NO_RETURN,                   // call complete, no further processing
+   NULL_ACCESS,                 // call not done due to null access
+   NO_METHOD,                   // call not done due to no implementation
 }
 
 }       // end of interface FlowConstants

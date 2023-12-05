@@ -38,6 +38,7 @@ package edu.brown.cs.fait.flow;
 
 import edu.brown.cs.fait.iface.*;
 import edu.brown.cs.ivy.jcode.JcodeConstants;
+import edu.brown.cs.ivy.jcomp.JcompSymbol;
 
 
 abstract class FlowScanner implements FlowConstants, JcodeConstants
@@ -58,12 +59,14 @@ protected static IfaceError CALL_NEVER_RETURNS;
 protected static IfaceError BRANCH_NEVER_TAKEN;
 protected static IfaceError DEREFERENCE_NULL;
 protected static IfaceError UNREACHABLE_CODE;
+protected static IfaceError NO_IMPLEMENTATION;
 
 static {
    CALL_NEVER_RETURNS = new FaitError(ErrorLevel.WARNING,"Call never returns");
    BRANCH_NEVER_TAKEN = new FaitError(ErrorLevel.NOTE,"Branch never taken");
    DEREFERENCE_NULL = new FaitError(ErrorLevel.WARNING,"Attempt to dereference null");
    UNREACHABLE_CODE = new FaitError(ErrorLevel.NOTE,"Unreachable code");
+   NO_IMPLEMENTATION = new FaitError(ErrorLevel.NOTE,"No method implementation available");
 }
 
 
@@ -271,6 +274,46 @@ protected IfaceValue assignValue(IfaceState state,FlowLocation here,IfaceValue r
     }
 
    return v1;
+}
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*      Specialized flow errors                                                 */
+/*                                                                              */
+/********************************************************************************/
+
+IfaceError callNeverReturnsError(JcompSymbol sym)
+{
+   if (sym == null) return CALL_NEVER_RETURNS;
+   
+   return callNeverReturnsError(sym.getFullName());
+}
+
+IfaceError callNeverReturnsError(String name)
+{
+   if (name == null) return CALL_NEVER_RETURNS;
+   
+   String msg = "Call never returns : " + name;
+   return new FaitError(ErrorLevel.WARNING,msg);
+}
+
+
+IfaceError noImplementationError(JcompSymbol sym)
+{
+   if (sym == null) return NO_IMPLEMENTATION;
+   
+   return noImplementationError(sym.getFullName());
+}
+
+
+IfaceError noImplementationError(String name)
+{
+   if (name == null) return NO_IMPLEMENTATION;
+   
+   String msg = "No method implementation available : " + name;
+   return new FaitError(ErrorLevel.WARNING,msg);
 }
 
 
