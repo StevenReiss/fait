@@ -1229,6 +1229,13 @@ private Object visit(SimpleName v)
 	 ref = fait_control.findRefValue(rcls,null,fld);
        }
       else {
+         if (fld == null) {
+            // new X() {
+            //   private booelan firstCall = true;
+            //   public void handleStep(...) { ... if (firstCall)...
+            System.err.println("CHECK HERE");
+            return NO_NEXT;
+          }
 	 IfaceValue thisv = getThisValue(fld.getDeclaringClass());
 	 if (thisv == null) return NO_NEXT;
 	 ref = fait_control.findRefValue(rcls,thisv,fld);

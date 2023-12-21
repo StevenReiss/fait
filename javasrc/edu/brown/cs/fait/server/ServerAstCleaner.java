@@ -460,6 +460,8 @@ private void addTestMethods(AbstractTypeDeclaration atd)
 {
    if (!do_tests) return;
    
+   // THIS IS NOT USED
+   
    MethodDeclaration md = the_ast.newMethodDeclaration();
    md.setBody(the_ast.newBlock());
    md.setName(the_ast.newSimpleName(TESTER_NAME));
@@ -470,6 +472,7 @@ private void addTestMethods(AbstractTypeDeclaration atd)
    VariableDeclarationFragment vdf = the_ast.newVariableDeclarationFragment();
    vdf.setName(the_ast.newSimpleName(TEST_THIS));
    ClassInstanceCreation cic = the_ast.newClassInstanceCreation();
+   
    Name n1 = JcompAst.getQualifiedName(the_ast,atd.getName().getIdentifier());
    Type t1 = the_ast.newSimpleType(n1);
    cic.setType(t1);

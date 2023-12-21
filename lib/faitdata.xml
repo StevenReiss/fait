@@ -399,4 +399,13 @@
 
    <PACKAGE NAME='jdk.internal.logger' />
 
+   <METHOD NAME='com.sun.net.httpserver.HttpServer.create'
+      RETURN='sun.net.httpserver.HttpServerImpl' />
+   <METHOD NAME='com.sun.net.httpserver.HttpsServer.create'
+      RETURN='sun.net.httpserver.HttpsServerImpl' />
+
+   <METHOD NAME='junit.framework.TestCase.fail' NORETURN='TRUE' />
+
 </FAIT>
+
+

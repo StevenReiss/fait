@@ -626,6 +626,7 @@ private void handleFindCritical(String sid,Element xml,IvyXmlWriter xw)
       sp.handleFindCritical(xml,xw);
     }
    catch (FaitException e) {
+      xw.clear();
       xw.begin("FAITQUERY");
       xw.field("FAIL",true);
       xw.field("ERROR",e.getMessage());

@@ -743,7 +743,7 @@ private class AstMethod implements IfaceMethod {
     }
    @Override public boolean isStaticInitializer() {
       return method_symbol.getName().equals("<clinit>") ||
-	  method_symbol.getName().equals(INITER_NAME);
+          method_symbol.getName().equals(INITER_NAME);
     }
    @Override public boolean isConstructor() {
       return method_symbol.isConstructorSymbol();

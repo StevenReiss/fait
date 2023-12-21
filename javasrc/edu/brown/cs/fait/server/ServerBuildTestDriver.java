@@ -117,6 +117,7 @@ private void processClass(JcodeFactory jf,JcodeClass jc)
    List<JcodeMethod> tests = new ArrayList<>();
    List<JcodeMethod> after = new ArrayList<>();
    List<JcodeMethod> afterclass = new ArrayList<>();
+   int cnstct = -1;
 
    for (JcodeMethod jm : jc.getMethods()) {
        List<JcodeAnnotation> annots = jm.getReturnAnnotations();
@@ -169,7 +170,11 @@ private void processClass(JcodeFactory jf,JcodeClass jc)
          for (JcodeMethod jm : jc.getMethods()) {
             if (jm.isStaticInitializer()) continue;
             else if (jm.isConstructor()) {
-               if (jm.isPublic() && jm.getNumArguments() <= 1) cnstok = true;
+               if (jm.isPublic() && jm.getNumArguments() <= 1) {
+                  int ct0 = jm.getNumArguments();
+                  if (cnstct < 0 || ct0 < cnstct) cnstct = ct0;
+                  cnstok = true;
+                }
                else if (cnstok == null) cnstok = false;
              }
             else if (jm.isAbstract() || jm.isNative()) continue;
@@ -193,7 +198,7 @@ private void processClass(JcodeFactory jf,JcodeClass jc)
    if (tests.isEmpty()) return;
    augmentClass(jf,jc.superName,beforeclass,before,afterclass,after);
 
-   outputClassTests(jc,tests,beforeclass,before,afterclass,after);
+   outputClassTests(jc,tests,beforeclass,before,afterclass,after,cnstct);
 }
 
 
@@ -247,7 +252,9 @@ private void augmentClass(JcodeFactory jf,String supnm,
 /********************************************************************************/
 
 private void outputClassTests(JcodeClass jc,List<JcodeMethod> tests,
-      List<JcodeMethod> beforeclass,List<JcodeMethod> before,	   List<JcodeMethod> afterclass,List<JcodeMethod> after)
+      List<JcodeMethod> beforeclass,List<JcodeMethod> before,	   
+      List<JcodeMethod> afterclass,List<JcodeMethod> after,
+      int cnstct)
 {
    if (output_file == null) {
       output_file = new StringBuffer();
@@ -258,7 +265,7 @@ private void outputClassTests(JcodeClass jc,List<JcodeMethod> tests,
    test_methods.add(nm);
    outputTestStart(nm);
    outputStaticCalls(beforeclass);
-   outputStartTests(jc);
+   outputStartTests(jc,cnstct);
    outputTests(tests,before,after);
    outputDoneTests(jc);
    outputStaticCalls(afterclass);
@@ -309,9 +316,14 @@ private void outputTestEnd(String nm)
 }
 
 
-private void outputStartTests(JcodeClass jc)
+private void outputStartTests(JcodeClass jc,int cnstct)
 {
-   output_file.append(outputName(jc) + " " + OBJECT + " = new " + outputName(jc) + "();\n");
+   // might need string here
+   output_file.append(outputName(jc) + " " + OBJECT + " = new " + outputName(jc));
+   if (cnstct == 0) output_file.append("();\n");
+   else {
+      output_file.append("(\"FAIT_TEST_" + jc.getName() + "\");\n");
+    }
    output_file.append("switch (k) {\n");
 }
 

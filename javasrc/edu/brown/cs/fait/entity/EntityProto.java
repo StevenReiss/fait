@@ -189,7 +189,7 @@ EntityProto(IfaceType typ,IfacePrototype from,boolean mutable)
    
    if (rslt != null) {
       if (is_mutable) {
-         List<IfaceEntity> rtn = new ArrayList<IfaceEntity>();
+         List<IfaceEntity> rtn = new ArrayList<>();
          rtn.add(new EntityProto(rslt,proto_handler,mut));
          return rtn;
        }

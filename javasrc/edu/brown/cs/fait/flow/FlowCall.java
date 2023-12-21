@@ -682,7 +682,7 @@ private IfaceValue checkVirtual(IfaceMethod bm,List<IfaceValue> args,
 		}
 	     }
             else if (cem == null || cem.isAbstract() || !cem.hasCode()) {
-               errs.add(CallReturn.NO_METHOD);
+               if (errs != null) errs.add(CallReturn.NO_METHOD);
              }
 	  }
        }
@@ -810,8 +810,10 @@ private IfaceValue checkVirtual(IfaceMethod bm,List<IfaceValue> args,
       queueReturn(null,loc.getCall(),st.getSafetyStatus(),st,loc);
     }
 
-   if (virt) rslt = checkVirtual(fm,nargs,loc,st,orig,
+   if (virt && args.size() > 0 && !fm.isStatic()) {
+      rslt = checkVirtual(fm,nargs,loc,st,orig,
          rslt,cbid,varct,used,errs);
+    }
 
    if (nsts != null && nsts != st.getSafetyStatus()) {
       FaitLog.logD1("Replace safety status with " + mi.getResultSafetyStatus());

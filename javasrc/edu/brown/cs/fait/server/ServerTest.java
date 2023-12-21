@@ -299,6 +299,14 @@ public synchronized void serverTestNanoXml()
 
 
 
+@Test
+public synchronized void serverTestMathV1()
+{
+   runServerTest("debug_mathv1","mathv1",0,null,false);
+}
+
+
+
 /********************************************************************************/
 /*										*/
 /*	Tetris test								*/

@@ -35,6 +35,8 @@
 
 package edu.brown.cs.fait.entity;
 
+import java.util.Collection;
+
 import edu.brown.cs.fait.iface.*;
 import edu.brown.cs.ivy.xml.IvyXmlWriter;
 
@@ -107,8 +109,23 @@ EntityLocal(IfaceLocation where,IfaceType cls,IfacePrototype ptyp)
 }
 
 
+/********************************************************************************/
+/*                                                                              */
+/*      Mutation methods                                                        */
+/*                                                                              */
+/********************************************************************************/
 
+@Override public Collection<IfaceEntity> mutateTo(IfaceType typ,EntityFactory ef)
+{
+   Collection<IfaceEntity> rslt = super.mutateTo(typ,ef);
+   
+   if (getPrototype() != null && typ.getBaseType() == getDataType().getBaseType()) {
+//    rslt = new ArrayList<>();
+//    rslt.add(ef.createLocalEntity(base_location,typ,getPrototype()));
+    }
 
+  return rslt;
+}
 
 
 

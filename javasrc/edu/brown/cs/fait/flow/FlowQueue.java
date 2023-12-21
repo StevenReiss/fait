@@ -405,8 +405,9 @@ boolean checkInitialized(IfaceCall cm,IfaceProgramPoint ins)
        }
       else {
 	 if (!staticinit_started.contains(bt)) {
-	    if (FaitLog.isTracing())
+	    if (FaitLog.isTracing()) {
 	       FaitLog.logD1("Class not initialized requeue: " + bc);
+             }
 	    Set<IfaceCall> s0 = new HashSet<>();
 	    synchronized (staticinit_set) {
 	       Set<IfaceCall> s = staticinit_queue.putIfAbsent(bt,s0);
@@ -786,7 +787,11 @@ IfaceValue castValue(IfaceType rtyp,IfaceValue v0,IfaceLocation loc)
 
    v1 = v0.restrictByType(rtyp);
    // FlowScanner.checkAssignment(v0,rtyp,loc);
-
+   if (v1.isEmptyEntitySet() && rtyp.getName().contains("BinaryOperator")) {
+      System.err.println("CHECK HERE");
+    }
+   
+   
    return v1;
 }
 

@@ -355,6 +355,9 @@ private IfaceValue getReturn(IfaceValue arg0)
    IfaceType t0 = arg0.getDataType();
    IfaceType t1 = t0.getAnnotatedType(buffer_value.getDataType());
    if (t0 == t1) return arg0;
+   t1 = t0.getComputedType(arg0,FaitOperator.ASG,buffer_value);
+   if (t0 == t1) return arg0;
+   
    IfaceValue v0 = arg0.changeType(t1);
    v0 = v0.forceNonNull();
    return v0;
