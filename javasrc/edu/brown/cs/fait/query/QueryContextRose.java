@@ -166,7 +166,7 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
 	       kpmap.put(sref,known_values.get(ref));
 	     }
 	  }
-	
+
 	 if (bf.getAuxRefs() != null && bf.getAuxRefs().size() > 0) {
 	    int delta = 1;
 	    if (aref != null && aref.getAstNode() != null) {
@@ -480,7 +480,7 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
    if (npmap.equals(ctx.priority_map) && kpmap.equals(ctx.known_values)) return ctx;
 
    QueryContextRose newctx = new QueryContextRose(this,sites,npmap,kpmap);
-   newctx.use_conditions = Math.max(use_conditions,ctx.use_conditions); 
+   newctx.use_conditions = Math.max(use_conditions,ctx.use_conditions);
 
    return newctx;
 }
@@ -508,7 +508,7 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
       for (IfaceValue iv : del) {
 	 npmap.remove(iv);
 	 kpmap.remove(iv);
-	
+
        }
       newctx = new QueryContextRose(this,call_sites,npmap,kpmap);
     }
@@ -522,7 +522,7 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
 /********************************************************************************/
 /*										*/
 /*	Relevancy methods							*/
-/*										*/							 9
+/*										*/							
 /********************************************************************************/
 
 @Override protected boolean isPriorStateRelevant(IfaceState state)
