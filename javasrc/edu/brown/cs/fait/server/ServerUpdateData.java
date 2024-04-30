@@ -112,6 +112,8 @@ ServerUpdateData(List<ServerFile> files)
       if (m0 == m) return false;
       return true;	
     }
+   
+   if (ar == null || ar.getAstNode() == null) return true;
 
    JcompSource src = JcompAst.getSource(ar.getAstNode());
    if (update_files.contains(src)) return true;

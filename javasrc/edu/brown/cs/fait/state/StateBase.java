@@ -259,6 +259,8 @@ StateBase(int numlocal,IfaceSafetyStatus sts)
 
 @Override public boolean addToLocal(int idx,IfaceValue v)
 {
+   if (idx >= local_values.length) return false;
+   
    IfaceValue ov = local_values[idx];
    if (ov == null) local_values[idx] = v;
    else local_values[idx] = ov.mergeValue(v);

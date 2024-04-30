@@ -781,10 +781,12 @@ private class AstMethod implements IfaceMethod {
    @Override public List<IfaceType> getExceptionTypes() {
       MethodDeclaration md = (MethodDeclaration) method_symbol.getDefinitionNode();
       List<IfaceType> rslt = new ArrayList<>();
+      if (md == null) return rslt;
+      
       for (Object o : md.thrownExceptionTypes()) {
-	 Type tn = (Type) o;
-	 JcompType jt = JcompAst.getJavaType(tn);
-	 if (jt != null) rslt.add(fait_control.findDataType(getType(jt),null));
+         Type tn = (Type) o;
+         JcompType jt = JcompAst.getJavaType(tn);
+         if (jt != null) rslt.add(fait_control.findDataType(getType(jt),null));
        }
       return rslt;
     }
@@ -810,7 +812,7 @@ private class AstMethod implements IfaceMethod {
       ASTNode n = method_symbol.getDefinitionNode();
       if (n == null) {
          FaitLog.logE("No AST definition found for " + this + " " + method_symbol);
-         System.err.println("No AST definition found for " + this + " " + method_symbol);
+         return null;
        }
       return fait_control.getAstReference(n);
     }
@@ -1421,6 +1423,7 @@ ASTNode mapAstNode(ASTNode orig)
    ASTNode mnode = msym.getDefinitionNode();
    ASTNode nnode = nmsym.getDefinitionNode();
    if (mnode == nnode) return orig;
+   if (nnode ==  null) return orig;
 
    ASTNode rslt = nnode;
    for (ASTNode child : children) {
@@ -1436,6 +1439,7 @@ ASTNode mapAstNode(ASTNode orig)
 
 private ASTNode findCorrespondingNode(ASTNode start,ASTNode par,ASTNode child)
 {
+   if (start == null || par == null) return null;
    if (par.getNodeType() != start.getNodeType()) return null;
 
    StructuralPropertyDescriptor spd = child.getLocationInParent();
