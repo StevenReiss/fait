@@ -68,7 +68,7 @@ import org.eclipse.jdt.core.dom.ASTNode;
 import org.w3c.dom.Element;
 
 
-public class ControlMain implements IfaceControl {
+public final class ControlMain implements IfaceControl {
 
 
 
@@ -88,12 +88,12 @@ private ProtoFactory	proto_factory;
 private CallFactory	call_factory;
 private FlowFactory	flow_factory;
 private IfaceProject	user_project;
-private TypeFactory     type_factory;
-private SafetyFactory   safety_factory;
-private QueryFactory    query_factory;
-private TestgenFactory  testgen_factory;
+private TypeFactory	type_factory;
+private SafetyFactory	safety_factory;
+private QueryFactory	query_factory;
+private TestgenFactory	testgen_factory;
 private Map<String,IfaceType> basic_types;
-private Map<File,Long>  fait_files;
+private Map<File,Long>	fait_files;
 
 
 
@@ -106,10 +106,10 @@ private Map<File,Long>  fait_files;
 public ControlMain(IfaceProject ip)
 {
    basic_types = new HashMap<>();
-   
+
    bytecode_factory = new ControlByteCodeFactory(this,ip.getTyper(),ip.getJcodeFactory());
    ast_factory = new ControlAstFactory(this,ip.getTyper());
-   
+
    type_factory = new TypeFactory(this);
    entity_factory = new EntityFactory(this);
    value_factory = new ValueFactory(this);
@@ -119,36 +119,36 @@ public ControlMain(IfaceProject ip)
    safety_factory = new SafetyFactory(this);
    query_factory = new QueryFactory(this);
    testgen_factory = new TestgenFactory(this);
-   
+
    user_project = ip;
-   
+
    fait_files = new LinkedHashMap<>();
    SortedSet<IfaceDescriptionFile> files = new TreeSet<>();
    List<File> sysfiles = getSystemDescriptionFiles();
    if (sysfiles != null) {
       for (File f : sysfiles) {
-         files.add(new ControlDescriptionFile(f,IfaceDescriptionFile.PRIORITY_BASE));
+	 files.add(new ControlDescriptionFile(f,IfaceDescriptionFile.PRIORITY_BASE));
        }
     }
    if (ip.getDescriptionFiles() != null) {
       for (IfaceDescriptionFile ff : ip.getDescriptionFiles()) {
-         files.add(ff);
+	 files.add(ff);
        }
     }
    for (IfaceDescriptionFile f : files) {
       if (f.getEntryName() == null) {
-         addSpecialFile(f.getFile());
+	 addSpecialFile(f.getFile());
        }
       else {
-         try (JarFile jf = new JarFile(f.getFile())) {
-            JarEntry je = jf.getJarEntry(f.getEntryName());
-            InputStream ins = jf.getInputStream(je);
-            addSpecialFile(f.getFile().getPath(),ins);
-          }
-         catch (IOException e) { }
+	 try (JarFile jf = new JarFile(f.getFile())) {
+	    JarEntry je = jf.getJarEntry(f.getEntryName());
+	    InputStream ins = jf.getInputStream(je);
+	    addSpecialFile(f.getFile().getPath(),ins);
+	  }
+	 catch (IOException e) { }
        }
     }
-   
+
    flow_factory = new FlowFactory(this);
 }
 
@@ -157,7 +157,7 @@ public ControlMain(IfaceProject ip)
 
 /********************************************************************************/
 /*										*/
-/*	Description File methods                				*/
+/*	Description File methods						*/
 /*										*/
 /********************************************************************************/
 
@@ -165,12 +165,12 @@ public ControlMain(IfaceProject ip)
 {
    List<File> rslt = new ArrayList<>();
    File base = new File("*FAIT*");
-   
+
    File f1 = new File(base,"faitdata.xml");
    rslt.add(f1);
    File f2 = new File(base,"faitsecurity.xml");
    rslt.add(f2);
-   
+
    return rslt;
 }
 
@@ -187,19 +187,19 @@ void addSpecialFile(File f)
       String name = "/" + f.getName();
       InputStream ins = this.getClass().getResourceAsStream(name);
       if (ins != null) {
-         URL nm = this.getClass().getResource(name);
-         FaitLog.logI("Loading system resource " + nm);
-         e = IvyXml.loadXmlFromStream(ins);
+	 URL nm = this.getClass().getResource(name);
+	 FaitLog.logI("Loading system resource " + nm);
+	 e = IvyXml.loadXmlFromStream(ins);
        }
       else {
-         File f1 = new File("/research/people/spr/fait/lib",name);
-         if (!f1.exists()) f1 = new File("/pro/fait/lib",name);
-         if (f1.exists() && f1.canRead()) {
-            e = IvyXml.loadXmlFromFile(f1);
-          }
+	 File f1 = new File("/research/people/spr/fait/lib",name);
+	 if (!f1.exists()) f1 = new File("/pro/fait/lib",name);
+	 if (f1.exists() && f1.canRead()) {
+	    e = IvyXml.loadXmlFromFile(f1);
+	  }
        }
     }
-   
+
    if (e != null) {
       type_factory.addSpecialFile(e);
       call_factory.addSpecialFile(e);
@@ -232,11 +232,11 @@ boolean checkSpecialFiles()
    for (Map.Entry<File,Long> ent : fait_files.entrySet()) {
       File f1 = ent.getKey();
       if (f1.exists() && f1.canRead()) {
-         if (f1.lastModified() > ent.getValue()) chng = true;
+	 if (f1.lastModified() > ent.getValue()) chng = true;
        }
       else chng = true;
     }
-   
+
    return chng;
 }
 
@@ -252,12 +252,12 @@ void reloadSpecialFiles()
    List<File> sysfiles = getSystemDescriptionFiles();
    if (sysfiles != null && !sysfiles.isEmpty()) {
       for (File f : sysfiles) {
-         files.add(new ControlDescriptionFile(f,IfaceDescriptionFile.PRIORITY_BASE));
+	 files.add(new ControlDescriptionFile(f,IfaceDescriptionFile.PRIORITY_BASE));
        }
     }
    if (user_project.getDescriptionFiles() != null) {
       for (IfaceDescriptionFile ff : user_project.getDescriptionFiles()) {
-         files.add(ff);
+	 files.add(ff);
        }
     }
    for (IfaceDescriptionFile f : files) {
@@ -292,12 +292,12 @@ IfaceBaseType findJavaType(String cls)
    if (an == null) {
       IfaceType rt = basic_types.get(cls);
       if (rt == null) {
-         rt = type_factory.createType(findJavaType(cls),an);
-         basic_types.put(cls,rt);
+	 rt = type_factory.createType(findJavaType(cls),an);
+	 basic_types.put(cls,rt);
        }
       return rt;
     }
-   
+
    return type_factory.createType(findJavaType(cls),an);
 }
 
@@ -317,7 +317,7 @@ IfaceBaseType findJavaType(String cls)
 @Override public IfaceType findConstantType(IfaceType t,Object cnst)
 {
    if (t == null) return null;
-   
+
    return type_factory.createConstantType(t.getJavaType(),cnst);
 }
 
@@ -348,7 +348,7 @@ IfaceMethod findMethod(String cls,String method,String desc,String sgn)
    IfaceBaseType ctyp = findJavaType(cls);
    if (ctyp == null) return null;
    else if (ctyp.isEditable()) {
-      return ast_factory.findMethod(ctyp,method,desc,sgn); 
+      return ast_factory.findMethod(ctyp,method,desc,sgn);
     }
    else {
       return bytecode_factory.findMethod(ctyp,method,desc);
@@ -356,7 +356,7 @@ IfaceMethod findMethod(String cls,String method,String desc,String sgn)
 }
 
 
-@Override public IfaceMethod findMethod(JcompSymbol js) 
+@Override public IfaceMethod findMethod(JcompSymbol js)
 {
    return ast_factory.getMethod(js);
 }
@@ -416,17 +416,17 @@ public List<IfaceMethod> findAllMethods(IfaceBaseType typ,String name)
 public Collection<IfaceMethod> getStartMethods()
 {
    if (user_project == null) return null;
-   
-   user_project.getJcompProject();              // force compilation
+
+   user_project.getJcompProject();		// force compilation
    JcodeFactory jf = user_project.getJcodeFactory();
-   for (JcodeClass jc : jf.getAllPossibleClasses(new ProjectFilter())) { 
+   for (JcodeClass jc : jf.getAllPossibleClasses(new ProjectFilter())) {
       if (jc.getDataType() == null) continue;
       String nm = jc.getName();
       nm = nm.replace("$",".");
       findJavaType(nm);
     }
    Collection<IfaceMethod> rslt = new HashSet<>();
-   
+
    JcompTyper typer = user_project.getTyper();
    for (JcompType jt : typer.getAllTypes()) {
       if (!user_project.isProjectClass(jt.getName())) continue;
@@ -436,13 +436,13 @@ public Collection<IfaceMethod> getStartMethods()
       if (jt.isMethodType()) continue;
       IfaceBaseType it = ast_factory.getType(jt);
       for (IfaceMethod im : findAllMethods(it,"main")) {
-         checkStartMethod(im,rslt);
+	 checkStartMethod(im,rslt);
        }
       for (IfaceMethod im : findAllMethods(it,TESTER_NAME)) {
-         checkStartMethod(im,rslt);
+	 checkStartMethod(im,rslt);
        }
     }
-   
+
    return rslt;
 }
 
@@ -453,8 +453,8 @@ private class ProjectFilter implements Predicate<String> {
    @Override public boolean test(String t) {
       return user_project.isProjectClass(t);
     }
-   
-}       // end of inner class ProjectFilter
+
+}	// end of inner class ProjectFilter
 
 
 private void checkStartMethod(IfaceMethod im,Collection<IfaceMethod> rslt)
@@ -463,7 +463,7 @@ private void checkStartMethod(IfaceMethod im,Collection<IfaceMethod> rslt)
    if (im.isStaticInitializer()) return;
    if (im.isConstructor()) return;
    // might want additional checks, e.g. public, main args, ...
-   
+
    rslt.add(im);
 }
 
@@ -519,14 +519,14 @@ private void checkStartMethod(IfaceMethod im,Collection<IfaceMethod> rslt)
 
 
 
-@Override public IfaceEntity findFunctionRefEntity(IfaceLocation loc,IfaceType dt,String method) 
+@Override public IfaceEntity findFunctionRefEntity(IfaceLocation loc,IfaceType dt,String method)
 {
    return entity_factory.createFunctionRefEntity(loc,dt,method);
 }
 
 
 @Override public IfaceEntity findFunctionRefEntity(IfaceLocation loc,IfaceType dt,
-      IfaceMethod mthd,Map<Object,IfaceValue> bindings) 
+      IfaceMethod mthd,Map<Object,IfaceValue> bindings)
 {
    return entity_factory.createFunctionRefEntity(loc,dt,mthd,bindings);
 }
@@ -812,7 +812,7 @@ void updateStates(IfaceUpdater upd)
 
 
 @Override public boolean isSingleAllocation(IfaceType typ,boolean fromast)
-{ 
+{
    return call_factory.isSingleAllocation(typ,fromast);
 }
 
@@ -854,9 +854,9 @@ void updateStates(IfaceUpdater upd)
 }
 
 /********************************************************************************/
-/*                                                                              */
-/*      Location methods                                                        */
-/*                                                                              */
+/*										*/
+/*	Location methods							*/
+/*										*/
 /********************************************************************************/
 
 
@@ -876,7 +876,7 @@ void updateStates(IfaceUpdater upd)
 }
 
 
-@Override public IfaceProgramPoint getProgramPoint(JcodeInstruction ins) 
+@Override public IfaceProgramPoint getProgramPoint(JcodeInstruction ins)
 {
    return bytecode_factory.getPoint(ins);
 }
@@ -943,15 +943,15 @@ void updateFlow(IfaceUpdater upd)
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Project methods                                                         */
-/*                                                                              */
+/*										*/
+/*	Project methods 							*/
+/*										*/
 /********************************************************************************/
 
 @Override public boolean isProjectClass(IfaceType dt)
 {
    if (user_project == null) return false;
-   
+
    return user_project.isProjectClass(dt.getName());
 }
 
@@ -959,7 +959,7 @@ void updateFlow(IfaceUpdater upd)
 boolean isProjectClass(IfaceBaseType dt)
 {
    if (user_project == null) return false;
-   
+
    return user_project.isProjectClass(dt.getName());
 }
 
@@ -967,7 +967,7 @@ boolean isProjectClass(IfaceBaseType dt)
 @Override public boolean isEditableClass(IfaceType dt)
 {
    if (user_project == null) return false;
-   
+
    return user_project.isEditableClass(dt.getName());
 }
 
@@ -975,23 +975,23 @@ boolean isProjectClass(IfaceBaseType dt)
 boolean isEditableClass(IfaceBaseType dt)
 {
    if (user_project == null) return false;
-   
+
    String name = dt.getName();
-   
+
    if (user_project.isEditableClass(name)) return true;
-   
+
    int idx1 = name.indexOf("<");
    if (idx1 > 0) {
       name = name.substring(0,idx1);
       if (user_project.isEditableClass(name)) return true;
     }
-   
+
    int idx = name.indexOf(".$");;
    if (idx > 0) {
       String onm = name.substring(0,idx);
       return user_project.isEditableClass(onm);
     }
-   
+
    return false;
 }
 
@@ -1010,7 +1010,7 @@ boolean isEditableClass(IfaceBaseType dt)
 }
 
 
-@Override public String getSourceFile(IfaceMethod im) 
+@Override public String getSourceFile(IfaceMethod im)
 {
    return getSourceFile(im.getDeclaringClass());
 }
@@ -1018,34 +1018,34 @@ boolean isEditableClass(IfaceBaseType dt)
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Helper methods                                                          */
-/*                                                                              */
+/*										*/
+/*	Helper methods								*/
+/*										*/
 /********************************************************************************/
 
 List<IfaceMethod> findParentMethods(IfaceType cls,String nm,String desc,
       boolean check,boolean first,List<IfaceMethod> rslt)
 {
    if (rslt == null) rslt = new ArrayList<>();
-   
+
    if (first && !rslt.isEmpty()) return rslt;
-   
+
    if (check) {
       IfaceMethod fm = findMethod(cls.getName(),nm,desc);
       if (fm != null) {
-         rslt.add(fm);
-         if (first) return rslt;
+	 rslt.add(fm);
+	 if (first) return rslt;
        }
     }
-   
+
    if (nm.startsWith("<")) return rslt;
-   
+
    IfaceType sc = cls.getSuperType();
    if (sc != null) findParentMethods(sc,nm,desc,true,first,rslt);
    for (IfaceType it : cls.getInterfaces()) {
       findParentMethods(it,nm,desc,true,first,rslt);
     }
-   
+
    return rslt;
 }
 
@@ -1055,28 +1055,28 @@ Collection<IfaceMethod> findChildMethods(IfaceType cls,String nm,String desc,
       boolean check,Collection<IfaceMethod> rslt)
 {
    if (rslt == null) rslt = new HashSet<>();
-   
+
    if (check) {
       IfaceMethod fm = findMethod(cls.getName(),nm,desc);
       if (fm != null) rslt.add(fm);
     }
-   
+
    List<IfaceType> chld = cls.getChildTypes();
    if (chld != null) {
       for (IfaceType ct : chld) {
-         findChildMethods(ct,nm,desc,true,rslt);
+	 findChildMethods(ct,nm,desc,true,rslt);
        }
     }
-   
+
    return rslt;
 }
 
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Special calls for lambda processing                                     */
-/*                                                                              */
+/*										*/
+/*	Special calls for lambda processing					*/
+/*										*/
 /********************************************************************************/
 
 @Override public IfaceType createFunctionRefType(String typ,String nstype)
@@ -1100,9 +1100,9 @@ IfaceBaseType createMethodType(IfaceType rtn,List<IfaceType> args)
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Safety methods                                                          */
-/*                                                                              */
+/*										*/
+/*	Safety methods								*/
+/*										*/
 /********************************************************************************/
 
 @Override public IfaceSafetyStatus getInitialSafetyStatus()
@@ -1127,20 +1127,20 @@ IfaceBaseType createMethodType(IfaceType rtn,List<IfaceType> args)
 {
    if (fm.getDeclaringClass().getName().equals("edu.brown.cs.karma.KarmaUtils")) {
       if (fm.getName().equals("KarmaEvent")) {
-         if (args == null) return "ANY";
+	 if (args == null) return "ANY";
 	 IfaceValue v0 = args.get(0);
 	 String sv = v0.getStringValue();
 	 if (sv != null) return sv;
        }
     }
-   
+
    return null;
 }
 
 /********************************************************************************/
-/*                                                                              */
-/*      Query methods                                                           */
-/*                                                                              */
+/*										*/
+/*	Query methods								*/
+/*										*/
 /********************************************************************************/
 
 @Override public void processErrorQuery(IfaceCall c,IfaceProgramPoint pt,IfaceError e,IvyXmlWriter xw)
@@ -1150,7 +1150,7 @@ IfaceBaseType createMethodType(IfaceType rtn,List<IfaceType> args)
 
 
 @Override public void processToQuery(IfaceCall c,IfaceProgramPoint pt,IfaceEntity ent,
-      IfaceSubtype styp,IfaceSubtype.Value sval,IfaceValue refval,IvyXmlWriter xw) 
+      IfaceSubtype styp,IfaceSubtype.Value sval,IfaceValue refval,IvyXmlWriter xw)
 {
    query_factory.processToQuery(c,pt,ent,styp,sval,refval,xw);
 }
@@ -1160,7 +1160,7 @@ IfaceBaseType createMethodType(IfaceType rtn,List<IfaceType> args)
 {
    if (depth < 0) depth = 10;
    if (conddepth < 0) conddepth = 4;
-   
+
    query_factory.processFlowQuery(c,pt,refval,val,stack,depth,conddepth,location, xw);
 }
 
@@ -1175,7 +1175,7 @@ IfaceBaseType createMethodType(IfaceType rtn,List<IfaceType> args)
 
 
 @Override public void processVarQuery(String method,int line,int pos,String var,IvyXmlWriter xw)
-        throws FaitException
+	throws FaitException
 {
    query_factory.processVarQuery(method,line,pos,var,xw);
 }
@@ -1195,9 +1195,9 @@ IfaceBaseType createMethodType(IfaceType rtn,List<IfaceType> args)
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Test case generation                                                    */
-/*                                                                              */
+/*										*/
+/*	Test case generation							*/
+/*										*/
 /********************************************************************************/
 
 @Override public void generateTestCase(Element path,IvyXmlWriter xw) throws FaitException
@@ -1206,9 +1206,9 @@ IfaceBaseType createMethodType(IfaceType rtn,List<IfaceType> args)
 }
 
 /********************************************************************************/
-/*                                                                              */
-/*      Handle updates after a compilation                                      */
-/*                                                                              */
+/*										*/
+/*	Handle updates after a compilation					*/
+/*										*/
 /********************************************************************************/
 
 @Override public void updateAll()
@@ -1227,21 +1227,21 @@ IfaceBaseType createMethodType(IfaceType rtn,List<IfaceType> args)
 
 @Override public void doUpdate(IfaceUpdateSet updset)
 {
-   ControlUpdater upd = new ControlUpdater(this,updset); 
+   ControlUpdater upd = new ControlUpdater(this,updset);
    upd.processUpdate();
-   
+
    ast_factory.updateAll(user_project.getTyper());
    bytecode_factory.updateAll();
-   
+
    flow_factory.updateTypeInitializations(upd);
 }
 
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Back flow methods                                                       */
-/*                                                                              */
+/*										*/
+/*	Back flow methods							*/
+/*										*/
 /********************************************************************************/
 
 @Override public IfaceBackFlow getBackFlow(IfaceState backfrom,IfaceState backto,IfaceValue endref,boolean conds)
@@ -1278,9 +1278,9 @@ IfaceBaseType createMethodType(IfaceType rtn,List<IfaceType> args)
    return flow_factory.getAuxArrayRefs(arr);
 }
 /********************************************************************************/
-/*                                                                              */
-/*      Handle clean up                                                         */
-/*                                                                              */
+/*										*/
+/*	Handle clean up 							*/
+/*										*/
 /********************************************************************************/
 
 @Override public void clearAll()

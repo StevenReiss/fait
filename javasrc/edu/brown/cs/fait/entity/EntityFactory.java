@@ -41,7 +41,7 @@ import edu.brown.cs.fait.iface.*;
 import java.util.*;
 
 
-public class EntityFactory implements EntityConstants
+public final class EntityFactory implements EntityConstants
 {
 
 
@@ -51,7 +51,7 @@ public class EntityFactory implements EntityConstants
 /*										*/
 /********************************************************************************/
 
-private IfaceControl            fait_control;
+private IfaceControl		fait_control;
 private Map<BitSet,EntitySet>	set_table;
 private EntitySet		empty_set;
 private Map<IfaceEntity,EntitySet> single_map;
@@ -82,7 +82,7 @@ public EntityFactory(IfaceControl fc)
    local_map = new HashMap<>();
    string_map = new HashMap<>();
    BitSet bs = new BitSet(1);
-   empty_set = findSetInternal(bs);
+   empty_set = this.findSetInternal(bs);
 }
 
 
@@ -106,19 +106,19 @@ public IfaceEntity createFixedEntity(IfaceType dt)
       fe = fixed_map.get(dt);
       if (fe != null) return fe;
     }
-   
+
 	 // create prototype entity if possible
    if (dt.isAbstract() || dt.isInterfaceType()) fe = (EntityBase) createMutableEntity(dt);
    else {
       IfacePrototype ifp = fait_control.createPrototype(dt);
       fe = new EntityFixed(dt,false,ifp);
     }
-   
+
    synchronized (fixed_map) {
       EntityBase eb = fixed_map.putIfAbsent(dt,fe);
       if (eb != null) fe = eb;
     }
-   
+
    return fe;
 }
 
@@ -179,7 +179,7 @@ public IfaceEntity createFunctionRefEntity(IfaceLocation loc,IfaceType dt,String
 public IfaceEntity createFunctionRefEntity(IfaceLocation loc,IfaceType dt,IfaceMethod mthd,
       Map<Object,IfaceValue> bind)
 {
-   EntityFunctionRef er = new EntityFunctionRef(loc,dt,mthd,bind); 
+   EntityFunctionRef er = new EntityFunctionRef(loc,dt,mthd,bind);
    return er;
 }
 

@@ -476,7 +476,7 @@ private LinkedList<IfaceValue> checkCall(FlowLocation loc,IfaceMethod fm,List<If
        }
       if (xid < 0) {
 	 if (ncv.mustBeNull()) {
-            if (args != null) errs.add(CallReturn.NULL_ACCESS);
+            if (args != null && errs != null) errs.add(CallReturn.NULL_ACCESS);
             return null;
           }
 	 ncv = ncv.forceNonNull();

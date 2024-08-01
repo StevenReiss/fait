@@ -1,34 +1,34 @@
 /********************************************************************************/
-/*                                                                              */
-/*              SafetyFactory.java                                              */
-/*                                                                              */
-/*      Factory for automata-based safety conditions                            */
-/*                                                                              */
+/*										*/
+/*		SafetyFactory.java						*/
+/*										*/
+/*	Factory for automata-based safety conditions				*/
+/*										*/
 /********************************************************************************/
-/*      Copyright 2011 Brown University -- Steven P. Reiss                    */
+/*	Copyright 2011 Brown University -- Steven P. Reiss		      */
 /*********************************************************************************
- *  Copyright 2011, Brown University, Providence, RI.                            *
- *                                                                               *
- *                        All Rights Reserved                                    *
- *                                                                               *
- *  Permission to use, copy, modify, and distribute this software and its        *
- *  documentation for any purpose other than its incorporation into a            *
- *  commercial product is hereby granted without fee, provided that the          *
- *  above copyright notice appear in all copies and that both that               *
- *  copyright notice and this permission notice appear in supporting             *
- *  documentation, and that the name of Brown University not be used in          *
- *  advertising or publicity pertaining to distribution of the software          *
- *  without specific, written prior permission.                                  *
- *                                                                               *
- *  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS                *
- *  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND            *
- *  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY      *
- *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY          *
- *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,              *
- *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS               *
- *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE          *
- *  OF THIS SOFTWARE.                                                            *
- *                                                                               *
+ *  Copyright 2011, Brown University, Providence, RI.				 *
+ *										 *
+ *			  All Rights Reserved					 *
+ *										 *
+ *  Permission to use, copy, modify, and distribute this software and its	 *
+ *  documentation for any purpose other than its incorporation into a		 *
+ *  commercial product is hereby granted without fee, provided that the 	 *
+ *  above copyright notice appear in all copies and that both that		 *
+ *  copyright notice and this permission notice appear in supporting		 *
+ *  documentation, and that the name of Brown University not be used in 	 *
+ *  advertising or publicity pertaining to distribution of the software 	 *
+ *  without specific, written prior permission. 				 *
+ *										 *
+ *  BROWN UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS		 *
+ *  SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND		 *
+ *  FITNESS FOR ANY PARTICULAR PURPOSE.  IN NO EVENT SHALL BROWN UNIVERSITY	 *
+ *  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY 	 *
+ *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,		 *
+ *  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS		 *
+ *  ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE 	 *
+ *  OF THIS SOFTWARE.								 *
+ *										 *
  ********************************************************************************/
 
 
@@ -48,14 +48,14 @@ import edu.brown.cs.fait.iface.IfaceSafetyCheck;
 import edu.brown.cs.fait.iface.IfaceSafetyStatus;
 import edu.brown.cs.ivy.xml.IvyXml;
 
-public class SafetyFactory implements SafetyConstants
+public final class SafetyFactory implements SafetyConstants
 {
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Private Storage                                                         */
-/*                                                                              */
+/*										*/
+/*	Private Storage 							*/
+/*										*/
 /********************************************************************************/
 
 private List<SafetyCheck> all_checks;
@@ -64,27 +64,27 @@ private Map<IfaceSafetyStatus,IfaceSafetyStatus> all_status;
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Constructors                                                            */
-/*                                                                              */
+/*										*/
+/*	Constructors								*/
+/*										*/
 /********************************************************************************/
 
 public SafetyFactory(IfaceControl ic)
 {
    all_checks = new ArrayList<>();
    all_status = new HashMap<>();
-   
+
    // add static safety checks here
-   
-   initial_status = getSafetyStatus(null);
+
+   initial_status = this.getSafetyStatus(null);
 }
 
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Factory methods                                                         */
-/*                                                                              */
+/*										*/
+/*	Factory methods 							*/
+/*										*/
 /********************************************************************************/
 
 public IfaceSafetyStatus getInitialStatus()
@@ -98,12 +98,12 @@ public IfaceSafetyStatus getInitialStatus()
 public void addSpecialFile(Element xml)
 {
    if (xml == null) return;
-   
+
    for (Element s : IvyXml.children(xml,"SAFETY")) {
       SafetyCheckUser scu = new SafetyCheckUser(s);
       all_checks.add(scu);
     }
-   
+
    initial_status = getSafetyStatus(null);
 }
 
@@ -117,9 +117,9 @@ public void clearAllSpecials()
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Access methods                                                          */
-/*                                                                              */
+/*										*/
+/*	Access methods								*/
+/*										*/
 /********************************************************************************/
 
 public List<IfaceSafetyCheck> getAllSafetyChecks()
@@ -142,15 +142,15 @@ int getNumChecks()
 SafetyCheck getCheck(int i)
 {
    if (i < 0 || i >= all_checks.size()) return null;
-   
+
    return all_checks.get(i);
 }
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Unique safety status methods                                            */
-/*                                                                              */
+/*										*/
+/*	Unique safety status methods						*/
+/*										*/
 /********************************************************************************/
 
 IfaceSafetyStatus getSafetyStatus(int [] sts)
@@ -158,11 +158,11 @@ IfaceSafetyStatus getSafetyStatus(int [] sts)
    if (sts == null) {
       sts = new int [ all_checks.size() ];
       for (int i = 0; i < sts.length; ++i) {
-         IfaceSafetyCheck.Value v = all_checks.get(i).getInitialState();
-         sts[i] = 1 << v.ordinal();
+	 IfaceSafetyCheck.Value v = all_checks.get(i).getInitialState();
+	 sts[i] = 1 << v.ordinal();
        }
     }
-   
+
    SafetyStatus st = new SafetyStatus(this,sts);
    IfaceSafetyStatus ost = all_status.putIfAbsent(st,st);
    if (ost != null) return ost;
@@ -172,7 +172,7 @@ IfaceSafetyStatus getSafetyStatus(int [] sts)
 
 
 
-}       // end of class SafetyFactory
+}	// end of class SafetyFactory
 
 
 
