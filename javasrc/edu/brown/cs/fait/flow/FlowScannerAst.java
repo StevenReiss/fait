@@ -1855,7 +1855,8 @@ private Object visit(SuperConstructorInvocation v)
       case NULL_ACCESS :
          return DEREFERENCE_NULL;
       case NO_METHOD :
-         return noImplementationError(rtn);
+         return null;   // super not defined -- can ignore
+//       return noImplementationError(rtn);
       case NO_RETURN :
 	 return NO_NEXT;
       case CONTINUE :

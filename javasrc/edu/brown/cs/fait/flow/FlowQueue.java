@@ -272,6 +272,8 @@ FlowQueueInstance setupNextFlowQueue()
    if (FaitLog.isTracing()) {
       FaitLog.logD("");
       FaitLog.logD("START WORK ON " + cm.getLogName());
+//    if (cm.getLogName().contains("AbstractStorelessUnivariateStatistic.<init>")) 
+//       System.err.println("CHECK HERE");
     }
 
    if (newfqi) {
