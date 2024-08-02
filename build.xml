@@ -48,7 +48,7 @@
 	 <fileset dir='./lib' includes='fait*.xml' />
 	 <fileset dir='./lib' includes='*.vel' />
 	 <zipfileset src='${PRO}/ivy/lib/junit.jar' excludes='META-INF/*' />
-	 <zipfileset src='${PRO}/ivy/lib/asm5.jar' excludes='META-INF/*' />
+	 <zipfileset src='${PRO}/ivy/lib/asm.jar' excludes='META-INF/*' />
 	 <zipfileset src='${ECLIPSELIB}/org.eclipse.core.commands.jar' excludes='META-INF/*' />
 	 <zipfileset src='${ECLIPSELIB}/org.eclipse.core.contenttype.jar' excludes='META-INF/*' />
 	 <zipfileset src='${ECLIPSELIB}/org.eclipse.core.filebuffers.jar' excludes='META-INF/*' />
