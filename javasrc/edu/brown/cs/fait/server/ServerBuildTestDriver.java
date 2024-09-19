@@ -194,6 +194,22 @@ private void processClass(JcodeFactory jf,JcodeClass jc)
           }
        }
     }
+   else {
+      Boolean cnstok = null;
+      for (JcodeMethod jm : jc.getMethods()) {
+         if (jm.isConstructor()) {
+            if (jm.isPublic() && jm.getNumArguments() <= 1) {
+               int ct0 = jm.getNumArguments();
+               if (cnstct < 0 || ct0 < cnstct) cnstct = ct0;
+               cnstok = true;
+             }
+            else if (cnstok == null) cnstok = false;
+          }
+       }
+      if (cnstok == Boolean.FALSE) {
+         tests.clear();
+       }
+    }
    
    if (tests.isEmpty()) return;
    augmentClass(jf,jc.superName,beforeclass,before,afterclass,after);
