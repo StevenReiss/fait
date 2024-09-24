@@ -395,6 +395,11 @@ public List<IfaceMethod> findAllMethods(IfaceBaseType typ,String name)
       m = findInheritedMethod(ityp,nm,desc,sgn);
       if (m != null) return m;
     }
+   IfaceType styp = cls.getSuperType();
+   if (styp != null) {
+      m = findInheritedMethod(styp,nm,desc,sgn);
+      if (m != null) return m;
+    }
    return null;
 }
 

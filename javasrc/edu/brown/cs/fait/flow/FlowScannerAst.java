@@ -3530,7 +3530,9 @@ private TestBranch getTestResult(IfaceValue v1)
 private CallReturn processCall(ASTNode v,int act)
 {
    JcompSymbol js = JcompAst.getReference(v);
-   if (js == null) return CallReturn.NO_METHOD;
+   if (js == null) {
+      return CallReturn.NO_METHOD;
+    }
 
    JcompType jt = js.getType();
 
@@ -3615,7 +3617,9 @@ private CallReturn processCall(ASTNode v,int act)
 
 private CallReturn processInternalCall(IfaceMethod im)
 {
-   if (im == null) return CallReturn.NO_METHOD;
+   if (im == null) {
+      return CallReturn.NO_METHOD;
+    }
    int act = im.getNumArgs();
 
    int checkarg = -1;

@@ -338,6 +338,12 @@
    <METHOD NAME='org.junit.Assert.failNotEquals' SCAN='TRUE' NORETURN='true' />
    <METHOD NAME='org.junit.Assert.failSame' SCAN='TRUE' NORETURN='true' />
    <METHOD NAME='java.util.ServiceLoader.fail' SCAN='TRUE' NORETURN='true' />
+   <METHOD NAME='java.util.Formatter.FormatSpecifier.failMismatch' SCAN='TRUE' NORETURN='true' />
+   <METHOD NAME='java.util.Formatter.FormatSpecifier.failConversion' SCAN='TRUE' NORETURN='true' />
+   <METHOD NAME='sun.util.resources.Bundles.throwMissingResourceException' SCAN='TRUE' NORETURN='true' />
+   <METHOD NAME='java.util.Concurrent.ForkJoinTask.reportException' SCAN='TRUE' NORETURN='true' />
+   <METHOD NAME='java.util.Spliterator.getComparator' SCAN='TRUE' NORETURN='true' />
+
 
    <METHOD NAME='java.util.ServiceLoader.load' />
    <METHOD NAME='javax.xml.datatype.DatatypeFactory.newInstance' />

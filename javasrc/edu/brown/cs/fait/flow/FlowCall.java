@@ -420,7 +420,7 @@ private IfaceValue processCall(IfaceMethod bm,List<IfaceValue> args,boolean virt
 	 else if (xrslt != null) rslt = rslt.mergeValue(xrslt);
        }
     }
-   else if (virt) {
+   if (rslt == null && virt) {
       rslt = checkVirtual(bm,args,loc,st0,orig,rslt,
             cbid,varct,used,errs);
     }
