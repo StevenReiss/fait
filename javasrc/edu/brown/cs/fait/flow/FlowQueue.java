@@ -789,10 +789,6 @@ IfaceValue castValue(IfaceType rtyp,IfaceValue v0,IfaceLocation loc)
 
    v1 = v0.restrictByType(rtyp);
    // FlowScanner.checkAssignment(v0,rtyp,loc);
-   if (v1.isEmptyEntitySet() && rtyp.getName().contains("BinaryOperator")) {
-      System.err.println("CHECK HERE");
-    }
-   
    
    return v1;
 }

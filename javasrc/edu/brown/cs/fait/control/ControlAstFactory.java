@@ -707,7 +707,7 @@ private class AstMethod implements IfaceMethod {
    AstMethod(JcompSymbol js) {
       method_symbol = js;
       if (js.isBinarySymbol()) {
-         System.err.println("CHECK HERE " + js);
+         System.err.println("CHECK HERE BINARY " + js);
          FaitLog.logD("Creating AST Method with binary symbol " + js);
        }
       local_map = null;
@@ -793,7 +793,7 @@ private class AstMethod implements IfaceMethod {
     }
    @Override synchronized public List<IfaceMethod> getParentMethods() {
       if (parent_methods == null) {
-	 parent_methods = fait_control.findParentMethods(getDeclaringClass(),getName(),getDescription(),false,false,null);
+         parent_methods = fait_control.findParentMethods(getDeclaringClass(),getName(),getDescription(),false,false,null);
        }
       return parent_methods;
     }

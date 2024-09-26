@@ -849,6 +849,7 @@ private Object visit(ArrayAccess v)
       IfaceType rtyp = convertType(JcompAst.getExprType(v));
       IfaceValue vrslt = fait_control.findRefValue(rtyp,varr,vidx);
       pushValue(vrslt);
+      if (FaitLog.isTracing()) FaitLog.logD1("Result = " + cur_state.getStack(0));
     }
 
    return null;

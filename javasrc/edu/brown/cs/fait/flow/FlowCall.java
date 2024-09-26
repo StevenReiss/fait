@@ -104,6 +104,11 @@ CallReturn handleCall(FlowLocation loc,IfaceState st0,FlowQueueInstance wq,int v
       return CallReturn.NO_METHOD;
     }
    
+   if (dbgmthd.getDeclaringClass().getName().contains("Enum") &&
+         dbgmthd.getName().equals("equals")) {
+      System.err.println("CHECK HERE");
+    }
+   
    LinkedList<IfaceValue> args = getCallArguments(loc,st0,varct,dbgmthd);
    if (args == null) {
       return CallReturn.NOT_DONE;
@@ -420,8 +425,8 @@ private IfaceValue processCall(IfaceMethod bm,List<IfaceValue> args,boolean virt
 	 else if (xrslt != null) rslt = rslt.mergeValue(xrslt);
        }
     }
-   if (rslt == null && virt) {
-      rslt = checkVirtual(bm,args,loc,st0,orig,rslt,
+   if (rslt == null && virt && nargs != null && nargs.size() > 0) { 
+      rslt = checkVirtual(bm,nargs,loc,st0,orig,rslt,
             cbid,varct,used,errs);
     }
 

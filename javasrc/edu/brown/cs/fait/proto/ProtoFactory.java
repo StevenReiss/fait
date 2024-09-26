@@ -130,7 +130,8 @@ static public boolean isMethodRelevant(IfaceMethod fm,IfaceType basetype)
    IfaceType dt = fm.getDeclaringClass();
    String dnm = dt.getName();
    if (dnm.startsWith("java.util.") || dnm.equals("java.lang.Iterable") ||
-         dnm.startsWith("sun.security.") || dnm.startsWith("java.lang.")) {
+         dnm.startsWith("sun.security.") || dnm.startsWith("java.lang.") ||
+         dnm.startsWith("sun.awt.util")) {
       return true;
     }
    for (IfaceMethod im : fm.getParentMethods()) {
@@ -141,7 +142,7 @@ static public boolean isMethodRelevant(IfaceMethod fm,IfaceType basetype)
     }
    
    if (FaitLog.isTracing()) {
-      FaitLog.logD1("Non-prototype method on prototype: " + fm);
+      FaitLog.logD1("Non-prototype method on prototype: " + fm + " " + basetype);
     }
    
    return false;

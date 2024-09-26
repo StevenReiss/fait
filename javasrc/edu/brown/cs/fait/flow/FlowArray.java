@@ -148,7 +148,10 @@ IfaceValue handleArrayAccess(FlowLocation loc,IfaceValue arr,IfaceValue idx)
       cv = cv.changeType(rt);
     }
 
-   if (FaitLog.isTracing()) FaitLog.logD1("Array access " + arr + "[" + idx + "] = " + cv);
+   if (FaitLog.isTracing()) {
+      FaitLog.logD1("Array access " + arr + "[" + idx + "]");
+      FaitLog.logD1("Array result = " + cv);
+    }
    
    return cv;
 }
