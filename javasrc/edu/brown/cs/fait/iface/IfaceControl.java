@@ -252,6 +252,7 @@ IfaceType findCommonParent(IfaceType t1,IfaceType t2);
 List<IfaceMethod> findAllMethods(IfaceType cls,String name);
 
 IfaceType createFunctionRefType(String typ,String nstype);
+IfaceType createMethodCallType(List<IfaceType> args);
 
 IfaceSafetyStatus getInitialSafetyStatus();
 List<IfaceSafetyCheck> getAllSafetyChecks();

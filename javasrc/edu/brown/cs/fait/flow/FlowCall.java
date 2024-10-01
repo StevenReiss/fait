@@ -104,11 +104,6 @@ CallReturn handleCall(FlowLocation loc,IfaceState st0,FlowQueueInstance wq,int v
       return CallReturn.NO_METHOD;
     }
    
-   if (dbgmthd.getDeclaringClass().getName().contains("Enum") &&
-         dbgmthd.getName().equals("equals")) {
-      System.err.println("CHECK HERE");
-    }
-   
    LinkedList<IfaceValue> args = getCallArguments(loc,st0,varct,dbgmthd);
    if (args == null) {
       return CallReturn.NOT_DONE;
@@ -362,9 +357,23 @@ private IfaceMethod findProperMethod(IfaceLocation loc,List<IfaceValue> args,Ifa
       IfaceValue v0 = args.get(0);
       IfaceType dt0 = v0.getDataType();
       IfaceType dt1 = tgt.getDeclaringClass();
-      if (dt0 != null && dt0 != dt1 && dt0.isDerivedFrom(dt1) && !dt0.isArrayType()) {
+      String d = "(";
+      String d1 = tgt.getDescription();
+      for (int i = 1; i < args.size(); ++i) {
+         IfaceValue iv = args.get(i);
+         IfaceType dt = iv.getDataType();
+         d += dt.getJavaTypeName();
+       }
+      d += ")";
+      int idx = d1.lastIndexOf(")");
+      if (idx > 0) d += d1.substring(idx+1);
+      d1 = d;
+      
+      if (dt0 != null &&
+            dt0.getBaseType() != dt1.getBaseType() && 
+            dt0.isDerivedFrom(dt1) && !dt0.isArrayType()) {
 	 IfaceMethod ntgt = fait_control.findInheritedMethod(dt0,
-	       tgt.getName(),tgt.getDescription(),tgt.getSignature());
+	       tgt.getName(),d1,tgt.getSignature());  
 	 if (ntgt != null && ntgt != tgt) {
 	    tgt = ntgt;
 	  }
@@ -595,7 +604,7 @@ private IfaceValue checkVirtual(IfaceMethod bm,List<IfaceValue> args,
    if (used == null) used = new HashSet<>();
    used.add(bm);
    if (orig != null) used.add(orig);
-
+ 
    for (IfaceMethod km : bm.getChildMethods()) {
       if (used.contains(km)) continue;
       used.add(km);

@@ -381,7 +381,7 @@ public List<IfaceMethod> findAllMethods(IfaceBaseType typ,String name)
 }
 
 
-@Override public IfaceMethod findInheritedMethod(IfaceType cls,String nm,String desc,String sgn)
+@Override public IfaceMethod findInheritedMethod(IfaceType cls,String nm,String desc,String sgn) 
 {
    IfaceMethod m = null;
    if (cls.isFunctionRef()) {
@@ -1100,6 +1100,13 @@ IfaceBaseType createMethodType(IfaceType rtn,List<IfaceType> args)
 {
    IfaceBaseType bt = ast_factory.getMethodType(rtn,args);
    return bt;
+}
+
+
+@Override public IfaceType createMethodCallType(List<IfaceType> args) 
+{
+   IfaceBaseType bt = createMethodType(null,args);
+   return findDataType(bt,null);
 }
 
 
