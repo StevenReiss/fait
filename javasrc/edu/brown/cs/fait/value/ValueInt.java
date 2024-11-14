@@ -97,13 +97,7 @@ ValueInt(ValueFactory vf,IfaceType dt,Long minv,Long maxv,IfaceEntitySet es)
 /********************************************************************************/
 
 @Override public Long getMinValue()		{ return min_value; }
-@Override public Long getMaxValue()     	{ return max_value; }
-
-
-
-
-
-
+@Override public Long getMaxValue()		{ return max_value; }
 
 
 
@@ -156,7 +150,7 @@ ValueInt(ValueFactory vf,IfaceType dt,Long minv,Long maxv,IfaceEntitySet es)
 	  }
 	 if (max_value != null && rhs.max_value != null) {
 	    mxv = max_value * rhs.max_value;
-            if (mnv != null && mxv < mnv) mxv = null;
+	    if (mnv != null && mxv < mnv) mxv = null;
 	  }
 	 break;
       case MOD :
@@ -184,11 +178,11 @@ ValueInt(ValueFactory vf,IfaceType dt,Long minv,Long maxv,IfaceEntitySet es)
 	  }
 	 break;
       case ANDAND :
-         if (v0 != null && v0 == 0) return this;
-         if (v1 != null && v1 == 0) return rhsv;
-         if (v0 != null && v1 != null) return this;
-         break;
-         
+	 if (v0 != null && v0 == 0) return this;
+	 if (v1 != null && v1 == 0) return rhsv;
+	 if (v0 != null && v1 != null) return this;
+	 break;
+
       case OR :
 	 if (v0 != null && v1 != null) {
 	    mnv = v0 | v1;
@@ -204,11 +198,11 @@ ValueInt(ValueFactory vf,IfaceType dt,Long minv,Long maxv,IfaceEntitySet es)
 	  }
 	 break;
       case OROR :
-         if (v0 != null && v0 == 1) return this;
-         if (v1 != null && v1 == 1) return rhsv;
-         if (v0 != null && v1 != null) return this;
-         break;
-         
+	 if (v0 != null && v0 == 1) return this;
+	 if (v1 != null && v1 == 1) return rhsv;
+	 if (v0 != null && v1 != null) return this;
+	 break;
+
       case XOR :
 	 if (v0 != null && v1 != null) {
 	    mnv = v0 ^ v1;
@@ -370,8 +364,8 @@ ValueInt(ValueFactory vf,IfaceType dt,Long minv,Long maxv,IfaceEntitySet es)
     }
    else {
       if (mnv != null && mxv != null && mnv > mxv) {
-         if (mxv > 0) mnv = null;
-         else mxv = null;
+	 if (mxv > 0) mnv = null;
+	 else mxv = null;
        }
       rslt = value_factory.rangeValue(typ,mnv,mxv);
     }
@@ -422,9 +416,9 @@ ValueInt(ValueFactory vf,IfaceType dt,Long minv,Long maxv,IfaceEntitySet es)
 	 if (mnv != null && mxv != null && mnv > mxv) {
 	    mnv = mxv = null;
 	  }
-         else if (mxv == null && mnv != null && rhs.max_value != null && rhs.max_value < mnv) {
-            mnv = mxv = null;
-          }
+	 else if (mxv == null && mnv != null && rhs.max_value != null && rhs.max_value < mnv) {
+	    mnv = mxv = null;
+	  }
 	 lt = value_factory.rangeValue(getDataType(),
 	       (mnv == null ? min_value : mnv),
 	       (mxv == null ? max_value : mxv));
@@ -441,14 +435,14 @@ ValueInt(ValueFactory vf,IfaceType dt,Long minv,Long maxv,IfaceEntitySet es)
 	  }
 	 if (v0 != null) {
 	    if (v0.equals(rhs.min_value)) {
-               if (rhs.max_value == null || rhs.min_value+1 <= rhs.max_value) {
-                  rf = value_factory.rangeValue(rhs.getDataType(),rhs.min_value+1,rhs.max_value);
-                }
+	       if (rhs.max_value == null || rhs.min_value+1 <= rhs.max_value) {
+		  rf = value_factory.rangeValue(rhs.getDataType(),rhs.min_value+1,rhs.max_value);
+		}
 	     }
 	    else if (v0.equals(rhs.max_value)) {
-               if (rhs.min_value == null || rhs.min_value <= rhs.max_value-1) {
-                  rf = value_factory.rangeValue(rhs.getDataType(),rhs.min_value,rhs.max_value-1);
-                }
+	       if (rhs.min_value == null || rhs.min_value <= rhs.max_value-1) {
+		  rf = value_factory.rangeValue(rhs.getDataType(),rhs.min_value,rhs.max_value-1);
+		}
 	     }
 	  }
 	 break;
@@ -458,24 +452,24 @@ ValueInt(ValueFactory vf,IfaceType dt,Long minv,Long maxv,IfaceEntitySet es)
       case LEQ :
 	 if (rhs == null) return null;
 	 if (max_value != null && rhs.max_value != null) {
-            long x1 = Math.min(max_value.longValue(),rhs.max_value.longValue());
-            if (min_value == null || x1 >= min_value) {
-               lt = value_factory.rangeValue(getDataType(),min_value,x1);
-             }
-            long x2 = Math.min(rhs.max_value.longValue(),max_value-1);
-            if (rhs.min_value == null || x2 >= rhs.min_value) {
-               rf = value_factory.rangeValue(rhs.getDataType(),rhs.min_value,x2);
-             }
+	    long x1 = Math.min(max_value.longValue(),rhs.max_value.longValue());
+	    if (min_value == null || x1 >= min_value) {
+	       lt = value_factory.rangeValue(getDataType(),min_value,x1);
+	     }
+	    long x2 = Math.min(rhs.max_value.longValue(),max_value-1);
+	    if (rhs.min_value == null || x2 >= rhs.min_value) {
+	       rf = value_factory.rangeValue(rhs.getDataType(),rhs.min_value,x2);
+	     }
 	  }
 	 if (min_value != null && rhs.min_value != null) {
-            long x1 = Math.max(min_value.longValue(),rhs.min_value + 1);
-            if (max_value == null || x1 <= max_value) {
-               lf = value_factory.rangeValue(getDataType(),x1,max_value);
-             }
-            long x2 = Math.max(rhs.min_value.longValue(),min_value.longValue());
-            if (rhs.max_value == null || x2 <= rhs.max_value) {
-               rt = value_factory.rangeValue(rhs.getDataType(),x2,rhs.max_value);
-             }
+	    long x1 = Math.max(min_value.longValue(),rhs.min_value + 1);
+	    if (max_value == null || x1 <= max_value) {
+	       lf = value_factory.rangeValue(getDataType(),x1,max_value);
+	     }
+	    long x2 = Math.max(rhs.min_value.longValue(),min_value.longValue());
+	    if (rhs.max_value == null || x2 <= rhs.max_value) {
+	       rt = value_factory.rangeValue(rhs.getDataType(),x2,rhs.max_value);
+	     }
 	  }
 	 break;
       case GEQ :
@@ -484,24 +478,24 @@ ValueInt(ValueFactory vf,IfaceType dt,Long minv,Long maxv,IfaceEntitySet es)
       case LSS :
 	 if (rhs == null) return null;
 	 if (max_value != null && rhs.max_value != null) {
-            long x1 = Math.min(max_value.longValue(),rhs.max_value-1);
-            if (min_value == null || x1 >= min_value) {
-               lt= value_factory.rangeValue(getDataType(),min_value,x1);
-             }
-            long x2 = Math.min(rhs.max_value.longValue(),max_value.longValue());
-            if (rhs.min_value == null || rhs.min_value <= x2) {
-               rf = value_factory.rangeValue(rhs.getDataType(),rhs.min_value,x2);
-             }
+	    long x1 = Math.min(max_value.longValue(),rhs.max_value-1);
+	    if (min_value == null || x1 >= min_value) {
+	       lt= value_factory.rangeValue(getDataType(),min_value,x1);
+	     }
+	    long x2 = Math.min(rhs.max_value.longValue(),max_value.longValue());
+	    if (rhs.min_value == null || rhs.min_value <= x2) {
+	       rf = value_factory.rangeValue(rhs.getDataType(),rhs.min_value,x2);
+	     }
 	  }
 	 if (min_value != null && rhs.min_value != null) {
-            long x1 = Math.max(min_value.longValue(),rhs.min_value.longValue());
-            if (max_value == null || x1 <= max_value) {
-               lf = value_factory.rangeValue(getDataType(),x1,max_value);
-             }
-            long x2 = Math.max(rhs.min_value.longValue(),min_value+1);
-            if (rhs.max_value == null || x2 <= rhs.max_value) {
-               rt = value_factory.rangeValue(rhs.getDataType(),x2,rhs.max_value);
-             }
+	    long x1 = Math.max(min_value.longValue(),rhs.min_value.longValue());
+	    if (max_value == null || x1 <= max_value) {
+	       lf = value_factory.rangeValue(getDataType(),x1,max_value);
+	     }
+	    long x2 = Math.max(rhs.min_value.longValue(),min_value+1);
+	    if (rhs.max_value == null || x2 <= rhs.max_value) {
+	       rt = value_factory.rangeValue(rhs.getDataType(),x2,rhs.max_value);
+	     }
 	  }
 	 break;
       case NEQ_ZERO :
@@ -510,14 +504,14 @@ ValueInt(ValueFactory vf,IfaceType dt,Long minv,Long maxv,IfaceEntitySet es)
       case EQL_ZERO :
 	 lt = value_factory.rangeValue(getDataType(),0l,0l);
 	 if (min_value != null && min_value.longValue() == 0) {
-            if (max_value == null || max_value >= 1) {
-               lf = value_factory.rangeValue(getDataType(),1l,max_value);
-             }
+	    if (max_value == null || max_value >= 1) {
+	       lf = value_factory.rangeValue(getDataType(),1l,max_value);
+	     }
 	  }
 	 else if (max_value != null && max_value.longValue() == 0) {
-            if (min_value == null || min_value <= -1) {
-               lf = value_factory.rangeValue(getDataType(),min_value,-1l);
-             }
+	    if (min_value == null || min_value <= -1) {
+	       lf = value_factory.rangeValue(getDataType(),min_value,-1l);
+	     }
 	  }
 	 break;
       case GEQ_ZERO :
@@ -525,14 +519,14 @@ ValueInt(ValueFactory vf,IfaceType dt,Long minv,Long maxv,IfaceEntitySet es)
 	 // fall through
       case LSS_ZERO :
 	 if (max_value == null || max_value >= 0) {
-            if (min_value == null || min_value <= -1) {
-               lt = value_factory.rangeValue(getDataType(),min_value,-1l);
-             }
+	    if (min_value == null || min_value <= -1) {
+	       lt = value_factory.rangeValue(getDataType(),min_value,-1l);
+	     }
 	  }
 	 if (min_value == null || min_value < 0) {
-            if (max_value == null || max_value >= 0) {
-               lf = value_factory.rangeValue(getDataType(),0l,max_value);
-             }
+	    if (max_value == null || max_value >= 0) {
+	       lf = value_factory.rangeValue(getDataType(),0l,max_value);
+	     }
 	  }
 	 break;
       case GTR_ZERO :
@@ -540,14 +534,14 @@ ValueInt(ValueFactory vf,IfaceType dt,Long minv,Long maxv,IfaceEntitySet es)
 	 // fall through
       case LEQ_ZERO :
 	 if (max_value == null || max_value > 0) {
-            if (min_value == null || min_value <= 0) {
-               lt = value_factory.rangeValue(getDataType(),min_value,0l);
-             }
+	    if (min_value == null || min_value <= 0) {
+	       lt = value_factory.rangeValue(getDataType(),min_value,0l);
+	     }
 	  }
 	 if (min_value == null || min_value <= 0) {
-            if (max_value == null || max_value >= 1) {
-               lf = value_factory.rangeValue(getDataType(),1l,max_value);
-             }
+	    if (max_value == null || max_value >= 1) {
+	       lf = value_factory.rangeValue(getDataType(),1l,max_value);
+	     }
 	  }
 	 break;
       default :
@@ -604,6 +598,8 @@ ValueInt(ValueFactory vf,IfaceType dt,Long minv,Long maxv,IfaceEntitySet es)
    return null;
 }
 
+
+
 /********************************************************************************/
 /*										*/
 /*	Methods to handle merging values					*/
@@ -616,7 +612,7 @@ ValueInt(ValueFactory vf,IfaceType dt,Long minv,Long maxv,IfaceEntitySet es)
 
    if (!(vb instanceof ValueInt)) {
       if (FaitLog.isTracing()) {
-         FaitLog.logD1("Invalidate variable: Bad int value merge: " + this + " " + vb);
+	 FaitLog.logD1("Invalidate variable: Bad int value merge: " + this + " " + vb);
        }
       return value_factory.badValue();
     }
@@ -637,9 +633,9 @@ ValueInt(ValueFactory vf,IfaceType dt,Long minv,Long maxv,IfaceEntitySet es)
 	 else if (Math.abs(max_value-cvi.max_value) <= 0) mnv = null;
 	 else mnv = mxv = null;
        }
-      if (mnv != null && min_value != cvi.min_value && mxv == null && 
-            mnv < -VALUE_MAX_RANGE) 
-         mnv = null;
+      if (mnv != null && min_value != cvi.min_value && mxv == null &&
+	    mnv < -VALUE_MAX_RANGE)
+	 mnv = null;
       // FaitLog.logD1("MergeInt " + min_value + " " + cvi.min_value + " " +
 	    // max_value + " " + cvi.max_value + " " + mnv + " " + mxv);
       return value_factory.rangeValue(getDataType(),mnv,mxv);
