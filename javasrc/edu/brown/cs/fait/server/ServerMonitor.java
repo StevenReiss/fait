@@ -76,7 +76,7 @@ private ServerMain		server_control;
 private MintControl		mint_control;
 private boolean 		is_done;
 private Map<String,ServerSession> session_map;
-private boolean                 no_exit;
+private boolean 		no_exit;
 
 
 /********************************************************************************/
@@ -144,25 +144,25 @@ private class WaitForExit extends Thread {
    @Override public void run() {
       ServerMonitor mon = ServerMonitor.this;
       synchronized (mon) {
-         for ( ; ; ) {
-            if (checkEclipse()) break;
-            try {
-               mon.wait(30000l);
-             }
-            catch (InterruptedException e) { }
-          }
-   
-         while (!is_done) {
-            if (!checkEclipse()) is_done = true;
-            else {
-               try {
-                  mon.wait(30000l);
-                }
-               catch (InterruptedException e) { }
-             }
-          }
+	 for ( ; ; ) {
+	    if (checkEclipse()) break;
+	    try {
+	       mon.wait(30000l);
+	     }
+	    catch (InterruptedException e) { }
+	  }
+
+	 while (!is_done) {
+	    if (!checkEclipse()) is_done = true;
+	    else {
+	       try {
+		  mon.wait(30000l);
+		}
+	       catch (InterruptedException e) { }
+	     }
+	  }
        }
-   
+
       if (!no_exit) System.exit(0);
     }
 
@@ -314,37 +314,37 @@ private void handleResourceFiles(String sid,Element res,IvyXmlWriter xw)
       xw.field("NAME",fn.getFile().getAbsolutePath());
       xw.field("PRIORITY",fn.getPriority());
       if (fn.getPriority() == IfaceDescriptionFile.PRIORITY_BASE)
-         xw.field("BASE",true);
+	 xw.field("BASE",true);
       else if (fn.getPriority() == IfaceDescriptionFile.PRIORITY_BASE_PROJECT)
-         xw.field("BASE_PROJECT",true);
+	 xw.field("BASE_PROJECT",true);
       else if (fn.getPriority() == IfaceDescriptionFile.PRIORITY_DEPENDENT_PROJECT)
-         xw.field("DEPENDENT_PROJECT",true);
+	 xw.field("DEPENDENT_PROJECT",true);
       else if (fn.getPriority() == IfaceDescriptionFile.PRIORITY_LIBRARY)
-         xw.field("LIBRARY",true);
+	 xw.field("LIBRARY",true);
       if (fn.getLibrary() != null) xw.field("LIBFILE",fn.getLibrary());
       xw.end("FILE");
     }
    List<File> basefiles = proj.getBaseDescriptionFiles();
    if (basefiles != null) {
       for (File f : basefiles) {
-         xw.begin("FILE");
-         if (f.getPath().startsWith("*FAIT*")) {
-            String rnm = "/" + f.getName();
-            URL fn = ControlMain.class.getResource(rnm);
-            if (fn == null) {
-               String rrn = "/pro/fait/lib" + rnm;
-               xw.field("NAME",rrn);
-             }
-            if (fn != null) {
-               xw.field("URL",fn);
-               xw.field("NAME",fn.getFile());
-             }
-          }
-         else
-            xw.field("NAME",f.getAbsolutePath());
-         xw.field("PRIORITY",IfaceDescriptionFile.PRIORITY_BASE);
-         xw.field("BASE",true);
-         xw.end("FILE");
+	 xw.begin("FILE");
+	 if (f.getPath().startsWith("*FAIT*")) {
+	    String rnm = "/" + f.getName();
+	    URL fn = ControlMain.class.getResource(rnm);
+	    if (fn == null) {
+	       String rrn = "/pro/fait/lib" + rnm;
+	       xw.field("NAME",rrn);
+	     }
+	    if (fn != null) {
+	       xw.field("URL",fn);
+	       xw.field("NAME",fn.getFile());
+	     }
+	  }
+	 else
+	    xw.field("NAME",f.getAbsolutePath());
+	 xw.field("PRIORITY",IfaceDescriptionFile.PRIORITY_BASE);
+	 xw.field("BASE",true);
+	 xw.end("FILE");
        }
 
     }
@@ -363,16 +363,16 @@ private void handleBegin(String sid,Element xml,IvyXmlWriter xw) throws ServerEx
 {
    ServerSession ss = new ServerSession(server_control,sid,xml);
    no_exit = IvyXml.getAttrBool(xml,"NOEXIT");
-   
+
    // check for alternative session for this project
    ServerProject sp = ss.getProject();
    for (ServerSession oldsess : session_map.values()) {
       if (oldsess.getProject() == sp) {
-         ss = oldsess;
-         break;
+	 ss = oldsess;
+	 break;
        }
     }
-   
+
    FaitLog.logD("BEGIN " + sid + " " + ss);
    xw.begin("SESSION");
    xw.field("ID",ss.getSessionId());
@@ -401,11 +401,11 @@ private void handleAddFile(String sid,Element xml,IvyXmlWriter xw)
       String file = IvyXml.getAttrString(e,"NAME");
       ServerFile sf = server_control.getFileManager().openFile(new File(file));
       if (sf != null) {
-         upd |= sp.addFile(sf,true);
-       }   
+	 upd |= sp.addFile(sf,true);
+       }
     }
    if (upd) sp.resumeAnalysis();
-   
+
    xw.field("ADDED",upd);
 }
 
@@ -441,9 +441,9 @@ private void handleAnalyze(String sid,Element xml,IvyXmlWriter xw)
 
 
 /********************************************************************************/
-/*                                                                              */
-/*      Query commands                                                          */
-/*                                                                              */
+/*										*/
+/*	Query commands								*/
+/*										*/
 /********************************************************************************/
 
 private void handleQuery(String sid,Element xml,IvyXmlWriter xw)
@@ -451,7 +451,7 @@ private void handleQuery(String sid,Element xml,IvyXmlWriter xw)
    ServerSession ss = session_map.get(sid);
    if (ss == null) return;
    ServerProject sp = ss.getProject();
-   
+
    try {
       sp.handleQuery(xml,xw);
     }
@@ -470,7 +470,7 @@ private void handleFlowQuery(String sid,Element xml,IvyXmlWriter xw)
    ServerSession ss = session_map.get(sid);
    if (ss == null) return;
    ServerProject sp = ss.getProject();
-   
+
    try {
       sp.handleFlowQuery(xml,xw);
     }
@@ -488,7 +488,7 @@ private void handleStackStartQuery(String sid,Element xml,IvyXmlWriter xw)
    ServerSession ss = session_map.get(sid);
    if (ss == null) return;
    ServerProject sp = ss.getProject();
-   
+
    try {
       sp.handleStackStartQuery(xml,xw);
     }
@@ -507,7 +507,7 @@ private void handleFileQuery(String sid,Element xml,IvyXmlWriter xw)
    ServerSession ss = session_map.get(sid);
    if (ss == null) return;
    ServerProject sp = ss.getProject();
-   
+
    try {
       sp.handleFileQuery(xml,xw);
     }
@@ -516,7 +516,7 @@ private void handleFileQuery(String sid,Element xml,IvyXmlWriter xw)
       xw.field("FAIL",true);
       xw.field("ERROR",e.getMessage());
       xw.end("FAITQUERY");
-    } 
+    }
 }
 
 
@@ -526,7 +526,7 @@ private void handleChangeQuery(String sid,Element xml,IvyXmlWriter xw)
    ServerSession ss = session_map.get(sid);
    if (ss == null) return;
    ServerProject sp = ss.getProject();
-   
+
    try {
       sp.handleChangeQuery(xml,xw);
     }
@@ -544,7 +544,7 @@ private void handleVarQuery(String sid,Element xml,IvyXmlWriter xw)
    ServerSession ss = session_map.get(sid);
    if (ss == null) return;
    ServerProject sp = ss.getProject();
-   
+
    try {
       sp.handleVarQuery(xml,xw);
     }
@@ -563,7 +563,7 @@ private void handleTestCase(String sid,Element xml,IvyXmlWriter xw)
    ServerSession ss = session_map.get(sid);
    if (ss == null) return;
    ServerProject sp = ss.getProject();
-   
+
    try {
       Element txml = IvyXml.getChild(xml,"TESTCASE");
       sp.handleTestCase(txml,xw);
@@ -582,7 +582,7 @@ private void handleReflection(String sid,Element xml,IvyXmlWriter xw)
    ServerSession ss = session_map.get(sid);
    if (ss == null) return;
    ServerProject sp = ss.getProject();
-   
+
    try {
       sp.handleReflection(xml,xw);
     }
@@ -602,7 +602,7 @@ private void handlePerformance(String sid,Element xml,IvyXmlWriter xw)
    ServerSession ss = session_map.get(sid);
    if (ss == null) return;
    ServerProject sp = ss.getProject();
-   
+
    try {
       sp.handlePerformance(xml,xw);
     }
@@ -621,7 +621,7 @@ private void handleFindCritical(String sid,Element xml,IvyXmlWriter xw)
    ServerSession ss = session_map.get(sid);
    if (ss == null) return;
    ServerProject sp = ss.getProject();
-   
+
    try {
       sp.handleFindCritical(xml,xw);
     }
@@ -632,7 +632,7 @@ private void handleFindCritical(String sid,Element xml,IvyXmlWriter xw)
       xw.field("ERROR",e.getMessage());
       xw.end("FAITQUERY");
     }
-}  
+}
 
 
 
@@ -687,6 +687,7 @@ private class EclipseHandler implements MintHandler {
 	       IvyXml.getAttrInt(e,"LENGTH"),
 	       IvyXml.getAttrInt(e,"OFFSET"),
 	       complete,remove,txt);
+	 msg.replyTo("<OK/>");
 	 break;
       case "RUNEVENT" :
 	 break;
@@ -765,44 +766,44 @@ private String processCommand(String cmd,String sid,Element e) throws ServerExce
 	 handleAnalyze(sid,e,xw);
 	 break;
       case "FLOWQUERY" :
-         handleFlowQuery(sid,e,xw);
-         break;
+	 handleFlowQuery(sid,e,xw);
+	 break;
       case "CHANGEQUERY" :
-         handleChangeQuery(sid,e,xw);
-         break;
+	 handleChangeQuery(sid,e,xw);
+	 break;
       case "QUERY" :
-         handleQuery(sid,e,xw);
-         break;
+	 handleQuery(sid,e,xw);
+	 break;
       case "RESOURCES" :
-         handleResourceFiles(sid,e,xw);
-         break;
+	 handleResourceFiles(sid,e,xw);
+	 break;
       case "REFLECTION" :
-         handleReflection(sid,e,xw);
-         break;
+	 handleReflection(sid,e,xw);
+	 break;
       case "PERFORMANCE" :
-         handlePerformance(sid,e,xw);
-         break;
+	 handlePerformance(sid,e,xw);
+	 break;
       case "CRITICAL" :
-         handleFindCritical(sid,e,xw);
-         break;
+	 handleFindCritical(sid,e,xw);
+	 break;
       case "VARQUERY" :
-         handleVarQuery(sid,e,xw);
-         break;
+	 handleVarQuery(sid,e,xw);
+	 break;
       case "FILEQUERY" :
-         handleFileQuery(sid,e,xw);
-         break;
+	 handleFileQuery(sid,e,xw);
+	 break;
       case "STACKSTART" :
-         handleStackStartQuery(sid,e,xw);
-         break;
+	 handleStackStartQuery(sid,e,xw);
+	 break;
       case "TESTCASE" :
-         handleTestCase(sid,e,xw);
-         break;
+	 handleTestCase(sid,e,xw);
+	 break;
       case "TESTEDIT" :
-         String txt = IvyXml.getText(e);
-         File fil = new File(IvyXml.getAttrString(e,"FILE"));
-         handleEdit(null,SOURCE_ID,fil,IvyXml.getAttrInt(e,"LENGTH"),IvyXml.getAttrInt(e,"OFFSET"),
-               false,false,txt);
-         break;
+	 String txt = IvyXml.getText(e);
+	 File fil = new File(IvyXml.getAttrString(e,"FILE"));
+	 handleEdit(null,SOURCE_ID,fil,IvyXml.getAttrInt(e,"LENGTH"),IvyXml.getAttrInt(e,"OFFSET"),
+	       false,false,txt);
+	 break;
       default :
 	 FaitLog.logE("Unknown command " + cmd);
 	 break;
@@ -823,41 +824,41 @@ private class CommandHandler implements MintHandler {
       String sid = args.getArgument(1);
       Element e = msg.getXml();
       String rslt = null;
-      
+
       try {
-         rslt = processCommand(cmd,sid,e);
-         FaitLog.logI("COMMAND RESULT: " + rslt);
+	 rslt = processCommand(cmd,sid,e);
+	 FaitLog.logI("COMMAND RESULT: " + rslt);
        }
       catch (ServerException t) {
-         String xmsg = "BEDROCK: error in command " + cmd + ": " + t;
-         FaitLog.logE(xmsg,t);
-         IvyXmlWriter xw = new IvyXmlWriter();
-         xw.cdataElement("ERROR",xmsg);
-         rslt = xw.toString();
-         xw.close();
+	 String xmsg = "BEDROCK: error in command " + cmd + ": " + t;
+	 FaitLog.logE(xmsg,t);
+	 IvyXmlWriter xw = new IvyXmlWriter();
+	 xw.cdataElement("ERROR",xmsg);
+	 rslt = xw.toString();
+	 xw.close();
        }
       catch (Throwable t) {
-         String xmsg = "Problem processing command " + cmd + ": " + t;
-         FaitLog.logE(xmsg,t);
-         StringWriter sw = new StringWriter();
-         PrintWriter pw = new PrintWriter(sw);
-         t.printStackTrace(pw);
-         Throwable xt = t;
-         for ( ; xt.getCause() != null; xt = xt.getCause());
-         if (xt != null && xt != t) {
-            pw.println();
-            xt.printStackTrace(pw);
-          }
-         FaitLog.logE("TRACE: " + sw.toString());
-         IvyXmlWriter xw = new IvyXmlWriter();
-         xw.begin("ERROR");
-         xw.textElement("MESSAGE",xmsg);
-         xw.cdataElement("EXCEPTION",t.toString());
-         xw.cdataElement("STACK",sw.toString());
-         xw.end("ERROR");
-         rslt = xw.toString();
-         xw.close();
-         pw.close();
+	 String xmsg = "Problem processing command " + cmd + ": " + t;
+	 FaitLog.logE(xmsg,t);
+	 StringWriter sw = new StringWriter();
+	 PrintWriter pw = new PrintWriter(sw);
+	 t.printStackTrace(pw);
+	 Throwable xt = t;
+	 for ( ; xt.getCause() != null; xt = xt.getCause());
+	 if (xt != null && xt != t) {
+	    pw.println();
+	    xt.printStackTrace(pw);
+	  }
+	 FaitLog.logE("TRACE: " + sw.toString());
+	 IvyXmlWriter xw = new IvyXmlWriter();
+	 xw.begin("ERROR");
+	 xw.textElement("MESSAGE",xmsg);
+	 xw.cdataElement("EXCEPTION",t.toString());
+	 xw.cdataElement("STACK",sw.toString());
+	 xw.end("ERROR");
+	 rslt = xw.toString();
+	 xw.close();
+	 pw.close();
        }
       msg.replyTo(rslt);
     }
