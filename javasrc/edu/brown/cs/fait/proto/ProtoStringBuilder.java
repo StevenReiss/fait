@@ -129,6 +129,8 @@ public ProtoStringBuilder(IfaceControl ic,IfaceType dt)
 /*                                                                              */
 /********************************************************************************/
 
+// CHECKSTYLE:OFF
+
 public IfaceValue prototype__constructor(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
 {
    buffer_value = fait_control.findConstantStringValue("");
@@ -290,6 +292,7 @@ public IfaceValue prototype_trimToSize(IfaceMethod fm,List<IfaceValue> args,Ifac
 }
 
 
+// CHECKSTYLE:ON
 
 
 /********************************************************************************/

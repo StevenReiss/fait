@@ -35,12 +35,16 @@
 
 package edu.brown.cs.fait.flow;
 
-import edu.brown.cs.fait.iface.*;
-
-import org.junit.*;
-
-import java.util.*;
-import java.io.*;
+import edu.brown.cs.fait.iface.FaitLog;
+import edu.brown.cs.fait.iface.IfaceCall;
+import edu.brown.cs.fait.iface.IfaceControl;
+import edu.brown.cs.fait.iface.IfaceError;
+import edu.brown.cs.fait.iface.IfaceProgramPoint;
+import edu.brown.cs.fait.iface.IfaceProject;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import org.junit.Test;
 
 public class FlowTest implements FlowConstants
 {

@@ -324,7 +324,7 @@ TypeSubtypeUser(Element xml)
 @Override public IfaceSubtype.Value getCallValue(IfaceCall cm,IfaceValue rslt,List<IfaceValue> args)
 {
    if (operator_checks != null) {
-      IfaceSubtype.Value atyps [] = new IfaceSubtype.Value[args.size()];
+      IfaceSubtype.Value [] atyps = new IfaceSubtype.Value[args.size()];
       int i = 0;
       for (IfaceValue vl : args) {
          atyps[i++] = vl.getDataType().getValue(this);
@@ -597,7 +597,7 @@ private class OpCheck {
       return computeValue(op.toString(),rslt,lhs,rhs);
     }
    
-   private UserValue computeValue(String op,IfaceSubtype.Value rslt,IfaceSubtype.Value ... args) {
+   private UserValue computeValue(String op,IfaceSubtype.Value rslt,IfaceSubtype.Value... args) {
       if (operator_values != null && !operator_values.contains(op)) return null;
       return checkValues(rslt,args);
     }

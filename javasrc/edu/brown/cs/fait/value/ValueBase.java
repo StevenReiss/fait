@@ -35,11 +35,24 @@
 
 package edu.brown.cs.fait.value;
 
-import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.fait.iface.FaitAnnotation;
+import edu.brown.cs.fait.iface.FaitError;
+import edu.brown.cs.fait.iface.IfaceControl;
+import edu.brown.cs.fait.iface.IfaceEntity;
+import edu.brown.cs.fait.iface.IfaceEntitySet;
+import edu.brown.cs.fait.iface.IfaceError;
+import edu.brown.cs.fait.iface.IfaceField;
+import edu.brown.cs.fait.iface.IfaceImplications;
+import edu.brown.cs.fait.iface.IfaceLocation;
+import edu.brown.cs.fait.iface.IfaceSubtype;
+import edu.brown.cs.fait.iface.IfaceType;
+import edu.brown.cs.fait.iface.IfaceValue;
 import edu.brown.cs.fait.type.CheckNullness;
 import edu.brown.cs.ivy.xml.IvyXmlWriter;
-
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 
@@ -168,7 +181,7 @@ IfaceControl getFaitControl()
 /*										*/
 /********************************************************************************/
 
-@Override abstract public IfaceValue mergeValue(IfaceValue v);
+@Override public abstract IfaceValue mergeValue(IfaceValue v);
 
 @Override public ValueBase forceNonNull()		{ return this; }
 @Override public IfaceValue forceInitialized(FaitAnnotation what)
@@ -366,7 +379,7 @@ protected IfaceType findCommonParent(IfaceType t1,IfaceType t2)
 }
 
 
-abstract protected void outputLocalXml(IvyXmlWriter xw);
+protected abstract void outputLocalXml(IvyXmlWriter xw);
 
 
 

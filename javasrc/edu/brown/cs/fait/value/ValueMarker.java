@@ -35,19 +35,14 @@
 
 package edu.brown.cs.fait.value;
 
-import java.util.HashSet;
-import java.util.Set;
-
-import org.eclipse.jdt.core.dom.ASTNode;        // Needed for git-based compilation
-
-import edu.brown.cs.fait.iface.FaitLog;
-import edu.brown.cs.fait.iface.IfaceStackMarker;
 import edu.brown.cs.fait.iface.IfaceProgramPoint;
-import edu.brown.cs.fait.iface.IfaceType;
-import edu.brown.cs.fait.iface.IfaceValue;
 import edu.brown.cs.ivy.xml.IvyXmlWriter;
+import edu.brown.cs.fait.iface.IfaceValue;
+import edu.brown.cs.fait.iface.IfaceType;
+import edu.brown.cs.fait.iface.IfaceStackMarker;
+import java.util.Set;
+import java.util.HashSet;
 
-@SuppressWarnings("unused") 
 class ValueMarker extends ValueBase implements IfaceStackMarker
 {
 

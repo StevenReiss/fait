@@ -35,10 +35,14 @@
 
 package edu.brown.cs.fait.entity;
 
-import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.fait.iface.IfaceControl;
+import edu.brown.cs.fait.iface.IfaceLocation;
+import edu.brown.cs.fait.iface.IfacePrototype;
+import edu.brown.cs.fait.iface.IfaceType;
+import edu.brown.cs.fait.iface.IfaceValue;
 import edu.brown.cs.ivy.xml.IvyXmlWriter;
-
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 
 abstract class EntityObject extends EntityBase

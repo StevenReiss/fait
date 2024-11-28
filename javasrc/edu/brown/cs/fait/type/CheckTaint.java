@@ -41,14 +41,16 @@ import edu.brown.cs.fait.iface.IfaceCall;
 import edu.brown.cs.fait.iface.IfaceSubtype;
 import edu.brown.cs.fait.iface.IfaceType;
 import edu.brown.cs.fait.iface.IfaceValue;
-
-import static edu.brown.cs.fait.type.CheckTaint.TaintState.*;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-public class CheckTaint extends TypeSubtype
+import static edu.brown.cs.fait.type.CheckTaint.TaintState.MAYBE_TAINTED;
+import static edu.brown.cs.fait.type.CheckTaint.TaintState.TAINTED;
+import static edu.brown.cs.fait.type.CheckTaint.TaintState.UNTAINTED;
+
+      
+public final class CheckTaint extends TypeSubtype
 {
 
 

@@ -107,7 +107,7 @@ Collection<TestgenConstraint> update(IfaceControl fc,IfaceState prior,IfaceState
 }
 
 
-abstract protected void localUpdate(IfaceControl fc,IfaceState prior,IfaceState cur,
+protected abstract void localUpdate(IfaceControl fc,IfaceState prior,IfaceState cur,
       List<TestgenConstraint> rslt);
 
 

@@ -35,12 +35,35 @@
 
 package edu.brown.cs.fait.flow;
 
-import edu.brown.cs.fait.iface.*;
-
+import edu.brown.cs.fait.iface.FaitAnnotation;
+import edu.brown.cs.fait.iface.FaitLog;
+import edu.brown.cs.fait.iface.IfaceAnnotation;
+import edu.brown.cs.fait.iface.IfaceAstReference;
+import edu.brown.cs.fait.iface.IfaceBaseType;
+import edu.brown.cs.fait.iface.IfaceCall;
+import edu.brown.cs.fait.iface.IfaceControl;
+import edu.brown.cs.fait.iface.IfaceEntity;
+import edu.brown.cs.fait.iface.IfaceField;
+import edu.brown.cs.fait.iface.IfaceLocation;
+import edu.brown.cs.fait.iface.IfaceMethod;
+import edu.brown.cs.fait.iface.IfaceProgramPoint;
+import edu.brown.cs.fait.iface.IfacePrototype;
+import edu.brown.cs.fait.iface.IfaceSafetyStatus;
+import edu.brown.cs.fait.iface.IfaceSpecial;
+import edu.brown.cs.fait.iface.IfaceState;
+import edu.brown.cs.fait.iface.IfaceType;
+import edu.brown.cs.fait.iface.IfaceUpdater;
+import edu.brown.cs.fait.iface.IfaceValue;
 import edu.brown.cs.ivy.jcomp.JcompAst;
-
-import java.util.*;
-
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.eclipse.jdt.core.dom.ASTNode;
 
 
@@ -707,10 +730,12 @@ private IfaceValue checkVirtual(IfaceMethod bm,List<IfaceValue> args,
 
 
 
+// CHECKSTYLE:OFF
  private IfaceValue processActualCall(IfaceMethod fm,List<IfaceValue> args,boolean virt,
       FlowLocation loc,IfaceState st,IfaceCall mi,IfaceMethod fm0,
       LinkedList<IfaceValue> nargs,IfaceValue rslt,String cbid,int varct,Set<IfaceMethod> used,
       List<CallReturn> errs)
+// CHECKSTYLE:ON 
 {
    IfaceMethod orig = fm;
    IfaceSafetyStatus nsts = null;

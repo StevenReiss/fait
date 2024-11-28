@@ -35,11 +35,25 @@
 
 package edu.brown.cs.fait.call;
 
-import edu.brown.cs.fait.iface.*;
-import edu.brown.cs.ivy.xml.*;
-
+import edu.brown.cs.fait.iface.FaitAnnotation;
+import edu.brown.cs.fait.iface.FaitLog;
+import edu.brown.cs.fait.iface.IfaceAnnotation;
+import edu.brown.cs.fait.iface.IfaceControl;
+import edu.brown.cs.fait.iface.IfaceMethod;
+import edu.brown.cs.fait.iface.IfaceProgramPoint;
+import edu.brown.cs.fait.iface.IfaceSpecial;
+import edu.brown.cs.fait.iface.IfaceType;
+import edu.brown.cs.fait.iface.IfaceValue;
+import edu.brown.cs.ivy.xml.IvyXml;
+import edu.brown.cs.ivy.xml.IvyXmlWriter;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.StringTokenizer;
 import org.w3c.dom.Element;
-import java.util.*;
 
 
 class CallSpecial implements IfaceSpecial, CallConstants
@@ -149,7 +163,9 @@ CallSpecial(IfaceControl fc,Element xml,boolean formthd)
 	 try {
 	    ano = Integer.parseInt(id);
 	  }
-	 catch (NumberFormatException e) { continue; }
+	 catch (NumberFormatException e) {
+	    continue;
+	 }
 	 StringTokenizer tok1 = new StringTokenizer(aan,",@");
 	 while (tok1.hasMoreTokens()) {
 	    aaset.add(tok1.nextToken());

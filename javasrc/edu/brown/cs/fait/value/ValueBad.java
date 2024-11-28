@@ -35,7 +35,8 @@
 
 package edu.brown.cs.fait.value;
 
-import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.fait.iface.IfaceType;
+import edu.brown.cs.fait.iface.IfaceValue;
 import edu.brown.cs.ivy.xml.IvyXmlWriter;
 
 

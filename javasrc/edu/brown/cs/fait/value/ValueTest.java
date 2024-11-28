@@ -35,9 +35,17 @@
 
 package edu.brown.cs.fait.value;
 
-import edu.brown.cs.fait.iface.*;
-
-import org.junit.*;
+import edu.brown.cs.fait.iface.FaitAnnotation;
+import edu.brown.cs.fait.iface.FaitConstants;
+import edu.brown.cs.fait.iface.IfaceControl;
+import edu.brown.cs.fait.iface.IfaceEntity;
+import edu.brown.cs.fait.iface.IfaceEntitySet;
+import edu.brown.cs.fait.iface.IfaceField;
+import edu.brown.cs.fait.iface.IfaceProject;
+import edu.brown.cs.fait.iface.IfaceType;
+import edu.brown.cs.fait.iface.IfaceValue;
+import org.junit.Assert;
+import org.junit.Test;
 
 public class ValueTest implements FaitConstants
 {
@@ -50,7 +58,7 @@ public class ValueTest implements FaitConstants
 /********************************************************************************/
 
 private IfaceControl	fait_control;
-private IfaceValue	value_set[] = new IfaceValue[64];
+private IfaceValue [] value_set = new IfaceValue[64];
 
 
 

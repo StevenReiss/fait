@@ -129,7 +129,7 @@ final class QueryCallSites {
     }
    
    
-   final List<IfaceLocation> getCallSites() {
+   List<IfaceLocation> getCallSites() {
       return call_sites;
     }
    

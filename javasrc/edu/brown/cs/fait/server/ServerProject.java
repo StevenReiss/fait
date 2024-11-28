@@ -1454,7 +1454,7 @@ private IfaceValue getCurrentValue(IfaceControl ctrl,String vstr,IfaceType typ)
       catch (NumberFormatException e) { }
     }
    else if (typ.isStringType()) {
-      
+      // do nothing
     }
    else if (typ.isPrimitiveType()) ;
    else {

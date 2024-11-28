@@ -192,7 +192,7 @@ Set<IfaceSafetyCheck.Value> getValues(IfaceState st)
 
 
 
-static private boolean intersects(Set<?> s1,Set<?> s2)
+private static boolean intersects(Set<?> s1,Set<?> s2)
 {
    for (Object o : s1) {
       if (s2.contains(o)) return true;

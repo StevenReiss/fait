@@ -200,7 +200,7 @@ List<TestgenValue> update(IfaceControl fc,IfaceState prior,IfaceState cur)
 }
 
 
-abstract protected void updateInternal(IfaceControl fc,IfaceState prior,IfaceState cur,
+protected abstract void updateInternal(IfaceControl fc,IfaceState prior,IfaceState cur,
       List<TestgenValue> rslt);
 
 
@@ -214,7 +214,7 @@ abstract protected void updateInternal(IfaceControl fc,IfaceState prior,IfaceSta
 
 private static class PrimitiveValue extends TestgenValue {
    
-   Object value_constant;
+   private Object value_constant;
    
    PrimitiveValue(IfaceType t,Object v) {
       super(t);
@@ -246,9 +246,9 @@ private static class PrimitiveValue extends TestgenValue {
 
 private static class ExpressionValue extends TestgenValue {
 
-   TestgenValue lhs_value;
-   TestgenValue rhs_value;
-   FaitOperator expr_op;
+   private TestgenValue lhs_value;
+   private TestgenValue rhs_value;
+   private FaitOperator expr_op;
    
    ExpressionValue(IfaceType rtyp,FaitOperator op,TestgenValue lhs,TestgenValue rhs) {
       super(rtyp);

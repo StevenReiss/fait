@@ -35,11 +35,27 @@
 
 package edu.brown.cs.fait.call;
 
-import edu.brown.cs.fait.iface.*;
-import edu.brown.cs.ivy.xml.*;
-
-
-import java.util.*;
+import edu.brown.cs.fait.iface.IfaceBaseType;
+import edu.brown.cs.fait.iface.IfaceCall;
+import edu.brown.cs.fait.iface.IfaceControl;
+import edu.brown.cs.fait.iface.IfaceEntity;
+import edu.brown.cs.fait.iface.IfaceEntitySet;
+import edu.brown.cs.fait.iface.IfaceMethod;
+import edu.brown.cs.fait.iface.IfaceProgramPoint;
+import edu.brown.cs.fait.iface.IfaceSafetyStatus;
+import edu.brown.cs.fait.iface.IfaceSpecial;
+import edu.brown.cs.fait.iface.IfaceType;
+import edu.brown.cs.fait.iface.IfaceValue;
+import edu.brown.cs.ivy.xml.IvyXml;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.w3c.dom.Element;
 
 
@@ -65,7 +81,7 @@ private Map<String,AllocMode> alloc_map;
 private Set<String> load_classes;
 
 
-private final static Object DEFAULT_OBJECT = new Object();
+private static final Object DEFAULT_OBJECT = new Object();
 
 
 
@@ -94,7 +110,8 @@ public CallFactory(IfaceControl fc)
 /*										*/
 /********************************************************************************/
 
-public IfaceCall findCall(IfaceProgramPoint pt,IfaceMethod fm,List<IfaceValue> args,IfaceSafetyStatus sts,InlineType inline)
+public IfaceCall findCall(IfaceProgramPoint pt,IfaceMethod fm,List<IfaceValue> args,
+      IfaceSafetyStatus sts,InlineType inline)
 {
    Object key = null;
 

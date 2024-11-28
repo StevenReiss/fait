@@ -35,12 +35,17 @@
 
 package edu.brown.cs.fait.proto;
 
-import edu.brown.cs.fait.iface.*;
-
+import edu.brown.cs.fait.iface.FaitConstants;
+import edu.brown.cs.fait.iface.IfaceControl;
+import edu.brown.cs.fait.iface.IfaceMethod;
+import edu.brown.cs.fait.iface.IfaceProject;
+import edu.brown.cs.fait.iface.IfacePrototype;
+import edu.brown.cs.fait.iface.IfaceType;
+import edu.brown.cs.fait.iface.IfaceValue;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.junit.*;
+import org.junit.Assert;
+import org.junit.Test;
 
 
 public class ProtoTest implements FaitConstants

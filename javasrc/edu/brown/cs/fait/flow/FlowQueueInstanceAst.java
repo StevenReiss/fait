@@ -36,8 +36,6 @@
 package edu.brown.cs.fait.flow;
 
 
-import org.eclipse.jdt.core.dom.ASTNode;
-
 import edu.brown.cs.fait.iface.FaitAnnotation;
 import edu.brown.cs.fait.iface.FaitLog;
 import edu.brown.cs.fait.iface.IfaceCall;
@@ -48,6 +46,7 @@ import edu.brown.cs.fait.iface.IfaceState;
 import edu.brown.cs.fait.iface.IfaceType;
 import edu.brown.cs.fait.iface.IfaceValue;
 import edu.brown.cs.fait.iface.IfaceAstStatus.Reason;
+import org.eclipse.jdt.core.dom.ASTNode;
 
 class FlowQueueInstanceAst extends FlowQueueInstance implements FlowConstants
 {

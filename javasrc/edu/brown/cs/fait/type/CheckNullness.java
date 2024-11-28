@@ -41,14 +41,16 @@ import edu.brown.cs.fait.iface.IfaceBaseType;
 import edu.brown.cs.fait.iface.IfaceSubtype;
 import edu.brown.cs.fait.iface.IfaceType;
 import edu.brown.cs.fait.iface.IfaceValue;
-
-import static edu.brown.cs.fait.type.CheckNullness.NullState.*;
-
 import java.util.Arrays;
 import java.util.Collection;
 
+import static edu.brown.cs.fait.type.CheckNullness.NullState.MUST_BE_NULL;
+import static edu.brown.cs.fait.type.CheckNullness.NullState.NON_NULL;
+import static edu.brown.cs.fait.type.CheckNullness.NullState.DEREFED;
+import static edu.brown.cs.fait.type.CheckNullness.NullState.CAN_BE_NULL;
 
-public class CheckNullness extends TypeSubtype
+
+public final class CheckNullness extends TypeSubtype
 {
 
 
@@ -221,7 +223,8 @@ private CheckNullness()
 
 @Override void checkImpliedTypes(TypeImplications rslt,FaitOperator op)
 {
-   IfaceType t0,t1;
+   IfaceType t0;
+   IfaceType t1;
 
    switch (op) {
       case NULL :

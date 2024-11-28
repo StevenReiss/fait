@@ -36,9 +36,21 @@
 package edu.brown.cs.fait.entity;
 
 
-import edu.brown.cs.fait.iface.*;
-
-import java.util.*;
+import edu.brown.cs.fait.iface.IfaceControl;
+import edu.brown.cs.fait.iface.IfaceEntity;
+import edu.brown.cs.fait.iface.IfaceLocation;
+import edu.brown.cs.fait.iface.IfaceMethod;
+import edu.brown.cs.fait.iface.IfacePrototype;
+import edu.brown.cs.fait.iface.IfaceType;
+import edu.brown.cs.fait.iface.IfaceUpdater;
+import edu.brown.cs.fait.iface.IfaceValue;
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 
 public final class EntityFactory implements EntityConstants
@@ -398,9 +410,6 @@ public void handleEntityUpdates(IfaceUpdater upd)
 /*	Type compatability methods						*/
 /*										*/
 /********************************************************************************/
-
-IfaceType OBJECT = null;
-
 
 boolean compatibleTypes(IfaceType t1,IfaceType t2)
 {

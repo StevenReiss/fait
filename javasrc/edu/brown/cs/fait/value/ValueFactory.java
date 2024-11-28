@@ -35,10 +35,24 @@
 
 package edu.brown.cs.fait.value;
 
-import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.fait.iface.FaitAnnotation;
+import edu.brown.cs.fait.iface.FaitLog;
+import edu.brown.cs.fait.iface.IfaceAnnotation;
+import edu.brown.cs.fait.iface.IfaceControl;
+import edu.brown.cs.fait.iface.IfaceEntity;
+import edu.brown.cs.fait.iface.IfaceEntitySet;
+import edu.brown.cs.fait.iface.IfaceField;
+import edu.brown.cs.fait.iface.IfaceProgramPoint;
+import edu.brown.cs.fait.iface.IfaceType;
+import edu.brown.cs.fait.iface.IfaceUpdater;
+import edu.brown.cs.fait.iface.IfaceValue;
 import edu.brown.cs.ivy.file.ConcurrentHashSet;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 
 
@@ -188,14 +202,14 @@ public ValueBase floatRangeValue(IfaceType typ,double v0,double v1)
 
 
 
-public ValueBase objectValue(IfaceType typ,IfaceEntitySet ss,IfaceAnnotation ... flags)
+public ValueBase objectValue(IfaceType typ,IfaceEntitySet ss,IfaceAnnotation... flags)
 {
    return objectValue(typ,ss,null,flags);
 }
 
 
 
-public ValueBase objectValue(IfaceType typ,IfaceEntitySet ss,String conststr,IfaceAnnotation ... flags)
+public ValueBase objectValue(IfaceType typ,IfaceEntitySet ss,String conststr,IfaceAnnotation... flags)
 {
    if (ss.isEmpty() || typ == null) return emptyValue(typ,flags);
 
@@ -235,7 +249,7 @@ public ValueBase objectValue(IfaceType typ,IfaceEntitySet ss,String conststr,Ifa
 
 
 
-public ValueBase emptyValue(IfaceType typ,IfaceAnnotation ... flags)
+public ValueBase emptyValue(IfaceType typ,IfaceAnnotation... flags)
 {
    if (typ == null) return nullValue();
    ValueObject cvo = null;

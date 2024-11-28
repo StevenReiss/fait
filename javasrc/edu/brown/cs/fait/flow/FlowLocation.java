@@ -35,8 +35,6 @@
 
 package edu.brown.cs.fait.flow;
 
-import java.util.List;
-
 import edu.brown.cs.fait.iface.FaitLog;
 import edu.brown.cs.fait.iface.IfaceCall;
 import edu.brown.cs.fait.iface.IfaceError;
@@ -45,6 +43,7 @@ import edu.brown.cs.fait.iface.IfaceMethod;
 import edu.brown.cs.fait.iface.IfaceProgramPoint;
 import edu.brown.cs.fait.iface.IfaceValue;
 import edu.brown.cs.ivy.xml.IvyXmlWriter;
+import java.util.List;
 
 class FlowLocation implements IfaceLocation, FlowConstants
 {

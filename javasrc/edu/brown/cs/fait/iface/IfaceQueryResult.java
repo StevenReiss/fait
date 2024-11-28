@@ -41,7 +41,7 @@ public interface IfaceQueryResult
 {
 
 
-public void outputXml(IvyXmlWriter xw);
+void outputXml(IvyXmlWriter xw);
 
 
 }       // end of interface IfaceQueryResult

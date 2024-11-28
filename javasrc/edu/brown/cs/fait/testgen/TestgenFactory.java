@@ -107,7 +107,7 @@ public void generateTestCase(Element xml,IvyXmlWriter xw) throws FaitException
    IfaceError error = null;
    IfaceProgramPoint startpt = null;
    int errid = IvyXml.getAttrInt(exml,"HASHCODE");
-   outer :
+   outer:
       for (IfaceProgramPoint pt : call.getErrorLocations()) {
        for (IfaceError er : call.getErrors(pt)) {
           if (er.hashCode() == errid) {

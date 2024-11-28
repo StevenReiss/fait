@@ -117,7 +117,8 @@ QueryNode addNode(IfaceCall call,IfaceProgramPoint pt,QueryContext ctx,
    addNode(n,prior);
    all_nodes.add(n);
 
-   FaitLog.logD("QUERY","Create Node " + n + " at " + pt + ": " + reason + " (" + n.getId() + ") -> (" + prior.getId() + ")");
+   FaitLog.logD("QUERY","Create Node " + n + " at " + pt + ": " + reason +
+         " (" + n.getId() + ") -> (" + prior.getId() + ")");
 
    return n;
 }

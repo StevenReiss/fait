@@ -207,7 +207,7 @@ protected Value getState(String nm)
 /*                                                                              */
 /********************************************************************************/
 
-private class State implements Value {
+private final class State implements Value {
    
    private String state_name;
    private int state_value;

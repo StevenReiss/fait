@@ -35,9 +35,23 @@
 
 package edu.brown.cs.fait.flow;
 
-import edu.brown.cs.fait.iface.*;
-
-import java.util.*;
+import edu.brown.cs.fait.iface.FaitLog;
+import edu.brown.cs.fait.iface.IfaceAuxReference;
+import edu.brown.cs.fait.iface.IfaceCall;
+import edu.brown.cs.fait.iface.IfaceControl;
+import edu.brown.cs.fait.iface.IfaceField;
+import edu.brown.cs.fait.iface.IfaceState;
+import edu.brown.cs.fait.iface.IfaceType;
+import edu.brown.cs.fait.iface.IfaceUpdater;
+import edu.brown.cs.fait.iface.IfaceValue;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 
 class FlowField implements FlowConstants

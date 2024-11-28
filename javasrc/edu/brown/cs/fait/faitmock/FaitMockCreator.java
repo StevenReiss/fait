@@ -63,7 +63,7 @@ import org.w3c.dom.Element;
 import edu.brown.cs.ivy.jcode.JcodeConstants;
 import edu.brown.cs.ivy.xml.IvyXml;
 
-public class FaitMockCreator implements FaitMockConstants
+public final class FaitMockCreator implements FaitMockConstants
 {
 
 
@@ -591,7 +591,7 @@ private void outputResult()
 
 public static class Listener {
 
-   String listener_class;
+   private String listener_class;
 
    Listener(Element xml) {
       listener_class = IvyXml.getTextElement(xml,"listener-class");
@@ -612,9 +612,9 @@ public static class Listener {
 
 public static class Filter {
 
-   String filter_name;
-   String filter_class;
-   Map<String,String> filter_values;
+   private String filter_name;
+   private String filter_class;
+   private Map<String,String> filter_values;
 
    Filter(Element xml) {
       filter_name = fixName(IvyXml.getTextElement(xml,"filter-name"));
@@ -637,11 +637,11 @@ public static class Filter {
 
 public class Servlet {
 
-   String servlet_name;
-   String servlet_class;
-   String jsp_file;
-   Map<String,String> servlet_values;
-   Map<String,String> service_methods;
+   private String servlet_name;
+   private String servlet_class;
+   private String jsp_file;
+   private Map<String,String> servlet_values;
+   private Map<String,String> service_methods;
 
    Servlet(Element xml) {
       servlet_name = fixName(IvyXml.getTextElement(xml,"servlet-name"));
@@ -704,9 +704,9 @@ public class Tag {
 
 public static class TagAttribute {
    
-   String attr_name;
-   boolean is_required;
-   String attr_type;
+   private String attr_name;
+   private boolean is_required;
+   private String attr_type;
    
    TagAttribute(Element xml) {
       attr_name = IvyXml.getTextElement(xml,"name");
@@ -734,9 +734,9 @@ public static class TagAttribute {
 
 public static class Plugin {
 
-   String plugin_name;
-   String plugin_class;
-   Map<String,String> plugin_props;
+   private String plugin_name;
+   private String plugin_class;
+   private Map<String,String> plugin_props;
 
    Plugin(Element xml) {
       plugin_name = fixName(IvyXml.getAttrString(xml,"name"));

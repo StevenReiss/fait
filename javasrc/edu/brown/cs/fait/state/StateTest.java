@@ -35,9 +35,14 @@
 
 package edu.brown.cs.fait.state;
 
-import edu.brown.cs.fait.iface.*;
-
-import org.junit.*;
+import edu.brown.cs.fait.iface.FaitConstants;
+import edu.brown.cs.fait.iface.IfaceControl;
+import edu.brown.cs.fait.iface.IfaceProject;
+import edu.brown.cs.fait.iface.IfaceState;
+import edu.brown.cs.fait.iface.IfaceType;
+import edu.brown.cs.fait.iface.IfaceValue;
+import org.junit.Assert;
+import org.junit.Test;
 
 
 

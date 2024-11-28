@@ -297,7 +297,9 @@ void computeBackFlow(boolean conds)
 /*                                                                              */
 /********************************************************************************/
 
+// CHECKSTYLE:OFF
 IfaceValue computeByteCodeBackFlow(IfaceValue eref)
+// CHECKSTYLE:ON
 {
    JcodeInstruction ins = execute_point.getInstruction();
    IfaceValue sref = null;
@@ -312,7 +314,8 @@ IfaceValue computeByteCodeBackFlow(IfaceValue eref)
             eref.getRefField());
     }
    
-   IfaceValue v0,v1;
+   IfaceValue v0;
+   IfaceValue v1;
    switch (ins.getOpcode()) {
 /* OBJECT PROCESSING INSTRUTIONS */
       case DLOAD : case DLOAD_0 : case DLOAD_1 : case DLOAD_2 : case DLOAD_3 :

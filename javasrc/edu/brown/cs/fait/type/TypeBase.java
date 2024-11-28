@@ -325,12 +325,12 @@ TypeBase(TypeFactory fac,IfaceBaseType base,IfaceSubtype.Value [] subs)
 
 @Override public boolean checkValue(IfaceSubtype.Value v)
 {
-   int idx = ((TypeSubtype)(v.getSubtype())).getIndex();
+   int idx = ((TypeSubtype) (v.getSubtype())).getIndex();
    return sub_values[idx] == v;
 }
 
 
-@Override public boolean checkValue(IfaceAnnotation ... annots)
+@Override public boolean checkValue(IfaceAnnotation... annots)
 {
    if (annots == null || annots.length == 0) return true;
    boolean rslt = true;
@@ -346,7 +346,7 @@ TypeBase(TypeFactory fac,IfaceBaseType base,IfaceSubtype.Value [] subs)
 
 
 
-@Override public IfaceType getAnnotatedType(IfaceAnnotation ... an)
+@Override public IfaceType getAnnotatedType(IfaceAnnotation... an)
 {
    if (an == null || an.length == 0 || (an.length == 1 && an[0] == null)) 
       return this;
@@ -412,9 +412,10 @@ TypeBase(TypeFactory fac,IfaceBaseType base,IfaceSubtype.Value [] subs)
 /*                                                                              */
 /********************************************************************************/
 
-public IfaceType getComputedType(IfaceValue rslt,FaitOperator op,IfaceValue ... args)
+public IfaceType getComputedType(IfaceValue rslt,FaitOperator op,IfaceValue... args)
 {
-   IfaceValue lhs,rhs;
+   IfaceValue lhs;
+   IfaceValue rhs;
    
    if (args.length == 0 || args[0] == null) lhs = rslt;
    else lhs = args[0];
@@ -488,7 +489,7 @@ public IfaceType getCallType(IfaceCall c,IfaceValue rslt,List<IfaceValue> args)
 
 
 
-@Override public List<IfaceType> getBackTypes(FaitOperator op,IfaceValue ... vals)
+@Override public List<IfaceType> getBackTypes(FaitOperator op,IfaceValue... vals)
 {
    List<IfaceType> rslt = null;
    int ct = type_factory.getNumSubtypes();

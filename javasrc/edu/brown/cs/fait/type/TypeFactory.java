@@ -132,7 +132,7 @@ public IfaceType createType(IfaceBaseType base,Collection<IfaceAnnotation> annot
 }
 
 
-public IfaceType createType(IfaceBaseType base,IfaceAnnotation ... annots)
+public IfaceType createType(IfaceBaseType base,IfaceAnnotation... annots)
 {
    if (base == null) return null;
    
@@ -172,7 +172,7 @@ public IfaceType createType(IfaceType base,Map<IfaceSubtype,IfaceSubtype.Value> 
 
 
 
-public IfaceType createType(IfaceType base,IfaceAnnotation ... annots)
+public IfaceType createType(IfaceType base,IfaceAnnotation... annots)
 {
    if (base == null) return null;
    

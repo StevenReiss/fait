@@ -35,9 +35,25 @@
 
 package edu.brown.cs.fait.proto;
 
-import edu.brown.cs.fait.iface.*;
-
-import java.util.*;
+import edu.brown.cs.fait.iface.FaitAnnotation;
+import edu.brown.cs.fait.iface.FaitLog;
+import edu.brown.cs.fait.iface.IfaceControl;
+import edu.brown.cs.fait.iface.IfaceEntity;
+import edu.brown.cs.fait.iface.IfaceEntitySet;
+import edu.brown.cs.fait.iface.IfaceLocation;
+import edu.brown.cs.fait.iface.IfaceMethod;
+import edu.brown.cs.fait.iface.IfaceProgramPoint;
+import edu.brown.cs.fait.iface.IfacePrototype;
+import edu.brown.cs.fait.iface.IfaceType;
+import edu.brown.cs.fait.iface.IfaceUpdater;
+import edu.brown.cs.fait.iface.IfaceValue;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 
 
@@ -108,6 +124,8 @@ public ProtoCollection(IfaceControl fc,IfaceType dt)
 /*	Collection constructor methods						*/
 /*										*/
 /********************************************************************************/
+
+// CHECKSTYLE:OFF
 
 public IfaceValue prototype__constructor(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
 {
@@ -699,6 +717,8 @@ synchronized public IfaceValue prototype_listIterator(IfaceMethod fm,
 }
 
 
+// CHECKSTYLE:ON
+
 /********************************************************************************/
 /*										*/
 /*	Methods to handle state and value changes				*/
@@ -833,6 +853,8 @@ private class CollectionIter extends ProtoBase {
       super(fc,fc.findDataType("java.util.Iterator",FaitAnnotation.NON_NULL));
     }
 
+   // CHECKSTYLE:OFF
+   
    public IfaceValue prototype_hasNext(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src) {
       synchronized (ProtoCollection.this) {
 	 first_element.add(src);
@@ -847,6 +869,8 @@ private class CollectionIter extends ProtoBase {
 	 return fait_control.findAnyValue(element_value.getDataType());
       return element_value;
     }
+   
+   // CHECKSTYLE:ON
 
 }	// end of inner class CollectionIter
 
@@ -860,6 +884,8 @@ private class CollectionListIter extends ProtoBase {
    CollectionListIter(IfaceControl fc) {
       super(fc,fc.findDataType("java.util.ListIterator",FaitAnnotation.NON_NULL));
     }
+   
+   // CHECKSTYLE:OFF
 
    public IfaceValue prototype_add(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src) {
       return ProtoCollection.this.prototype_add(fm,args,src);
@@ -891,6 +917,8 @@ private class CollectionListIter extends ProtoBase {
    public IfaceValue prototype_set(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src) {
       return ProtoCollection.this.prototype_set(fm,args,src);
     }
+   
+   // CHECKSTYLE:ON
 
 }	// end of inner class CollectionListIter
 
@@ -903,6 +931,8 @@ private class CollectionEnum extends ProtoBase {
    CollectionEnum(IfaceControl fc) {
       super(fc,fc.findDataType("java.util.Enumeration",FaitAnnotation.NON_NULL));
     }
+   
+   // CHECKSTYLE:OFF
 
    public IfaceValue prototype_hasMoreElements(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src) {
       synchronized (ProtoCollection.this) {
@@ -916,6 +946,8 @@ private class CollectionEnum extends ProtoBase {
       addElementChange(src);
       return element_value;
     }
+   
+   // CHECKSTYLE:ON
 
 }	// end of inner class CollectionEnum
 

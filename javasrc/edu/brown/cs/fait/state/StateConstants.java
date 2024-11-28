@@ -35,7 +35,7 @@
 
 package edu.brown.cs.fait.state;
 
-import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.fait.iface.FaitConstants;
 
 
 

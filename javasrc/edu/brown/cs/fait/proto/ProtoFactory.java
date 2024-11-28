@@ -35,9 +35,13 @@
 
 package edu.brown.cs.fait.proto;
 
-import edu.brown.cs.fait.iface.*;
-
-import java.util.*;
+import edu.brown.cs.fait.iface.FaitLog;
+import edu.brown.cs.fait.iface.IfaceControl;
+import edu.brown.cs.fait.iface.IfaceMethod;
+import edu.brown.cs.fait.iface.IfacePrototype;
+import edu.brown.cs.fait.iface.IfaceType;
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class ProtoFactory implements ProtoConstants
@@ -125,7 +129,7 @@ public IfacePrototype createPrototype(IfaceType dt)
 /*                                                                              */
 /********************************************************************************/
 
-static public boolean isMethodRelevant(IfaceMethod fm,IfaceType basetype)
+public static boolean isMethodRelevant(IfaceMethod fm,IfaceType basetype)
 {
    IfaceType dt = fm.getDeclaringClass();
    String dnm = dt.getName();

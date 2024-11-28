@@ -35,7 +35,11 @@
 
 package edu.brown.cs.fait.iface;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 
 public interface IfaceCall extends FaitConstants

@@ -35,11 +35,10 @@
 
 package edu.brown.cs.fait.iface;
 
-import java.util.*;
-
 import edu.brown.cs.ivy.jcode.JcodeFactory;
 import edu.brown.cs.ivy.jcomp.JcompProject;
 import edu.brown.cs.ivy.jcomp.JcompTyper;
+import java.util.Collection;
 
 public interface IfaceProject extends FaitConstants
 {

@@ -35,7 +35,13 @@
 
 package edu.brown.cs.fait.value;
 
-import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.fait.iface.FaitLog;
+import edu.brown.cs.fait.iface.IfaceEntitySet;
+import edu.brown.cs.fait.iface.IfaceImplications;
+import edu.brown.cs.fait.iface.IfaceLocation;
+import edu.brown.cs.fait.iface.IfaceType;
+import edu.brown.cs.fait.iface.IfaceTypeImplications;
+import edu.brown.cs.fait.iface.IfaceValue;
 import edu.brown.cs.ivy.jcode.JcodeConstants;
 import edu.brown.cs.ivy.xml.IvyXmlWriter;
 
@@ -107,8 +113,10 @@ ValueInt(ValueFactory vf,IfaceType dt,Long minv,Long maxv,IfaceEntitySet es)
 /*										*/
 /********************************************************************************/
 
+// CHECKSTYLE:OFF
 @Override protected IfaceValue localPerformOperation(IfaceType typ,IfaceValue rhsv,
       FaitOperator op,IfaceLocation src)
+// CHECKSTYLE:ON
 {
    if (rhsv == null) rhsv = this;
 
@@ -159,7 +167,7 @@ ValueInt(ValueFactory vf,IfaceType dt,Long minv,Long maxv,IfaceEntitySet es)
 	    mxv = mnv;
 	  }
 	 else if (rhs.max_value != null && rhs.max_value > 0) {
-	    mnv = 0l;
+	    mnv = 0L;
 	    mxv = rhs.max_value;
 	  }
 	 break;
@@ -284,71 +292,71 @@ ValueInt(ValueFactory vf,IfaceType dt,Long minv,Long maxv,IfaceEntitySet es)
 	 break;
       case LSS :
 	 if (max_value != null && rhs.min_value != null && max_value < rhs.min_value) {
-	    mnv = 1l;
-	    mxv = 1l;
+	    mnv = 1L;
+	    mxv = 1L;
 	  }
 	 else if (min_value != null && rhs.max_value != null && min_value >= rhs.max_value) {
-	    mnv = 0l;
+	    mnv = 0L;
 	    mxv = mnv;
 	  }
 	 break;
       case LEQ :
 	 if (max_value != null && rhs.min_value != null && max_value <= rhs.min_value) {
-	    mnv = 1l;
-	    mxv = 1l;
+	    mnv = 1L;
+	    mxv = 1L;
 	  }
 	 else if (min_value != null && rhs.max_value != null && min_value > rhs.max_value) {
-	    mnv = 0l;
+	    mnv = 0L;
 	    mxv = mnv;
 	  }
 	 break;
       case GTR :
 	 if (min_value != null && rhs.max_value != null && min_value > rhs.max_value) {
-	    mnv = 1l;
-	    mxv = 1l;
+	    mnv = 1L;
+	    mxv = 1L;
 	  }
 	 else if (max_value != null && rhs.min_value != null && max_value <= rhs.min_value) {
-	    mnv = 0l;
+	    mnv = 0L;
 	    mxv = mnv;
 	  }
 	 break;
       case GEQ :
 	 if (min_value != null && rhs.max_value != null && min_value >= rhs.max_value) {
-	    mnv = 1l;
-	    mxv = 1l;
+	    mnv = 1L;
+	    mxv = 1L;
 	  }
 	 else if (max_value != null && rhs.min_value != null && max_value < rhs.min_value) {
-	    mnv = 0l;
+	    mnv = 0L;
 	    mxv = mnv;
 	  }
 	 break;
       case EQL :
 	 if (v0 != null && v1 != null) {
-	    if (v0.equals(v1)) mnv = 1l;
-	    else mnv = 0l;
+	    if (v0.equals(v1)) mnv = 1L;
+	    else mnv = 0L;
 	    mxv = mnv;
 	  }
 	 else if (max_value != null && rhs.min_value != null && max_value < rhs.min_value) {
-	    mnv = 0l;
+	    mnv = 0L;
 	    mxv = mnv;
 	  }
 	 else if (min_value != null && rhs.max_value != null && min_value > rhs.max_value) {
-	    mnv = 0l;
+	    mnv = 0L;
 	    mxv = mnv;
 	  }
 	 break;
       case NEQ :
 	 if (v0 != null && v1 != null) {
-	    if (v0.equals(v1)) mnv = 0l;
-	    else mnv = 1l;
+	    if (v0.equals(v1)) mnv = 0L;
+	    else mnv = 1L;
 	    mxv = mnv;
 	  }
 	 else if (max_value != null && rhs.min_value != null && max_value < rhs.min_value) {
-	    mnv = 1l;
+	    mnv = 1L;
 	    mxv = mnv;
 	  }
 	 else if (min_value != null && rhs.max_value != null && min_value > rhs.max_value) {
-	    mnv = 1l;
+	    mnv = 1L;
 	    mxv = mnv;
 	  }
 	 break;
@@ -377,8 +385,10 @@ ValueInt(ValueFactory vf,IfaceType dt,Long minv,Long maxv,IfaceEntitySet es)
 
 
 
+// CHECKSTYLE:OFF
 @SuppressWarnings("fallthrough")
 @Override public IfaceImplications getImpliedValues(IfaceValue rhsv,FaitOperator op)
+// CHECKSTYLE:ON
 {
    ValueInt rhs = null;
    IfaceType rtyp = null;
@@ -393,7 +403,8 @@ ValueInt(ValueFactory vf,IfaceType dt,Long minv,Long maxv,IfaceEntitySet es)
    ValueBase rt = null;
    ValueBase rf = null;
    boolean flip = false;
-   Long mnv,mxv;
+   Long mnv;
+   Long mxv;
    Long v0 = null;
    Long v1 = null;
    if (min_value != null && min_value.equals(max_value)) v0 = min_value;
@@ -414,10 +425,12 @@ ValueInt(ValueFactory vf,IfaceType dt,Long minv,Long maxv,IfaceEntitySet es)
 	    mxv = Math.min(max_value.longValue(),rhs.max_value.longValue());
 	  }
 	 if (mnv != null && mxv != null && mnv > mxv) {
-	    mnv = mxv = null;
+	    mnv = null;
+	    mxv = null;
 	  }
 	 else if (mxv == null && mnv != null && rhs.max_value != null && rhs.max_value < mnv) {
-	    mnv = mxv = null;
+	    mnv = null;
+	    mxv = null;
 	  }
 	 lt = value_factory.rangeValue(getDataType(),
 	       (mnv == null ? min_value : mnv),
@@ -502,15 +515,15 @@ ValueInt(ValueFactory vf,IfaceType dt,Long minv,Long maxv,IfaceEntitySet es)
 	 flip = true;
 	 // fall through
       case EQL_ZERO :
-	 lt = value_factory.rangeValue(getDataType(),0l,0l);
+	 lt = value_factory.rangeValue(getDataType(),0L,0L);
 	 if (min_value != null && min_value.longValue() == 0) {
 	    if (max_value == null || max_value >= 1) {
-	       lf = value_factory.rangeValue(getDataType(),1l,max_value);
+	       lf = value_factory.rangeValue(getDataType(),1L,max_value);
 	     }
 	  }
 	 else if (max_value != null && max_value.longValue() == 0) {
 	    if (min_value == null || min_value <= -1) {
-	       lf = value_factory.rangeValue(getDataType(),min_value,-1l);
+	       lf = value_factory.rangeValue(getDataType(),min_value,-1L);
 	     }
 	  }
 	 break;
@@ -520,12 +533,12 @@ ValueInt(ValueFactory vf,IfaceType dt,Long minv,Long maxv,IfaceEntitySet es)
       case LSS_ZERO :
 	 if (max_value == null || max_value >= 0) {
 	    if (min_value == null || min_value <= -1) {
-	       lt = value_factory.rangeValue(getDataType(),min_value,-1l);
+	       lt = value_factory.rangeValue(getDataType(),min_value,-1L);
 	     }
 	  }
 	 if (min_value == null || min_value < 0) {
 	    if (max_value == null || max_value >= 0) {
-	       lf = value_factory.rangeValue(getDataType(),0l,max_value);
+	       lf = value_factory.rangeValue(getDataType(),0L,max_value);
 	     }
 	  }
 	 break;
@@ -535,12 +548,12 @@ ValueInt(ValueFactory vf,IfaceType dt,Long minv,Long maxv,IfaceEntitySet es)
       case LEQ_ZERO :
 	 if (max_value == null || max_value > 0) {
 	    if (min_value == null || min_value <= 0) {
-	       lt = value_factory.rangeValue(getDataType(),min_value,0l);
+	       lt = value_factory.rangeValue(getDataType(),min_value,0L);
 	     }
 	  }
 	 if (min_value == null || min_value <= 0) {
 	    if (max_value == null || max_value >= 1) {
-	       lf = value_factory.rangeValue(getDataType(),1l,max_value);
+	       lf = value_factory.rangeValue(getDataType(),1L,max_value);
 	     }
 	  }
 	 break;
@@ -631,7 +644,10 @@ ValueInt(ValueFactory vf,IfaceType dt,Long minv,Long maxv,IfaceEntitySet es)
       if (mnv != null && mxv != null && mxv - mnv >= VALUE_MAX_RANGE) {
 	 if (Math.abs(min_value-cvi.min_value) <= 1 && mnv == 0) mxv = null;
 	 else if (Math.abs(max_value-cvi.max_value) <= 0) mnv = null;
-	 else mnv = mxv = null;
+	 else {
+            mnv = null;
+            mxv = null;
+          }
        }
       if (mnv != null && min_value != cvi.min_value && mxv == null &&
 	    mnv < -VALUE_MAX_RANGE)

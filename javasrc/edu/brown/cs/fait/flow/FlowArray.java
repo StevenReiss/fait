@@ -35,9 +35,23 @@
 
 package edu.brown.cs.fait.flow;
 
-import edu.brown.cs.fait.iface.*;
-
-import java.util.*;
+import edu.brown.cs.fait.iface.FaitAnnotation;
+import edu.brown.cs.fait.iface.FaitLog;
+import edu.brown.cs.fait.iface.IfaceAuxReference;
+import edu.brown.cs.fait.iface.IfaceControl;
+import edu.brown.cs.fait.iface.IfaceEntity;
+import edu.brown.cs.fait.iface.IfaceEntitySet;
+import edu.brown.cs.fait.iface.IfaceType;
+import edu.brown.cs.fait.iface.IfaceUpdater;
+import edu.brown.cs.fait.iface.IfaceValue;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 
 
@@ -351,7 +365,8 @@ void handleUpdate(IfaceUpdater upd)
       if (ct == 0) it.remove();
     }
    
-   for (Iterator<Map.Entry<IfaceEntity,Map<FlowLocation,Integer>>> it = setter_map.entrySet().iterator(); it.hasNext(); ) {
+   for (Iterator<Map.Entry<IfaceEntity,Map<FlowLocation,Integer>>> it = setter_map.entrySet().iterator();
+         it.hasNext(); ) {
       Map.Entry<IfaceEntity,Map<FlowLocation,Integer>> ent = it.next();
       IfaceEntity ie = ent.getKey();
       if (rement.contains(ie)) {

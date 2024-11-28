@@ -35,7 +35,8 @@
 
 package edu.brown.cs.fait.entity;
 
-import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.fait.iface.IfaceEntity;
+import edu.brown.cs.fait.iface.IfaceLocation;
 import edu.brown.cs.ivy.xml.IvyXmlWriter;
 
 

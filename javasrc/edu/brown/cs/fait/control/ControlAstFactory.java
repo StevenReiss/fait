@@ -791,9 +791,10 @@ private class AstMethod implements IfaceMethod {
        }
       return rslt;
     }
-   @Override synchronized public List<IfaceMethod> getParentMethods() {
+   @Override public synchronized List<IfaceMethod> getParentMethods() {
       if (parent_methods == null) {
-         parent_methods = fait_control.findParentMethods(getDeclaringClass(),getName(),getDescription(),false,false,null);
+         parent_methods = fait_control.findParentMethods(getDeclaringClass(),
+               getName(),getDescription(),false,false,null);
        }
       return parent_methods;
     }
@@ -805,7 +806,7 @@ private class AstMethod implements IfaceMethod {
       return child_methods;
     }
 
-   @Override synchronized public List<JcodeTryCatchBlock> getTryCatchBlocks() {
+   @Override public synchronized List<JcodeTryCatchBlock> getTryCatchBlocks() {
       return null;
     }
 
@@ -1353,7 +1354,7 @@ IfaceAstReference getAstReference(ASTNode n,ASTNode after,IfaceAstStatus sts)
 
 
 
-private static class RefComparator implements Comparator<ControlAstReference> {
+private static final class RefComparator implements Comparator<ControlAstReference> {
 
    @Override public int compare(ControlAstReference r1,ControlAstReference r2) {
       ASTNode e1 = r1.getAstNode();

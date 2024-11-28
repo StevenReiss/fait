@@ -215,7 +215,9 @@ List<TestgenValue> adjustReference(TestgenReferenceValue rv)
 /*                                                                              */
 /********************************************************************************/
 
+// CHECKSTYLE:OFF
 private void adjustCodeReference(TestgenReferenceValue tr,List<TestgenValue> rslt)
+// CHECKSTYLE:ON
 {
    JcodeInstruction ins = execute_point.getInstruction();
    int stk = tr.getRefStack();
@@ -224,7 +226,8 @@ private void adjustCodeReference(TestgenReferenceValue tr,List<TestgenValue> rsl
    IfaceType settype = tr.getDataType();
    TestgenValue start = null;
    
-   IfaceValue v0,v1;
+   IfaceValue v0;
+   IfaceValue v1;
    switch (ins.getOpcode()) {
 /* OBJECT PROCESSING INSTRUTIONS */
       case DLOAD : case DLOAD_0 : case DLOAD_1 : case DLOAD_2 : case DLOAD_3 :

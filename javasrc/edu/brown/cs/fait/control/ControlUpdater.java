@@ -303,7 +303,8 @@ private static class QueueItem {
 
 /********************************************************************************/
 /*										*/
-/*	Value setup methods							*//*										  */
+/*	Value setup methods							*/
+/*								                */
 /********************************************************************************/
 
 public void addToValueMap(IfaceValue oval,IfaceValue nval)

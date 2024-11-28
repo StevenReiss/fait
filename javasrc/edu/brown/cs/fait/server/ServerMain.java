@@ -49,7 +49,7 @@ import edu.brown.cs.ivy.mint.MintReply;
 import edu.brown.cs.ivy.xml.IvyXml;
 import edu.brown.cs.ivy.xml.IvyXmlWriter;
 
-public class ServerMain implements ServerConstants, MintConstants 
+public final class ServerMain implements ServerConstants, MintConstants 
 {
 
 

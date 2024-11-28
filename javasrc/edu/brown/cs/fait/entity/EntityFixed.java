@@ -35,9 +35,14 @@
 
 package edu.brown.cs.fait.entity;
 
-import edu.brown.cs.fait.iface.*;
-
-import java.util.*;
+import edu.brown.cs.fait.iface.FaitLog;
+import edu.brown.cs.fait.iface.IfaceControl;
+import edu.brown.cs.fait.iface.IfaceEntity;
+import edu.brown.cs.fait.iface.IfacePrototype;
+import edu.brown.cs.fait.iface.IfaceType;
+import edu.brown.cs.fait.iface.IfaceValue;
+import java.util.ArrayList;
+import java.util.Collection;
 
 
 class EntityFixed extends EntityObject

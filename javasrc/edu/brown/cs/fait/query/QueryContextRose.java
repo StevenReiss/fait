@@ -522,7 +522,7 @@ private QueryContextRose(QueryContextRose ctx,QueryCallSites sites,
 /********************************************************************************/
 /*										*/
 /*	Relevancy methods							*/
-/*										*/							
+/*										*/
 /********************************************************************************/
 
 @Override protected boolean isPriorStateRelevant(IfaceState state)

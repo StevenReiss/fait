@@ -36,16 +36,17 @@
 
 package edu.brown.cs.fait.iface;
 
-import java.io.File;
-import java.lang.reflect.Constructor;
-import java.util.*;
-
-import org.eclipse.jdt.core.dom.ASTNode;
-import org.w3c.dom.Element;
-
 import edu.brown.cs.ivy.jcode.JcodeInstruction;
 import edu.brown.cs.ivy.jcomp.JcompSymbol;
 import edu.brown.cs.ivy.xml.IvyXmlWriter;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import org.w3c.dom.Element;
+import org.eclipse.jdt.core.dom.ASTNode;
+import java.lang.reflect.Constructor;
+import java.io.File;
 
 
 
@@ -89,7 +90,7 @@ List<File> getSystemDescriptionFiles();
 /********************************************************************************/
 
 IfaceType findDataType(String cls,List<IfaceAnnotation> annots);
-IfaceType findDataType(String cls,IfaceAnnotation ... annots);
+IfaceType findDataType(String cls,IfaceAnnotation... annots);
 IfaceType findDataType(String cls);
 
 IfaceType findConstantType(String cls,Object cnst);
@@ -155,8 +156,8 @@ IfaceValue findConstantValue(IfaceType typ,long v);
 IfaceValue findConstantValue(boolean v);
 IfaceValue findConstantValue(IfaceType typ,double v);
 IfaceValue findRangeValue(IfaceType typ,double v0,double v1);
-IfaceValue findObjectValue(IfaceType typ,IfaceEntitySet ss,IfaceAnnotation ...	flags);
-IfaceValue findEmptyValue(IfaceType typ,IfaceAnnotation ... flags);
+IfaceValue findObjectValue(IfaceType typ,IfaceEntitySet ss,IfaceAnnotation...	flags);
+IfaceValue findEmptyValue(IfaceType typ,IfaceAnnotation... flags);
 IfaceValue findConstantStringValue();
 IfaceValue findConstantStringValue(String v);
 IfaceValue findMainArgsValue();

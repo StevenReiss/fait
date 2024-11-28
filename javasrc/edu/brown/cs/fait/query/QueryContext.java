@@ -218,7 +218,8 @@ protected QueryContext restrictToState(IfaceState state)        { return this; }
 
 
 
-protected List<IfaceAuxReference> getArgumentReferences(IfaceState st0,boolean argvalues,boolean thisval,boolean canbevoid)
+protected List<IfaceAuxReference> getArgumentReferences(IfaceState st0,boolean argvalues,
+      boolean thisval,boolean canbevoid)
 {
    List<IfaceAuxReference> rslt = new ArrayList<>();
    
@@ -313,7 +314,7 @@ final void outputXml(IvyXmlWriter xw,IfaceProgramPoint where)
 }
 
 
-abstract protected void localOutputXml(IvyXmlWriter xw,IfaceProgramPoint where);
+protected abstract void localOutputXml(IvyXmlWriter xw,IfaceProgramPoint where);
 
 
 

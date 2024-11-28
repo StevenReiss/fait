@@ -36,11 +36,16 @@
 package edu.brown.cs.fait.entity;
 
 
-import java.util.HashMap;
-import java.util.Map;
-
-import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.fait.iface.FaitAnnotation;
+import edu.brown.cs.fait.iface.FaitLog;
+import edu.brown.cs.fait.iface.IfaceControl;
+import edu.brown.cs.fait.iface.IfaceLocation;
+import edu.brown.cs.fait.iface.IfaceType;
+import edu.brown.cs.fait.iface.IfaceUpdater;
+import edu.brown.cs.fait.iface.IfaceValue;
 import edu.brown.cs.ivy.xml.IvyXmlWriter;
+import java.util.Map;
+import java.util.HashMap;
 
 
 

@@ -35,10 +35,19 @@
 
 package edu.brown.cs.fait.proto;
 
-import edu.brown.cs.fait.iface.*;
-
+import edu.brown.cs.fait.iface.FaitLog;
+import edu.brown.cs.fait.iface.IfaceAuxReference;
+import edu.brown.cs.fait.iface.IfaceControl;
+import edu.brown.cs.fait.iface.IfaceLocation;
+import edu.brown.cs.fait.iface.IfaceMethod;
+import edu.brown.cs.fait.iface.IfacePrototype;
+import edu.brown.cs.fait.iface.IfaceType;
+import edu.brown.cs.fait.iface.IfaceUpdater;
+import edu.brown.cs.fait.iface.IfaceValue;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 
@@ -55,7 +64,7 @@ protected IfaceControl	fait_control;
 private IfaceType	proto_type;
 private Map<IfaceMethod,Method> method_map;
 
-private static Class<?> [] call_params = new Class<?> [] {
+private static Class<?>[] call_params = new Class<?>[] {
    IfaceMethod.class, List.class, IfaceLocation.class
 };
 

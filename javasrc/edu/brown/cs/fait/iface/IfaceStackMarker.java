@@ -40,8 +40,8 @@ import java.util.Set;
 public interface IfaceStackMarker extends FaitConstants
 {
 
-public IfaceProgramPoint getProgramPoint();
-public Set<Object> getMarkerValues();
+IfaceProgramPoint getProgramPoint();
+Set<Object> getMarkerValues();
 
 
 

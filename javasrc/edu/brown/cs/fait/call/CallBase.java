@@ -35,9 +35,33 @@
 
 package edu.brown.cs.fait.call;
 
-import edu.brown.cs.fait.iface.*;
-
-import java.util.*;
+import edu.brown.cs.fait.iface.FaitLog;
+import edu.brown.cs.fait.iface.FaitStatistics;
+import edu.brown.cs.fait.iface.IfaceCall;
+import edu.brown.cs.fait.iface.IfaceControl;
+import edu.brown.cs.fait.iface.IfaceEntity;
+import edu.brown.cs.fait.iface.IfaceError;
+import edu.brown.cs.fait.iface.IfaceLocation;
+import edu.brown.cs.fait.iface.IfaceMethod;
+import edu.brown.cs.fait.iface.IfaceProgramPoint;
+import edu.brown.cs.fait.iface.IfaceSafetyStatus;
+import edu.brown.cs.fait.iface.IfaceSpecial;
+import edu.brown.cs.fait.iface.IfaceState;
+import edu.brown.cs.fait.iface.IfaceType;
+import edu.brown.cs.fait.iface.IfaceUpdater;
+import edu.brown.cs.fait.iface.IfaceValue;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.IdentityHashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.StringTokenizer;
 
 
 
@@ -467,7 +491,7 @@ CallBase(IfaceControl fc,IfaceMethod fm,IfaceProgramPoint pt,IfaceSafetyStatus s
 }
 
 
-@Override synchronized public boolean addException(IfaceValue exc)
+@Override public synchronized boolean addException(IfaceValue exc)
 {
    if (exception_set == exc || exc == null) return false;
    if (exception_set == null) {
@@ -483,14 +507,14 @@ CallBase(IfaceControl fc,IfaceMethod fm,IfaceProgramPoint pt,IfaceSafetyStatus s
 
 
 
-@Override synchronized public boolean hasResult()
+@Override public synchronized boolean hasResult()
 {
    if (num_result > 0 || return_arg >= 0) return true;
    return false;
 }
 
 
-@Override synchronized public boolean addResult(IfaceValue v,IfaceSafetyStatus sts,IfaceState fromstate)
+@Override public synchronized boolean addResult(IfaceValue v,IfaceSafetyStatus sts,IfaceState fromstate)
 {
    boolean chng = false;
 

@@ -36,9 +36,9 @@
 package edu.brown.cs.fait.iface;
 
 
-import java.util.*;
-
 import edu.brown.cs.ivy.xml.IvyXmlWriter;
+import java.util.Collection;
+import java.util.List;
 
 
 public interface IfaceSpecial extends FaitConstants

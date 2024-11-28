@@ -37,8 +37,10 @@ package edu.brown.cs.fait.iface;
 import edu.brown.cs.fait.iface.FaitConstants.FaitOperator;
 import edu.brown.cs.fait.iface.FaitConstants.FaitTypeOperator;
 import edu.brown.cs.ivy.xml.IvyXmlWriter;
-import java.util.List;
+
 import java.util.Collection;
+import java.util.List;
+
 
 
 public interface IfaceType
@@ -85,18 +87,18 @@ boolean isInProject();
 
 IfaceSubtype.Value getValue(IfaceSubtype styp);
 boolean checkValue(IfaceSubtype.Value v);
-boolean checkValue(IfaceAnnotation ... annots);
+boolean checkValue(IfaceAnnotation... annots);
 IfaceBaseType getJavaType();
-IfaceType getAnnotatedType(IfaceAnnotation ... an);
+IfaceType getAnnotatedType(IfaceAnnotation... an);
 IfaceType getAnnotatedType(Collection<IfaceAnnotation> ans);
 IfaceType getAnnotatedType(IfaceType tannot);
 
-IfaceType getComputedType(IfaceValue r,FaitOperator op,IfaceValue ... args);
+IfaceType getComputedType(IfaceValue r,FaitOperator op,IfaceValue... args);
 IfaceType getCallType(IfaceCall c,IfaceValue rslt,List<IfaceValue> args);
 IfaceType getComputedType(FaitTypeOperator op);
 
 IfaceTypeImplications getImpliedTypes(FaitOperator op,IfaceType tr);
-List<IfaceType> getBackTypes(FaitOperator op,IfaceValue ... v);
+List<IfaceType> getBackTypes(FaitOperator op,IfaceValue... v);
 List<String> getAnnotations();
 List<IfaceSubtype> getSubtypes();
 

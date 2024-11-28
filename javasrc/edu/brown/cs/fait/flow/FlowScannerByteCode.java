@@ -35,13 +35,6 @@
 
 package edu.brown.cs.fait.flow;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.objectweb.asm.Type;
-
 import edu.brown.cs.fait.iface.FaitAnnotation;
 import edu.brown.cs.fait.iface.FaitLog;
 import edu.brown.cs.fait.iface.IfaceAnnotation;
@@ -57,12 +50,18 @@ import edu.brown.cs.fait.iface.IfaceLocation;
 import edu.brown.cs.fait.iface.IfaceMethod;
 import edu.brown.cs.fait.iface.IfaceProgramPoint;
 import edu.brown.cs.fait.iface.IfaceStackMarker;
-import edu.brown.cs.fait.iface.IfaceValue;
 import edu.brown.cs.fait.iface.IfaceState;
 import edu.brown.cs.fait.iface.IfaceType;
-import edu.brown.cs.ivy.file.Pair;
-import edu.brown.cs.ivy.jcode.JcodeConstants;
+
 import edu.brown.cs.ivy.jcode.JcodeInstruction;
+import edu.brown.cs.ivy.jcode.JcodeConstants;
+import edu.brown.cs.ivy.file.Pair;
+import edu.brown.cs.fait.iface.IfaceValue;
+import org.objectweb.asm.Type;
+import java.util.Set;
+import java.util.Map;
+import java.util.List;
+import java.util.HashMap;
 
 class FlowScannerByteCode extends FlowScanner implements FlowConstants, JcodeConstants
 {
@@ -221,7 +220,9 @@ int scanBack()
 /*										*/
 /********************************************************************************/
 
+// CHECKSTYLE:OFF
 private void processInstruction(IfaceProgramPoint inspt)
+// CHECKSTYLE:ON
 {
    JcodeInstruction ins = inspt.getInstruction();
    IfaceState st1 = work_queue.getState(inspt);
@@ -237,7 +238,9 @@ private void processInstruction(IfaceProgramPoint inspt)
 
    st1 = st1.cloneState();
 
-   IfaceValue v0,v1,v2;
+   IfaceValue v0;
+   IfaceValue v1;
+   IfaceValue v2;
    int i0;
    boolean oref;
    IfaceEntity ent;
@@ -402,7 +405,7 @@ private void processInstruction(IfaceProgramPoint inspt)
 	 v0 = st1.popStack();
 	 v1 = st1.popStack();
 	 rtyp = fait_control.findDataType("int");
-	 v2 = fait_control.findRangeValue(rtyp,(Long)(-1L),(Long) 1L);
+	 v2 = fait_control.findRangeValue(rtyp,(Long) (-1L),(Long) 1L);
 	 st1.pushStack(v2);
 	 break;
       case LADD : case LDIV : case LMUL : case LREM : case LSUB :
@@ -889,12 +892,15 @@ private void processInstruction(IfaceProgramPoint inspt)
 /*										*/
 /********************************************************************************/
 
+// CHECKSTYLE:OFF
 private void processBackInstruction(IfaceProgramPoint inspt,IfaceValue ref,IfaceType settype)
+// CHECKSTYLE:ON
 {
    JcodeInstruction ins = inspt.getInstruction();
    IfaceState st1 = work_queue.getState(inspt);
    if (FaitLog.isTracing()) {
-      FaitLog.logD("Work BACK on " + ins + " " + ref + " " + settype + " " + ref.getRefSlot() + " " + ref.getRefStack() + " " + ref.getRefField());
+      FaitLog.logD("Work BACK on " + ins + " " + ref + " " + settype + " " + 
+            ref.getRefSlot() + " " + ref.getRefStack() + " " + ref.getRefField());
     }
 
    if (st1.getPriorState(0) == work_queue.getCall().getStartState()) {
@@ -902,7 +908,8 @@ private void processBackInstruction(IfaceProgramPoint inspt,IfaceValue ref,Iface
     }
 
    IfaceValue nextref = null;
-   IfaceValue v0,v1;
+   IfaceValue v0;
+   IfaceValue v1;
 
    int stk = ref.getRefStack();
    int var = ref.getRefSlot();
@@ -1437,7 +1444,7 @@ private Pair<IfaceState,IfaceState> handleImplications(IfaceState st0,IfaceProgr
    if (lhsw == null && rhsw == null) return rslt;
 
    if (lhsw != null) {
-
+      // perhaps we need to do something here
     }
 
    return rslt;
@@ -1591,7 +1598,8 @@ private Pair<WhereItem,WhereItem> getSources(IfaceProgramPoint ins,int act)
 {
    if (ins == null) return null;
    WhereItem [] wheres = new WhereItem[2];
-   wheres[0] = wheres[1] = null;
+   wheres[0] = null;
+   wheres[1] = null;
 
    IfaceField fld = null;
    WhereItem where = null;

@@ -36,11 +36,20 @@
 package edu.brown.cs.fait.value;
 
 
-import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.fait.iface.FaitAnnotation;
+import edu.brown.cs.fait.iface.FaitLog;
+import edu.brown.cs.fait.iface.IfaceAnnotation;
+import edu.brown.cs.fait.iface.IfaceEntity;
+import edu.brown.cs.fait.iface.IfaceEntitySet;
+import edu.brown.cs.fait.iface.IfaceImplications;
+import edu.brown.cs.fait.iface.IfaceLocation;
+import edu.brown.cs.fait.iface.IfaceType;
+import edu.brown.cs.fait.iface.IfaceTypeImplications;
+import edu.brown.cs.fait.iface.IfaceValue;
 import edu.brown.cs.ivy.jcode.JcodeConstants;
 import edu.brown.cs.ivy.xml.IvyXmlWriter;
-
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 
 class ValueObject extends ValueBase implements JcodeConstants
@@ -66,7 +75,7 @@ private ValueBase	nonnull_value;
 /*										*/
 /********************************************************************************/
 
-ValueObject(ValueFactory vf,IfaceType typ,IfaceEntitySet es,IfaceAnnotation ... fgs)
+ValueObject(ValueFactory vf,IfaceType typ,IfaceEntitySet es,IfaceAnnotation... fgs)
 {
    super(vf,typ,es);
 
@@ -268,20 +277,20 @@ private ValueBase tryNonNull()
 	 // if (canBeNull()) break;
 	 ValueBase ncv = restrictByType(rhs.getDataType());
 	 if (ncv.isEmptyEntitySet())
-	    return value_factory.rangeValue(typ,0l,0l);
+	    return value_factory.rangeValue(typ,0L,0L);
 	 if (ncv == this)
-	    return value_factory.rangeValue(typ,1l,1l);
+	    return value_factory.rangeValue(typ,1L,1L);
 	 break;
       case EQL :
-         if (rhs.mustBeNull() && mustBeNull()) return value_factory.rangeValue(typ,1l,1l);
-         if (rhs.mustBeNull() && !canBeNull()) return value_factory.rangeValue(typ,0l,0l);
-         if (!rhs.canBeNull() && mustBeNull()) return value_factory.rangeValue(typ,0l,0l);
+         if (rhs.mustBeNull() && mustBeNull()) return value_factory.rangeValue(typ,1L,1L);
+         if (rhs.mustBeNull() && !canBeNull()) return value_factory.rangeValue(typ,0L,0L);
+         if (!rhs.canBeNull() && mustBeNull()) return value_factory.rangeValue(typ,0L,0L);
          break;
       case NEQ :
          // if (rhs == this) return value_factory.rangeValue(typ,0l,0l);
-         if (rhs.mustBeNull() && mustBeNull()) return value_factory.rangeValue(typ,0l,0l);
-         if (rhs.mustBeNull() && !canBeNull()) return value_factory.rangeValue(typ,1l,1l);
-         if (!rhs.canBeNull() && mustBeNull()) return value_factory.rangeValue(typ,1l,1l);
+         if (rhs.mustBeNull() && mustBeNull()) return value_factory.rangeValue(typ,0L,0L);
+         if (rhs.mustBeNull() && !canBeNull()) return value_factory.rangeValue(typ,1L,1L);
+         if (!rhs.canBeNull() && mustBeNull()) return value_factory.rangeValue(typ,1L,1L);
          break;
     }
 

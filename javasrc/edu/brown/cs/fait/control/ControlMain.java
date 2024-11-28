@@ -36,36 +36,70 @@
 
 package edu.brown.cs.fait.control;
 
-import edu.brown.cs.fait.iface.*;
-import edu.brown.cs.fait.entity.*;
-import edu.brown.cs.fait.value.*;
-import edu.brown.cs.ivy.jcode.JcodeClass;
-import edu.brown.cs.ivy.jcode.JcodeFactory;
-import edu.brown.cs.ivy.jcode.JcodeInstruction;
-import edu.brown.cs.ivy.jcomp.JcompSymbol;
-import edu.brown.cs.ivy.jcomp.JcompType;
-import edu.brown.cs.ivy.jcomp.JcompTyper;
-import edu.brown.cs.ivy.xml.IvyXml;
-import edu.brown.cs.ivy.xml.IvyXmlWriter;
-import edu.brown.cs.fait.testgen.TestgenFactory;
-import edu.brown.cs.fait.type.TypeFactory;
-import edu.brown.cs.fait.proto.*;
+import edu.brown.cs.fait.call.CallFactory;
+import edu.brown.cs.fait.entity.EntityFactory;
+import edu.brown.cs.fait.flow.FlowFactory;
+import edu.brown.cs.fait.iface.FaitException;
+import edu.brown.cs.fait.iface.FaitLog;
+import edu.brown.cs.fait.iface.IfaceAnnotation;
+import edu.brown.cs.fait.iface.IfaceAstReference;
+import edu.brown.cs.fait.iface.IfaceAstStatus;
+import edu.brown.cs.fait.iface.IfaceAuxReference;
+import edu.brown.cs.fait.iface.IfaceBackFlow;
+import edu.brown.cs.fait.iface.IfaceBaseType;
+import edu.brown.cs.fait.iface.IfaceCall;
+import edu.brown.cs.fait.iface.IfaceControl;
+import edu.brown.cs.fait.iface.IfaceDescriptionFile;
+import edu.brown.cs.fait.iface.IfaceEntity;
+import edu.brown.cs.fait.iface.IfaceEntitySet;
+import edu.brown.cs.fait.iface.IfaceError;
+import edu.brown.cs.fait.iface.IfaceField;
+import edu.brown.cs.fait.iface.IfaceLocation;
+import edu.brown.cs.fait.iface.IfaceMethod;
+import edu.brown.cs.fait.iface.IfaceProgramPoint;
+import edu.brown.cs.fait.iface.IfaceProject;
+import edu.brown.cs.fait.iface.IfacePrototype;
+import edu.brown.cs.fait.iface.IfaceSafetyCheck;
+import edu.brown.cs.fait.iface.IfaceSafetyStatus;
+import edu.brown.cs.fait.iface.IfaceSpecial;
+import edu.brown.cs.fait.iface.IfaceState;
+import edu.brown.cs.fait.iface.IfaceSubtype;
+import edu.brown.cs.fait.iface.IfaceType;
+import edu.brown.cs.fait.iface.IfaceUpdateSet;
+import edu.brown.cs.fait.iface.IfaceUpdater;
+import edu.brown.cs.fait.iface.IfaceValue;
+import edu.brown.cs.fait.proto.ProtoFactory;
 import edu.brown.cs.fait.query.QueryFactory;
 import edu.brown.cs.fait.safety.SafetyFactory;
-import edu.brown.cs.fait.call.*;
-import edu.brown.cs.fait.flow.*;
+import edu.brown.cs.fait.value.ValueFactory;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.util.*;
-import java.util.function.Predicate;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
-
-import org.eclipse.jdt.core.dom.ASTNode;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import org.w3c.dom.Element;
+import org.eclipse.jdt.core.dom.ASTNode; import java.util.jar.JarFile;
+import java.util.jar.JarEntry;
+import java.util.function.Predicate;
+import java.net.URL;
+import java.io.InputStream;
+import java.io.IOException;
+import java.io.File; import edu.brown.cs.fait.type.TypeFactory;
+import edu.brown.cs.fait.testgen.TestgenFactory;
+import edu.brown.cs.ivy.xml.IvyXmlWriter;
+import edu.brown.cs.ivy.xml.IvyXml;
+import edu.brown.cs.ivy.jcomp.JcompTyper;
+import edu.brown.cs.ivy.jcomp.JcompType;
+import edu.brown.cs.ivy.jcomp.JcompSymbol;
+import edu.brown.cs.ivy.jcode.JcodeInstruction;
+import edu.brown.cs.ivy.jcode.JcodeFactory;
+import edu.brown.cs.ivy.jcode.JcodeClass;
+
 
 
 public final class ControlMain implements IfaceControl {
@@ -302,7 +336,7 @@ IfaceBaseType findJavaType(String cls)
 }
 
 
-@Override public IfaceType findDataType(String cls,IfaceAnnotation ... ans)
+@Override public IfaceType findDataType(String cls,IfaceAnnotation... ans)
 {
    return type_factory.createType(findJavaType(cls),ans);
 }
@@ -453,7 +487,7 @@ public Collection<IfaceMethod> getStartMethods()
 
 
 
-private class ProjectFilter implements Predicate<String> {
+private final class ProjectFilter implements Predicate<String> {
 
    @Override public boolean test(String t) {
       return user_project.isProjectClass(t);
@@ -679,13 +713,13 @@ void updateEntitySets(IfaceUpdater upd)
 }
 
 
-@Override public IfaceValue findObjectValue(IfaceType typ,IfaceEntitySet ss,IfaceAnnotation ... fgs)
+@Override public IfaceValue findObjectValue(IfaceType typ,IfaceEntitySet ss,IfaceAnnotation... fgs)
 {
    return value_factory.objectValue(typ,ss,fgs);
 }
 
 
-@Override public IfaceValue findEmptyValue(IfaceType typ,IfaceAnnotation ... fgs)
+@Override public IfaceValue findEmptyValue(IfaceType typ,IfaceAnnotation... fgs)
 {
    return value_factory.emptyValue(typ,fgs);
 }

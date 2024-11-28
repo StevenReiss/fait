@@ -35,7 +35,7 @@
 
 package edu.brown.cs.fait.call;
 
-import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.fait.iface.FaitConstants;
 
 
 interface CallConstants extends FaitConstants

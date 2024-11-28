@@ -42,7 +42,6 @@ import edu.brown.cs.fait.iface.IfaceCall;
 import edu.brown.cs.fait.iface.IfaceControl;
 import edu.brown.cs.fait.iface.IfaceMethod;
 import edu.brown.cs.fait.iface.IfaceProgramPoint;
-import edu.brown.cs.fait.iface.IfaceState;
 import edu.brown.cs.ivy.xml.IvyXml;
 
 @SuppressWarnings("unused")

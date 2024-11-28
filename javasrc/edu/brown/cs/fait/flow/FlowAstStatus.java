@@ -33,7 +33,9 @@
 
 
 
-package edu.brown.cs.fait.flow;import edu.brown.cs.fait.iface.IfaceAstStatus;
+package edu.brown.cs.fait.flow;
+
+import edu.brown.cs.fait.iface.IfaceAstStatus;
 import edu.brown.cs.fait.iface.IfaceValue;
 
 class FlowAstStatus implements IfaceAstStatus {

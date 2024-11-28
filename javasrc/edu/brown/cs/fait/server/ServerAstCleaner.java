@@ -138,8 +138,10 @@ void precleanAst()
 }
 
 
+// CHECKSTYLE:OFF
 @SuppressWarnings("unchecked")
 private void fixType(AbstractTypeDeclaration td,boolean inner)
+// CHECKSTYLE:ON
 {
    boolean havecnst = false;
    List<Initializer> initers = new ArrayList<>();
@@ -351,7 +353,8 @@ private void fixType(AbstractTypeDeclaration td,boolean inner)
                               fa.setExpression(the_ast.newThisExpression());
                               fa.setName(the_ast.newSimpleName(vdf.getName().getIdentifier()));
                               asgn.setLeftHandSide(fa);
-			      asgn.setRightHandSide((Expression) ASTNode.copySubtree(the_ast,vdf.getInitializer()));
+			      asgn.setRightHandSide((Expression) ASTNode.copySubtree(
+                                    the_ast,vdf.getInitializer()));
 			      ExpressionStatement es = the_ast.newExpressionStatement(asgn);
 			      md.getBody().statements().add(idx++,es);
 			    }
@@ -378,6 +381,7 @@ private void fixType(AbstractTypeDeclaration td,boolean inner)
        }
     }
 }
+
 
 
 

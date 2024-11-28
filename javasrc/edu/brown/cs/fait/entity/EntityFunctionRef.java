@@ -35,13 +35,12 @@
 
 package edu.brown.cs.fait.entity;
 
-import java.util.Map;
-
 import edu.brown.cs.fait.iface.IfaceLocation;
 import edu.brown.cs.fait.iface.IfaceMethod;
 import edu.brown.cs.fait.iface.IfaceType;
 import edu.brown.cs.fait.iface.IfaceValue;
 import edu.brown.cs.ivy.xml.IvyXmlWriter;
+import java.util.Map;
 
 class EntityFunctionRef extends EntityLocal
 {

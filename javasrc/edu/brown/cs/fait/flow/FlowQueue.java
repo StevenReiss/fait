@@ -35,10 +35,30 @@
 
 package edu.brown.cs.fait.flow;
 
-import edu.brown.cs.fait.iface.*;
+import edu.brown.cs.fait.iface.FaitLog;
+import edu.brown.cs.fait.iface.IfaceAnnotation;
+import edu.brown.cs.fait.iface.IfaceAuxReference;
+import edu.brown.cs.fait.iface.IfaceBaseType;
+import edu.brown.cs.fait.iface.IfaceCall;
+import edu.brown.cs.fait.iface.IfaceControl;
+import edu.brown.cs.fait.iface.IfaceEntity;
+import edu.brown.cs.fait.iface.IfaceField;
+import edu.brown.cs.fait.iface.IfaceLocation;
+import edu.brown.cs.fait.iface.IfaceMethod;
+import edu.brown.cs.fait.iface.IfaceProgramPoint;
+import edu.brown.cs.fait.iface.IfaceState;
+import edu.brown.cs.fait.iface.IfaceType;
+import edu.brown.cs.fait.iface.IfaceUpdater;
+import edu.brown.cs.fait.iface.IfaceValue;
 import edu.brown.cs.ivy.file.ConcurrentHashSet;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -71,7 +91,7 @@ private Map<IfaceBaseType,Set<FlowLocation>>	staticinit_redos;
 private List<IfaceCall> 			static_inits;
 
 
-static final String [] preset_classes = new String [] {
+private static final String [] PRESET_CLASSES = new String [] {
    "java.lang.Object",
    "java.lang.String",
    "java.lang.Thread",
@@ -123,7 +143,7 @@ FlowQueue(IfaceControl fc)
    call_queue = new SegmentedQueue();
 
    class_setup = new HashSet<>();
-   for (String s : preset_classes) {
+   for (String s : PRESET_CLASSES) {
       IfaceType dt = fait_control.findDataType(s);
       if (dt != null) class_setup.add(dt.getJavaType());
     }
@@ -349,7 +369,7 @@ void initialize(IfaceType dt)
 	 finishedInitialization(bt);
        }
     }
-   synchronized(staticinit_set) {
+   synchronized (staticinit_set) {
       if (!staticinit_set.contains(bt)) {
 	 staticinit_set.add(bt);
 	 if (FaitLog.isTracing()) {
@@ -767,8 +787,6 @@ IfaceValue castValue(IfaceType rtyp,IfaceValue v0,IfaceLocation loc)
 	 if (t0.getAssociatedType() != null || v0.mustBeNull() || t0.isJavaLangObject()) {
 	    // unbox v0 to get rtyp
 	    v1 = fait_control.findAnyValue(rtyp);
-	  }
-	 else {
 	  }
        }
       return v1;

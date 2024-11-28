@@ -277,7 +277,7 @@ ControlAstReference(ControlAstFactory af,ASTNode n,ASTNode c,IfaceAstStatus sts)
 
 @Override public int getLineNumber()
 {
-   CompilationUnit cu = (CompilationUnit)(eval_node.getRoot());
+   CompilationUnit cu = (CompilationUnit) (eval_node.getRoot());
    return cu.getLineNumber(eval_node.getStartPosition());
 }
 

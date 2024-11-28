@@ -35,10 +35,10 @@
 
 package edu.brown.cs.fait.entity;
 
-import edu.brown.cs.fait.iface.*;
-
-
-import org.junit.*;
+import edu.brown.cs.fait.iface.IfaceEntity;
+import edu.brown.cs.fait.iface.IfaceEntitySet;
+import org.junit.Assert;
+import org.junit.Test;
 
 
 

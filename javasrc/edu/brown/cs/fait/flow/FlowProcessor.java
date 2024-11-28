@@ -35,9 +35,11 @@
 
 package edu.brown.cs.fait.flow;
 
-import edu.brown.cs.fait.iface.*;
-
-import java.util.*;
+import edu.brown.cs.fait.iface.FaitLog;
+import edu.brown.cs.fait.iface.IfaceControl;
+import edu.brown.cs.fait.iface.IfaceWorkerThread;
+import java.util.ArrayList;
+import java.util.List;
 
 
 class FlowProcessor implements FlowConstants
@@ -68,7 +70,7 @@ FlowProcessor(int nthread,IfaceControl fc,FlowQueue q)
    flow_queue = q;
    fait_control = fc;
    worker_threads = new ArrayList<Worker>();
-   for (int i = 0 ; i < nthread; ++i) {
+   for (int i = 0; i < nthread; ++i) {
       Worker w = new Worker(i);
       worker_threads.add(w);
     }

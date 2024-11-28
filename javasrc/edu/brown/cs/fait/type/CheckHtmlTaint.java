@@ -41,15 +41,15 @@ import edu.brown.cs.fait.iface.IfaceCall;
 import edu.brown.cs.fait.iface.IfaceSubtype;
 import edu.brown.cs.fait.iface.IfaceType;
 import edu.brown.cs.fait.iface.IfaceValue;
-
-import static edu.brown.cs.fait.type.CheckHtmlTaint.TaintState.*;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import static edu.brown.cs.fait.type.CheckHtmlTaint.TaintState.HTMLTAINTED;
+import static edu.brown.cs.fait.type.CheckHtmlTaint.TaintState.UNHTMLTAINTED;
+import static edu.brown.cs.fait.type.CheckHtmlTaint.TaintState.MAYBE_HTMLTAINTED;
 
-class CheckHtmlTaint extends TypeSubtype
+final class CheckHtmlTaint extends TypeSubtype
 {
 
 

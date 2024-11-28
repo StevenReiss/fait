@@ -242,13 +242,19 @@ public synchronized void serverTestNanoXml()
       "<FRAME METHOD='org.junit.Assert.assertEquals' FILE='Assert.java' LINE='115' />\n" +
       "<FRAME METHOD='org.junit.Assert.assertEquals' FILE='Assert.java' LINE='144' />\n" +
       "<FRAME METHOD='net.n3.nanoxml.ParserTest1.testParsing16' FILE='ParserTest1.java' LINE='457' />\n" +
-      "<FRAME METHOD='org.junit.runners.model.FrameworkMethod$1.runReflectiveCall' FILE='FrameworkMethod.java' LINE='50' />\n" +
-      "<FRAME METHOD='org.junit.internal.runners.model.ReflectiveCallable.run' FILE='ReflectiveCallable.java' LINE='12' />\n" +
-      "<FRAME METHOD='org.junit.runners.model.FrameworkMethod.invokeExplosively' FILE='FrameworkMethod.java' LINE='47' />\n" +
-      "<FRAME METHOD='org.junit.internal.runners.statements.InvokeMethod.evaluate' FILE='InvokeMethod.java' LINE='17' />\n" +
+      "<FRAME METHOD='org.junit.runners.model.FrameworkMethod$1.runReflectiveCall' " +
+	 "FILE='FrameworkMethod.java' LINE='50' />\n" +
+      "<FRAME METHOD='org.junit.internal.runners.model.ReflectiveCallable.run' " +
+	 "FILE='ReflectiveCallable.java' LINE='12' />\n" +
+      "<FRAME METHOD='org.junit.runners.model.FrameworkMethod.invokeExplosively' " +
+	 "FILE='FrameworkMethod.java' LINE='47' />\n" +
+      "<FRAME METHOD='org.junit.internal.runners.statements.InvokeMethod.evaluate' " +
+	 "FILE='InvokeMethod.java' LINE='17' />\n" +
       "<FRAME METHOD='org.junit.runners.ParentRunner.runLeaf' FILE='ParentRunner.java' LINE='325' />\n" +
-      "<FRAME METHOD='org.junit.runners.BlockJUnit4ClassRunner.runChild' FILE='BlockJUnit4ClassRunner.java' LINE='78' />\n" +
-      "<FRAME METHOD='org.junit.runners.BlockJUnit4ClassRunner.runChild' FILE='BlockJUnit4ClassRunner.java' LINE='57' />\n" +
+      "<FRAME METHOD='org.junit.runners.BlockJUnit4ClassRunner.runChild' " +
+	 "FILE='BlockJUnit4ClassRunner.java' LINE='78' />\n" +
+      "<FRAME METHOD='org.junit.runners.BlockJUnit4ClassRunner.runChild' " +
+	 "FILE='BlockJUnit4ClassRunner.java' LINE='57' />\n" +
       "<FRAME METHOD='org.junit.runners.ParentRunner$3.run' FILE='ParentRunner.java' LINE='290' />\n" +
       "<FRAME METHOD='org.junit.runners.ParentRunner$1.schedule' FILE='ParentRunner.java' LINE='71' />\n" +
       "<FRAME METHOD='org.junit.runners.ParentRunner.runChildren' FILE='ParentRunner.java' LINE='288' />\n" +
@@ -287,11 +293,11 @@ public synchronized void serverTestNanoXml()
 	 "QTYPE","EXPRESSION");
    qts.add(fq1);
    FlowQueryTest fq2 = new FlowQueryTest(null,
-         "FILE","/pro/nanoxml/test/net/n3/nanoxml/ParserTest1.java",
-         "LINE",373,"METHOD","net.n3.nanoxml.StdXMLParser.processElement()",
-         "START",11304,
-         "TOKEN","name",
-         "QTYPE","TOKEN");
+	 "FILE","/pro/nanoxml/test/net/n3/nanoxml/ParserTest1.java",
+	 "LINE",373,"METHOD","net.n3.nanoxml.StdXMLParser.processElement()",
+	 "START",11304,
+	 "TOKEN","name",
+	 "QTYPE","TOKEN");
    qts.add(fq2);
 
    runServerTest("nanoxml","nanoxml",0,null,qts);
@@ -319,39 +325,90 @@ public synchronized void serverTestTetris()
    List<QueryTest> qts = new ArrayList<>();
 
    String cnts =
-      "<EXPR AFTER='arguments' AFTEREND='2919' AFTERSTART='2917' AFTERTYPE='SimpleName' AFTERTYPEID='42' END='2872' LINE='61' NODETYPE='MethodInvocation' NODETYPEID='32' START='2870'>\n" +
+      "<EXPR AFTER='arguments' AFTEREND='2919' AFTERSTART='2917' AFTERTYPE='SimpleName' AFTERTYPEID='42' END='2872' " +
+	 "LINE='61' NODETYPE='MethodInvocation' NODETYPEID='32' START='2870'>\n" +
       "<TEXT>b4</TEXT>\n" +
       "</EXPR>\n" +
       "<STACK>\n" +
-      "<FRAME CLASS='org.junit.Assert' FSIGN='(java.lang.String)' METHOD='fail' SIGNATURE='(Ljava/lang/String;)V' />\n" +
-      "<FRAME CLASS='org.junit.Assert' FSIGN='(java.lang.String,java.lang.Object,java.lang.Object)' METHOD='failNotEquals' SIGNATURE='(Ljava/lang/String;Ljava/lang/Object;Ljava/lang/Object;)V' />\n" +
-      "<FRAME CLASS='org.junit.Assert' FSIGN='(java.lang.String,java.lang.Object,java.lang.Object)' METHOD='assertEquals' SIGNATURE='(Ljava/lang/String;Ljava/lang/Object;Ljava/lang/Object;)V' />\n" +
+      "<FRAME CLASS='org.junit.Assert' FSIGN='(java.lang.String)' METHOD='fail' " +
+	 "SIGNATURE='(Ljava/lang/String;)V' />\n" +
+      "<FRAME CLASS='org.junit.Assert' FSIGN='(java.lang.String,java.lang.Object,java.lang.Object)' " +
+	 "METHOD='failNotEquals' " + "SIGNATURE='(Ljava/lang/String;Ljava/lang/Object;Ljava/lang/Object;)V' />\n" +
+      "<FRAME CLASS='org.junit.Assert' FSIGN='(java.lang.String,java.lang.Object,java.lang.Object)' " +
+	 "METHOD='assertEquals' SIGNATURE='(Ljava/lang/String;Ljava/lang/Object;Ljava/lang/Object;)V' />\n" +
       "<FRAME CLASS='net.percederberg.tetris.TetrisTest' FSIGN='()' METHOD='testSquareRotate' SIGNATURE='()V' />\n" +
-      "<FRAME CLASS='java.lang.invoke.LambdaForm$DMH.0x000000080108c000' FSIGN='(java.lang.Object,java.lang.Object)' METHOD='invokeVirtual' SIGNATURE='(Ljava/lang/Object;Ljava/lang/Object;)V' />\n" +
-      "<FRAME CLASS='java.lang.invoke.LambdaForm$MH.0x000000080108cc00' FSIGN='(java.lang.Object,java.lang.Object)' METHOD='invoke' SIGNATURE='(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;' />\n" +
-      "<FRAME CLASS='java.lang.invoke.Invokers$Holder' FSIGN='(java.lang.Object,java.lang.Object,java.lang.Object)' METHOD='invokeExact_MT' SIGNATURE='(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;' />\n" +
-      "<FRAME CLASS='jdk.internal.reflect.DirectMethodHandleAccessor' FSIGN='(java.lang.Object,java.lang.Object[])' METHOD='invokeImpl' SIGNATURE='(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;' />\n" +
-      "<FRAME CLASS='jdk.internal.reflect.DirectMethodHandleAccessor' FSIGN='(java.lang.Object,java.lang.Object[])' METHOD='invoke' SIGNATURE='(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;' />\n" +
-      "<FRAME CLASS='java.lang.reflect.Method' FSIGN='(java.lang.Object,java.lang.Object[])' METHOD='invoke' SIGNATURE='(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;' />\n" +
-      "<FRAME CLASS='org.junit.runners.model.FrameworkMethod$1' FSIGN='()' METHOD='runReflectiveCall' SIGNATURE='()Ljava/lang/Object;' />\n" +
-      "<FRAME CLASS='org.junit.internal.runners.model.ReflectiveCallable' FSIGN='()' METHOD='run' SIGNATURE='()Ljava/lang/Object;' />\n" +
-      "<FRAME CLASS='org.junit.runners.model.FrameworkMethod' FSIGN='(java.lang.Object,java.lang.Object[])' METHOD='invokeExplosively' SIGNATURE='(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;' />\n" +
-      "<FRAME CLASS='org.junit.internal.runners.statements.InvokeMethod' FSIGN='()' METHOD='evaluate' SIGNATURE='()V' />\n" +
-      "<FRAME CLASS='org.junit.runners.ParentRunner&lt;T&gt;' FSIGN='(org.junit.runners.model.Statement,org.junit.runner.Description,org.junit.runner.notification.RunNotifier)' METHOD='runLeaf' SIGNATURE='(Lorg/junit/runners/model/Statement;Lorg/junit/runner/Description;Lorg/junit/runner/notification/RunNotifier;)V' />\n" +
-      "<FRAME CLASS='org.junit.runners.BlockJUnit4ClassRunner' FSIGN='(org.junit.runners.model.FrameworkMethod,org.junit.runner.notification.RunNotifier)' METHOD='runChild' SIGNATURE='(Lorg/junit/runners/model/FrameworkMethod;Lorg/junit/runner/notification/RunNotifier;)V' />\n" +
-      "<FRAME CLASS='org.junit.runners.BlockJUnit4ClassRunner' FSIGN='(java.lang.Object,org.junit.runner.notification.RunNotifier)' METHOD='runChild' SIGNATURE='(Ljava/lang/Object;Lorg/junit/runner/notification/RunNotifier;)V' />\n" +
-      "<FRAME CLASS='org.junit.runners.ParentRunner$3' FSIGN='()' METHOD='run' SIGNATURE='()V' />\n" +
-      "<FRAME CLASS='org.junit.runners.ParentRunner$1' FSIGN='(java.lang.Runnable)' METHOD='schedule' SIGNATURE='(Ljava/lang/Runnable;)V' />\n" +
-      "<FRAME CLASS='org.junit.runners.ParentRunner&lt;T&gt;' FSIGN='(org.junit.runner.notification.RunNotifier)' METHOD='runChildren' SIGNATURE='(Lorg/junit/runner/notification/RunNotifier;)V' />\n" +
-      "<FRAME CLASS='org.junit.runners.ParentRunner&lt;T&gt;' FSIGN='(org.junit.runners.ParentRunner,org.junit.runner.notification.RunNotifier)' METHOD='access$000' SIGNATURE='(Lorg/junit/runners/ParentRunner;Lorg/junit/runner/notification/RunNotifier;)V' />\n" +
-      "<FRAME CLASS='org.junit.runners.ParentRunner$2' FSIGN='()' METHOD='evaluate' SIGNATURE='()V' />\n" +
-      "<FRAME CLASS='org.junit.runners.ParentRunner&lt;T&gt;' FSIGN='(org.junit.runner.notification.RunNotifier)' METHOD='run' SIGNATURE='(Lorg/junit/runner/notification/RunNotifier;)V' />\n" +
-      "<FRAME CLASS='org.eclipse.jdt.internal.junit4.runner.JUnit4TestReference' FSIGN='(org.eclipse.jdt.internal.junit.runner.TestExecution)' METHOD='run' SIGNATURE='(Lorg/eclipse/jdt/internal/junit/runner/TestExecution;)V' />\n" +
-      "<FRAME CLASS='org.eclipse.jdt.internal.junit.runner.TestExecution' FSIGN='(org.eclipse.jdt.internal.junit.runner.ITestReference[])' METHOD='run' SIGNATURE='([Lorg/eclipse/jdt/internal/junit/runner/ITestReference;)V' />\n" +
-      "<FRAME CLASS='org.eclipse.jdt.internal.junit.runner.RemoteTestRunner' FSIGN='(java.lang.String[],java.lang.String,org.eclipse.jdt.internal.junit.runner.TestExecution)' METHOD='runTests' SIGNATURE='([Ljava/lang/String;Ljava/lang/String;Lorg/eclipse/jdt/internal/junit/runner/TestExecution;)V' />\n" +
-      "<FRAME CLASS='org.eclipse.jdt.internal.junit.runner.RemoteTestRunner' FSIGN='(org.eclipse.jdt.internal.junit.runner.TestExecution)' METHOD='runTests' SIGNATURE='(Lorg/eclipse/jdt/internal/junit/runner/TestExecution;)V' />\n" +
-      "<FRAME CLASS='org.eclipse.jdt.internal.junit.runner.RemoteTestRunner' FSIGN='()' METHOD='run' SIGNATURE='()V' />\n" +
-      "<FRAME CLASS='org.eclipse.jdt.internal.junit.runner.RemoteTestRunner' FSIGN='(java.lang.String[])' METHOD='main' SIGNATURE='([Ljava/lang/String;)V' />\n" +
+      "<FRAME CLASS='java.lang.invoke.LambdaForm$DMH.0x000000080108c000' FSIGN='(java.lang.Object,java.lang.Object)' " +
+	 "METHOD='invokeVirtual' SIGNATURE='(Ljava/lang/Object;Ljava/lang/Object;)V' />\n" +
+      "<FRAME CLASS='java.lang.invoke.LambdaForm$MH.0x000000080108cc00' FSIGN='(java.lang.Object,java.lang.Object)' " +
+	 "METHOD='invoke' SIGNATURE='(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;' />\n" +
+      "<FRAME CLASS='java.lang.invoke.Invokers$Holder' FSIGN='(java.lang.Object,java.lang.Object,java.lang.Object)' " +
+	 "METHOD='invokeExact_MT' " + 
+         "SIGNATURE='(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;' />\n" +
+      "<FRAME CLASS='jdk.internal.reflect.DirectMethodHandleAccessor' FSIGN='(java.lang.Object,java.lang.Object[])' " +
+	 "METHOD='invokeImpl' SIGNATURE='(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;' />\n" +
+      "<FRAME CLASS='jdk.internal.reflect.DirectMethodHandleAccessor' FSIGN='(java.lang.Object,java.lang.Object[])' " +
+	 "METHOD='invoke' SIGNATURE='(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;' />\n" +
+      "<FRAME CLASS='java.lang.reflect.Method' FSIGN='(java.lang.Object,java.lang.Object[])' " +
+	 "METHOD='invoke' SIGNATURE='(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;' />\n" +
+      "<FRAME CLASS='org.junit.runners.model.FrameworkMethod$1' FSIGN='()' " +
+	 "METHOD='runReflectiveCall' SIGNATURE='()Ljava/lang/Object;' />\n" +
+      "<FRAME CLASS='org.junit.internal.runners.model.ReflectiveCallable' FSIGN='()' " +
+	 "METHOD='run' SIGNATURE='()Ljava/lang/Object;' />\n" +
+      "<FRAME CLASS='org.junit.runners.model.FrameworkMethod' FSIGN='(java.lang.Object,java.lang.Object[])' " +
+	 "METHOD='invokeExplosively' SIGNATURE='(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;' />\n" +
+      "<FRAME CLASS='org.junit.internal.runners.statements.InvokeMethod' " +
+	 "FSIGN='()' " +
+	 "METHOD='evaluate' SIGNATURE='()V' />\n" +
+      "<FRAME CLASS='org.junit.runners.ParentRunner&lt;T&gt;' " +
+	 "FSIGN='(org.junit.runners.model.Statement,org.junit.runner.Description," + 
+         "org.junit.runner.notification.RunNotifier)' " +
+	 "METHOD='runLeaf' SIGNATURE='(Lorg/junit/runners/model/Statement;Lorg/junit/runner/Description;" + 
+         "Lorg/junit/runner/notification/RunNotifier;)V' />\n" +
+      "<FRAME CLASS='org.junit.runners.BlockJUnit4ClassRunner' " +
+	 "FSIGN='(org.junit.runners.model.FrameworkMethod,org.junit.runner.notification.RunNotifier)' " +
+	 "METHOD='runChild' SIGNATURE='(Lorg/junit/runners/model/FrameworkMethod;" + 
+         "Lorg/junit/runner/notification/RunNotifier;)V' />\n" +
+      "<FRAME CLASS='org.junit.runners.BlockJUnit4ClassRunner' " +
+	 "FSIGN='(java.lang.Object,org.junit.runner.notification.RunNotifier)' " +
+	 "METHOD='runChild' SIGNATURE='(Ljava/lang/Object;Lorg/junit/runner/notification/RunNotifier;)V' />\n" +
+      "<FRAME CLASS='org.junit.runners.ParentRunner$3' " +
+	 "FSIGN='()' " +
+	 "METHOD='run' SIGNATURE='()V' />\n" +
+      "<FRAME CLASS='org.junit.runners.ParentRunner$1' " +
+	 "FSIGN='(java.lang.Runnable)' " +
+	 "METHOD='schedule' SIGNATURE='(Ljava/lang/Runnable;)V' />\n" +
+      "<FRAME CLASS='org.junit.runners.ParentRunner&lt;T&gt;' " +
+	 "FSIGN='(org.junit.runner.notification.RunNotifier)' " +
+	 "METHOD='runChildren' SIGNATURE='(Lorg/junit/runner/notification/RunNotifier;)V' />\n" +
+      "<FRAME CLASS='org.junit.runners.ParentRunner&lt;T&gt;' " +
+	 "FSIGN='(org.junit.runners.ParentRunner,org.junit.runner.notification.RunNotifier)' " +
+	 "METHOD='access$000' SIGNATURE='(Lorg/junit/runners/ParentRunner;" + 
+         "Lorg/junit/runner/notification/RunNotifier;)V' />\n" +
+      "<FRAME CLASS='org.junit.runners.ParentRunner$2' " +
+	 "FSIGN='()' " +
+	 "METHOD='evaluate' SIGNATURE='()V' />\n" +
+      "<FRAME CLASS='org.junit.runners.ParentRunner&lt;T&gt;' " +
+	 "FSIGN='(org.junit.runner.notification.RunNotifier)' " +
+	 "METHOD='run' SIGNATURE='(Lorg/junit/runner/notification/RunNotifier;)V' />\n" +
+      "<FRAME CLASS='org.eclipse.jdt.internal.junit4.runner.JUnit4TestReference' " +
+	 "FSIGN='(org.eclipse.jdt.internal.junit.runner.TestExecution)' " +
+	 "METHOD='run' SIGNATURE='(Lorg/eclipse/jdt/internal/junit/runner/TestExecution;)V' />\n" +
+      "<FRAME CLASS='org.eclipse.jdt.internal.junit.runner.TestExecution' " +
+	 "FSIGN='(org.eclipse.jdt.internal.junit.runner.ITestReference[])' " +
+	 "METHOD='run' SIGNATURE='([Lorg/eclipse/jdt/internal/junit/runner/ITestReference;)V' />\n" +
+      "<FRAME CLASS='org.eclipse.jdt.internal.junit.runner.RemoteTestRunner' " +
+	 "FSIGN='(java.lang.String[],java.lang.String,org.eclipse.jdt.internal.junit.runner.TestExecution)' " +
+	 "METHOD='runTests' SIGNATURE='([Ljava/lang/String;Ljava/lang/String;" + 
+         "Lorg/eclipse/jdt/internal/junit/runner/TestExecution;)V' />\n" +
+      "<FRAME CLASS='org.eclipse.jdt.internal.junit.runner.RemoteTestRunner' " +
+	 "FSIGN='(org.eclipse.jdt.internal.junit.runner.TestExecution)' " +
+	 "METHOD='runTests' SIGNATURE='(Lorg/eclipse/jdt/internal/junit/runner/TestExecution;)V' />\n" +
+      "<FRAME CLASS='org.eclipse.jdt.internal.junit.runner.RemoteTestRunner' " +
+	 "FSIGN='()' " +
+	 "METHOD='run' SIGNATURE='()V' />\n" +
+      "<FRAME CLASS='org.eclipse.jdt.internal.junit.runner.RemoteTestRunner' " +
+	 "FSIGN='(java.lang.String[])' " +
+	 "METHOD='main' SIGNATURE='([Ljava/lang/String;)V' />\n" +
       "</STACK>\n";
 
    FlowQueryTest fq1 = new FlowQueryTest(cnts,
@@ -873,7 +930,7 @@ private Element waitForAnalysis(String id)
     }
 }
 
-private class FaitHandler implements MintHandler {
+private final class FaitHandler implements MintHandler {
 
    @Override public void receive(MintMessage msg,MintArguments args) {
       String cmd = args.getArgument(0);
@@ -1006,7 +1063,10 @@ private static void setupBedrock(String dir,String mint,String proj)
 	  }
 	 if (i == 0) new IvyExec(cmd);
 	 else {
-	    try { Thread.sleep(100); } catch (InterruptedException e) { }
+	    try {
+	       Thread.sleep(100);
+	    }
+catch (InterruptedException e) { }
 	  }
        }
     }
@@ -1018,7 +1078,7 @@ private static void setupBedrock(String dir,String mint,String proj)
 
 
 
-private static class TestEclipseHandler implements MintHandler {
+private static final class TestEclipseHandler implements MintHandler {
 
    @Override public void receive(MintMessage msg,MintArguments args) {
       String cmd = args.getArgument(0);
@@ -1196,7 +1256,7 @@ private class EntityQueryTest extends QueryTest {
    private VarQueryTest var_query;
    private String match_text;
 
-   EntityQueryTest(VarQueryTest qtest,String txt,Object ... args) {
+   EntityQueryTest(VarQueryTest qtest,String txt,Object... args) {
       command_args = new CommandArgs();
       for (int i = 0; i < args.length; i += 2) {
 	 command_args.put((String) args[i],args[i+1]);
@@ -1300,10 +1360,10 @@ private class FlowQueryTest extends QueryTest {
    private CommandArgs command_args;
    private String command_cnts;
 
-   FlowQueryTest(String cnts,Object ... args) {
+   FlowQueryTest(String cnts,Object... args) {
       command_args = new CommandArgs();
       for (int i = 0; i < args.length; i += 2) {
-         command_args.put((String) args[i],args[i+1]);
+	 command_args.put((String) args[i],args[i+1]);
        }
       command_cnts = cnts;
     }
@@ -1329,7 +1389,7 @@ private class StackStartTest extends QueryTest {
    private CommandArgs command_args;
    private String command_cnts;
 
-   StackStartTest(String cnts,Object ... args) {
+   StackStartTest(String cnts,Object... args) {
       command_args = new CommandArgs();
       for (int i = 0; i < args.length; i += 2) {
 	 command_args.put((String) args[i],args[i+1]);

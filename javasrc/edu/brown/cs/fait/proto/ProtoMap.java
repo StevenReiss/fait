@@ -35,9 +35,24 @@
 
 package edu.brown.cs.fait.proto;
 
-import edu.brown.cs.fait.iface.*;
-
-import java.util.*;
+import edu.brown.cs.fait.iface.FaitAnnotation;
+import edu.brown.cs.fait.iface.FaitLog;
+import edu.brown.cs.fait.iface.IfaceControl;
+import edu.brown.cs.fait.iface.IfaceEntity;
+import edu.brown.cs.fait.iface.IfaceEntitySet;
+import edu.brown.cs.fait.iface.IfaceLocation;
+import edu.brown.cs.fait.iface.IfaceMethod;
+import edu.brown.cs.fait.iface.IfaceProgramPoint;
+import edu.brown.cs.fait.iface.IfacePrototype;
+import edu.brown.cs.fait.iface.IfaceType;
+import edu.brown.cs.fait.iface.IfaceUpdater;
+import edu.brown.cs.fait.iface.IfaceValue;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 
 public class ProtoMap extends ProtoBase
@@ -117,6 +132,8 @@ public ProtoMap(IfaceControl fc,IfaceType dt)
 /*      Map methods                                                             */
 /*                                                                              */
 /********************************************************************************/
+
+// CHECKSTYLE:OFF
 
 public IfaceValue prototype__constructor(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src) 
 {
@@ -381,6 +398,7 @@ public IfaceValue prototype_tailMap(IfaceMethod fm,List<IfaceValue> args,IfaceLo
 }
 
 
+// CHECKSTYLE:ON
 
 
 /********************************************************************************/
@@ -448,6 +466,8 @@ private class MapEntry extends ProtoBase {
       super(fc,fc.findDataType("java.util.Map$Entry",FaitAnnotation.NON_NULL));
     }
    
+   // CHECKSTYLE:OFF 
+   
    public IfaceValue prototype_getKey(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src) {
       key_set.addElementChange(src);
       IfaceValue rslt = key_set.getElementValue();
@@ -472,6 +492,8 @@ private class MapEntry extends ProtoBase {
    public IfaceValue prototype_setValue(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src) {
       return value_set.prototype_set(fm,args,src);
     }
+   
+   // CHECKSTYLE:ON
    
 }       // end of inner class MapEntry
 
