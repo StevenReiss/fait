@@ -156,6 +156,8 @@ public IfaceValue prototype__constructor(IfaceMethod fm,List<IfaceValue> args,If
 
 public IfaceValue prototype_add(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
 {
+   if (args.size() < 2) returnAny(fm);
+   
    IfaceValue nv = args.get(1);
 
    if (args.size() == 3) {
