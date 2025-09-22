@@ -156,8 +156,10 @@ public IfaceValue prototype__constructor(IfaceMethod fm,List<IfaceValue> args,If
 
 public IfaceValue prototype_add(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src)
 {
-   if (args.size() < 2) returnAny(fm);
-   
+   if (args.size() < 2) {
+      return returnAny(fm);
+    }
+
    IfaceValue nv = args.get(1);
 
    if (args.size() == 3) {
@@ -168,7 +170,7 @@ public IfaceValue prototype_add(IfaceMethod fm,List<IfaceValue> args,IfaceLocati
 
    IfaceValue ov = element_value;
    mergeElementValue(nv,true);
-   
+
    if (fm == null) return null;
 
    if (!fm.getReturnType().isVoidType()) {
@@ -749,7 +751,7 @@ synchronized void mergeElementValue(IfaceValue v,boolean update)
 void setElementValue(IfaceValue v,boolean upd)
 {
    if (v == element_value || v == null) return;
-   
+
    if (FaitLog.isTracing()) {
       FaitLog.logD1("Update collection element value = " + v);
     }
@@ -856,7 +858,7 @@ private class CollectionIter extends ProtoBase {
     }
 
    // CHECKSTYLE:OFF
-   
+
    public IfaceValue prototype_hasNext(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src) {
       synchronized (ProtoCollection.this) {
 	 first_element.add(src);
@@ -871,7 +873,7 @@ private class CollectionIter extends ProtoBase {
 	 return fait_control.findAnyValue(element_value.getDataType());
       return element_value;
     }
-   
+
    // CHECKSTYLE:ON
 
 }	// end of inner class CollectionIter
@@ -886,7 +888,7 @@ private class CollectionListIter extends ProtoBase {
    CollectionListIter(IfaceControl fc) {
       super(fc,fc.findDataType("java.util.ListIterator",FaitAnnotation.NON_NULL));
     }
-   
+
    // CHECKSTYLE:OFF
 
    public IfaceValue prototype_add(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src) {
@@ -919,7 +921,7 @@ private class CollectionListIter extends ProtoBase {
    public IfaceValue prototype_set(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src) {
       return ProtoCollection.this.prototype_set(fm,args,src);
     }
-   
+
    // CHECKSTYLE:ON
 
 }	// end of inner class CollectionListIter
@@ -933,7 +935,7 @@ private class CollectionEnum extends ProtoBase {
    CollectionEnum(IfaceControl fc) {
       super(fc,fc.findDataType("java.util.Enumeration",FaitAnnotation.NON_NULL));
     }
-   
+
    // CHECKSTYLE:OFF
 
    public IfaceValue prototype_hasMoreElements(IfaceMethod fm,List<IfaceValue> args,IfaceLocation src) {
@@ -948,7 +950,7 @@ private class CollectionEnum extends ProtoBase {
       addElementChange(src);
       return element_value;
     }
-   
+
    // CHECKSTYLE:ON
 
 }	// end of inner class CollectionEnum
