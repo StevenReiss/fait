@@ -690,6 +690,7 @@ private final class EclipseHandler implements MintHandler {
 	 msg.replyTo("<OK/>");
 	 break;
       case "RUNEVENT" :
+	 msg.replyTo();
 	 break;
       case "RESOURCE" :
 	 for (Element re : IvyXml.children(e,"DELTA")) {
