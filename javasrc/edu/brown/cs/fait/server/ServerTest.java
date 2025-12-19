@@ -1027,7 +1027,7 @@ private static void setupBedrock(String dir,String mint,String proj)
 {
    mint_control = MintControl.create(mint,MintSyncMode.ONLY_REPLIES);
    mint_control.register("<BEDROCK SOURCE='ECLIPSE' TYPE='_VAR_0' />",new TestEclipseHandler());
-
+   
    System.err.println("SETTING UP BEDROCK");
    File ec1 = new File("/u/spr/eclipse-oxygenx/eclipse/eclipse");
    File ec2 = new File("/u/spr/Eclipse/" + dir);
@@ -1039,18 +1039,18 @@ private static void setupBedrock(String dir,String mint,String proj)
       System.err.println("Can't find bubbles version of eclipse to run");
       System.exit(1);
     }
-
+   
    String cmd = ec1.getAbsolutePath();
    cmd += " -application edu.brown.cs.bubbles.bedrock.application";
    cmd += " -data " + ec2.getAbsolutePath();
    cmd += " -bhide";
    cmd += " -nosplash";
    cmd += " -vmargs -Dedu.brown.cs.bubbles.MINT=" + mint;
-  // cmd += " -Xdebug -Xrunjdwp:transport=dt_socket,address=32328,server=y,suspend=n";
-  // cmd += " -Xmx16000m";
-
+   // cmd += " -Xdebug -Xrunjdwp:transport=dt_socket,address=32328,server=y,suspend=n";
+   // cmd += " -Xmx16000m";
+   
    System.err.println("RUN: " + cmd);
-
+   
    try {
       for (int i = 0; i < 250; ++i) {
 	 if (pingEclipse()) {
@@ -1061,17 +1061,20 @@ private static void setupBedrock(String dir,String mint,String proj)
 	    if (!IvyXml.isElement(pxml,"PROJECT")) pxml = IvyXml.getChild(pxml,"PROJECT");
 	    return;
 	  }
-	 if (i == 0) new IvyExec(cmd);
+	 if (i == 0) {
+            ServerMonitor.pongEclipse(); 
+            new IvyExec(cmd);
+          }
 	 else {
 	    try {
 	       Thread.sleep(100);
-	    }
-catch (InterruptedException e) { }
+             }
+            catch (InterruptedException e) { }
 	  }
        }
     }
    catch (IOException e) { }
-
+   
    throw new Error("Problem running Eclipse: " + cmd);
 }
 

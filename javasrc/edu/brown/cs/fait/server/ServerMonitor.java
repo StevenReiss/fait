@@ -78,6 +78,8 @@ private boolean 		is_done;
 private Map<String,ServerSession> session_map;
 private boolean 		no_exit;
 
+private static boolean          pong_eclipse = false;
+
 
 /********************************************************************************/
 /*										*/
@@ -120,6 +122,11 @@ private synchronized void serverDone()
    notifyAll();
 }
 
+
+static void pongEclipse()
+{
+   pong_eclipse = true;
+}
 
 
 private boolean checkEclipse()
@@ -660,7 +667,9 @@ private final class EclipseHandler implements MintHandler {
       case "PING1" :
       case "PING2" :
       case "PING3" :
-	 msg.replyTo("<PONG/>");
+	 if (pong_eclipse) {
+            msg.replyTo("<PONG/>");
+          }
 	 break;
       case "EDITERROR" :
       case "FILEERROR" :
