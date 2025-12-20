@@ -207,7 +207,8 @@ boolean addFile(ServerFile sf,boolean hold)
    boolean added = false;
    
    if (sf != null && active_files.add(sf)) {
-      noteFileChanged(sf,hold,false);
+      boolean fg = noteFileChanged(sf,hold,false);
+      FaitLog.logD("SERVER","Add file " + sf.getFile() + " " + fg);
       added = true;
     }
    

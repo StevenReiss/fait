@@ -411,7 +411,7 @@ private void handleAddFile(String sid,Element xml,IvyXmlWriter xw)
 	 upd |= sp.addFile(sf,true);
        }
     }
-   if (upd) sp.resumeAnalysis();
+   sp.resumeAnalysis();
 
    xw.field("ADDED",upd);
 }

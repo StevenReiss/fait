@@ -91,9 +91,9 @@ ServerSession(ServerMain sm,String sid,Element xml)
    num_thread = 0;
    return_id = null;
    
-   if (sid == null) {
+   if (sid == null || sid.equals("*")) {
       Random r = new Random();
-      sid = "SESAME_" + r.nextInt(10000000);
+      sid = "FAIT_" + r.nextInt(10000000);
     }
    session_id = sid;
 }
