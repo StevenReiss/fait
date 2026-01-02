@@ -360,7 +360,6 @@ private void handleResourceFiles(String sid,Element res,IvyXmlWriter xw)
 
 
 
-/********************************************************************************/
 /*										*/
 /*	Methods to handle commands						*/
 /*										*/
