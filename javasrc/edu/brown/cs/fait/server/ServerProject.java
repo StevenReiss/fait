@@ -1148,6 +1148,11 @@ void handleFlowQuery(Element qxml,IvyXmlWriter xw) throws FaitException
       mnm = mnm.substring(idx2+1);
     }
    IfaceMethod m = ctrl.findMethod(mcl,mnm,msg);
+   if (m == null) {
+      FaitLog.logE("SERVER","Can't find method " + mcl + " " + mnm + " " + msg);
+      m = ctrl.findMethod(mcl,mnm,null);
+      FaitLog.logD("SERVER","Method without arguments: " + m);
+    }
    
    String qtyp = IvyXml.getAttrString(qxml,"QTYPE");
    
@@ -1191,6 +1196,8 @@ void handleFlowQuery(Element qxml,IvyXmlWriter xw) throws FaitException
 
 private Element createTokenLoc(IfaceMethod m,Element qxml)
 {
+   if (m == null) return null;
+   
    int lno = IvyXml.getAttrInt(qxml,"LINE");
    int start = IvyXml.getAttrInt(qxml,"START");
    IfaceProgramPoint pt = m.getStart();

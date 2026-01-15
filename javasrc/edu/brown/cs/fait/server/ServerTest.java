@@ -1234,8 +1234,8 @@ private class VarQueryTest extends QueryTest {
 
    @Override void process(String sid,String rid) {
       CommandArgs cargs = new CommandArgs("FILE",file_name,"LINE",line_number,
-
-	    "START",start_offset,"TOKEN",token_name,"METHOD",method_name);
+   
+            "START",start_offset,"TOKEN",token_name,"METHOD",method_name);
       Element xml = sendReply(sid,"VARQUERY",cargs,null);
       System.err.println("RESULT OF VARQUERY: " + IvyXml.convertXmlToString(xml));
       Assert.assertNotEquals(xml,null);

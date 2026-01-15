@@ -130,6 +130,9 @@ void process() throws FaitException
       if (lpos >= mb.getStartPosition() &&
 	    lpos <= mb.getStartPosition() + mb.getLength()) {
 	 calls.addAll(for_control.getAllCalls(im));
+         if (calls.isEmpty()) {
+            FaitLog.logE("QUERY","No calls found for " + im);
+          }
 	 mbody = mb;
 	 method = im;
 	 break;
@@ -179,7 +182,7 @@ void process() throws FaitException
       return;
     }
    
-   FaitLog.logD("QUERY","Find variable for " + astr);
+   FaitLog.logD("QUERY","Find variable for " + astr + " " + calls + " " + refval);
    
    xml_writer.begin("VALUESET");
    xml_writer.field("LINE",line_number);
