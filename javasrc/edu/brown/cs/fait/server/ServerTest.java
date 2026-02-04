@@ -154,6 +154,20 @@ public synchronized void serverTestUpodTimed()
 }
 
 
+/********************************************************************************/
+/*                                                                              */
+/*      DIAD test                                                               */
+/*                                                                              */
+/********************************************************************************/
+
+
+@Test
+public synchronized void serverTestDiad()
+{
+   runServerTest("diad","diad",0,null);
+}
+
+
 
 /********************************************************************************/
 /*										*/
@@ -752,6 +766,9 @@ private void runServerTest(String dir,String pid,int ctr,String updfile,
    if (!log.exists()) {
       log = new File("/Users/spr/fait");
     }
+   if (!log.exists()) {
+      log = new File("/sprdata/spr");
+    }
    String loghead = log.getAbsolutePath() + "/";
 
    try {
@@ -1034,6 +1051,10 @@ private static void setupBedrock(String dir,String mint,String proj)
    if (!ec1.exists()) {
       ec1 = new File("/vol/Developer/java-2023-06/Eclipse.app/Contents/MacOS/eclipse");
       ec2 = new File("/Users/spr/Eclipse/" + dir);
+    }
+   if (!ec1.exists()) {
+      ec1 = new File("/pro/eclipse/java-2023-12/eclipse/eclipse");
+      ec2 = new File("/home/spr/Eclipse/" + dir);
     }
    if (!ec1.exists()) {
       System.err.println("Can't find bubbles version of eclipse to run");
