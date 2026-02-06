@@ -601,10 +601,6 @@ public IfaceValue prototype_removeRange(IfaceMethod fm,List<IfaceValue> args,Ifa
 
 
 
-
-
-
-
 /********************************************************************************/
 /*										*/
 /*	Elements returning subcollections					*/
@@ -677,7 +673,6 @@ public IfaceValue prototype_equals(IfaceMethod fm,List<IfaceValue> args,IfaceLoc
 {
    return returnAny(fm);
 }
-
 
 
 

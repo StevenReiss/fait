@@ -156,7 +156,7 @@ public synchronized void serverTestUpodTimed()
 
 /********************************************************************************/
 /*                                                                              */
-/*      DIAD test                                                               */
+/*      DIAD and related tests                                                  */
 /*                                                                              */
 /********************************************************************************/
 
@@ -165,6 +165,13 @@ public synchronized void serverTestUpodTimed()
 public synchronized void serverTestDiad()
 {
    runServerTest("diad","diad",0,null);
+}
+
+
+@Test
+public synchronized void serverTestTc1()
+{
+   runServerTest("tc1","tc1",1,null);
 }
 
 

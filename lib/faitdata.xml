@@ -412,6 +412,7 @@
 
    <METHOD NAME='junit.framework.TestCase.fail' NORETURN='TRUE' />
 
+   <CLASS NAME='java.util.Comparator' />
 </FAIT>
 
 

@@ -2571,6 +2571,19 @@ private Object visit(EnhancedForStatement s)
 	       callneeded = true;
 	     }
 	  }
+         FaitLog.logD("FLOW","Enhanced if " + rval);
+         if (rval == null || rval.isEmpty()) {
+            cnts = fait_control.findNullValue();
+          }
+         else if (rval.size() == 1) {
+            cnts = rval.get(0);
+          }
+         else {
+            for (IfaceValue v : rval) {
+               if (cnts == null) cnts = v;
+               else cnts = cnts.mergeValue(v);
+             }
+          }
        }
       if (callneeded) {
 	 cnts = null;
@@ -2590,7 +2603,8 @@ private Object visit(EnhancedForStatement s)
 	    itrv = popActual();
 	  }
 	 if (itrv != null) {
-	    IfaceMethod im1 = fait_control.findMethod(itrv.getDataType().getName(),"hasNext",null);
+	    IfaceMethod im1 = fait_control.findMethod(itrv.getDataType().getName(),
+                  "hasNext",null);
 	    if (im1 != null) {
 	       pushValue(itrv);
 	       CallReturn cr = processInternalCall(im1);
@@ -2630,13 +2644,13 @@ private Object visit(EnhancedForStatement s)
 	  }
        }
 
+      if (cnts != null && cnts.mustBeNull()) return null;
+      
       if (cnts != null && cnts.isEmptyEntitySet()) {
 	 FaitLog.logW("ATTEMPT TO ASSIGN EMPTY ENTITY SET " + iv + " => " + cnts);
-	 cnts = iv.getArrayContents();
+// 	 cnts = iv.getArrayContents();
 	 cnts = null;
        }
-
-      if (cnts != null && cnts.mustBeNull()) return null;
 
       JcompType jt = JcompAst.getJavaType(s.getParameter());
       IfaceType ijt = convertType(jt);
