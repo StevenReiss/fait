@@ -91,12 +91,18 @@ public ProtoMap(IfaceControl fc,IfaceType dt)
    super(fc,dt);
    
    is_empty = true;
-   key_set = new ProtoCollection(fc,fc.findDataType("java.util.Set",FaitAnnotation.NON_NULL));
-   value_set = new ProtoCollection(fc,fc.findDataType("java.util.Set",FaitAnnotation.NON_NULL));
-   entry_set = new ProtoCollection(fc,fc.findDataType("java.util.Set",FaitAnnotation.NON_NULL));
-   key_entity = fc.findPrototypeEntity(key_set.getDataType(),key_set,null,false);
-   value_entity = fc.findPrototypeEntity(value_set.getDataType(),value_set,null,false);
-   entry_entity = fc.findPrototypeEntity(entry_set.getDataType(),entry_set,null,false);
+   key_set = new ProtoCollection(fc,
+         fc.findDataType("java.util.Set",FaitAnnotation.NON_NULL));
+   value_set = new ProtoCollection(fc,
+         fc.findDataType("java.util.Set",FaitAnnotation.NON_NULL));
+   entry_set = new ProtoCollection(fc,
+         fc.findDataType("java.util.Set",FaitAnnotation.NON_NULL));
+   key_entity = fc.findPrototypeEntity(key_set.getDataType(),key_set,
+         null,false);
+   value_entity = fc.findPrototypeEntity(value_set.getDataType(),value_set,
+         null,false);
+   entry_entity = fc.findPrototypeEntity(entry_set.getDataType(),entry_set,
+         null,false);
    submap_entity = null;
    
    MapEntry ent = new MapEntry(fc);
