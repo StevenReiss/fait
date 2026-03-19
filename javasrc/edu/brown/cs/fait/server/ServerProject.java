@@ -344,10 +344,12 @@ private void setupFromIvy(String name)
       description_files.add(dd);
     }
 
-   for (String s : ip.getClassPath()) {
-      if (!class_paths.contains(s)) {
-	 class_paths.add(s);
-	 checkForDescriptionFile(s);
+   synchronized (class_paths) {
+      for (String s : ip.getClassPath()) {
+         if (!class_paths.contains(s)) {
+            class_paths.add(s);
+            checkForDescriptionFile(s);
+          }
        }
     }
 
@@ -543,8 +545,10 @@ public synchronized JcodeFactory getJcodeFactory()
    ct = Math.max(1,ct/2);
    // ct = 1;			// for debugging only
    JcodeFactory jf = new JcodeFactory(ct);
-   for (String s : class_paths) {
-      jf.addToClassPath(s);
+   synchronized (class_paths) {
+      for (String s : class_paths) {
+         jf.addToClassPath(s);
+       }
     }
    jf.load();
    binary_control = jf;

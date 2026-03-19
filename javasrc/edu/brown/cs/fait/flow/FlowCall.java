@@ -763,7 +763,7 @@ private IfaceValue checkVirtual(IfaceMethod bm,List<IfaceValue> args,
        }
       mi = mi1;
     }
-   FaitLog.logD1("Using call " + mi.getMethod().getFullName() + " " + mi.hashCode());
+   FaitLog.logT("   Using call " + mi.getMethod().getFullName() + " " + mi.hashCode());
    
    if (mi.addCall(nargs,getSafetyStatus(st))) {
       if (FaitLog.isTracing()) FaitLog.logD1("Call " + mi);
@@ -799,7 +799,8 @@ private IfaceValue checkVirtual(IfaceMethod bm,List<IfaceValue> args,
             for (Map.Entry<String,IfaceType> ent : fd.entrySet()) {
                 IfaceValue fval = fait_control.findMutableValue(ent.getValue());
                 IfaceField fld = fait_control.findField(dt,ent.getKey());
-                flow_queue.handleFieldSet(fld,loc,st,false,fval,null,-1);
+                flow_queue.handleFieldSet(fld,loc,st,
+                      false,fval,null,-1);
              }
           }
          if (mi.isAffected() && !fm.isStatic()) {
@@ -869,7 +870,7 @@ private IfaceCall findCall(FlowLocation loc,IfaceMethod tgt,List<IfaceValue> arg
    if (loc == null)
       return fait_control.findCall(null,tgt,null,sts,InlineType.NONE);
    
-   FaitLog.logD1("Find call safety state = " + sts);
+   FaitLog.logT("   Find call safety state = " + sts);
 
    InlineType il = canBeInlined(loc.getProgramPoint(),tgt);
 
