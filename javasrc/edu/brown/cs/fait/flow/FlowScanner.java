@@ -70,11 +70,11 @@ protected FlowQueue		flow_queue;
 protected IfaceControl		fait_control;
 protected FlowQueueInstance	work_queue;
 
-protected static IfaceError CALL_NEVER_RETURNS;
-protected static IfaceError BRANCH_NEVER_TAKEN;
-protected static IfaceError DEREFERENCE_NULL;
-protected static IfaceError UNREACHABLE_CODE;
-protected static IfaceError NO_IMPLEMENTATION;
+protected static final IfaceError CALL_NEVER_RETURNS;
+protected static final IfaceError BRANCH_NEVER_TAKEN;
+protected static final IfaceError DEREFERENCE_NULL;
+protected static final IfaceError UNREACHABLE_CODE;
+protected static final IfaceError NO_IMPLEMENTATION;
 
 static {
    CALL_NEVER_RETURNS = new FaitError(ErrorLevel.WARNING,"Call never returns");

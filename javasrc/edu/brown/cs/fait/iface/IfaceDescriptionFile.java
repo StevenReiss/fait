@@ -37,7 +37,7 @@ package edu.brown.cs.fait.iface;
 
 import java.io.File;
 
-public interface IfaceDescriptionFile
+public interface IfaceDescriptionFile extends Comparable<IfaceDescriptionFile>
 {
 
 int PRIORITY_BASE = 1000;
@@ -51,6 +51,16 @@ File    getFile();
 int     getPriority();
 File    getLibrary();
 default String getEntryName()            { return null; }
+default int getInstanceCount()           { return 0; }
+
+default int compareTo(IfaceDescriptionFile f1)
+{
+   if (getPriority() > f1.getPriority()) return 1;
+   if (getPriority() < f1.getPriority()) return -1;
+   if (getInstanceCount() > f1.getInstanceCount()) return -1;
+   if (getInstanceCount() < f1.getInstanceCount()) return 1;
+   return 0;
+}
 
 
 

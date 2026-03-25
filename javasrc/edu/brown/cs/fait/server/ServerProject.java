@@ -136,7 +136,7 @@ private ServerFile	test_file;
 
 private static final String DEFAULT_PACKAGE = "*DEFAULT*";
 
-private static Pattern NULL_PATTERN = Pattern.compile(
+private static final Pattern NULL_PATTERN = Pattern.compile(
       "Cannot invoke \\\"([^\"]+)\\\" because \\\"([^\"]+)\\\" is null");
 
 
@@ -298,15 +298,19 @@ private void setupFromXml(Element xml)
 	 ignore = bn.substring(0,idx);
        }
       if (IvyXml.getAttrBool(rpe,"SYSTEM")) continue;
-      if (!class_paths.contains(bn)) {
-	 class_paths.add(bn);
-	 checkForDescriptionFile(bn);
+      synchronized (class_paths) {
+         if (!class_paths.contains(bn)) {
+            class_paths.add(bn);
+            checkForDescriptionFile(bn);
+          }
        }
     }
    if (ignore != null) {
-      for (Iterator<String> it = class_paths.iterator(); it.hasNext(); ) {
-	 String nm = it.next();
-	 if (nm.startsWith(ignore)) it.remove();
+      synchronized (class_paths) {
+         for (Iterator<String> it = class_paths.iterator(); it.hasNext(); ) {
+            String nm = it.next();
+            if (nm.startsWith(ignore)) it.remove();
+          }
        }
     }
 

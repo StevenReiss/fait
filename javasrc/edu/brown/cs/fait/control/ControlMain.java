@@ -232,6 +232,7 @@ void addSpecialFile(File f)
 	    e = IvyXml.loadXmlFromFile(f1);
 	  }
        }
+      FaitLog.logI("Adding system special file " + f);
     }
 
    if (e != null) {

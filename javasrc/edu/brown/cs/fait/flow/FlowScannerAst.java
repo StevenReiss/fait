@@ -189,8 +189,8 @@ static {
 }
 
 
-private static Object NO_NEXT = new Object();
-private static Object NO_NEXT_REPORT = new Object();
+private static final Object NO_NEXT = new Object();
+private static final Object NO_NEXT_REPORT = new Object();
 
 
 

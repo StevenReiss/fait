@@ -707,7 +707,6 @@ private class AstMethod implements IfaceMethod {
    AstMethod(JcompSymbol js) {
       method_symbol = js;
       if (js.isBinarySymbol()) {
-         System.err.println("CHECK HERE BINARY " + js);
          FaitLog.logD("Creating AST Method with binary symbol " + js);
        }
       local_map = null;

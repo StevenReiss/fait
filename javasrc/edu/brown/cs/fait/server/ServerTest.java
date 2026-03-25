@@ -75,7 +75,7 @@ private static MintControl	mint_control;
 private Map<String,Element> done_map;
 private static Random random_gen = new Random();
 
-private static int MAX_UPDATE = 50;
+private static final int MAX_UPDATE = 50;
 
 private static int default_threads = 1;
 
@@ -227,7 +227,7 @@ public synchronized void serverTestFait()
 @Test
 public synchronized void serverTestBubbles()
 {
-   runServerTest("bubblesx","bubbles",0,null,false);
+   runServerTest("bubbles","bubbles",0,null,false);
 }
 
 

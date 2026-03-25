@@ -41,8 +41,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import edu.brown.cs.fait.iface.IfaceDescriptionFile;
 
 
-public class ControlDescriptionFile implements IfaceDescriptionFile,
-        Comparable<ControlDescriptionFile>
+public class ControlDescriptionFile implements IfaceDescriptionFile
 {
 
 
@@ -89,29 +88,10 @@ public ControlDescriptionFile(File f,File lib)
 /*                                                                              */
 /********************************************************************************/
 
-@Override public File getFile()                      { return file_name; }
-@Override public int getPriority()                   { return priority_value; }
-@Override public File getLibrary()                   { return library_file; }
-
-
-
-
-/********************************************************************************/
-/*                                                                              */
-/*      Comparator methods                                                      */
-/*                                                                              */
-/********************************************************************************/
-
-@Override public int compareTo(ControlDescriptionFile f1)
-{
-   if (priority_value < f1.priority_value) return 1;
-   if (priority_value > f1.priority_value) return -1;
-   if (instance_count < f1.instance_count) return -1;
-   if (instance_count > f1.instance_count) return 1;
-   return 0;
-}
-
-
+@Override public File getFile()                         { return file_name; }
+@Override public int getPriority()                      { return priority_value; }
+@Override public File getLibrary()                      { return library_file; }
+@Override public int getInstanceCount()                 { return instance_count; }
 }       // end of class ControlDescriptionFile
 
 
