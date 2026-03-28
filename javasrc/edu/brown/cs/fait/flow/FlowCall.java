@@ -134,7 +134,7 @@ CallReturn handleCall(FlowLocation loc,IfaceState st0,FlowQueueInstance wq,int v
 
    if (FaitLog.isTracing()) {
       for (IfaceValue av : args) FaitLog.logD1("Arg = " + av);
-      FaitLog.logD1("Saftey state = " + getSafetyStatus(st0));
+      FaitLog.logD1("Safety state = " + getSafetyStatus(st0));
     }
 
    IfaceMethod tgt = findProperMethod(loc,args,dbgmthd);
