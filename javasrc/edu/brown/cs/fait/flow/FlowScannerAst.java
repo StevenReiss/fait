@@ -41,6 +41,7 @@ import edu.brown.cs.fait.iface.IfaceAnnotation;
 import edu.brown.cs.fait.iface.IfaceAstReference;
 import edu.brown.cs.fait.iface.IfaceAstStatus;
 import edu.brown.cs.fait.iface.IfaceBackElement;
+import edu.brown.cs.fait.iface.IfaceCall;
 import edu.brown.cs.fait.iface.IfaceControl;
 import edu.brown.cs.fait.iface.IfaceEntity;
 import edu.brown.cs.fait.iface.IfaceEntitySet;
@@ -1312,9 +1313,14 @@ private IfaceValue getThisValue(IfaceType typ)
       thisv = getLocal("this");
    if (thisv == null)
       return null;
+   IfaceCall call = work_queue.getCall();
+   IfaceType ctype = call.getMethodClass();
+   thisv = thisv.restrictByType(ctype);
+   
    IfaceType thistyp = thisv.getDataType();
    if (thistyp.equals(typ)) return thisv;
    if (thistyp.isDerivedFrom(typ)) return thisv;
+   
    if (thisv.getDataType().isJavaLangObject()) {
       for (IfaceEntity ent : thisv.getEntities()) {
 	 IfaceValue nv = scanOuterValues(thisv,typ,ent.getDataType());
@@ -1325,7 +1331,9 @@ private IfaceValue getThisValue(IfaceType typ)
       for (IfaceValue nthis = thisv; nthis != null; ) {
 	 IfaceType ntyp = nthis.getDataType();
 	 IfaceField xfld = fait_control.findField(ntyp,"this$0");
-	 if (xfld == null) break;
+	 if (xfld == null) {
+            break;
+          }
 	 IfaceType xtyp = xfld.getType();
 	 IfaceValue rval = fait_control.findRefValue(xtyp,nthis,xfld);
 	 nthis = getActualValue(rval,true);
