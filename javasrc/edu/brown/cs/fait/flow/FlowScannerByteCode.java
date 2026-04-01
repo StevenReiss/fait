@@ -1497,6 +1497,14 @@ private void handleDynamicCall(IfaceLocation here,IfaceState st)
       IfaceValue val = fait_control.findAnyValue(rslttyp);
       st.pushStack(val);
     }
+   else if (args[2].startsWith("java/lang/runtime/ObjectMethods.bootstrap")) {
+      String mtyp = args[1];
+      int idx = mtyp.lastIndexOf(")");
+      String rtypnm = mtyp.substring(idx+1);
+      IfaceType rtyp = fait_control.findDataType(rtypnm);
+      IfaceValue val = fait_control.findAnyValue(rtyp);
+      st.pushStack(val);
+    }
    else {
       String mtyp = args[1];
       int idx = mtyp.lastIndexOf(")");
