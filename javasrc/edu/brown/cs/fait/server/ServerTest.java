@@ -160,7 +160,6 @@ public synchronized void serverTestUpodTimed()
 /*                                                                              */
 /********************************************************************************/
 
-
 @Test
 public synchronized void serverTestDiad()
 {
@@ -173,6 +172,15 @@ public synchronized void serverTestTc1()
 {
    runServerTest("tc1","tc1",1,null);
 }
+
+
+@Test
+public synchronized void serverTestLimba() 
+{
+   runServerTest("limba","limba",0,null,null,
+         false,true);
+}
+
 
 
 /********************************************************************************/
@@ -731,7 +739,8 @@ public synchronized void serverTestTimedUpdateWebgoatBench()
 private void runServerTest(String dir,String pid,int ctr,String updfile)
 {
    try {
-      runServerTest(dir,pid,ctr,updfile,null,false);
+      runServerTest(dir,pid,ctr,updfile,null,
+            false,false);
     }
    catch (Throwable t) {
       FaitLog.logE("Test failed",t);
@@ -743,7 +752,8 @@ private void runServerTest(String dir,String pid,int ctr,String updfile,
       List<QueryTest> vqs)
 {
    try {
-      runServerTest(dir,pid,ctr,updfile,vqs,false);
+      runServerTest(dir,pid,ctr,updfile,vqs,
+            false,false);
     }
    catch (Throwable t) {
       FaitLog.logE("Test failed",t);
@@ -755,12 +765,12 @@ private void runServerTest(String dir,String pid,int ctr,String updfile,
 
 private void runServerTest(String dir,String pid,int ctr,String updfile,boolean timed)
 {
-   runServerTest(dir,pid,ctr,updfile,null,timed);
+   runServerTest(dir,pid,ctr,updfile,null,timed,false);
 }
 
 
 private void runServerTest(String dir,String pid,int ctr,String updfile,
-      List<QueryTest> qs,boolean timed)
+      List<QueryTest> qs,boolean timed,boolean ignlibs)
 {
    Set<File> testfiles = new HashSet<>();
 
@@ -803,6 +813,10 @@ private void runServerTest(String dir,String pid,int ctr,String updfile,
       if (!timed && updfile != null && updfile.equals("*ALL*")) {
 	 args = new String[] { "-m", mid, "-DEBUG", "-TRACE",
 	       "-LOG", loghead + "updatetest" + dir + ".log" };
+       }
+      if (ignlibs) {
+         args = new String[] { "-m", mid, "-DEBUG", "-TRACE","-ignore",
+               "-LOG", loghead + "servertest" + dir + ".log" };
        }
 
       ServerMain.main(args);

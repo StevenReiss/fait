@@ -80,6 +80,7 @@ private ServerFileManager       file_manager;
 private ServerMonitor           message_monitor;
 private ServerErrorHandler      error_handler;
 private Map<String,ServerProject> project_map;
+private boolean                 ignore_libs;
 
 private static JcompControl     jcomp_base;
 
@@ -98,6 +99,7 @@ private ServerMain(String [] args)
    message_id = null;
    project_map = new HashMap<>();
    jcomp_base = new JcompControl();
+   ignore_libs = false;
    
    scanArgs(args);
    
@@ -133,6 +135,9 @@ private void scanArgs(String [] args)
          else if (args[i].startsWith("-L") && i+1 < args.length) {      // -L logfile
             FaitLog.setLogFile(new File(args[++i]));
           }
+         else if (args[i].startsWith("-i")) {                           // -ignorelibs
+            ignore_libs = true;
+          }
 	 else badArgs();
        }
       else badArgs();
@@ -166,11 +171,11 @@ static JcompControl getJcompBase()		{ return jcomp_base; }
 
 ServerFileManager getFileManager()		{ return file_manager; }
 
-
 ServerMonitor getMonitor()			{ return message_monitor; }
 
 String getMintId()				{ return message_id; }
 
+boolean getIgnoreLibs()                         { return ignore_libs; }
 
 
 
@@ -233,9 +238,6 @@ Element getXmlReply(String cmd,String proj,Map<String,Object> flds,String cnts,l
 }
 
 
-
-
-
 private void sendMessage(String cmd,String proj,Map<String,Object> flds,String cnts,
       MintReply rply,int fgs)
 {
@@ -291,9 +293,6 @@ boolean isErrorFree()
 {
    return error_handler.isErrorFree();
 }
-
-
-
 
 
 

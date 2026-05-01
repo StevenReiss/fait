@@ -1,5 +1,4 @@
 <FAIT>
-
    <METHOD NAME='java.lang.reflect.Constructor.newInstance' CONSTRUCTOR='true' ARGS='*,...'>
       <WHEN CALLER='edu.brown.cs.fait.iface.IfaceControl.Factory.createControl' />
        <REPLACE>
@@ -11,5 +10,17 @@
 
    <PACKAGE NAME='com.sun.org.apache.xerces.internal' />
    <PACKAGE NAME='org.eclipse.jdt.internal' />
-
+   <PACKAGE NAME='com.fasterxml.jackson' />
 </FAIT>
+
+
+
+
+
+
+
+
+
+
+
+

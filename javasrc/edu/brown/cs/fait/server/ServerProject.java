@@ -40,6 +40,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -133,6 +134,7 @@ private List<File>	source_paths;
 private List<String>	project_classes;
 private boolean 	test_built;
 private ServerFile	test_file;
+private Set<String>     library_packages;
 
 private static final String DEFAULT_PACKAGE = "*DEFAULT*";
 
@@ -164,6 +166,10 @@ ServerProject(ServerMain sm,String name)
    description_files = new HashSet<>();
    project_packages = new HashMap<>();
    editable_classes = new HashSet<>();
+   library_packages = null;
+   if (sm.getIgnoreLibs()) {
+      library_packages = new HashSet<>();
+    }
 
    project_lock = new ReentrantReadWriteLock();
 
@@ -172,6 +178,8 @@ ServerProject(ServerMain sm,String name)
    Element xml = sm.getXmlReply("OPENPROJECT",name,args,null,0);
    if (xml != null) setupFromXml(xml);
    else setupFromIvy(name);
+   createLibraryDescriptionFile();
+   
    project_packages.put("fait.test",true);
 
    test_built = false;
@@ -301,7 +309,6 @@ private void setupFromXml(Element xml)
       synchronized (class_paths) {
          if (!class_paths.contains(bn)) {
             class_paths.add(bn);
-            checkForDescriptionFile(bn);
           }
        }
     }
@@ -310,6 +317,9 @@ private void setupFromXml(Element xml)
          for (Iterator<String> it = class_paths.iterator(); it.hasNext(); ) {
             String nm = it.next();
             if (nm.startsWith(ignore)) it.remove();
+            else {
+               checkForDescriptionFile(nm);
+             }
           }
        }
     }
@@ -398,9 +408,51 @@ private void checkForDescriptionFile(String s)
 	    description_files.add(dd);
 	    FaitLog.logD("Create file " + ftemp + " for fait.xml in " + s);
 	  }
-	 jf.close();
+         if (library_packages != null) {
+            for (Enumeration<JarEntry> en = jf.entries(); en.hasMoreElements(); ) {
+               je = en.nextElement();
+               String name = je.getName();
+               if (name.contains("META-INF")) continue;
+               if (name.endsWith(".class")) {
+                  int idx = name.lastIndexOf("/");
+                  if (idx > 0) {
+                     String pnm = name.substring(0,idx);
+                     library_packages.add(pnm);
+                   }
+                }
+             }
+          }
+         jf.close();
        }
       catch (IOException e) { }
+    }
+}
+
+
+
+private void createLibraryDescriptionFile()
+{
+   if (library_packages == null) return;
+   if (library_packages.isEmpty()) return;
+   
+   try {
+      File f1 = File.createTempFile("fait",".xml");
+      f1.deleteOnExit();
+      try (IvyXmlWriter xw = new IvyXmlWriter(f1)) {
+         xw.begin("FAIT");
+         for (String s : library_packages) {
+            xw.begin("PACKAGE");
+            xw.field("NAME",s);
+            xw.end("PACKAGE");
+          }
+         xw.end("FAIT");
+       }
+      ControlDescriptionFile dd = new ControlDescriptionFile(f1,
+            IfaceDescriptionFile.PRIORITY_LIBRARY);
+      description_files.add(dd);
+    }
+   catch (IOException e) {
+      FaitLog.logE("SERVER","Can't create library temp file",e);
     }
 }
 

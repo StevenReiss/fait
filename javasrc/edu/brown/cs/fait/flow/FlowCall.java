@@ -695,8 +695,13 @@ private IfaceValue checkVirtual(IfaceMethod bm,List<IfaceValue> args,
             IfaceLocation celoc = ce.getLocation();
             IfaceProgramPoint ppt = celoc.getProgramPoint();
             IfaceAstReference pptast = ppt.getAstReference();
-            ASTNode lambda = pptast.getAstNode();
-            FaitLog.logD("FLOW","HANDLE LAMBDA CALL " + lambda);
+            if (pptast != null) {
+               ASTNode lambda = pptast.getAstNode();
+               FaitLog.logD("FLOW","HANDLE LAMBDA CALL " + lambda);
+             }
+            else {
+               FaitLog.logD("FLOW","Handle internal lambda call " + celoc);
+             }
           }
        }
     }

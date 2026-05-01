@@ -35,6 +35,7 @@
 
 package edu.brown.cs.fait.call;
 
+import edu.brown.cs.fait.iface.FaitLog;
 import edu.brown.cs.fait.iface.IfaceBaseType;
 import edu.brown.cs.fait.iface.IfaceCall;
 import edu.brown.cs.fait.iface.IfaceControl;
@@ -312,7 +313,9 @@ public void addSpecialFile(Element xml)
    if (xml == null) return;
    for (Element n : IvyXml.children(xml,"PACKAGE")) {
       String pnam = IvyXml.getAttrString(n,"NAME");
+      if (pnam == null) continue;
       if (!pnam.endsWith(".")) pnam += ".";
+      FaitLog.logD("CALL","Add package special " + pnam);
       addSpecial(pnam,new CallSpecial(fait_control,n,false));
     }
    for (Element n : IvyXml.children(xml,"CLASS")) {

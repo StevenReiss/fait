@@ -1236,7 +1236,7 @@ private Object visit(SimpleName v)
             // new X() {
             //   private booelan firstCall = true;
             //   public void handleStep(...) { ... if (firstCall)...
-            System.err.println("CHECK HERE");
+            FaitLog.logE("FLOW","Attempt to create field in anonymous class " + fld);
             return NO_NEXT;
           }
 	 IfaceValue thisv = getThisValue(fld.getDeclaringClass());
@@ -1264,7 +1264,8 @@ private Object visit(SimpleName v)
 	 pushValue(ref);
        }
       else {
-	 FaitLog.logE("Unknown name " + v + " P:" + v.getParent().getParent() + " @" + getHere());
+	 FaitLog.logI("Unknown name " + v + " P:" + v.getParent().getParent() + 
+               " @" + getHere());
 	 return NO_NEXT;
        }
     }
@@ -2579,7 +2580,7 @@ private Object visit(EnhancedForStatement s)
 	       callneeded = true;
 	     }
 	  }
-         FaitLog.logD("FLOW","Enhanced if " + rval);
+         FaitLog.logD("FLOW","Enhanced for " + rval);
          if (rval == null || rval.isEmpty()) {
             cnts = fait_control.findNullValue();
           }
