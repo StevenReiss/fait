@@ -48,6 +48,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.TreeSet;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.jar.JarEntry;
@@ -168,7 +169,7 @@ ServerProject(ServerMain sm,String name)
    editable_classes = new HashSet<>();
    library_packages = null;
    if (sm.getIgnoreLibs()) {
-      library_packages = new HashSet<>();
+      library_packages = new TreeSet<>();
     }
 
    project_lock = new ReentrantReadWriteLock();
@@ -440,7 +441,10 @@ private void createLibraryDescriptionFile()
       f1.deleteOnExit();
       try (IvyXmlWriter xw = new IvyXmlWriter(f1)) {
          xw.begin("FAIT");
+         String prev = null;
          for (String s : library_packages) {
+            if (prev != null && s.startsWith(prev)) continue;
+            prev = s + ".";
             xw.begin("PACKAGE");
             xw.field("NAME",s);
             xw.end("PACKAGE");
