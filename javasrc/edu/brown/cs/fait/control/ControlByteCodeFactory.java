@@ -413,7 +413,7 @@ private class InsMethod implements IfaceMethod {
    @Override public IfaceType getArgType(int i) {
       IfaceType t0 = getFaitType(for_method.getArgType(i));
       List<IfaceAnnotation> ann = getArgAnnotations(i);
-      if (ann != null) {
+      if (ann != null && t0 != null) {
          t0 = t0.getAnnotatedType(ann);
        }
       return t0;

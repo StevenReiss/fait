@@ -88,6 +88,7 @@ ServerBuildTestDriver(ServerProject sp)
 ServerFile process(List<String> classes)
 {
    JcodeFactory jf = for_project.getJcodeFactory();
+   
    for (String s : classes) {
       JcodeClass jc = jf.findClass(s);
       if (jc != null) processClass(jf,jc);
