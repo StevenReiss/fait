@@ -89,7 +89,9 @@ ServerFile process(List<String> classes)
 {
    JcodeFactory jf = for_project.getJcodeFactory();
    
-   for (String s : classes) {
+   List<String> init = new ArrayList<>(classes);
+   
+   for (String s : init) {
       JcodeClass jc = jf.findClass(s);
       if (jc != null) processClass(jf,jc);
     }

@@ -257,6 +257,8 @@ boolean isErrorFree()
 
 private void setupFromXml(Element xml)
 {
+   FaitLog.logD("SERVER","Loading project information from XML");
+   
    if (IvyXml.isElement(xml,"RESULT")) xml = IvyXml.getChild(xml,"PROJECT");
 
    boolean isused = false;
@@ -344,6 +346,8 @@ private void setupFromXml(Element xml)
 
 private void setupFromIvy(String name)
 {
+   FaitLog.logD("SERVER","Loading project information from MINT");
+   
    IvyProjectManager pm = IvyProjectManager.getManager();
    IvyProject ip = pm.findProject(name);
    if (ip == null) return;
