@@ -139,8 +139,8 @@ void process() throws FaitException
        }
     }
    if (mbody == null) {
-      FaitLog.logE("QUERY","Can't find method body for var query for " + method_name + " in " + typ + " " +
-        typ.isEditable());
+      FaitLog.logE("QUERY","Can't find method body for var query for " + method_name +
+            " in " + typ + " " + typ.isEditable());
       for (IfaceMethod im : for_control.findAllMethods(typ,method_name)) {
 	 FaitLog.logE("QUERY","\tConsider " + im + " " + start_pos);
 	 if (im.getStart().getAstReference() == null) continue;
