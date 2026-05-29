@@ -1381,6 +1381,7 @@ private void handleFlowQueryForCall(IfaceControl ctrl,Element qxml,IfaceCall cal
 {
    int spos = IvyXml.getAttrInt(loc,"START");
    int ltyp = IvyXml.getAttrInt(loc,"NODETYPEID");
+   boolean clean = IvyXml.getAttrBool(qxml,"CLEAN",true);
    IfaceProgramPoint pt0 = call.getMethod().getStart();
    IfaceAstReference r0 = pt0.getAstReference();
    if (r0 == null) {
@@ -1469,7 +1470,8 @@ private void handleFlowQueryForCall(IfaceControl ctrl,Element qxml,IfaceCall cal
    int conddepth = IvyXml.getAttrInt(qxml,"CONDDEPTH",4);
    boolean location = IvyXml.getAttrString(qxml,"QTYPE","").equals("LOCATION");
   
-   ctrl.processFlowQuery(call,ppt,ref,curval,stack,depth,conddepth,location,xw);
+   ctrl.processFlowQuery(call,ppt,ref,curval,stack,
+         depth,conddepth,location,clean,xw);
 }
 
 

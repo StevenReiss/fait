@@ -163,7 +163,7 @@ public void processToQuery(IfaceCall call,IfaceProgramPoint pt,IfaceEntity ent,
 
 public void processFlowQuery(IfaceCall call,IfaceProgramPoint pt,IfaceValue refval,
       IfaceValue val,List<IfaceMethod> stack,int depth,int conddepth,
-      boolean location,IvyXmlWriter xw)
+      boolean location,boolean clean,IvyXmlWriter xw)
 {
    long start = System.currentTimeMillis();
    
