@@ -63,6 +63,7 @@ import edu.brown.cs.ivy.jcode.JcodeLocalVariable;
 import edu.brown.cs.ivy.jcode.JcodeMethod;
 import edu.brown.cs.ivy.jcode.JcodeTryCatchBlock;
 import edu.brown.cs.ivy.jcomp.JcompTyper;
+import edu.brown.cs.ivy.xml.IvyXml;
 import edu.brown.cs.ivy.xml.IvyXmlWriter;
 
 
@@ -797,7 +798,9 @@ private class InsPoint implements IfaceProgramPoint {
       xw.field("LOC",for_instruction.getIndex());
       xw.field("OPCODE",for_instruction.getOpcode());
       xw.field("LINE",getLineNumber());
-      xw.text(for_instruction.toString());
+      // double sanitize the instruction string
+      String x = IvyXml.xmlSanitize(for_instruction.toString());
+      xw.text(x);
       xw.end("POINT");
     }
    
