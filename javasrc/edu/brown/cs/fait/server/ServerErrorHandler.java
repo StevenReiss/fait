@@ -75,13 +75,13 @@ ServerErrorHandler(ServerMain sm)
 /*                                                                              */
 /********************************************************************************/
 
-boolean isErrorFree()
+synchronized boolean isErrorFree()
 {
    return current_errors.isEmpty();
 }
 
 
-int errorCount()
+synchronized int errorCount()
 {
    int ct = 0;
    for (ProblemState ps : current_errors.values()) {
@@ -98,7 +98,7 @@ int errorCount()
 /*                                                                              */
 /********************************************************************************/
 
-boolean handleErrors(String proj,String forfile,Element ep)
+synchronized boolean handleErrors(String proj,String forfile,Element ep)
 {
    boolean haderrs = !current_errors.isEmpty();
    
@@ -106,8 +106,8 @@ boolean handleErrors(String proj,String forfile,Element ep)
    if (ps.getNumErrors() == 0) current_errors.remove(forfile);
    else current_errors.put(forfile,ps);
    
-   FaitLog.logI("Error state " + errorCount() + " " + isErrorFree() + " " + 
-         current_errors.size());
+   FaitLog.logI("SERVER","Error state " + errorCount() + " " + 
+         isErrorFree() + " " + current_errors.size() + " " + haderrs);
    
    if (haderrs && current_errors.isEmpty()) return true;
    
