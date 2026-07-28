@@ -245,7 +245,7 @@ private ValueBase tryNonNull()
    IfaceType t1 = findCommonParent(getDataType(),cvo.getDataType());
    
    if (getDataType().isFunctionRef() && !t1.isFunctionRef()) {
-      FaitLog.logD("ATTEMPT TO MERGE FUNCTION REF WITH TYPE " + getDataType() + " " + t1);
+      FaitLog.logT("ATTEMPT TO MERGE FUNCTION REF WITH TYPE " + getDataType() + " " + t1);
     }
    
    if (es == getEntitySet() && getDataType() == t1)

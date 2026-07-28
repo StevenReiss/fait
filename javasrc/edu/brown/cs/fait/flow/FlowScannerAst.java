@@ -2668,7 +2668,7 @@ private Object visit(EnhancedForStatement s)
 	 IfaceValue cnts1 = flow_queue.castValue(ijt,cnts,getHere());
 	 if (cnts1 == null || cnts1.isEmptyEntitySet()) {
 	    if (callneeded) return null;
-	    FaitLog.logE("CAST TO EMPTY ENTITY SET " + iv + " => " + cnts1);
+	    FaitLog.logW("CAST TO EMPTY ENTITY SET " + iv + " => " + cnts1);
 	    cnts = iv.getArrayContents();
 	    cnts1 = flow_queue.castValue(ijt,cnts,getHere());
 	    cnts = null;

@@ -648,7 +648,7 @@ private IfaceValue checkVirtual(IfaceMethod bm,List<IfaceValue> args,
       if (dt != null && dt.isFunctionRef()) {
          IfaceMethod mthd = ce.getMethod();
          String mnm = ce.getMethodName();
-         FaitLog.logD("FLOW","REFCALL " + mthd + " " + mnm);
+         FaitLog.logT("FLOW","REFCALL " + mthd + " " + mnm);
          if (mnm != null && mthd == null) {
             int idx = mnm.indexOf("(");
             int idx1 = mnm.indexOf(")");
@@ -662,13 +662,13 @@ private IfaceValue checkVirtual(IfaceMethod bm,List<IfaceValue> args,
          if (mthd != null) {
             if (used.contains(mthd)) continue; 
             used.add(mthd);
-            FaitLog.logD("REFCALLMETHOD " + mthd.getFullName());
+            FaitLog.logT("REFCALLMETHOD " + mthd.getFullName());
             Map<Object,IfaceValue> bindings = ce.getBindings();
             List<IfaceValue> nargs = new ArrayList<>(args);
             nargs.remove(0);
             IfaceValue xrslt = null;
             if (mthd.isConstructor()) {
-               FaitLog.logD("FLOW","HANDLE CONSTRUCTOR " + mthd.getFullName());
+               FaitLog.logT("FLOW","HANDLE CONSTRUCTOR " + mthd.getFullName());
                IfaceType t0 = mthd.getDeclaringClass();
                IfaceEntity newent = fait_control.findFixedEntity(t0);
                IfaceValue newval = fait_control.findObjectValue(t0,
@@ -698,10 +698,10 @@ private IfaceValue checkVirtual(IfaceMethod bm,List<IfaceValue> args,
             IfaceAstReference pptast = ppt.getAstReference();
             if (pptast != null) {
                ASTNode lambda = pptast.getAstNode();
-               FaitLog.logD("FLOW","HANDLE LAMBDA CALL " + lambda);
+               FaitLog.logT("FLOW","HANDLE LAMBDA CALL " + lambda);
              }
             else {
-               FaitLog.logD("FLOW","Handle internal lambda call " + celoc);
+               FaitLog.logT("FLOW","Handle internal lambda call " + celoc);
              }
           }
        }
@@ -862,7 +862,7 @@ private IfaceValue checkVirtual(IfaceMethod bm,List<IfaceValue> args,
     }
 
    if (nsts != null && nsts != st.getSafetyStatus()) {
-      FaitLog.logD1("Replace safety status with " + mi.getResultSafetyStatus());
+      FaitLog.logT1("Replace safety status with " + mi.getResultSafetyStatus()); 
       st.setSafetyStatus(mi.getResultSafetyStatus());
     }
  
