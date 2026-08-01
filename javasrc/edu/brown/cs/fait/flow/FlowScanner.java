@@ -371,6 +371,7 @@ protected void checkBackPropagation(FlowLocation loc,IfaceState st0,int sref,
 {
    // get state at start of program point
    if (val == null) val = st0.getStack(sref);
+   if (val == null) return;
    IfaceType t1 = val.checkOperation(what,arg);
    if (t1 == null || t1 == val.getDataType()) return;
    IfaceValue vref = fait_control.findRefStackValue(val.getDataType(),sref);

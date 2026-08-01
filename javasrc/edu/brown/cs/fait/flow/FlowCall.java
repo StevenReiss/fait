@@ -500,7 +500,7 @@ private LinkedList<IfaceValue> checkCall(FlowLocation loc,IfaceMethod fm,List<If
 	  }
        }
       if (dt == null) {
-	 FaitLog.logE("Call with NULL or BAD argument type " + fm + " " + xid + " " +
+	 FaitLog.logW("Call with NULL or BAD argument type " + fm + " " + xid + " " +
                loc + " " + cv);
 	 return null;
        }
