@@ -91,7 +91,7 @@ ServerSession(ServerMain sm,String sid,Element xml)
    num_thread = 0;
    return_id = null;
    
-   if (sid == null || sid.equals("*")) {
+   if (sid == null || sid.equals("*") || sid.isBlank()) {
       Random r = new Random();
       sid = "FAIT_" + r.nextInt(10000000);
     }

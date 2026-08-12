@@ -367,6 +367,8 @@ private void handleResourceFiles(String sid,Element res,IvyXmlWriter xw)
 
 private void handleBegin(String sid,Element xml,IvyXmlWriter xw) throws ServerException
 {
+   FaitLog.logD("SERVER","Handle begin " + sid);
+   
    ServerSession ss = new ServerSession(server_control,sid,xml);
    no_exit = IvyXml.getAttrBool(xml,"NOEXIT");
 
@@ -379,7 +381,7 @@ private void handleBegin(String sid,Element xml,IvyXmlWriter xw) throws ServerEx
        }
     }
 
-   FaitLog.logD("BEGIN " + sid + " " + ss);
+   FaitLog.logD("SERVER","BEGIN " + sid + " " + ss);
    xw.begin("SESSION");
    xw.field("ID",ss.getSessionId());
    xw.end();
@@ -833,41 +835,41 @@ private final class CommandHandler implements MintHandler {
       String sid = args.getArgument(1);
       Element e = msg.getXml();
       String rslt = null;
-
+   
       try {
-	 rslt = processCommand(cmd,sid,e);
-	 FaitLog.logI("COMMAND RESULT: " + rslt);
+         rslt = processCommand(cmd,sid,e);
+         FaitLog.logI("COMMAND RESULT: " + rslt);
        }
       catch (ServerException t) {
-	 String xmsg = "BEDROCK: error in command " + cmd + ": " + t;
-	 FaitLog.logE(xmsg,t);
-	 IvyXmlWriter xw = new IvyXmlWriter();
-	 xw.cdataElement("ERROR",xmsg);
-	 rslt = xw.toString();
-	 xw.close();
+         String xmsg = "BEDROCK: error in command " + cmd + ": " + t;
+         FaitLog.logE(xmsg,t);
+         IvyXmlWriter xw = new IvyXmlWriter();
+         xw.cdataElement("ERROR",xmsg);
+         rslt = xw.toString();
+         xw.close();
        }
       catch (Throwable t) {
-	 String xmsg = "Problem processing command " + cmd + ": " + t;
-	 FaitLog.logE(xmsg,t);
-	 StringWriter sw = new StringWriter();
-	 PrintWriter pw = new PrintWriter(sw);
-	 t.printStackTrace(pw);
-	 Throwable xt = t;
-	 for ( ; xt.getCause() != null; xt = xt.getCause());
-	 if (xt != null && xt != t) {
-	    pw.println();
-	    xt.printStackTrace(pw);
-	  }
-	 FaitLog.logE("TRACE: " + sw.toString());
-	 IvyXmlWriter xw = new IvyXmlWriter();
-	 xw.begin("ERROR");
-	 xw.textElement("MESSAGE",xmsg);
-	 xw.cdataElement("EXCEPTION",t.toString());
-	 xw.cdataElement("STACK",sw.toString());
-	 xw.end("ERROR");
-	 rslt = xw.toString();
-	 xw.close();
-	 pw.close();
+         String xmsg = "Problem processing command " + cmd + ": " + t;
+         FaitLog.logE(xmsg,t);
+         StringWriter sw = new StringWriter();
+         PrintWriter pw = new PrintWriter(sw);
+         t.printStackTrace(pw);
+         Throwable xt = t;
+         for ( ; xt.getCause() != null; xt = xt.getCause());
+         if (xt != null && xt != t) {
+            pw.println();
+            xt.printStackTrace(pw);
+          }
+         FaitLog.logE("TRACE: " + sw.toString());
+         IvyXmlWriter xw = new IvyXmlWriter();
+         xw.begin("ERROR");
+         xw.textElement("MESSAGE",xmsg);
+         xw.cdataElement("EXCEPTION",t.toString());
+         xw.cdataElement("STACK",sw.toString());
+         xw.end("ERROR");
+         rslt = xw.toString();
+         xw.close();
+         pw.close();
        }
       msg.replyTo(rslt);
     }
