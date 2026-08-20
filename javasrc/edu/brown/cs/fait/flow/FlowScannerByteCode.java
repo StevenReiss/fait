@@ -714,7 +714,9 @@ private void processInstruction(IfaceProgramPoint inspt)
          IfaceCall ncall = call.getMethodCalled(inspt,fm);
          switch (rsts) {
 	    case NOT_DONE :
-	       if (FaitLog.isTracing()) FaitLog.logD1("Unknown RETURN value " + rsts + " for " + fm);
+	       if (FaitLog.isTracing()) {
+                  FaitLog.logD1("Unknown RETURN value " + rsts + " for " + fm);
+                }
 	       if (ncall != null && ncall.getCanExit()) pins = null;
 	       nins = null;
                if (ncall == null) noteerror = CALL_NEVER_RETURNS;
@@ -727,12 +729,16 @@ private void processInstruction(IfaceProgramPoint inspt)
 	       notenext = false;
 	       break;
             case NULL_ACCESS :
-               if (FaitLog.isTracing()) FaitLog.logD1("Unknown RETURN value " + rsts + " for " + fm);
+               if (FaitLog.isTracing()) {
+                  FaitLog.logD1("Unknown RETURN value " + rsts + " for " + fm);
+                }
 	       nins = null;
                noteerror = DEREFERENCE_NULL;
 	       break;
             case NO_METHOD :
-               if (FaitLog.isTracing()) FaitLog.logD1("Unknown RETURN value " + rsts + " for " + fm);
+               if (FaitLog.isTracing()) {
+                  FaitLog.logD1("Unknown RETURN value " + rsts + " for " + fm);
+                }
 	       nins = null;
                if (ncall == null) noteerror = NO_IMPLEMENTATION;
                else noteerror = noImplementationError(ncall.getMethod().getFullName());
@@ -760,7 +766,9 @@ private void processInstruction(IfaceProgramPoint inspt)
 	 v2 = st1.popStack();		// index
 	 v0 = st1.popStack();		// array
 	 v1 = flow_queue.handleArrayAccess(here,v0,v2);
-	 if (FaitLog.isTracing()) FaitLog.logD1("Array " + v0 + " index " + v2 + " = " + v1);
+	 if (FaitLog.isTracing()) {
+            FaitLog.logD1("Array " + v0 + " index " + v2 + " = " + v1);
+          }
 	 st1.pushStack(v1);
 	 break;
       case AASTORE :
