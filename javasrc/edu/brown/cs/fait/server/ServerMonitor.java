@@ -661,7 +661,8 @@ private final class EclipseHandler implements MintHandler {
 	 return;
     }
 
-   FaitLog.logD("Message from eclipse: " + cmd + " " + msg.getText());
+   String disp = msg.getText().replace(":E:",";E;");
+   FaitLog.logD("Message from eclipse: " + cmd + " " + disp);
 
    switch (cmd) {
       case "PING" :
