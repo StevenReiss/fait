@@ -450,7 +450,7 @@ private void handleAnalyze(String sid,Element xml,IvyXmlWriter xw)
 
 /********************************************************************************/
 /*										*/
-/*	Query commands								*/
+/*	Handle query for a potential security problem           		*/
 /*										*/
 /********************************************************************************/
 
@@ -472,6 +472,12 @@ private void handleQuery(String sid,Element xml,IvyXmlWriter xw)
 }
 
 
+
+/********************************************************************************/
+/*                                                                              */
+/*      Compute potential fault locations given initial values/location         */
+/*                                                                              */
+/********************************************************************************/
 
 private void handleFlowQuery(String sid,Element xml,IvyXmlWriter xw)
 {
@@ -510,6 +516,12 @@ private void handleStackStartQuery(String sid,Element xml,IvyXmlWriter xw)
 
 
 
+/********************************************************************************/
+/*                                                                              */
+/*      Find set of relevant files for analysis given location                  */
+/*                                                                              */
+/********************************************************************************/
+
 private void handleFileQuery(String sid,Element xml,IvyXmlWriter xw)
 {
    ServerSession ss = session_map.get(sid);
@@ -529,6 +541,12 @@ private void handleFileQuery(String sid,Element xml,IvyXmlWriter xw)
 
 
 
+/********************************************************************************/
+/*                                                                              */
+/*      Determine what variables have changed values to this point              */
+/*                                                                              */
+/********************************************************************************/
+
 private void handleChangeQuery(String sid,Element xml,IvyXmlWriter xw)
 {
    ServerSession ss = session_map.get(sid);
@@ -546,6 +564,12 @@ private void handleChangeQuery(String sid,Element xml,IvyXmlWriter xw)
     }
 }
 
+
+/********************************************************************************/
+/*                                                                              */
+/*      Get location information for a variable (prelude to FLOWQUERY)          */
+/*                                                                              */
+/********************************************************************************/
 
 private void handleVarQuery(String sid,Element xml,IvyXmlWriter xw)
 {
@@ -813,7 +837,9 @@ private String processCommand(String cmd,String sid,Element e) throws ServerExce
       case "TESTEDIT" :
 	 String txt = IvyXml.getText(e);
 	 File fil = new File(IvyXml.getAttrString(e,"FILE"));
-	 handleEdit(null,SOURCE_ID,fil,IvyXml.getAttrInt(e,"LENGTH"),IvyXml.getAttrInt(e,"OFFSET"),
+	 handleEdit(null,SOURCE_ID,fil,
+               IvyXml.getAttrInt(e,"LENGTH"),
+               IvyXml.getAttrInt(e,"OFFSET"),
 	       false,false,txt);
 	 break;
       default :

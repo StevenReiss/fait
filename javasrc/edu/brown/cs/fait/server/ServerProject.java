@@ -1188,7 +1188,7 @@ void handleVarQuery(Element qxml,IvyXmlWriter xw) throws FaitException
 
 /********************************************************************************/
 /*                                                                              */
-/*      Handle queries for ROSE                                                 */
+/*      Handle queries for ROSE and others                                      */
 /*                                                                              */
 /********************************************************************************/
 
