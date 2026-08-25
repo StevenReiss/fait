@@ -1370,8 +1370,10 @@ private void addAuxVarRef(int slot)
 {
    if (slot < 0) return;
    IfaceValue val = prior_state.getLocal(slot);
-   IfaceValue ref = fait_control.findRefValue(val.getDataType(),slot);
-   addAuxRef(ref,IfaceAuxRefType.LOCAL_REF);
+   if (val != null) {
+      IfaceValue ref = fait_control.findRefValue(val.getDataType(),slot);
+      addAuxRef(ref,IfaceAuxRefType.LOCAL_REF);
+    }
 }
 
 
