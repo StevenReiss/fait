@@ -328,19 +328,19 @@ public synchronized void serverTestNanoXml()
    String cnts = xw.toString();
    xw.close();
 
-   FlowQueryTest fq1 = new FlowQueryTest(cnts,
-//	 "CONDDEPTH",50,"DEPTH",100,
-	 "FILE","/pro/nanoxml/test/net/n3/nanoxml/ParserTest1.java",
-	 "LINE",457,"METHOD","net.n3.nanoxml.ParserTest1.testParsing16",
-	 "QTYPE","EXPRESSION");
-   qts.add(fq1);
    FlowQueryTest fq2 = new FlowQueryTest(null,
-	 "FILE","/pro/nanoxml/test/net/n3/nanoxml/ParserTest1.java",
-	 "LINE",373,"METHOD","net.n3.nanoxml.StdXMLParser.processElement()",
-	 "START",11304,
+	 "FILE","/pro/nanoxml/test/net/n3/nanoxml/StdXMLParser.java",
+	 "LINE",359,"METHOD","net.n3.nanoxml.StdXMLParser.processElement",
+	 "START",10761,
 	 "TOKEN","name",
 	 "QTYPE","TOKEN");
    qts.add(fq2);
+   FlowQueryTest fq1 = new FlowQueryTest(cnts,
+//	 "CONDDEPTH",50,"DEPTH",100,
+	 "FILE","/pro/nanoxml/test/net/n3/nanoxml/ParserTest.java",
+	 "LINE",457,"METHOD","net.n3.nanoxml.ParserTest.testParsing16",
+	 "QTYPE","EXPRESSION");
+   qts.add(fq1);
 
    runServerTest("nanoxml","nanoxml",0,null,qts);
 }

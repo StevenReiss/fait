@@ -2836,10 +2836,14 @@ private Object visit(VariableDeclarationStatement v)
 
 private Object visit(VariableDeclarationFragment v)
 {
-    if (after_node == null && v.getInitializer() != null) return v.getInitializer();
-    JcompSymbol js = JcompAst.getDefinition(v.getName());
-    handleInitialization(js,v.getInitializer());
-    return null;
+   if (after_node == null) return v.getName();
+   else if (after_node == v.getName()) {
+      if (v.getInitializer() != null) return v.getInitializer();
+    }
+   JcompSymbol js = JcompAst.getDefinition(v.getName());
+   handleInitialization(js,v.getInitializer());
+   popValue();                 // Remove Name from stack
+   return null;
 }
 
 

@@ -1398,6 +1398,12 @@ private void handleFlowQueryForCall(IfaceControl ctrl,Element qxml,IfaceCall cal
     }
    if (aft != null) an0 = aft.getParent();
    IfaceProgramPoint ppt = ctrl.getAstReference(an0,aft);
+// if (an0.getNodeType() == ASTNode.VARIABLE_DECLARATION_FRAGMENT) {
+//    VariableDeclarationFragment vdf = (VariableDeclarationFragment) an0;
+//    if (vdf.getName() == aft) {
+//       ppt = ctrl.getAstReference(an0,vdf.getInitializer());
+//     }
+//  }
    
    List<IfaceMethod> stack = null;
    Element selt = IvyXml.getChild(qxml,"STACK");
