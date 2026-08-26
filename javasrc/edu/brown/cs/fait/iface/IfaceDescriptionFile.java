@@ -55,8 +55,8 @@ default int getInstanceCount()           { return 0; }
 
 default int compareTo(IfaceDescriptionFile f1)
 {
-   if (getPriority() > f1.getPriority()) return 1;
    if (getPriority() < f1.getPriority()) return -1;
+   if (getPriority() > f1.getPriority()) return 1;
    if (getInstanceCount() > f1.getInstanceCount()) return -1;
    if (getInstanceCount() < f1.getInstanceCount()) return 1;
    return 0;

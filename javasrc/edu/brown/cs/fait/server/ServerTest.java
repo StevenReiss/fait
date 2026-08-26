@@ -1420,7 +1420,7 @@ private class FlowQueryTest extends QueryTest {
    FlowQueryTest(String cnts,Object... args) {
       command_args = new CommandArgs();
       for (int i = 0; i < args.length; i += 2) {
-	 command_args.put((String) args[i],args[i+1]);
+         command_args.put((String) args[i],args[i+1]);
        }
       command_cnts = cnts;
     }

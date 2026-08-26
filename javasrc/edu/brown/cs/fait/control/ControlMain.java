@@ -80,6 +80,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import org.w3c.dom.Element;
@@ -159,14 +160,25 @@ public ControlMain(IfaceProject ip)
    fait_files = new LinkedHashMap<>();
    SortedSet<IfaceDescriptionFile> files = new TreeSet<>();
    List<File> sysfiles = getSystemDescriptionFiles();
+   Set<File> done = new HashSet<>();
    if (sysfiles != null) {
       for (File f : sysfiles) {
-	 files.add(new ControlDescriptionFile(f,IfaceDescriptionFile.PRIORITY_BASE));
+         if (done.add(f)) {
+            files.add(new ControlDescriptionFile(f,IfaceDescriptionFile.PRIORITY_BASE));
+          }
+         else {
+            FaitLog.logD("CONTROL","Duplicate description file " + f);
+          }
        }
     }
    if (ip.getDescriptionFiles() != null) {
       for (IfaceDescriptionFile ff : ip.getDescriptionFiles()) {
-	 files.add(ff);
+         if (done.add(ff.getFile())) {
+            files.add(ff);
+          }
+         else {
+            FaitLog.logD("CONTROL","Duplicate control file " + ff.getFile());
+          }
        }
     }
    for (IfaceDescriptionFile f : files) {
