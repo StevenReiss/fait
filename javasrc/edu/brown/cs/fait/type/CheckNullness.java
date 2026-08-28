@@ -60,7 +60,7 @@ public final class CheckNullness extends TypeSubtype
 /*										*/
 /********************************************************************************/
 
-// add monotonic-non-null
+// add MUMUonotonic-non-null
 
 public enum NullState implements IfaceSubtype.Value
 {
@@ -72,7 +72,7 @@ public enum NullState implements IfaceSubtype.Value
    @Override public IfaceSubtype getSubtype()	{ return our_type; }
 }
 
-private static CheckNullness  our_type = new CheckNullness();
+private static CheckNullness  our_type;
 
 
 

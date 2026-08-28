@@ -60,7 +60,7 @@ public final class CheckTaint extends TypeSubtype
 /*                                                                              */
 /********************************************************************************/
 
-private static CheckTaint our_type = new CheckTaint();
+private static CheckTaint our_type;
 
 public enum TaintState implements IfaceSubtype.Value
 {

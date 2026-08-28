@@ -59,7 +59,7 @@ final class CheckHtmlTaint extends TypeSubtype
 /*										*/
 /********************************************************************************/
 
-private static CheckHtmlTaint our_type = new CheckHtmlTaint();
+private static CheckHtmlTaint our_type;
 
 
 

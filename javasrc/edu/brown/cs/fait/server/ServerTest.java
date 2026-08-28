@@ -1104,8 +1104,6 @@ private static void setupBedrock(String dir,String mint,String proj)
    // cmd += " -Xdebug -Xrunjdwp:transport=dt_socket,address=32328,server=y,suspend=n";
    // cmd += " -Xmx16000m";
    
-   System.err.println("RUN: " + cmd);
-   
    try {
       for (int i = 0; i < 250; ++i) {
 	 if (pingEclipse()) {
@@ -1113,11 +1111,14 @@ private static void setupBedrock(String dir,String mint,String proj)
 	    sendBubblesMessage("LOGLEVEL",null,args,null);
 	    sendBubblesMessage("ENTER");
 	    Element pxml = sendBubblesXmlReply("OPENPROJECT",proj,null,null);
-	    if (!IvyXml.isElement(pxml,"PROJECT")) pxml = IvyXml.getChild(pxml,"PROJECT");
+	    if (!IvyXml.isElement(pxml,"PROJECT")) {
+               pxml = IvyXml.getChild(pxml,"PROJECT");
+             }
 	    return;
 	  }
 	 if (i == 0) {
             ServerMonitor.pongEclipse(); 
+            System.err.println("RUN: " + cmd);
             new IvyExec(cmd);
           }
 	 else {
