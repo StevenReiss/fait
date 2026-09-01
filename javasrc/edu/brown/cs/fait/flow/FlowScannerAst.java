@@ -2467,7 +2467,12 @@ private Object visit(CatchClause cc)
       IfaceValue exc = popActual();
       JcompSymbol js = JcompAst.getDefinition(cc.getException().getName());
       int slot = getSlot(js);
-      cur_state.setLocal(slot,exc);
+      if (slot >= 0) {
+         cur_state.setLocal(slot,exc);
+       }
+      else {
+         FaitLog.logW("FLOW","Catch variable not found " + cc.getException() + " " + js);
+       }
       return cc.getBody();
     }
 
@@ -2679,7 +2684,12 @@ private Object visit(EnhancedForStatement s)
 	 cnts = fait_control.findMutableValue(ijt);
        }
       int slot = getSlot(JcompAst.getDefinition(s.getParameter().getName()));
-      cur_state.setLocal(slot,cnts);
+      if (slot >= 0) {
+         cur_state.setLocal(slot,cnts);
+       }
+      else {
+         FaitLog.logW("FLOW","Enhanced For Variable not found " + s.getParameter());
+       }
       if (FaitLog.isTracing()) {
 	 FaitLog.logD1("Loop value [" + slot + "] = " + cnts);
        }

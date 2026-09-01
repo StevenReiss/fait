@@ -11,6 +11,8 @@
    <PACKAGE NAME='com.sun.org.apache.xerces.internal' />
    <PACKAGE NAME='org.eclipse.jdt.internal' />
    <PACKAGE NAME='com.fasterxml.jackson' />
+   <METHOD NAME='edu.brown.cs.fait.testgen.TestgenFactory.generateTestCase'
+	NORETURN='TRUE' />
 </FAIT>
 
 
