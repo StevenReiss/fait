@@ -175,6 +175,13 @@ public synchronized void serverTestTc1()
 
 
 @Test
+public synchronized void serverTestTc2()
+{
+   runServerTest("tc2","tc2",1,null);
+}
+
+
+@Test
 public synchronized void serverTestLimba() 
 {
    runServerTest("limba","limba",0,null,null,
